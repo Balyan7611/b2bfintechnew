@@ -16,8 +16,9 @@ export const RoleResponseModel = (res) => {
             addDate: item.createdDate ? item.createdDate.split('T')[0] : '',
             regCount: item.startVal,
             menuStr: item.menustr,
+            service: item.service,
             packageId: item.packageID,
-            outside: item.outRole,
+            outside: item.outSide !== undefined ? item.outSide : item.outRole,
             typeRole: item.typeRole
         }));
     }
@@ -32,8 +33,9 @@ export const RoleResponseModel = (res) => {
             price: res.data.price,
             status: res.data.isActive === true || res.data.isActive === 1,
             menuStr: res.data.menustr,
+            service: res.data.service,
             packageId: res.data.packageID,
-            outside: res.data.outRole,
+            outside: res.data.outSide !== undefined ? res.data.outSide : res.data.outRole,
             typeRole: res.data.typeRole
         }];
     }
@@ -53,8 +55,9 @@ export const RoleRequestModel = (data, security = null) => {
         menustr: data.menuStr || "1,2,3",
         packageID: parseInt(data.packageId) || 0,
         isActive: data.status === true || data.status === 1,
+        outSide: data.outside === true || data.outside === 1,
         outRole: data.outside === true || data.outside === 1,
-        typeRole: data.typeRole === true || data.typeRole === 1,
+        typeRole: parseInt(data.typeRole) || 0,
         defaultPackage: data.defaultPackage || 0,
         price: parseFloat(data.price) || 0
     };

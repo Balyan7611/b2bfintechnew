@@ -137,9 +137,9 @@ const RoleManagement = () => {
   }, [filterRoles]);
 
   const getAssignedServices = (role) => {
-    if (!role || !role.menuStr || !dbServices || dbServices.length === 0) return [];
+    if (!role || !role.service || role.service === 'string' || !dbServices || dbServices.length === 0) return [];
     
-    const ids = role.menuStr.split(',').map(id => id.trim()).filter(Boolean);
+    const ids = role.service.split(',').map(id => id.trim()).filter(Boolean);
     return ids.map(id => {
       const s = dbServices.find(service => service.id.toString() === id.toString());
       return s ? { id: s.id, name: s.name } : null;
@@ -204,7 +204,7 @@ const RoleManagement = () => {
       menuStr: role.menuStr || '1,2,3',
       packageId: role.packageId || 2,
       description: 'string',
-      service: 'string'
+      service: role.service || 'string'
     });
     setIsModalOpen(true);
   };
@@ -251,7 +251,9 @@ const RoleManagement = () => {
 
   const openAssignModal = (role) => {
     setAssignRole(role);
-    const currentlyAssigned = role.menuStr ? role.menuStr.split(',').map(id => id.trim()).filter(Boolean) : [];
+    const currentlyAssigned = (role.service && role.service !== 'string') 
+      ? role.service.split(',').map(id => id.trim()).filter(Boolean) 
+      : [];
     setSelectedServices(currentlyAssigned);
     setServiceSearch('');
     setIsAssignModalOpen(true);
@@ -279,10 +281,10 @@ const RoleManagement = () => {
     if (assignRole) {
       setLoading(true);
       try {
-        const newMenuStr = selectedServices.join(',');
+        const newServiceStr = selectedServices.join(',');
         const updatedRole = {
           ...assignRole,
-          menuStr: newMenuStr
+          service: newServiceStr
         };
         await API.saveRole(updatedRole);
         setIsAssignModalOpen(false);
@@ -298,11 +300,13 @@ const RoleManagement = () => {
 
   const removeServiceFromRole = async (role, serviceIdToRemove) => {
     try {
-      const ids = role.menuStr ? role.menuStr.split(',').map(id => id.trim()).filter(Boolean) : [];
+      const ids = (role.service && role.service !== 'string') 
+        ? role.service.split(',').map(id => id.trim()).filter(Boolean) 
+        : [];
       const updatedIds = ids.filter(id => id.toString() !== serviceIdToRemove.toString());
       const updatedRole = {
         ...role,
-        menuStr: updatedIds.join(',')
+        service: updatedIds.join(',')
       };
       await API.saveRole(updatedRole);
       fetchRoles();
