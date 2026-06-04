@@ -14,8 +14,18 @@ const OperatorManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [localOperators, setLocalOperators] = useState([]);
+  const [services, setServices] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+
+  const fetchServices = async () => {
+    try {
+      const res = await API.service.getAll();
+      if (res && res.status === true && Array.isArray(res.data)) {
+        setServices(res.data);
+      }
+    } catch (err) { console.error("Error fetching services", err); }
+  };
 
   const fetchOperators = async () => {
     setIsLoading(true);
@@ -49,6 +59,7 @@ const OperatorManagement = () => {
 
   useEffect(() => {
     fetchOperators();
+    fetchServices();
   }, []);
 
   const [formData, setFormData] = useState({
@@ -100,12 +111,12 @@ const OperatorManagement = () => {
   };
 
   const handleAddClick = () => {
-    setFormData({ id: '', name: '', code: '', service: '', minValue: '0', maxValue: '0', logo: '', status: false, downOperator: false });
+    setFormData({ id: '', name: '', code: '', serviceId: '', minValue: '0', maxValue: '0', logo: '', status: false, downOperator: false });
     setIsModalOpen(true);
   };
 
   const handleEdit = (operator) => {
-    setFormData({ ...formData, ...operator });
+    setFormData({ ...formData, ...operator, serviceId: operator.serviceId || operator.service });
     setIsModalOpen(true);
   };
 
@@ -114,7 +125,7 @@ const OperatorManagement = () => {
     try {
       const payload = {
         id: formData.id && !isNaN(formData.id) ? parseInt(formData.id) : 0,
-        serviceId: formData.service === 'Prepaid' ? 1 : formData.service === 'Postpaid' ? 2 : 3,
+        serviceId: parseInt(formData.serviceId) || 0,
         operatorCode: formData.code,
         name: formData.name,
         minVal: parseFloat(formData.minValue) || 0,
@@ -314,11 +325,11 @@ const OperatorManagement = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
                     <div className={styles.formGroup}>
                       <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B' }}>Service :</label>
-                      <select name="service" className={styles.inputControl} value={formData.service} onChange={handleInputChange} style={{ borderRadius: '8px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#fff', fontSize: '0.9rem' }}>
+                      <select name="serviceId" className={styles.inputControl} value={formData.serviceId} onChange={handleInputChange} style={{ borderRadius: '8px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#fff', fontSize: '0.9rem' }}>
                         <option value="">Select Service</option>
-                        <option value="Prepaid">Prepaid</option>
-                        <option value="Postpaid">Postpaid</option>
-                        <option value="DTH">DTH</option>
+                        {services.map(s => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
                       </select>
                     </div>
                     <div className={styles.formGroup}>

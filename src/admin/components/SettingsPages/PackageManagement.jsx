@@ -20,7 +20,16 @@ const PackageManagement = () => {
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
 
   const [localPackages, setLocalPackages] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
+
+  const fetchRoles = async () => {
+    try {
+      const res = await API.getRoles();
+      if (res && Array.isArray(res)) setRoles(res);
+      else if (res && res.data) setRoles(res.data);
+    } catch (err) { console.error("Error fetching roles", err); }
+  };
 
   const fetchPackages = async () => {
     setIsLoading(true);
@@ -52,6 +61,7 @@ const PackageManagement = () => {
 
   useEffect(() => {
     fetchPackages();
+    fetchRoles();
   }, []);
 
   const handleDelete = () => {
@@ -71,7 +81,7 @@ const PackageManagement = () => {
   };
 
   const handleEdit = (pkg) => {
-    setFormData({ ...pkg });
+    setFormData({ ...pkg, role: pkg.roleId || pkg.role });
     setIsModalOpen(true);
   };
 
@@ -81,7 +91,7 @@ const PackageManagement = () => {
     try {
       const payload = {
         id: formData.id && !isNaN(formData.id) ? parseInt(formData.id) : 0,
-        roleId: formData.role === 'Admin' ? 1 : formData.role === 'Retailer' ? 2 : 3,
+        roleId: parseInt(formData.role) || 0,
         code: formData.code || formData.name.substring(0, 3).toUpperCase(),
         name: formData.name,
         description: formData.description || formData.name,
@@ -276,9 +286,9 @@ const PackageManagement = () => {
                     <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}><FiUserCheck size={14}/> Select Role</label>
                     <select name="role" className={styles.inputControl} value={formData.role} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '12px 16px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} required>
                       <option value="">-- Select Role --</option>
-                      <option value="Retailer">Retailer</option>
-                      <option value="Distributor">Distributor</option>
-                      <option value="Master">Master Distributor</option>
+                      {roles.map(r => (
+                        <option key={r.id} value={r.id}>{r.name}</option>
+                      ))}
                     </select>
                   </div>
                   

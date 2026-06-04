@@ -1,14 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { API } from '../../../api/endpoints';
 import { FiUserCheck, FiPackage, FiCheckSquare, FiChevronRight, FiCheck } from 'react-icons/fi';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const AssignPackage = () => {
-  const packages = [
-    'Retailer', 'Admin', 'Distributor', 'Master', 'API USER',
-    'Direct retailer', 'Whitelabel', 'RT_GOLD', 'silver111', 'Unique'
-  ];
-
+  const [packages, setPackages] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [selectedRoleId, setSelectedRoleId] = useState('');
+  
   const [selectedPackages, setSelectedPackages] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const rolesRes = await API.getRoles();
+        if (rolesRes && Array.isArray(rolesRes)) setRoles(rolesRes);
+        else if (rolesRes && rolesRes.data) setRoles(rolesRes.data);
+
+        const pkgRes = await API.package.getAll();
+        if (pkgRes && pkgRes.status === true && Array.isArray(pkgRes.data)) setPackages(pkgRes.data);
+      } catch (err) {
+        console.error("Error fetching data", err);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -18,11 +34,11 @@ const AssignPackage = () => {
     }
   };
 
-  const handleSelectPackage = (pkg) => {
-    if (selectedPackages.includes(pkg)) {
-      setSelectedPackages(selectedPackages.filter(p => p !== pkg));
+  const handleSelectPackage = (pkgId) => {
+    if (selectedPackages.includes(pkgId)) {
+      setSelectedPackages(selectedPackages.filter(p => p !== pkgId));
     } else {
-      setSelectedPackages([...selectedPackages, pkg]);
+      setSelectedPackages([...selectedPackages, pkgId]);
     }
   };
 
@@ -39,18 +55,11 @@ const AssignPackage = () => {
           {/* ROLE SELECT */}
           <div className={styles.formGroup} style={{ maxWidth: '600px', marginBottom: '35px' }}>
             <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}><FiUserCheck size={14} /> Select Role</label>
-            <select className={styles.inputControl} style={{ borderRadius: '10px', padding: '12px 16px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }}>
+            <select value={selectedRoleId} onChange={(e) => setSelectedRoleId(e.target.value)} className={styles.inputControl} style={{ borderRadius: '10px', padding: '12px 16px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }}>
               <option value="">Select Role</option>
-              <option value="Master Distributor">Master Distributor</option>
-              <option value="Distributor">Distributor</option>
-              <option value="Retailer">Retailer</option>
-              <option value="Admin">Admin</option>
-              <option value="White Label">White Label</option>
-              <option value="Client">Client</option>
-              <option value="API User">API User</option>
-              <option value="ASM">ASM</option>
-              <option value="Whitlable">Whitlable</option>
-              <option value="Unique">Unique</option>
+              {roles.map(r => (
+                <option key={r.id} value={r.id}>{r.name}</option>
+              ))}
             </select>
           </div>
 
@@ -81,7 +90,7 @@ const AssignPackage = () => {
             border: '1.5px dashed rgba(23, 86, 170, 0.2)'
           }}>
             {packages.map((pkg, idx) => (
-              <div key={idx} style={{
+              <div key={pkg.id} style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
@@ -95,13 +104,13 @@ const AssignPackage = () => {
               }}>
                 <input
                   type="checkbox"
-                  id={`pkg-${idx}`}
+                  id={`pkg-${pkg.id}`}
                   style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                  checked={selectedPackages.includes(pkg)}
-                  onChange={() => handleSelectPackage(pkg)}
+                  checked={selectedPackages.includes(pkg.id)}
+                  onChange={() => handleSelectPackage(pkg.id)}
                 />
-                <label htmlFor={`pkg-${idx}`} style={{ fontSize: '0.85rem', fontWeight: 700, color: '#4E6080', cursor: 'pointer', margin: 0, flex: 1 }}>
-                  {pkg}
+                <label htmlFor={`pkg-${pkg.id}`} style={{ fontSize: '0.85rem', fontWeight: 700, color: '#4E6080', cursor: 'pointer', margin: 0, flex: 1 }}>
+                  {pkg.name}
                 </label>
               </div>
             ))}

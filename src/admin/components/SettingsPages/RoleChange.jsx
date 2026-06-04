@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { API } from '../../../api/endpoints';
 import { 
   FiSearch, FiEdit, FiTrash2, FiPlus, FiChevronLeft, FiChevronRight, FiDatabase, FiX, FiCheck, FiUser, FiRefreshCw, FiArrowRight, FiChevronDown
 } from 'react-icons/fi';
@@ -13,14 +14,33 @@ const RoleChange = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [fetchedMember, setFetchedMember] = useState(null);
   
+  const [roles, setRoles] = useState([]);
+  const [packages, setPackages] = useState([]);
+  
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   
   const [formData, setFormData] = useState({
-    role: '',
-    package: '',
+    roleId: '',
+    packageId: '',
     idChange: false
   });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const rolesRes = await API.getRoles();
+        if (rolesRes && Array.isArray(rolesRes)) setRoles(rolesRes);
+        else if (rolesRes && rolesRes.data) setRoles(rolesRes.data);
+
+        const pkgRes = await API.package.getAll();
+        if (pkgRes && pkgRes.status === true && Array.isArray(pkgRes.data)) setPackages(pkgRes.data);
+      } catch (err) {
+        console.error("Error fetching roles/packages", err);
+      }
+    };
+    fetchData();
+  }, []);
 
   const mockMembers = [
     { id: 'Pay99RT4002', name: 'vipin soni', parent: 'vivek varshney MDT8597', role: 'Retailer' },
@@ -44,14 +64,14 @@ const RoleChange = () => {
   };
 
   const handleChangeRole = () => {
-    if (!fetchedMember || !formData.role) return;
+    if (!fetchedMember || !formData.roleId) return;
     
     setIsLoading(true);
     // Simulate API request
     setTimeout(() => {
       setFetchedMember(prev => ({
         ...prev,
-        role: formData.role.charAt(0).toUpperCase() + formData.role.slice(1) // Capitalize role
+        role: roles.find(r => r.id.toString() === formData.roleId)?.name || 'Updated Role'
       }));
       setIsLoading(false);
       setSuccessMessage('Role changed successfully!');
@@ -122,14 +142,14 @@ const RoleChange = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1E293B' }}>Role</label>
               <select 
-                value={formData.role}
-                onChange={(e) => setFormData({...formData, role: e.target.value})}
+                value={formData.roleId}
+                onChange={(e) => setFormData({...formData, roleId: e.target.value})}
                 style={{ padding: '10px 15px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', outline: 'none', color: '#334155', background: '#fff', cursor: 'pointer' }}
               >
                 <option value="">Select Role</option>
-                <option value="retailer">Retailer</option>
-                <option value="distributor">Distributor</option>
-                <option value="master">Master Distributor</option>
+                {roles.map(r => (
+                  <option key={r.id} value={r.id}>{r.name}</option>
+                ))}
               </select>
             </div>
 
@@ -137,13 +157,14 @@ const RoleChange = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1E293B' }}>Package</label>
               <select 
-                value={formData.package}
-                onChange={(e) => setFormData({...formData, package: e.target.value})}
+                value={formData.packageId}
+                onChange={(e) => setFormData({...formData, packageId: e.target.value})}
                 style={{ padding: '10px 15px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', outline: 'none', color: '#334155', background: '#fff', cursor: 'pointer' }}
               >
                 <option value="">Select Package</option>
-                <option value="default">Default Package</option>
-                <option value="premium">Premium Package</option>
+                {packages.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
               </select>
             </div>
 
