@@ -23,22 +23,19 @@ export const CompanyService = {
         }
     },
 
-    // Standard CRUD placeholders for future scaling
+    // Standard CRUD
     getAll: async () => {
-        const res = await apiService.get('/Company/get-all');
-        return CompanyResponseModel(res);
+        return await apiService.get('/Company/get-all');
     },
     getById: async (id) => {
         const res = await apiService.get(`/Company/get-by-id/${id}`);
         return CompanyResponseModel(res);
     },
-    create: async (data) => {
-        const payload = CompanyRequestModel(data);
-        return payload;
+    create: async (formData) => {
+        return await apiService.post('/Company', formData);
     },
-    update: async (id, data) => {
-        const payload = CompanyRequestModel(data);
-        return payload;
+    update: async (formData) => {
+        return await apiService.put('/Company', formData);
     },
     delete: async (id) => {
         return await apiService.delete(`/Company/delete/${id}`);

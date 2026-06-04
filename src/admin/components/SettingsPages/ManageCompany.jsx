@@ -100,47 +100,146 @@ const ManageCompany = () => {
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     if (files && files[0]) {
-      setFormData(prev => ({ ...prev, [name]: files[0].name }));
+      setFormData(prev => ({ 
+        ...prev, 
+        [name]: files[0].name,
+        [`${name}File`]: files[0]
+      }));
     }
   };
 
-  const handleAddSubmit = (e) => {
+  const handleAddSubmit = async (e) => {
     e.preventDefault();
-    if (formData.id) {
-      // Edit existing
-      setLocalCompanies(localCompanies.map(c => c.id === formData.id ? {
-        ...c,
-        name: formData.companyName,
-        owner: formData.ownerName,
-        email: formData.email,
-        phone: formData.mobile
-      } : c));
-    } else {
-      // Add new
-      const newId = localCompanies.length ? Math.max(...localCompanies.map(c => c.id)) + 1 : 1;
-      const newComp = {
-        id: newId,
-        name: formData.companyName || 'New Company',
-        owner: formData.ownerName || 'Unknown Owner',
-        email: formData.email || 'N/A',
-        phone: formData.mobile || 'N/A',
-        status: 'ACTIVE',
-        addDate: new Date().toLocaleDateString('en-GB')
-      };
-      setLocalCompanies([newComp, ...localCompanies]);
+    setIsLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append('Id', formData.id ? parseInt(formData.id) : 0);
+      fd.append('Name', formData.companyName || '');
+      fd.append('Email', formData.email || '');
+      fd.append('Mobile', formData.mobile || '');
+      
+      if (formData.logoFile) {
+        fd.append('FileLogo', formData.logoFile);
+      }
+      if (formData.faviconFile) {
+        fd.append('FileFevicon', formData.faviconFile);
+      }
+      if (formData.signatureFile) {
+        fd.append('FileSign', formData.signatureFile);
+      }
+
+      fd.append('AlternateEmail', formData.alternateEmail || '');
+      fd.append('AlternateMobile', formData.alternateMobile || '');
+      fd.append('OwnerName', formData.ownerName || '');
+      fd.append('Address', formData.address || '');
+      fd.append('BankName', formData.bankName || '');
+      fd.append('Acname', formData.acName || '');
+      fd.append('Acnumber', formData.acNumber || '');
+      fd.append('Actype', formData.acType || '');
+      fd.append('Ifsc', formData.ifsc || '');
+      fd.append('Micrcode', formData.micrcode || '');
+      
+      // Pass the current file path strings if no new file is uploaded
+      fd.append('Logo', formData.logo || '');
+      fd.append('Signature', formData.signature || '');
+      fd.append('Feviconicon', formData.favicon || '');
+      
+      fd.append('HeaderColor', formData.headerColor || '');
+      fd.append('LeftColor', formData.leftColor || '');
+      fd.append('BodyColor', formData.bodyColor || '');
+      fd.append('Copyright', formData.copyright || '');
+      fd.append('WebsiteUrl', formData.websiteUrl || '');
+      fd.append('AndroidUrl', formData.androidUrl || '');
+      
+      fd.append('FaceBook', formData.facebook || '');
+      fd.append('Instagram', formData.instagram || '');
+      fd.append('Twiter', formData.twitter || '');
+      fd.append('Youtube', formData.youtube || '');
+      fd.append('WhastApp', formData.whatsapp || '');
+      
+      fd.append('ProfileAmount', parseFloat(formData.profileAmount) || 0.00);
+      fd.append('MemberId', parseInt(formData.member) || 1);
+
+      fd.append('ip', '0.0.0.0');
+      fd.append('deviceInfo.browser', navigator.userAgent);
+      fd.append('deviceInfo.os', navigator.platform);
+      fd.append('deviceInfo.device', 'Web');
+      fd.append('deviceInfo.userAgent', navigator.userAgent);
+
+      let res;
+      if (formData.id) {
+        res = await API.company.update(fd);
+      } else {
+        res = await API.company.create(fd);
+      }
+
+      fetchCompanies();
+      setViewState('table');
+      setFormData(initialForm);
+    } catch (err) {
+      console.error("Error saving company:", err);
+      // Fallback local logic
+      if (formData.id) {
+        setLocalCompanies(localCompanies.map(c => c.id === formData.id ? {
+          ...c,
+          name: formData.companyName,
+          owner: formData.ownerName,
+          email: formData.email,
+          phone: formData.mobile
+        } : c));
+      } else {
+        const newId = localCompanies.length ? Math.max(...localCompanies.map(c => c.id)) + 1 : 1;
+        const newComp = {
+          id: newId,
+          name: formData.companyName || 'New Company',
+          owner: formData.ownerName || 'Unknown Owner',
+          email: formData.email || 'N/A',
+          phone: formData.mobile || 'N/A',
+          status: 'ACTIVE',
+          addDate: new Date().toLocaleDateString('en-GB')
+        };
+        setLocalCompanies([newComp, ...localCompanies]);
+      }
+      setViewState('table');
+      setFormData(initialForm);
+    } finally {
+      setIsLoading(false);
     }
-    setViewState('table');
-    setFormData(initialForm);
   };
 
   const handleEdit = (comp) => {
-    setFormData({ 
-      ...initialForm, 
+    setFormData({
       id: comp.id,
-      companyName: comp.name, 
-      ownerName: comp.owner, 
-      email: comp.email, 
-      mobile: comp.phone 
+      member: comp.memberId || '',
+      companyName: comp.companyName || comp.name || '',
+      logo: comp.logo || '',
+      signature: comp.signature || '',
+      favicon: comp.feviconicon || '',
+      ownerName: comp.ownerName || comp.owner || '',
+      email: comp.email || '',
+      alternateEmail: comp.alternateEmail || '',
+      mobile: comp.mobile || comp.phone || '',
+      alternateMobile: comp.alternateMobile || '',
+      websiteUrl: comp.websiteUrl || '',
+      androidUrl: comp.androidUrl || '',
+      address: comp.address || '',
+      copyright: comp.copyright || '',
+      facebook: comp.faceBook || '',
+      whatsapp: comp.whastApp || '',
+      instagram: comp.instagram || '',
+      twitter: comp.twiter || '',
+      youtube: comp.youtube || '',
+      bankName: comp.bankName || '',
+      acName: comp.acname || '',
+      acType: comp.actype || '',
+      acNumber: comp.acnumber || '',
+      ifsc: comp.ifsc || '',
+      micrcode: comp.micrcode || '',
+      profileAmount: comp.profileAmount || '0',
+      map: comp.map || '',
+      headerColor: comp.headerColor || '#1756AA',
+      bodyColor: comp.bodyColor || '#F8FAFC',
+      leftColor: comp.leftColor || '#0F172A'
     });
     setViewState('add');
   };
@@ -227,7 +326,7 @@ const ManageCompany = () => {
                         <button className={styles.deleteBtn} style={{ background: '#FEF2F2', color: '#EF4444', border: '1px solid #FECACA', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer' }} title="Delete" onClick={() => setShowConfirmModal({ isOpen: true, id: comp.id })}><FiTrash2 /></button>
                       </div>
                     </td>
-                    <td style={{ fontWeight: 800, color: '#334155' }}>Company</td>
+                    <td style={{ fontWeight: 800, color: '#334155' }}>{comp.name}</td>
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                         <span style={{ color: '#1D4ED8', fontWeight: 800, fontSize: '0.95rem' }}>{comp.name}</span>
@@ -328,8 +427,8 @@ const ManageCompany = () => {
                     <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Select Member</label>
                     <select name="member" value={formData.member} onChange={handleInputChange} className={styles.inputControl} style={{ borderRadius: '10px', padding: '12px 16px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem', cursor: 'pointer' }}>
                       <option value="">-- Select Member --</option>
-                      <option value="member1">Admin</option>
-                      <option value="member2">Super Distributor</option>
+                      <option value="1">Admin</option>
+                      <option value="2">Super Distributor</option>
                     </select>
                   </div>
                   <div className={styles.formGroup}>

@@ -102,7 +102,7 @@ const PackageManagement = () => {
       };
       
       let res;
-      if (formData.id && !isNaN(formData.id) && formData.id > 1000) { // check if editable
+      if (formData.id && !isNaN(formData.id) && parseInt(formData.id) > 0) { // If ID exists and > 0, it's an update (PUT)
         res = await API.package.update(payload);
       } else {
         res = await API.package.create(payload);
@@ -212,7 +212,9 @@ const PackageManagement = () => {
                   <td>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ color: '#1756AA', fontSize: '0.95rem', fontWeight: 800 }}>{pkg.name}</span>
-                      <small style={{ color: '#718096', fontWeight: 600 }}>Copy Slab: {pkg.copySlab || 'None'}</small>
+                      <small style={{ color: '#718096', fontWeight: 600 }}>
+                        Copy Slab: {localPackages.find(p => p.id.toString() === pkg.copySlab)?.name || 'None'}
+                      </small>
                     </div>
                   </td>
                   <td>
@@ -312,7 +314,9 @@ const PackageManagement = () => {
                     <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}><FiCopy size={14}/> Copy Slab From</label>
                     <select name="copySlab" className={styles.inputControl} value={formData.copySlab} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '12px 16px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }}>
                       <option value="">No Slab</option>
-                      <option value="Retailer">Retailer</option>
+                      {localPackages.filter(p => p.id !== formData.id).map(p => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
                     </select>
                   </div>
 
