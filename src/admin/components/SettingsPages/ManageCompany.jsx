@@ -313,7 +313,7 @@ const ManageCompany = () => {
 
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '10px' }}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>🏢 Manage Companies</h3>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>Manage Companies</h3>
             <button
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
@@ -454,7 +454,7 @@ const ManageCompany = () => {
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '50%', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#475569', cursor: 'pointer' }}
             ><FiArrowLeft size={14} /></button>
             <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>
-              {formData.id ? '✏️ Edit Company' : '➕ Add New Company'}
+              {formData.id ? 'Edit Company' : 'Add New Company'}
             </h3>
           </div>
 
@@ -469,7 +469,7 @@ const ManageCompany = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '36px' }}>
 
               {/* ── Section 1: Basic Info ── */}
-              <Section title="Basic Information" icon={<FiBriefcase />} color="#3B82F6">
+              <Section title="Basic Information">
                 <Grid>
                   <Field label="Company Name *">
                     <input name="companyName" value={formData.companyName} onChange={handleInputChange} required placeholder="DPAY INDIA" className={styles.inputControl} style={inputStyle} />
@@ -493,7 +493,7 @@ const ManageCompany = () => {
               </Section>
 
               {/* ── Section 2: Contact ── */}
-              <Section title="Contact Details" icon={<FiPhone />} color="#10B981">
+              <Section title="Contact Details">
                 <Grid>
                   <Field label="Email *">
                     <input name="email" value={formData.email} onChange={handleInputChange} required type="email" placeholder="info@company.com" className={styles.inputControl} style={inputStyle} />
@@ -511,7 +511,7 @@ const ManageCompany = () => {
               </Section>
 
               {/* ── Section 3: Web & Social ── */}
-              <Section title="Web & Social Links" icon={<FiGlobe />} color="#8B5CF6">
+              <Section title="Online Presence & Social Media">
                 <Grid>
                   <Field label="Website URL">
                     <input name="websiteUrl" value={formData.websiteUrl} onChange={handleInputChange} type="url" placeholder="https://example.com" className={styles.inputControl} style={inputStyle} />
@@ -538,7 +538,7 @@ const ManageCompany = () => {
               </Section>
 
               {/* ── Section 4: Banking ── */}
-              <Section title="Banking & Accounts" icon={<FiDollarSign />} color="#F59E0B">
+              <Section title="Banking Details">
                 <Grid>
                   <Field label="Bank Name">
                     <input name="bankName" value={formData.bankName} onChange={handleInputChange} placeholder="HDFC Bank" className={styles.inputControl} style={inputStyle} />
@@ -565,7 +565,7 @@ const ManageCompany = () => {
               </Section>
 
               {/* ── Section 5: Media & Branding ── */}
-              <Section title="Media & Branding" icon={<FiImage />} color="#EC4899">
+              <Section title="Media & Branding">
                 <Grid>
                   {/* ── Logo ── */}
                   <Field label="Logo">
@@ -598,7 +598,7 @@ const ManageCompany = () => {
                     <ImagePreview
                       newPreview={formData.signaturePreview}
                       existingPath={formData.signature}
-                      folder="signature"
+                      folder="logo"
                       label="Signature"
                     />
                   </Field>
@@ -616,7 +616,7 @@ const ManageCompany = () => {
                     <ImagePreview
                       newPreview={formData.faviconPreview}
                       existingPath={formData.favicon}
-                      folder="favicon"
+                      folder="logo"
                       label="Favicon"
                     />
                   </Field>
@@ -720,13 +720,30 @@ const ManageCompany = () => {
 /* ── Mini helper components ── */
 const Section = ({ title, icon, color, children }) => (
   <div>
-    <h4 style={{ margin: '0 0 18px', fontSize: '1rem', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '10px' }}>
-      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '10px', background: `${color}18`, color }}>{icon}</span>
+    <h4 style={{
+      margin: '0 0 18px',
+      fontSize: '0.95rem',
+      fontWeight: 700,
+      color: '#0F172A',
+      display: 'flex',
+      alignItems: 'center',
+      gap: icon ? '10px' : '0',
+      paddingLeft: icon ? '0' : '12px',
+      borderLeft: icon ? 'none' : '3px solid #1756AA',
+    }}>
+      {icon && (
+        <span style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: '34px', height: '34px', borderRadius: '10px',
+          background: `${color}18`, color, flexShrink: 0
+        }}>{icon}</span>
+      )}
       {title}
     </h4>
     {children}
   </div>
 );
+
 
 const Grid = ({ children }) => (
   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: '20px' }}>

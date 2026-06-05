@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import { updateMemberDirect } from '../../../store/slices/memberSlice';
 import styles from './MemberControlPage.module.css';
+import QuickActionGrid from '../../../shared/components/common/QuickActionGrid';
 
 const MemberControlPage = ({ activeMemberData, onClose }) => {
   const dispatch = useDispatch();
@@ -198,9 +199,11 @@ const MemberControlPage = ({ activeMemberData, onClose }) => {
           <FaArrowLeft style={{ marginRight: '8px' }} /> Back <span className={styles.hideOnMobile}>to Dashboard</span>
         </button>
         <span className={styles.controlPageTitle}>
-          {isEditingProfile ? 'Edit Member Profile' : 
-           activeActionType ? 'Wallet & Fund Operation' : 
-           'Member Control Center'}
+          {isEditingProfile
+            ? 'Edit Member Profile'
+            : activeActionType
+            ? 'Wallet & Fund Operation'
+            : 'Member Control Center'}
         </span>
       </div>
 
@@ -844,158 +847,51 @@ const MemberControlPage = ({ activeMemberData, onClose }) => {
             <div className={styles.modalRightColumn}>
               <h3 className={styles.modalSectionTitle}>Quick Account Operations</h3>
               
-              <div className={styles.actionsIconGrid}>
-                {/* 1. Edit Profile */}
-                <button 
-                  className={`${styles.actionIconCard} ${isEditingProfile ? styles.actionIconCardActive : ''}`}
-                  onClick={() => {
-                    const nextVal = !isEditingProfile;
-                    setIsEditingProfile(nextVal);
-                    setActiveActionType(null);
-                    if (nextVal) {
-                      setProfileForm({
-                        name: activeMemberData.name || '',
-                        mobile: activeMemberData.mobile || '',
-                        shop: activeMemberData.shop || '',
-                        aadhar: activeMemberData.aadhar || '',
-                        pan: activeMemberData.pan || '',
-                        title: activeMemberData.title || 'Mr.',
-                        role: activeMemberData.role || activeMemberData.memberType || 'Retailer',
-                        packageId: activeMemberData.packageId || 'Retailer',
-                        altMobile: activeMemberData.altMobile || '',
-                        gender: activeMemberData.gender || 'Male',
-                        address: activeMemberData.address || '',
-                        state: activeMemberData.state || 'Uttar Pradesh',
-                        city: activeMemberData.city || '',
-                        pincode: activeMemberData.pincode || '',
-                        postOffice: activeMemberData.postOffice || 'Aurangabad Aheer',
-                        dob: activeMemberData.dob || '',
-                        active: activeMemberData.active !== undefined ? activeMemberData.active : true,
-                        businessName: activeMemberData.businessName || '',
-                        businessAddress: activeMemberData.businessAddress || '',
-                        businessCity: activeMemberData.businessCity || '',
-                        businessState: activeMemberData.businessState || 'Uttar Pradesh',
-                        businessPincode: activeMemberData.businessPincode || '',
-                        businessPostOffice: activeMemberData.businessPostOffice || 'Aurangabad Aheer'
-                      });
-                    }
-                  }}
-                >
-                  <div className={styles.actionIconCircle} style={{ background: 'rgba(23,86,170,0.1)', color: '#1756AA' }}>
-                    <FaEdit />
-                  </div>
-                  <span className={styles.actionIconLabel}>Edit Profile</span>
-                </button>
-
-                {/* 2. Add Fund */}
-                <button 
-                  className={`${styles.actionIconCard} ${activeActionType === 'addFund' ? styles.actionIconCardActive : ''}`}
-                  onClick={() => {
-                    setActiveActionType(activeActionType === 'addFund' ? null : 'addFund');
-                    setIsEditingProfile(false);
-                    setActionAmount('');
-                  }}
-                >
-                  <div className={styles.actionIconCircle} style={{ background: 'rgba(39,174,96,0.1)', color: '#27AE60' }}>
-                    <FaHandHoldingUsd />
-                  </div>
-                  <span className={styles.actionIconLabel}>Add Fund</span>
-                </button>
-
-                {/* 3. Deduct Fund */}
-                <button 
-                  className={`${styles.actionIconCard} ${activeActionType === 'deductFund' ? styles.actionIconCardActive : ''}`}
-                  onClick={() => {
-                    setActiveActionType(activeActionType === 'deductFund' ? null : 'deductFund');
-                    setIsEditingProfile(false);
-                    setActionAmount('');
-                  }}
-                >
-                  <div className={styles.actionIconCircle} style={{ background: 'rgba(229,62,62,0.1)', color: '#E53E3E' }}>
-                    <FaMoneyBillWave />
-                  </div>
-                  <span className={styles.actionIconLabel}>Deduct Fund</span>
-                </button>
-
-                {/* 4. Add AEPS Fund */}
-                <button 
-                  className={`${styles.actionIconCard} ${activeActionType === 'addAeps' ? styles.actionIconCardActive : ''}`}
-                  onClick={() => {
-                    setActiveActionType(activeActionType === 'addAeps' ? null : 'addAeps');
-                    setIsEditingProfile(false);
-                    setActionAmount('');
-                  }}
-                >
-                  <div className={styles.actionIconCircle} style={{ background: 'rgba(49,151,149,0.1)', color: '#319795' }}>
-                    <FaCreditCard />
-                  </div>
-                  <span className={styles.actionIconLabel}>Add AEPS Fund</span>
-                </button>
-
-                {/* 5. Deduct AEPS Fund */}
-                <button 
-                  className={`${styles.actionIconCard} ${activeActionType === 'deductAeps' ? styles.actionIconCardActive : ''}`}
-                  onClick={() => {
-                    setActiveActionType(activeActionType === 'deductAeps' ? null : 'deductAeps');
-                    setIsEditingProfile(false);
-                    setActionAmount('');
-                  }}
-                >
-                  <div className={styles.actionIconCircle} style={{ background: 'rgba(128,90,213,0.1)', color: '#805AD5' }}>
-                    <FaExchangeAlt />
-                  </div>
-                  <span className={styles.actionIconLabel}>Deduct AEPS</span>
-                </button>
-
-                {/* 6. Hold / UnHold Amount */}
-                <button 
-                  className={`${styles.actionIconCard} ${activeActionType === 'holdAmt' ? styles.actionIconCardActive : ''}`}
-                  onClick={() => {
-                    setActiveActionType(activeActionType === 'holdAmt' ? null : 'holdAmt');
-                    setIsEditingProfile(false);
-                    setActionAmount(activeMemberData.holdAmt || '0');
-                  }}
-                >
-                  <div className={styles.actionIconCircle} style={{ background: 'rgba(234,162,31,0.1)', color: '#EAA21F' }}>
-                    <FaUserLock />
-                  </div>
-                  <span className={styles.actionIconLabel}>Hold/Unhold</span>
-                </button>
-
-                {/* 7. Credit Limit */}
-                <button 
-                  className={`${styles.actionIconCard} ${activeActionType === 'creditLimit' ? styles.actionIconCardActive : ''}`}
-                  onClick={() => {
-                    setActiveActionType(activeActionType === 'creditLimit' ? null : 'creditLimit');
-                    setIsEditingProfile(false);
-                    setActionAmount(activeMemberData.creditLimit || '0');
-                  }}
-                >
-                  <div className={styles.actionIconCircle} style={{ background: 'rgba(43,108,176,0.1)', color: '#2B6CB0' }}>
-                    <FaRupeeSign />
-                  </div>
-                  <span className={styles.actionIconLabel}>Credit Limit</span>
-                </button>
-
-                {/* 8. Active / Deactive Switch Toggle */}
-                <button 
-                  className={styles.actionIconCard}
-                  onClick={handleToggleMemberStatus}
-                >
-                  <div 
-                    className={styles.actionIconCircle} 
-                    style={{ 
-                      background: activeMemberData.memberType === 'DeActive' ? 'rgba(229,62,62,0.1)' : 'rgba(39,174,96,0.1)',
-                      color: activeMemberData.memberType === 'DeActive' ? '#E53E3E' : '#27AE60'
-                    }}
-                  >
-                    <FaTimesCircle />
-                  </div>
-                  <span className={styles.actionIconLabel}>
-                    {activeMemberData.memberType === 'DeActive' ? 'Activate A/C' : 'Block A/C'}
-                  </span>
-                </button>
-              </div>
+              <QuickActionGrid
+                isEditingProfile={isEditingProfile}
+                activeActionType={activeActionType}
+                memberType={activeMemberData.memberType}
+                onEditProfile={() => {
+                  const next = !isEditingProfile;
+                  setIsEditingProfile(next);
+                  setActiveActionType(null);
+                  if (next) {
+                    setProfileForm({
+                      name: activeMemberData.name || '',
+                      mobile: activeMemberData.mobile || '',
+                      shop: activeMemberData.shop || '',
+                      aadhar: activeMemberData.aadhar || '',
+                      pan: activeMemberData.pan || '',
+                      title: activeMemberData.title || 'Mr.',
+                      role: activeMemberData.role || activeMemberData.memberType || 'Retailer',
+                      packageId: activeMemberData.packageId || 'Retailer',
+                      altMobile: activeMemberData.altMobile || '',
+                      gender: activeMemberData.gender || 'Male',
+                      address: activeMemberData.address || '',
+                      state: activeMemberData.state || 'Uttar Pradesh',
+                      city: activeMemberData.city || '',
+                      pincode: activeMemberData.pincode || '',
+                      postOffice: activeMemberData.postOffice || 'Aurangabad Aheer',
+                      dob: activeMemberData.dob || '',
+                      active: activeMemberData.active !== undefined ? activeMemberData.active : true,
+                      businessName: activeMemberData.businessName || '',
+                      businessAddress: activeMemberData.businessAddress || '',
+                      businessCity: activeMemberData.businessCity || '',
+                      businessState: activeMemberData.businessState || 'Uttar Pradesh',
+                      businessPincode: activeMemberData.businessPincode || '',
+                      businessPostOffice: activeMemberData.businessPostOffice || 'Aurangabad Aheer',
+                    });
+                  }
+                }}
+                onAction={(type, defaultAmt) => {
+                  setActiveActionType(activeActionType === type ? null : type);
+                  setIsEditingProfile(false);
+                  setActionAmount(defaultAmt !== undefined ? String(defaultAmt) : '');
+                }}
+                onBlock={handleToggleMemberStatus}
+                holdAmt={activeMemberData.holdAmt}
+                creditLimit={activeMemberData.creditLimit}
+              />
             </div>
           </div>
         </>
@@ -1140,3 +1036,4 @@ const MemberControlPage = ({ activeMemberData, onClose }) => {
 };
 
 export default MemberControlPage;
+
