@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import { HiOutlinePencilAlt, HiOutlineTrash } from 'react-icons/hi';
 import { updateRegistrationForm, setRegStep, addMember, deleteMember, updateMemberDirect } from '../../../store/slices/memberSlice';
+import { MemberService } from '../../../services/member.service';
 import styles from './MemberPages.module.css';
 
 const MemberRegistration = () => {
@@ -25,21 +26,39 @@ const MemberRegistration = () => {
   const [editingId, setEditingId] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
   const [genderOptions, setGenderOptions] = useState(['Male', 'Female']);
+  const [roleOptions, setRoleOptions] = useState([]);
+  const [packageOptions, setPackageOptions] = useState([]);
 
   useEffect(() => {
-    const fetchGenders = async () => {
+    const fetchDropdownData = async () => {
       try {
-        const res = await API.gender.getAll();
-        if (res && Array.isArray(res)) {
-          // If there is data, map gender objects to names, e.g. [{id: 1, name: "Male"}]
-          const mapped = res.map(g => g.name).filter(Boolean);
+        const [gendersRes, rolesRes, packagesRes] = await Promise.all([
+          API.gender.getAll().catch(() => null),
+          API.getRoles().catch(() => null),
+          API.package.getAll().catch(() => null)
+        ]);
+        
+        if (gendersRes && Array.isArray(gendersRes)) {
+          const mapped = gendersRes.map(g => g.name).filter(Boolean);
           if (mapped.length > 0) setGenderOptions(mapped);
         }
+
+        if (rolesRes && Array.isArray(rolesRes)) {
+            setRoleOptions(rolesRes);
+        }
+        
+        if (packagesRes) {
+            if (packagesRes.data && Array.isArray(packagesRes.data)) {
+                setPackageOptions(packagesRes.data);
+            } else if (Array.isArray(packagesRes)) {
+                setPackageOptions(packagesRes);
+            }
+        }
       } catch (err) {
-        console.error("Error fetching genders:", err);
+        console.error("Error fetching dropdown data:", err);
       }
     };
-    fetchGenders();
+    fetchDropdownData();
   }, []);
 
   const indianStates = [
@@ -92,16 +111,61 @@ const MemberRegistration = () => {
 
     setErrorMsg('');
     setIsLoading(true);
-    setTimeout(() => {
-      if (editingId) {
+
+    const payload = {
+        roleId: parseInt(form.role) || 0,
+        titleId: form.title === 'Mr' ? 1 : form.title === 'Mrs' ? 2 : 3,
+        packageId: parseInt(form.packageId) || 0,
+        parentId: form.upline === 'Admin' ? 1 : 1,
+        name: form.name || "",
+        email: form.email || "",
+        mobile: form.mobile || "",
+        alterNativeMobileNumber: form.whatsapp || "",
+        genderId: form.gender === 'Female' ? 2 : 1,
+        dob: form.dob || "",
+        pic: "",
+        loginOnOff: true,
+        deviceId: "",
+        appToken: "",
+        macAddress: "",
+        deviceRegister: "",
+        fromChannel: "",
+        time: 0,
+        aadhar: form.aadhar || "",
+        pan: form.pan || "",
+        address: form.address1 || "",
+        pinCode: form.pincode || "",
+        stateId: 1, 
+        cityId: 2, 
+        parentStr: "",
+        shopName: form.businessName || "",
+        shopAddress: form.bizAddress || "",
+        shopPinCode: form.bizPincode || "",
+        shopStateId: 1,
+        shopCityId: 2,
+        postOffice: form.postOffice || form.city || "",
+        businessPostOffice: form.bizPostOffice || form.bizCity || ""
+    };
+
+    if (editingId) {
+        // Mock edit for now
         dispatch(updateMemberDirect({ id: editingId, updates: form }));
-      } else {
-        dispatch(addMember(form));
-      }
-      setIsLoading(false);
-      setIsModalOpen(false);
-      setErrorMsg('');
-    }, 800);
+        setIsLoading(false);
+        setIsModalOpen(false);
+        setErrorMsg('');
+    } else {
+        MemberService.createMember(payload)
+            .then((res) => {
+                setIsLoading(false);
+                setIsModalOpen(false);
+                setErrorMsg('');
+                dispatch(addMember(form));
+            })
+            .catch((err) => {
+                setIsLoading(false);
+                setErrorMsg(err?.response?.data?.mess || err?.message || "Failed to create member");
+            });
+    }
   };
 
   const handleEdit = (member) => {
@@ -326,7 +390,7 @@ const MemberRegistration = () => {
                   <span>⚠️</span> {errorMsg}
                 </div>
               )}
-              {currentStep === 1 && <Step1 form={form} onChange={handleInputChange} />}
+              {currentStep === 1 && <Step1 form={form} onChange={handleInputChange} roleOptions={roleOptions} packageOptions={packageOptions} />}
               {currentStep === 2 && <Step2 form={form} onChange={handleInputChange} genderOptions={genderOptions} />}
               {currentStep === 3 && <Step3 form={form} onChange={handleInputChange} states={indianStates} />}
               {currentStep === 4 && <Step4 form={form} onChange={handleInputChange} states={indianStates} />}
@@ -360,7 +424,7 @@ const MemberRegistration = () => {
   );
 };
 
-const Step1 = ({ form, onChange }) => (
+const Step1 = ({ form, onChange, roleOptions = [], packageOptions = [] }) => (
   <div className={styles.gridTwo} style={{ gap: '20px' }}>
     <div className={styles.formGroup}>
       <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -368,8 +432,9 @@ const Step1 = ({ form, onChange }) => (
       </label>
       <select name="role" className={styles.selectControl} style={{ height: '40px' }} value={form.role} onChange={onChange}>
         <option value="">Select Role</option>
-        <option value="Distributor">Distributor</option>
-        <option value="Retailer">Retailer</option>
+        {roleOptions.map(r => (
+          <option key={r.id} value={r.id}>{r.name}</option>
+        ))}
       </select>
     </div>
     <div className={styles.formGroup}>
@@ -387,8 +452,9 @@ const Step1 = ({ form, onChange }) => (
       </label>
       <select name="packageId" className={styles.selectControl} style={{ height: '40px' }} value={form.packageId} onChange={onChange}>
         <option value="">Select Package</option>
-        <option value="Basic">Basic Package</option>
-        <option value="Premium">Premium Package</option>
+        {packageOptions.map(p => (
+          <option key={p.id} value={p.id}>{p.name}</option>
+        ))}
       </select>
     </div>
   </div>

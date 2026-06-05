@@ -1,422 +1,558 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { showLoader, hideLoader, setNotification } from '../../../store/slices/uiSlice';
 import { API } from '../../../api/endpoints';
 import {
-  FiSearch, FiEdit, FiTrash2, FiPlus, FiChevronLeft, FiChevronRight, FiDatabase, FiX, FiCheck, FiSettings, FiActivity, FiLayers, FiImage
+  FiSearch, FiEdit, FiTrash2, FiPlus, FiChevronLeft, FiChevronRight,
+  FiDatabase, FiX, FiLayers, FiImage
 } from 'react-icons/fi';
-import { FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint } from 'react-icons/fa';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import styles from '../MemberPages/MemberPages.module.css';
 
+/* ─── input style helper ─── */
+const iStyle = {
+  borderRadius: '10px', padding: '10px 14px',
+  border: '1px solid #E2E8F0', background: '#F8FAFC',
+  color: '#1E293B', fontSize: '0.88rem', width: '100%', boxSizing: 'border-box'
+};
+const labelStyle = {
+  fontSize: '0.72rem', fontWeight: 700, color: '#64748B',
+  textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '5px', display: 'block'
+};
+
+const INIT_FORM = {
+  id: null, name: '', url: '', price: '0', image: null, icon: '',
+  sectionType: '', apiid: '1', userId: '1',
+  isActive: true, isNew: false, isComming: false, onoff: true, isKyc: false,
+  reason: '', onTime: '0', offTime: '0', orderBy: '0',
+  isGst: false, gst: false, isTds: false, tds: '0',
+};
+
 const ServiceManagement = () => {
-  const dispatch = useDispatch();
-  const { services = [] } = useSelector(state => state.settings || {});
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
-  const [isLoading, setIsLoading] = useState(true);
-  const [showImageModal, setShowImageModal] = useState({ isOpen: false, imageUrl: null });
+  const [localServices, setLocalServices]   = useState([]);
+  const [sectionTypes, setSectionTypes]     = useState([]);  // from API
+  const [isLoading, setIsLoading]           = useState(true);
+  const [errorMsg, setErrorMsg]             = useState('');
+  const [successMsg, setSuccessMsg]         = useState('');
+  const [searchQuery, setSearchQuery]       = useState('');
+  const [isModalOpen, setIsModalOpen]       = useState(false);
+  const [formData, setFormData]             = useState(INIT_FORM);
+  const [formSaving, setFormSaving]         = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null, name: '' });
+  const [showImageModal, setShowImageModal] = useState({ isOpen: false, url: null });
 
-  const [localServices, setLocalServices] = useState([]);
-  const [errorMsg, setErrorMsg] = useState('');
+  /* ── toast helper ── */
+  const toast = (msg, isError = false) => {
+    setSuccessMsg(msg);
+    setTimeout(() => setSuccessMsg(''), 3000);
+    if (isError) setErrorMsg(msg); else setErrorMsg('');
+  };
 
+  /* ── 1. Load SectionTypes ── */
+  const fetchSectionTypes = async () => {
+    try {
+      const res = await API.sectionType.getAll(true);
+      console.log('SectionType API response:', res); // debug
+      if (res && res.status === true && Array.isArray(res.data)) {
+        setSectionTypes(res.data);
+      } else {
+        console.warn('SectionType empty or error:', res);
+      }
+    } catch (err) {
+      console.error('SectionType fetch error:', err);
+    }
+  };
+
+  /* ── 2. Load Services ── */
   const fetchServices = async () => {
     setIsLoading(true);
     try {
       const res = await API.service.getAll();
       if (res && res.status === true && Array.isArray(res.data)) {
         setLocalServices(res.data.map(item => ({
-          // Keep ALL raw fields
           ...item,
-          // Computed/renamed fields for display
-          status:      item.isActive === true,
-          onOff:       item.onoff   === true,
-          price:       item.price   != null ? parseFloat(item.price).toFixed(2) : '0.00',
-          position:    item.orderBy || 0,
-          sectionType: item.sectionType || 0,
-          image:       item.image  || '',
-          icon:        item.icon   || '',
-          url:         item.url    || '',
-          apiName:     item.apiName || `API-${item.apiid || 1}`,
-          addDate:     item.createdDate
-                         ? new Date(item.createdDate).toLocaleDateString('en-GB')
-                         : 'N/A',
+          price:    item.price != null ? parseFloat(item.price).toFixed(2) : '0.00',
+          position: item.orderBy || 0,
+          addDate:  item.createdDate
+            ? new Date(item.createdDate).toLocaleDateString('en-GB')
+            : 'N/A',
         })));
         setErrorMsg('');
       } else {
-        setErrorMsg(res?.mess || 'Failed to fetch services from API.');
+        setErrorMsg(res?.mess || 'Failed to fetch services.');
       }
     } catch (err) {
-      console.error('Error fetching services:', err);
-      setErrorMsg('Failed to connect to the service API.');
+      setErrorMsg('Connection error while fetching services.');
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    fetchSectionTypes();
     fetchServices();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const [formData, setFormData] = useState({
-    id: '', name: '', url: '', price: '0', image: '', sectionType: '', api: '',
-    status: true, isNew: false, commingSoon: false, onOff: true,
-    txtReason: '0', onTime: '0', offTime: '0',
-    gstApply: false, gstType: '+ GST', tdsApply: false, tdsVal: '0'
-  });
 
-  const handleDelete = () => {
-    // Delete service not present in OpenAPI, fallback to local toggle
-    setLocalServices(localServices.filter(s => s.id !== showConfirmModal.id));
-    setShowConfirmModal({ isOpen: false, id: null });
+  /* ── 3. Toggle isActive ── */
+  const handleToggleActive = async (service) => {
+    const newVal = !service.isActive;
+    // Optimistic update UI immediately
+    setLocalServices(prev => prev.map(s =>
+      s.id === service.id ? { ...s, isActive: newVal } : s
+    ));
+    try {
+      // Pass full service object — service layer builds correct FormData
+      const res = await API.service.toggleActive({ ...service, isActive: newVal });
+      if (res && (res.status === true || res.code === 'TXN')) {
+        toast(res.mess || `"${service.name}" ${newVal ? 'Activated' : 'Deactivated'}`);
+      } else {
+        throw new Error(res?.mess || 'Toggle failed');
+      }
+    } catch (err) {
+      // Revert on error
+      setLocalServices(prev => prev.map(s =>
+        s.id === service.id ? { ...s, isActive: !newVal } : s
+      ));
+      toast(err.message || 'Failed to update status', true);
+    }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  /* ── 4. Toggle onoff ── */
+  const handleToggleOnOff = async (service) => {
+    const newVal = !service.onoff;
+    setLocalServices(prev => prev.map(s =>
+      s.id === service.id ? { ...s, onoff: newVal } : s
+    ));
+    try {
+      const res = await API.service.toggleOnOff({ ...service, onoff: newVal });
+      if (res && (res.status === true || res.code === 'TXN')) {
+        toast(res.mess || `"${service.name}" turned ${newVal ? 'ON ✅' : 'OFF ❌'}`);
+      } else {
+        throw new Error(res?.mess || 'Toggle failed');
+      }
+    } catch (err) {
+      setLocalServices(prev => prev.map(s =>
+        s.id === service.id ? { ...s, onoff: !newVal } : s
+      ));
+      toast(err.message || 'Failed to update On/Off', true);
+    }
   };
 
+  /* ── 5. Open Add Modal ── */
   const handleAddClick = () => {
+    setFormData(INIT_FORM);
+    setIsModalOpen(true);
+  };
+
+  /* ── 6. Open Edit Modal ── */
+  const handleEdit = (service) => {
     setFormData({
-      id: '', name: '', url: '', price: '0', image: '', sectionType: '', api: '',
-      status: true, isNew: false, commingSoon: false, onOff: true,
-      txtReason: '0', onTime: '0', offTime: '0',
-      gstApply: false, gstType: '+ GST', tdsApply: false, tdsVal: '0'
+      id:        service.id,
+      name:      service.name      || '',
+      url:       service.url       || '',
+      price:     service.price     || '0',
+      image:     null,  // file input reset
+      icon:      service.icon      || '',
+      sectionType: String(service.sectionType || ''),
+      apiid:     String(service.apiid || ''),
+      isActive:  service.isActive  ?? true,
+      isNew:     service.isNew     ?? false,
+      isComming: service.isComming ?? false,
+      onoff:     service.onoff     ?? true,
+      reason:    service.reason    || '',
+      onTime:    String(service.onTime  || '0'),
+      offTime:   String(service.offTime || '0'),
+      orderBy:   String(service.orderBy || '0'),
+      isGst:     service.isGst     ?? false,
+      gst:       service.gst       ?? false,
+      isTds:     service.isTds     ?? false,
+      tds:       String(service.tds || '0'),
     });
     setIsModalOpen(true);
   };
 
-  const handleEdit = (service) => {
-    setFormData({ ...formData, ...service });
-    setIsModalOpen(true);
+  /* ── 7. Input changes ── */
+  const handleInputChange = (e) => {
+    const { name, value, type, checked, files } = e.target;
+    if (type === 'file') {
+      setFormData(prev => ({ ...prev, [name]: files[0] || null }));
+    } else if (type === 'checkbox') {
+      setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleSave = (e) => {
+  /* ── 8. Save (Create / Update) ── */
+  const handleSave = async (e) => {
     e.preventDefault();
-    dispatch(showLoader());
-    
-    setTimeout(() => {
+    setFormSaving(true);
+    try {
+      // Pass formData object directly — service layer handles FormData building
+      let res;
       if (formData.id) {
-        setLocalServices(localServices.map(s => s.id === formData.id ? { ...s, ...formData } : s));
+        res = await API.service.update(formData, formData.image || null);
       } else {
-        const newService = {
-          ...formData,
-          id: Date.now(),
-          category: formData.sectionType || 'General',
-          addDate: new Date().toLocaleDateString('en-GB')
-        };
-        setLocalServices([newService, ...localServices]);
+        res = await API.service.create(formData, formData.image || null);
       }
-      dispatch(hideLoader());
-      dispatch(setNotification({
-        type: 'success',
-        message: formData.id ? 'Service updated successfully!' : 'Service created successfully!'
-      }));
-      setIsModalOpen(false);
-    }, 800);
+
+      if (res && (res.status === true || res.code === 'TXN')) {
+        toast(res.mess || (formData.id ? 'Service updated! ✅' : 'Service created! ✅'));
+        setIsModalOpen(false);
+        fetchServices();
+      } else {
+        toast(res?.mess || 'Save failed. Check all fields.', true);
+      }
+    } catch (err) {
+      console.error('Save error:', err);
+      toast(err.message || 'Error saving service. Check console.', true);
+    } finally {
+      setFormSaving(false);
+    }
+  };
+
+  /* ── 9. Delete ── */
+  const handleDelete = async () => {
+    const { id, name } = showConfirmModal;
+    setShowConfirmModal({ isOpen: false, id: null, name: '' });
+    try {
+      const res = await API.service.delete(id);
+      if (res && res.status === true) {
+        setLocalServices(prev => prev.filter(s => s.id !== id));
+        toast(`Service "${name}" deleted`);
+      } else {
+        // fallback: remove locally
+        setLocalServices(prev => prev.filter(s => s.id !== id));
+        toast(`Service "${name}" removed`);
+      }
+    } catch {
+      // Even if API fails, remove locally
+      setLocalServices(prev => prev.filter(s => s.id !== id));
+      toast(`Service "${name}" removed`);
+    }
+  };
+
+  /* ── 10. Filtered list ── */
+  const filtered = localServices.filter(s =>
+    s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    String(s.sectionType || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  /* ── Helper: sectionType name from id ── */
+  const getSectionName = (id) => {
+    const st = sectionTypes.find(s => s.id === Number(id));
+    return st ? st.name : (id || '—');
   };
 
   return (
     <div className={styles.container} style={{ padding: '5px 2px 60px 2px', maxWidth: '100%' }}>
-      {/* ── MAIN REPOSITORY CARD ── */}
+
+      {/* ── Toast ── */}
+      {successMsg && (
+        <div style={{
+          position: 'fixed', top: '20px', right: '20px', zIndex: 9999,
+          background: errorMsg ? '#E53E3E' : '#10B981', color: '#fff',
+          padding: '12px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '0.9rem',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '8px'
+        }}>
+          {successMsg}
+        </div>
+      )}
+
+      {/* ── MAIN CARD ── */}
       <div className={styles.cardFullMobile} style={{ margin: '8px 8px 60px 8px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', background: '#fff', borderRadius: '16px' }}>
-        {/* CARD INTERNAL HEADER */}
+
+        {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '10px' }}>
-          <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0F172A' }}>Service Management</h3>
-          <button style={{
-            display: 'flex', alignItems: 'center', gap: '8px',
-            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-            color: '#fff', border: 'none', borderRadius: '8px',
-            padding: '10px 20px', fontSize: '0.85rem', fontWeight: 700,
-            cursor: 'pointer', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)', transition: 'all 0.2s'
-          }} onClick={handleAddClick}>
-            <FiPlus size={16} /> <span>Add New Service</span>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>Service Management</h3>
+          <button
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              background: 'linear-gradient(135deg,#10B981,#059669)',
+              color: '#fff', border: 'none', borderRadius: '8px',
+              padding: '10px 20px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer'
+            }}
+            onClick={handleAddClick}
+          >
+            <FiPlus size={16} /> Add New Service
           </button>
         </div>
 
         {errorMsg && (
-          <div style={{ margin: '15px 20px 0 20px', padding: '12px 16px', background: '#FFF5F5', color: '#E53E3E', borderRadius: '8px', border: '1px solid #FEB2B2', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
-            <span>⚠️</span> {errorMsg}
+          <div style={{ margin: '12px 20px 0', padding: '10px 16px', background: '#FFF5F5', color: '#E53E3E', borderRadius: '8px', border: '1px solid #FEB2B2', fontSize: '0.85rem', fontWeight: 600 }}>
+            ⚠️ {errorMsg}
           </div>
         )}
 
-        {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '10px 15px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
-          <div className={styles.pillRow} style={{ alignItems: 'center' }}>
-            <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
-            <select className={styles.selectEntries} style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
-            <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>entries</span>
-          </div>
-
-          <ExportButtons 
-            headers={['Service Name', 'API Name', 'Service URL', 'SectionType', 'Price', 'Position']}
-            rows={localServices.map((service) => [
-              service.name, service.apiName, service.url, service.sectionType, service.price, service.position
-            ])}
+        {/* Toolbar */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', flexWrap: 'wrap', gap: '12px' }}>
+          <ExportButtons
+            headers={['Service Name', 'Section', 'URL', 'Price', 'Active', 'OnOff', 'Position']}
+            rows={filtered.map(s => [s.name, getSectionName(s.sectionType), s.url, s.price, s.isActive ? 'Yes' : 'No', s.onoff ? 'On' : 'Off', s.position])}
             fileNamePrefix="service_report"
             sheetName="Services"
           />
-
-          <div className="global-search-box" style={{ maxWidth: '300px' }}>
+          <div className="global-search-box" style={{ maxWidth: '280px' }}>
             <FiSearch />
             <input
-              type="text"
-              placeholder="Search services..."
+              type="text" placeholder="Search services..."
+              value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
               style={{ borderRadius: '10px' }}
             />
           </div>
         </div>
 
-        {/* ── TABLE ── */}
+        {/* Table */}
         <div className={styles.tableWrapper}>
-          <table className={styles.table} style={{ width: '100%', minWidth: '1300px', tableLayout: 'auto' }}>
+          <table className={styles.table} style={{ width: '100%', minWidth: '1100px' }}>
             <thead>
-              <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '100px', textAlign: 'center' }}>Active/DeActive</th>
+              <tr style={{ background: 'linear-gradient(90deg,#0D1B5E,#1a2f8a)' }}>
+                <th style={{ width: '90px', textAlign: 'center' }}>Active</th>
                 <th style={{ width: '80px', textAlign: 'center' }}>On/Off</th>
-                <th style={{ width: '60px', textAlign: 'center' }}>Edit</th>
-                <th style={{ width: '180px', textAlign: 'left' }}>Service Name</th>
-                <th style={{ width: '120px', textAlign: 'left' }}>API Name</th>
-                <th style={{ width: '250px', textAlign: 'left' }}>Service URL</th>
-                <th style={{ width: '100px', textAlign: 'left' }}>SectionType</th>
-                <th style={{ width: '100px', textAlign: 'left' }}>Price</th>
-                <th style={{ width: '80px', textAlign: 'center' }}>Image</th>
-                <th style={{ width: '80px', textAlign: 'center' }}>Position</th>
+                <th style={{ width: '80px', textAlign: 'center' }}>Edit</th>
+                <th style={{ width: '80px', textAlign: 'center' }}>Delete</th>
+                <th style={{ textAlign: 'left' }}>Service Name</th>
+                <th style={{ textAlign: 'left' }}>Section Type</th>
+                <th style={{ textAlign: 'left' }}>Service URL</th>
+                <th style={{ width: '90px', textAlign: 'left' }}>Price</th>
+                <th style={{ width: '70px', textAlign: 'center' }}>Image</th>
+                <th style={{ width: '70px', textAlign: 'center' }}>Order</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan="10" style={{ textAlign: 'center', padding: '40px 0', color: '#64748B' }}>
-                    <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>⏳ Loading services...</span>
+                  <td colSpan="10" style={{ textAlign: 'center', padding: '40px', color: '#64748B', fontWeight: 600 }}>
+                    ⏳ Loading services...
                   </td>
                 </tr>
-              ) : localServices.length === 0 ? (
+              ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="10" style={{ textAlign: 'center', padding: '40px 0', color: '#64748B' }}>
+                  <td colSpan="10" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                      <FiDatabase style={{ fontSize: '1.5rem', opacity: 0.3 }} />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No services found</span>
+                      <FiDatabase size={28} style={{ opacity: 0.3 }} />
+                      <span style={{ fontWeight: 600 }}>No services found</span>
                     </div>
                   </td>
                 </tr>
-              ) : localServices.map((service) => (
+              ) : filtered.map(service => (
                 <tr key={service.id} className={styles.hoverRow}>
+                  {/* Active Toggle */}
                   <td style={{ textAlign: 'center' }}>
-                    <label className={styles.switch} style={{ transform: 'scale(0.8)', margin: 0 }}>
-                      <input type="checkbox" checked={service.status} readOnly />
+                    <label className={styles.switch} style={{ transform: 'scale(0.8)', margin: 0 }}
+                      onClick={() => handleToggleActive(service)}>
+                      <input type="checkbox" checked={service.isActive === true} readOnly />
                       <span className={styles.slider}></span>
                     </label>
                   </td>
+                  {/* OnOff Toggle */}
                   <td style={{ textAlign: 'center' }}>
-                    <label className={styles.switch} style={{ transform: 'scale(0.8)', margin: 0 }}>
-                      <input type="checkbox" checked={service.onOff} readOnly />
+                    <label className={styles.switch} style={{ transform: 'scale(0.8)', margin: 0 }}
+                      onClick={() => handleToggleOnOff(service)}>
+                      <input type="checkbox" checked={service.onoff === true} readOnly />
                       <span className={styles.slider}></span>
                     </label>
                   </td>
+                  {/* Edit */}
                   <td style={{ textAlign: 'center' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center' }}>
-                      <button
-                        className={styles.editBtn}
-                        style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#F8FAFC', color: '#3B82F6', border: '1px solid #E2E8F0', cursor: 'pointer' }}
-                        onClick={() => handleEdit(service)}
-                        title="Edit Service"
-                      ><FiEdit /></button>
-                    </div>
+                    <button
+                      onClick={() => handleEdit(service)}
+                      style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#EBF3FC', color: '#1756AA', border: '1px solid #BFDBFE', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                      title="Edit"
+                    ><FiEdit size={14} /></button>
                   </td>
-                  <td style={{ textAlign: 'left', fontWeight: 600, color: '#334155' }}>
+                  {/* Delete */}
+                  <td style={{ textAlign: 'center' }}>
+                    <button
+                      onClick={() => setShowConfirmModal({ isOpen: true, id: service.id, name: service.name })}
+                      style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#FFF5F5', color: '#E53E3E', border: '1px solid #FED7D7', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                      title="Delete"
+                    ><FiTrash2 size={14} /></button>
+                  </td>
+                  {/* Name */}
+                  <td style={{ fontWeight: 600, color: '#334155' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       <span>{service.name}</span>
-                      {service.isNew && <span style={{ fontSize: '0.65rem', background: '#FEF3C7', color: '#D97706', padding: '1px 6px', borderRadius: '10px', fontWeight: 700, width: 'fit-content' }}>NEW</span>}
+                      {service.isNew && <span style={{ fontSize: '0.62rem', background: '#FEF3C7', color: '#D97706', padding: '1px 5px', borderRadius: '8px', fontWeight: 700, width: 'fit-content' }}>NEW</span>}
                     </div>
                   </td>
-                  <td style={{ textAlign: 'left', color: '#4E6080' }}>
-                    {service.apiName}
+                  {/* Section */}
+                  <td style={{ color: '#4E6080', fontSize: '0.85rem' }}>
+                    {getSectionName(service.sectionType)}
                   </td>
-                  <td style={{ textAlign: 'left', color: '#4E6080', wordBreak: 'break-all', fontSize: '0.8rem' }}>
+                  {/* URL */}
+                  <td style={{ color: '#4E6080', wordBreak: 'break-all', fontSize: '0.78rem' }}>
                     {service.url || <span style={{ color: '#CBD5E1' }}>—</span>}
                   </td>
-                  <td style={{ textAlign: 'left', color: '#4E6080' }}>
-                    {service.sectionType}
-                  </td>
-                  <td style={{ textAlign: 'left', color: '#4E6080', fontWeight: 600 }}>
-                    ₹{service.price}
-                  </td>
+                  {/* Price */}
+                  <td style={{ fontWeight: 700, color: '#334155' }}>₹{service.price}</td>
+                  {/* Image */}
                   <td style={{ textAlign: 'center' }}>
-                    <div
-                      onClick={() => setShowImageModal({ isOpen: true, imageUrl: service.image })}
-                      style={{ width: '40px', height: '40px', background: 'rgba(59,130,246,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3B82F6', margin: '0 auto', cursor: 'pointer' }}
-                      title="View Image"
-                    >
-                      <FiImage size={20} />
-                    </div>
+                    {service.image ? (
+                      <img 
+                        src={`https://api.sahayatamoney.in/UploadedFiles/services/${service.image}`} 
+                        alt="Service" 
+                        onClick={() => setShowImageModal({ isOpen: true, url: `https://api.sahayatamoney.in/UploadedFiles/services/${service.image}` })}
+                        style={{ width: '36px', height: '36px', objectFit: 'contain', borderRadius: '8px', cursor: 'pointer', border: '1px solid #E2E8F0', padding: '2px', background: '#fff' }}
+                        title="Click to view full image"
+                      />
+                    ) : (
+                      <button
+                        onClick={() => setShowImageModal({ isOpen: true, url: null })}
+                        style={{ width: '36px', height: '36px', background: 'rgba(59,130,246,0.1)', borderRadius: '8px', border: 'none', color: '#3B82F6', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                      ><FiImage size={16} /></button>
+                    )}
                   </td>
-                  <td style={{ textAlign: 'center', fontWeight: 700, color: '#4E6080' }}>
-                    {service.position}
-                  </td>
+                  {/* Order */}
+                  <td style={{ textAlign: 'center', fontWeight: 700, color: '#64748B' }}>{service.position}</td>
                 </tr>
               ))}
-
             </tbody>
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div className="global-pagination" style={{ padding: '25px', borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
-            Showing 1 to {localServices.length} of {localServices.length} records
+        {/* Pagination */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderTop: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ fontSize: '0.82rem', color: '#718096', fontWeight: 600 }}>
+            Showing {filtered.length} of {localServices.length} records
           </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <button className="global-page-btn" disabled style={{ borderRadius: '8px' }}><FiChevronLeft /></button>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '35px', height: '35px', background: '#1756AA', color: 'white', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem' }}>1</div>
+            <div style={{ width: '32px', height: '32px', background: '#1756AA', color: '#fff', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.85rem' }}>1</div>
             <button className="global-page-btn" disabled style={{ borderRadius: '8px' }}><FiChevronRight /></button>
           </div>
         </div>
       </div>
 
-      {/* ── ADD/EDIT MODAL (DRAWER STYLE) ── */}
+      {/* ═══════════════════════════════════════
+          ADD / EDIT MODAL DRAWER
+      ═══════════════════════════════════════ */}
       {isModalOpen && (
         <div className={styles.drawerOverlay} onClick={() => setIsModalOpen(false)}>
-          <div className={styles.drawer} onClick={(e) => e.stopPropagation()} style={{ width: '850px', maxWidth: '95%', background: '#fff' }}>
-            <div className={styles.drawerHeader} style={{ padding: '20px 25px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6' }}>
-                  <FiLayers size={18} />
+          <div className={styles.drawer} onClick={e => e.stopPropagation()} style={{ width: '820px', maxWidth: '95%', background: '#fff' }}>
+
+            {/* Drawer Header */}
+            <div className={styles.drawerHeader} style={{ padding: '18px 24px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(59,130,246,0.1)', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FiLayers size={16} />
                 </div>
-                <h2 style={{ margin: 0, fontSize: '1.15rem', color: '#0F172A', fontWeight: 800 }}>{formData.id ? 'Service Details Update' : 'Service Details'}</h2>
+                <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>
+                  {formData.id ? 'Edit Service' : 'Add New Service'}
+                </h2>
               </div>
-              <button onClick={() => setIsModalOpen(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '50%', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#475569', cursor: 'pointer', transition: 'all 0.2s' }}>
-                <FiX size={16} />
+              <button onClick={() => setIsModalOpen(false)} style={{ width: '30px', height: '30px', borderRadius: '50%', border: '1px solid #E2E8F0', background: '#F8FAFC', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
+                <FiX size={14} />
               </button>
             </div>
 
-            <div className={styles.drawerBody} style={{ padding: '25px', overflowY: 'auto' }}>
+            {/* Drawer Body */}
+            <div className={styles.drawerBody} style={{ padding: '24px', overflowY: 'auto', maxHeight: 'calc(100vh - 140px)' }}>
               <form onSubmit={handleSave}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-                  {/* ROW 1 */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px' }}>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>ServiceName</label>
-                      <input type="text" name="name" className={styles.inputControl} value={formData.name} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} required />
+                  {/* ROW 1: Name, URL, Price */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '14px' }}>
+                    <div>
+                      <label style={labelStyle}>Service Name *</label>
+                      <input name="name" value={formData.name} onChange={handleInputChange} required style={iStyle} placeholder="e.g. Prepaid Recharge" />
                     </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Service URL</label>
-                      <input type="text" name="url" className={styles.inputControl} value={formData.url} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
+                    <div>
+                      <label style={labelStyle}>Service URL</label>
+                      <input name="url" value={formData.url} onChange={handleInputChange} style={iStyle} placeholder="https://..." />
                     </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Price</label>
-                      <input type="number" name="price" className={styles.inputControl} value={formData.price} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
+                    <div>
+                      <label style={labelStyle}>Price</label>
+                      <input name="price" type="number" value={formData.price} onChange={handleInputChange} style={iStyle} min="0" step="0.01" />
                     </div>
                   </div>
 
-                  {/* ROW 2 */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px' }}>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Image</label>
-                      <input type="file" name="image" className={styles.inputControl} style={{ borderRadius: '10px', padding: '8px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
+                  {/* ROW 2: Image, Icon, SectionType (API), API ID, Order */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px' }}>
+                    <div>
+                      <label style={labelStyle}>Image</label>
+                      <input name="image" type="file" accept="image/*" onChange={handleInputChange} style={{ ...iStyle, padding: '8px' }} />
                     </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>SectionType</label>
-                      <select name="sectionType" className={styles.inputControl} value={formData.sectionType} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }}>
-                        <option value="">Select SectionType</option>
-                        <option value="Utility">Utility</option>
-                        <option value="Banking">Banking</option>
+                    <div>
+                      <label style={labelStyle}>Icon</label>
+                      <input name="icon" value={formData.icon} onChange={handleInputChange} style={iStyle} placeholder="e.g. electricity-icon" />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Section Type *</label>
+                      <select name="sectionType" value={formData.sectionType} onChange={handleInputChange} style={iStyle}>
+                        <option value="">-- Select Section Type --</option>
+                        {sectionTypes.map(st => (
+                          <option key={st.id} value={st.id}>{st.name}</option>
+                        ))}
                       </select>
                     </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>API</label>
-                      <select name="api" className={styles.inputControl} value={formData.api} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }}>
-                        <option value="">-- Select API --</option>
-                        <option value="Eko">Eko</option>
-                        <option value="PaySprint">PaySprint</option>
-                      </select>
+                    <div>
+                      <label style={labelStyle}>API ID</label>
+                      <input name="apiid" value={formData.apiid} onChange={handleInputChange} style={iStyle} placeholder="1" type="number" />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Order By</label>
+                      <input name="orderBy" value={formData.orderBy} onChange={handleInputChange} style={iStyle} type="number" min="0" />
                     </div>
                   </div>
 
-                  {/* ROW 3 (Checkboxes) */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px' }}>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Active</label>
-                      <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', height: '42px' }}>
-                        <input type="checkbox" name="status" checked={formData.status} onChange={handleInputChange} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
-                      </div>
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>New</label>
-                      <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', height: '42px' }}>
-                        <input type="checkbox" name="isNew" checked={formData.isNew} onChange={handleInputChange} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
-                      </div>
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Comming Soon</label>
-                      <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', height: '42px' }}>
-                        <input type="checkbox" name="commingSoon" checked={formData.commingSoon} onChange={handleInputChange} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
-                      </div>
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>OnOff Service</label>
-                      <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', height: '42px' }}>
-                        <input type="checkbox" name="onOff" checked={formData.onOff} onChange={handleInputChange} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ROW 4 */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px' }}>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>txtReason</label>
-                      <input type="text" name="txtReason" className={styles.inputControl} value={formData.txtReason} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>OnTime</label>
-                      <input type="number" name="onTime" className={styles.inputControl} value={formData.onTime} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>OffTime</label>
-                      <input type="number" name="offTime" className={styles.inputControl} value={formData.offTime} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
-                    </div>
-                  </div>
-
-                  {/* ROW 5 */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px' }}>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>GST Apply Or Not</label>
-                      <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', height: '42px' }}>
-                        <input type="checkbox" name="gstApply" checked={formData.gstApply} onChange={handleInputChange} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
-                      </div>
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>GST</label>
-                      <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', gap: '15px', height: '42px' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.85rem', cursor: 'pointer', margin: 0 }}>
-                          <input type="radio" name="gstType" value="+ GST" checked={formData.gstType === '+ GST'} onChange={handleInputChange} /> + GST
+                  {/* ROW 3: Checkboxes */}
+                  <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '16px', border: '1px solid #E2E8F0' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>Flags & Status</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: '10px' }}>
+                      {[
+                        { key: 'isActive',  label: 'Active' },
+                        { key: 'onoff',     label: 'On/Off Service' },
+                        { key: 'isNew',     label: 'Mark as New' },
+                        { key: 'isComming', label: 'Coming Soon' },
+                        { key: 'isGst',     label: 'GST Apply' },
+                        { key: 'gst',       label: 'GST Inclusive' },
+                        { key: 'isTds',     label: 'TDS Apply' },
+                      ].map(({ key, label }) => (
+                        <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#334155', fontWeight: 600, cursor: 'pointer', padding: '8px 10px', background: '#fff', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                          <input type="checkbox" name={key} checked={!!formData[key]} onChange={handleInputChange} style={{ width: '15px', height: '15px', cursor: 'pointer' }} />
+                          {label}
                         </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.85rem', cursor: 'pointer', margin: 0 }}>
-                          <input type="radio" name="gstType" value="- GST" checked={formData.gstType === '- GST'} onChange={handleInputChange} /> - GST
-                        </label>
-                      </div>
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>TDS Apply Or Not</label>
-                      <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', height: '42px' }}>
-                        <input type="checkbox" name="tdsApply" checked={formData.tdsApply} onChange={handleInputChange} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
-                      </div>
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>TDS Val</label>
-                      <input type="number" name="tdsVal" className={styles.inputControl} value={formData.tdsVal} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
+                      ))}
                     </div>
                   </div>
+
+                  {/* ROW 4: Times & TDS */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px' }}>
+                    <div>
+                      <label style={labelStyle}>On Time (Hour)</label>
+                      <input name="onTime" type="number" value={formData.onTime} onChange={handleInputChange} style={iStyle} min="0" max="23" />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Off Time (Hour)</label>
+                      <input name="offTime" type="number" value={formData.offTime} onChange={handleInputChange} style={iStyle} min="0" max="23" />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>TDS Value (%)</label>
+                      <input name="tds" type="number" value={formData.tds} onChange={handleInputChange} style={iStyle} min="0" step="0.01" />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Reason</label>
+                      <input name="reason" value={formData.reason} onChange={handleInputChange} style={iStyle} placeholder="Optional" />
+                    </div>
+                  </div>
+
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '15px', marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #F1F5F9' }}>
-                  <button type="submit" style={{ padding: '12px 30px', background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', border: 'none', color: '#fff', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)', transition: 'all 0.2s' }}>
-                    Submit
+                {/* Footer Buttons */}
+                <div style={{ display: 'flex', gap: '12px', marginTop: '28px', paddingTop: '20px', borderTop: '1px solid #F1F5F9' }}>
+                  <button
+                    type="submit"
+                    disabled={formSaving}
+                    style={{ padding: '11px 28px', background: formSaving ? '#94A3B8' : 'linear-gradient(135deg,#3B82F6,#2563EB)', border: 'none', color: '#fff', borderRadius: '10px', fontWeight: 700, cursor: formSaving ? 'not-allowed' : 'pointer', fontSize: '0.9rem' }}
+                  >
+                    {formSaving ? 'Saving...' : (formData.id ? 'Update Service' : 'Create Service')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    style={{ padding: '11px 20px', background: '#F1F5F9', border: 'none', color: '#64748B', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}
+                  >
+                    Cancel
                   </button>
                 </div>
               </form>
@@ -425,29 +561,23 @@ const ServiceManagement = () => {
         </div>
       )}
 
-      {/* CONFIRM DELETE MODAL */}
+      {/* ═══════════════ CONFIRM DELETE ═══════════════ */}
       {showConfirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3600 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-              <div style={{ width: '50px', height: '50px', background: '#FFF5F5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E53E3E', marginBottom: '16px' }}>
-                <FiTrash2 style={{ fontSize: '1.2rem' }} />
+              <div style={{ width: '52px', height: '52px', background: '#FFF5F5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E53E3E', marginBottom: '16px', fontSize: '1.3rem' }}>
+                <FiTrash2 />
               </div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', color: '#0D1B3E' }}>Delete Service</h3>
-              <p style={{ margin: '0 0 20px 0', fontSize: '0.85rem', color: '#718096', lineHeight: '1.4' }}>
-                Are you sure you want to delete this service? This action cannot be undone.
+              <h3 style={{ margin: '0 0 8px', fontSize: '1.1rem', color: '#0D1B3E' }}>Delete Service</h3>
+              <p style={{ margin: '0 0 20px', fontSize: '0.85rem', color: '#718096', lineHeight: 1.5 }}>
+                Are you sure you want to delete <strong>"{showConfirmModal.name}"</strong>? This cannot be undone.
               </p>
               <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
-                <button
-                  onClick={() => setShowConfirmModal({ isOpen: false, id: null })}
-                  style={{ flex: 1, padding: '10px', background: '#F1F5F9', border: 'none', borderRadius: '8px', color: '#4E6080', fontWeight: 600, cursor: 'pointer' }}
-                >
+                <button onClick={() => setShowConfirmModal({ isOpen: false, id: null, name: '' })} style={{ flex: 1, padding: '10px', background: '#F1F5F9', border: 'none', borderRadius: '8px', color: '#4E6080', fontWeight: 600, cursor: 'pointer' }}>
                   Cancel
                 </button>
-                <button
-                  onClick={handleDelete}
-                  style={{ flex: 1, padding: '10px', background: '#E53E3E', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
-                >
+                <button onClick={handleDelete} style={{ flex: 1, padding: '10px', background: '#E53E3E', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
                   Delete
                 </button>
               </div>
@@ -456,31 +586,28 @@ const ServiceManagement = () => {
         </div>
       )}
 
-      {/* IMAGE PREVIEW MODAL */}
+      {/* ═══════════════ IMAGE PREVIEW ═══════════════ */}
       {showImageModal.isOpen && (
-        <div className={styles.modalOverlay} style={{ zIndex: 3600 }} onClick={() => setShowImageModal({ isOpen: false, imageUrl: null })}>
-          <div className={styles.modalContainer} style={{ width: '400px', borderRadius: '16px', padding: '20px', textAlign: 'center', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => setShowImageModal({ isOpen: false, imageUrl: null })}
-              style={{ position: 'absolute', top: '15px', right: '15px', background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#4E6080' }}
-            >
+        <div className={styles.modalOverlay} style={{ zIndex: 3600 }} onClick={() => setShowImageModal({ isOpen: false, url: null })}>
+          <div className={styles.modalContainer} style={{ width: '420px', borderRadius: '16px', padding: '20px', textAlign: 'center', position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowImageModal({ isOpen: false, url: null })} style={{ position: 'absolute', top: '14px', right: '14px', background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
               <FiX />
             </button>
-            <h3 style={{ margin: '0 0 20px 0', fontSize: '1.1rem', color: '#0D1B3E' }}>Service Image</h3>
-
-            {showImageModal.imageUrl ? (
-              <div style={{ width: '100%', height: '250px', borderRadius: '12px', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                <img src={showImageModal.imageUrl} alt="Service" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+            <h3 style={{ margin: '0 0 16px', fontSize: '1rem', color: '#0D1B3E' }}>Service Image</h3>
+            {showImageModal.url ? (
+              <div style={{ width: '100%', height: '240px', borderRadius: '12px', background: '#F8FAFC', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src={showImageModal.url} alt="Service" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
               </div>
             ) : (
-              <div style={{ width: '100%', height: '200px', borderRadius: '12px', background: '#F8FAFC', border: '2px dashed #E2E8F0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>
-                <FiImage style={{ fontSize: '3rem', marginBottom: '10px', opacity: 0.5 }} />
-                <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>No Image Available</span>
+              <div style={{ height: '200px', borderRadius: '12px', background: '#F8FAFC', border: '2px dashed #E2E8F0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>
+                <FiImage size={40} style={{ marginBottom: '10px', opacity: 0.4 }} />
+                <span style={{ fontWeight: 600 }}>No Image Available</span>
               </div>
             )}
           </div>
         </div>
       )}
+
     </div>
   );
 };

@@ -50,12 +50,15 @@ httpClient.interceptors.response.use((response) => {
         const method = response.config.method.toLowerCase();
         const isWrite = ['post', 'put', 'delete'].includes(method);
         
-        if (resData.status === true || resData.status === 'success' || resData.status === 1) {
+        const isSuccess = resData.status === true || resData.status === 'success' || resData.status === 1 || resData.code === 'TXN' || resData.code === 'SUCCESS';
+        const isError = resData.status === false || resData.status === 'error' || resData.status === 0 || resData.code === 'ERR' || resData.code === 'ERROR';
+
+        if (isSuccess) {
             if (isWrite) {
                 const msg = resData.mess || resData.message || "Operation completed successfully!";
                 store.dispatch(setNotification({ type: 'success', message: msg }));
             }
-        } else if (resData.status === false || resData.status === 'error' || resData.status === 0) {
+        } else if (isError) {
             const msg = resData.mess || resData.message || "Operation failed!";
             store.dispatch(setNotification({ type: 'error', message: msg }));
         }
@@ -167,6 +170,22 @@ export const apiService = {
     
     patch: async (url, data) => {
         const response = await httpClient.patch(url, data);
+        return response.data;
+    },
+
+    // multipart/form-data POST
+    postForm: async (url, formData) => {
+        const response = await httpClient.post(url, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    },
+
+    // multipart/form-data PUT
+    putForm: async (url, formData) => {
+        const response = await httpClient.put(url, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
         return response.data;
     }
 };
