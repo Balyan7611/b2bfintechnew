@@ -807,10 +807,6 @@ const MemberControlPage = ({ activeMemberData, onClose }) => {
                     </span>
                   </div>
                   <div className={styles.specItem}>
-                    <span className={styles.specLabel}>Msrno</span>
-                    <span className={styles.specVal}>{activeMemberData.id || '2'}</span>
-                  </div>
-                  <div className={styles.specItem}>
                     <span className={styles.specLabel}>AEPS Status</span>
                     <span className={`${styles.badgeSpec} ${activeMemberData.aepsStatus === 'Registered' ? styles.badgeSpecGreen : styles.badgeSpecRed}`}>
                       {activeMemberData.aepsStatus || 'Not Registered'}

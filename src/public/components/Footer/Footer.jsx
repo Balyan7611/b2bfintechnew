@@ -62,17 +62,17 @@ const Footer = () => {
     { name: 'Refund & Cancellation', path: '/refund' },
   ];
 
-  const socialLinks = [
-    { icon: FaFacebook, url: '#', label: 'Facebook' },
-    { icon: FaTwitter, url: '#', label: 'Twitter' },
-    { icon: FaLinkedin, url: '#', label: 'LinkedIn' },
-    { icon: FaInstagram, url: '#', label: 'Instagram' },
-  ];
-
   const contactItems = [
     { icon: FaPhone, href: `tel:${SITE_CONFIG.phone}`, text: SITE_CONFIG.phone, isLink: true },
     { icon: FaEnvelope, href: `mailto:${SITE_CONFIG.email}`, text: SITE_CONFIG.email, isLink: true },
     { icon: FaMapMarkerAlt, href: null, text: SITE_CONFIG.address, isLink: false },
+  ];
+
+  const socialLinks = [
+    { icon: FaFacebook,  url: SITE_CONFIG.faceBook  || '#', label: 'Facebook' },
+    { icon: FaTwitter,   url: SITE_CONFIG.twiter     || '#', label: 'Twitter' },
+    { icon: FaLinkedin,  url: '#',                          label: 'LinkedIn' },
+    { icon: FaInstagram, url: SITE_CONFIG.instagram  || '#', label: 'Instagram' },
   ];
 
   return (

@@ -74,14 +74,26 @@ export const updateSiteConfig = (apiData) => {
   };
 
   Object.keys(apiData).forEach(key => {
-    if (map[key]) {
-      SITE_CONFIG[map[key]] = apiData[key];
+    if (map[key] !== undefined) {
+      const val = apiData[key];
+      // Only override if value is not null/undefined/empty
+      if (val !== null && val !== undefined && val !== '') {
+        SITE_CONFIG[map[key]] = val;
+      }
     }
   });
 
+  // Always sync name-derived fields
   if (apiData.name) {
-    SITE_CONFIG.brandName = apiData.name;
-    SITE_CONFIG.shortName = apiData.name;
-    SITE_CONFIG.description = apiData.copyright || 'Digital Platform';
+    SITE_CONFIG.companyName = apiData.name;
+    SITE_CONFIG.brandName   = apiData.name;
+    SITE_CONFIG.shortName   = apiData.name;
+  }
+
+  // Description: prefer copyright text, else company name
+  if (apiData.copyright) {
+    SITE_CONFIG.description = apiData.copyright;
+  } else if (apiData.name) {
+    SITE_CONFIG.description = `${apiData.name} — Digital Fintech Platform`;
   }
 };
