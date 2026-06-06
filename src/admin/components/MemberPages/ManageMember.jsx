@@ -150,7 +150,7 @@ const ManageMember = () => {
   const [kycStatus, setKycStatus] = useState('All');   // 'KYC', 'Non-KYC', 'All'
   
   // ── PAGINATION ──
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [pageNumber, setPageNumber] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPageNumber, setTotalPageNumber] = useState(1);
@@ -401,6 +401,7 @@ const ManageMember = () => {
               value={rowsPerPage} 
               onChange={(e) => setRowsPerPage(parseInt(e.target.value))}
             >
+              <option value={5}>5</option>
               <option value={10}>10</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
