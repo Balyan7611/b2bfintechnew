@@ -12,16 +12,37 @@ const ChangeTPIN = () => {
   const dispatch = useDispatch();
   const { tpinState } = useSelector((s) => s.member);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [memberError, setMemberError] = useState('');
+  const [pinError, setPinError] = useState('');
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [adminTpin, setAdminTpin] = useState(['', '', '', '']);
+  const [adminTpinError, setAdminTpinError] = useState('');
   
   const pinRefs = useRef([]);
   const confirmRefs = useRef([]);
+  const adminTpinRefs = useRef([]);
 
   // Force reset on mount to prevent browser autofill
   useEffect(() => {
     dispatch(updateTpin({ member: '', tpin: ['', '', '', ''], confirmTpin: ['', '', '', ''] }));
   }, [dispatch]);
 
+  // Reset Admin TPIN when modal opens
+  useEffect(() => {
+    if (showConfirm) {
+      setAdminTpin(['', '', '', '']);
+      setAdminTpinError('');
+    }
+  }, [showConfirm]);
+
   const handlePinChange = (e, index, type) => {
+    if (!tpinState.member) {
+      setMemberError('Please select a member first!');
+      return;
+    }
+    setMemberError('');
+    setPinError('');
+
     const val = e.target.value;
     if (val && isNaN(val)) return;
 
@@ -35,9 +56,18 @@ const ChangeTPIN = () => {
     }
 
     // Auto focus next
-    if (val && index < 3) {
-      const nextRef = type === 'tpin' ? pinRefs.current[index + 1] : confirmRefs.current[index + 1];
-      nextRef?.focus();
+    if (val) {
+      if (type === 'tpin') {
+        if (index < 3) {
+          pinRefs.current[index + 1]?.focus();
+        } else {
+          confirmRefs.current[0]?.focus(); // Auto redirect to first field of confirm TPIN
+        }
+      } else if (type === 'confirmTpin') {
+        if (index < 3) {
+          confirmRefs.current[index + 1]?.focus();
+        }
+      }
     }
   };
 
@@ -48,28 +78,65 @@ const ChangeTPIN = () => {
     }
   };
 
+  const handleAdminPinChange = (e, index) => {
+    setAdminTpinError('');
+    const val = e.target.value;
+    if (val && isNaN(val)) return;
+
+    const currentArray = [...adminTpin];
+    currentArray[index] = val.slice(-1);
+    setAdminTpin(currentArray);
+
+    // Auto focus next
+    if (val && index < 3) {
+      adminTpinRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleAdminKeyDown = (e, index) => {
+    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+      adminTpinRefs.current[index - 1]?.focus();
+    }
+  };
+
   const handleProcess = () => {
     const pin = tpinState.tpin.join('');
     const cpin = tpinState.confirmTpin.join('');
 
     if (!tpinState.member) {
-      alert('Please select a member first!');
+      setMemberError('Please select a member first!');
       return;
     }
     if (pin.length < 4 || cpin.length < 4) {
-      alert('Please enter full 4-digit TPIN');
+      setPinError('Please enter full 4-digit TPIN');
       return;
     }
     if (pin !== cpin) {
-      alert('TPINs do not match!');
+      setPinError('TPINs do not match!');
       return;
     }
 
+    setPinError('');
+    setMemberError('');
+    setShowConfirm(true);
+  };
+
+  const confirmUpdate = () => {
+    const enteredAdminTpin = adminTpin.join('');
+    if (!enteredAdminTpin) {
+      setAdminTpinError('Please enter Admin TPIN');
+      return;
+    }
+    if (enteredAdminTpin.length < 4) {
+      setAdminTpinError('Please enter full 4-digit Admin TPIN');
+      return;
+    }
+    if (enteredAdminTpin !== '1234') {
+      setAdminTpinError('Incorrect Admin TPIN! (Hint: 1234)');
+      return;
+    }
+    setShowConfirm(false);
     setIsSuccess(true);
-    setTimeout(() => {
-      setIsSuccess(false);
-      dispatch(updateTpin({ member: '', tpin: ['', '', '', ''], confirmTpin: ['', '', '', ''] }));
-    }, 2000);
   };
 
   return (
@@ -93,7 +160,12 @@ const ChangeTPIN = () => {
                   name="member"
                   style={{ width: '100%', height: '42px', border: '1.5px solid #E2E8F0', background: '#F8FAFF', borderRadius: '10px', padding: '0 15px', outline: 'none', appearance: 'none', cursor: 'pointer', fontSize: '0.85rem', color: '#0D1B3E', fontWeight: 500 }}
                   value={tpinState.member}
-                  onChange={(e) => dispatch(updateTpin({ member: e.target.value }))}
+                  onChange={(e) => {
+                    dispatch(updateTpin({ member: e.target.value }));
+                    if (e.target.value) {
+                      setMemberError('');
+                    }
+                  }}
                   autoComplete="off"
                 >
                   <option value="">Select Member</option>
@@ -118,6 +190,18 @@ const ChangeTPIN = () => {
                 <div style={{ flex: 1, padding: '6px 12px', textAlign: 'center', fontSize: '0.8rem', color: '#0D1B3E' }}>
                   <span style={{ fontWeight: 600, color: '#4E6080' }}>Shop:</span> {tpinState.member.includes('Pay99') ? 'Pay99' : tpinState.member.split(' ')[0]}
                 </div>
+              </div>
+            )}
+
+            {/* Inline Error Messages */}
+            {memberError && (
+              <div style={{ gridColumn: '1 / -1', color: '#E53E3E', fontSize: '0.85rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', background: '#FFF5F5', padding: '10px 14px', borderRadius: '8px', border: '1px solid #FED7D7' }}>
+                <span>⚠️</span> {memberError}
+              </div>
+            )}
+            {pinError && (
+              <div style={{ gridColumn: '1 / -1', color: '#E53E3E', fontSize: '0.85rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', background: '#FFF5F5', padding: '10px 14px', borderRadius: '8px', border: '1px solid #FED7D7' }}>
+                <span>⚠️</span> {pinError}
               </div>
             )}
 
@@ -208,6 +292,200 @@ const ChangeTPIN = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirm && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '16px',
+            width: '90%',
+            maxWidth: '400px',
+            padding: '24px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            textAlign: 'center',
+            border: '1px solid #E2E8F0'
+          }}>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              backgroundColor: '#EBF8FF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px auto',
+              color: '#3182CE'
+            }}>
+              <FaShieldAlt style={{ fontSize: '24px' }} />
+            </div>
+            <h3 style={{ fontSize: '1.2rem', color: '#0D1B3E', fontWeight: 700, margin: '0 0 8px 0' }}>
+              Confirm TPIN Update
+            </h3>
+            <p style={{ fontSize: '0.875rem', color: '#4E6080', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+              Are you sure you want to update the Transaction PIN for <span style={{ fontWeight: 600, color: '#1A202C' }}>{tpinState.member.split(' [')[0]}</span>?
+            </p>
+
+            {/* Admin TPIN verification field */}
+            <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+              <label style={{ fontSize: '0.8rem', color: '#4E6080', fontWeight: 600, display: 'block', marginBottom: '8px', textAlign: 'center' }}>
+                Enter Admin TPIN to Authorize
+              </label>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '8px' }}>
+                {adminTpin.map((digit, i) => (
+                  <input 
+                    key={i}
+                    ref={el => adminTpinRefs.current[i] = el}
+                    type="password"
+                    maxLength="1"
+                    style={{ 
+                      width: '38px', 
+                      height: '38px', 
+                      textAlign: 'center', 
+                      padding: '0', 
+                      fontSize: '1.1rem',
+                      fontWeight: '700',
+                      borderRadius: '8px',
+                      background: '#F8FAFF',
+                      border: adminTpinError ? '1.5px solid #E53E3E' : '1.5px solid #E2E8F0',
+                      outline: 'none',
+                      color: '#0D1B3E'
+                    }}
+                    value={digit}
+                    onChange={(e) => handleAdminPinChange(e, i)}
+                    onKeyDown={(e) => handleAdminKeyDown(e, i)}
+                    autoComplete="new-password"
+                  />
+                ))}
+              </div>
+              {adminTpinError && (
+                <div style={{ color: '#E53E3E', fontSize: '0.75rem', fontWeight: 500, textAlign: 'center' }}>
+                  {adminTpinError}
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button 
+                onClick={() => setShowConfirm(false)}
+                style={{
+                  flex: 1,
+                  padding: '10px 16px',
+                  borderRadius: '10px',
+                  border: '1.5px solid #E2E8F0',
+                  background: '#ffffff',
+                  color: '#4E6080',
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmUpdate}
+                style={{
+                  flex: 1,
+                  padding: '10px 16px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: '#1756AA',
+                  color: '#ffffff',
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(23,86,170,0.2)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {isSuccess && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '16px',
+            width: '90%',
+            maxWidth: '400px',
+            padding: '24px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            textAlign: 'center',
+            border: '1px solid #E2E8F0'
+          }}>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              backgroundColor: '#C6F6D5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px auto',
+              color: '#38A169'
+            }}>
+              <FaCheckCircle style={{ fontSize: '24px' }} />
+            </div>
+            <h3 style={{ fontSize: '1.2rem', color: '#0D1B3E', fontWeight: 700, margin: '0 0 8px 0' }}>
+              TPIN Updated Successfully
+            </h3>
+            <p style={{ fontSize: '0.875rem', color: '#4E6080', margin: '0 0 24px 0', lineHeight: 1.5 }}>
+              Transaction PIN has been updated for <span style={{ fontWeight: 600, color: '#1A202C' }}>{tpinState.member.split(' [')[0]}</span>.
+            </p>
+            <button 
+              onClick={() => {
+                setIsSuccess(false);
+                dispatch(updateTpin({ member: '', tpin: ['', '', '', ''], confirmTpin: ['', '', '', ''] }));
+              }}
+              style={{
+                width: '100%',
+                padding: '10px 16px',
+                borderRadius: '10px',
+                border: 'none',
+                background: '#38A169',
+                color: '#ffffff',
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(56,161,105,0.2)',
+                transition: 'all 0.2s'
+              }}
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

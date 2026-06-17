@@ -5,7 +5,7 @@ import {
   FaChevronLeft, FaChevronRight, FaEdit, FaTrash, FaPowerOff, 
   FaTimes, FaCheck, FaChevronDown, FaUser 
 } from 'react-icons/fa';
-import { FiDatabase } from 'react-icons/fi';
+import { FiDatabase, FiMoreVertical } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import styles from './MemberBankDetails.module.css';
 import { toggleMemberBankStatus } from '../../../store/slices/balanceSlice';
@@ -22,6 +22,9 @@ const MemberBankDetails = () => {
   const [selectedMember, setSelectedMember] = useState(null);
   const [memberSearch, setMemberSearch] = useState('');
   const dropdownRef = useRef(null);
+
+  // Action Dropdown state
+  const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, row: null });
 
   // Edit Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -59,15 +62,28 @@ const MemberBankDetails = () => {
   const startIndex = (currentPage - 1) * rowsPerPage;
   const currentData = filteredData.slice(startIndex, startIndex + rowsPerPage);
 
-  // Close dropdown on click outside
+  // Close dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
       }
+      if (!event.target.closest('.action-dropdown-wrapper')) {
+        setActiveActionRow({ id: null, x: 0, y: 0, row: null });
+      }
     };
+    
+    const handleScroll = (e) => {
+      if (e.target.closest && e.target.closest('.action-dropdown-wrapper')) return;
+      setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, row: null } : prev);
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('scroll', handleScroll, true);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('scroll', handleScroll, true);
+    };
   }, []);
 
   const openEditModal = (row) => {
@@ -291,7 +307,7 @@ const MemberBankDetails = () => {
             <thead>
               <tr>
                 <th>S.No</th>
-                <th>Action</th>
+                <th style={{ width: '120px', textAlign: 'center' }}>Action</th>
                 <th>Member Details</th>
                 <th>Bank Info</th>
                 <th>Branch</th>
@@ -303,28 +319,42 @@ const MemberBankDetails = () => {
               {currentData.length > 0 ? currentData.map((row, index) => (
                 <tr key={row.id} className={index % 2 === 0 ? styles.rowEven : styles.rowOdd}>
                   <td>{startIndex + index + 1}</td>
-                  <td>
-                    <div className={styles.actionRow}>
+                  <td style={{ textAlign: 'center' }}>
+                    <div className="action-dropdown-wrapper" style={{ display: 'inline-block' }}>
                       <button 
-                        className={`${styles.toggleBtn} ${row.status === 'Active' ? styles.activeStatus : styles.inactiveStatus}`}
-                        title={row.status === 'Active' ? 'Deactivate' : 'Activate'}
-                        onClick={() => confirmStatusChange(row)}
+                        className="action-dropdown-wrapper"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (activeActionRow.id === row.id) {
+                            setActiveActionRow({ id: null, x: 0, y: 0, row: null });
+                          } else {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            let dropX = rect.right + 12;
+                            if (dropX + 170 > window.innerWidth) dropX = rect.left - 175;
+                            setActiveActionRow({ id: row.id, x: dropX, y: rect.top, row: row });
+                          }
+                        }}
+                        style={{ 
+                          height: '32px', 
+                          padding: '0 12px',
+                          borderRadius: '8px', 
+                          background: '#22c55e', 
+                          color: '#ffffff', 
+                          border: 'none', 
+                          cursor: 'pointer', 
+                          display: 'inline-flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          gap: '6px',
+                          transition: 'all 0.15s', 
+                          margin: '0 auto', 
+                          boxShadow: '0 2px 4px rgba(34, 197, 94, 0.2)',
+                          fontWeight: 700,
+                          fontSize: '0.8rem'
+                        }}
+                        title="Actions"
                       >
-                        <FaPowerOff /> {row.status === 'Active' ? 'Active' : 'InActive'}
-                      </button>
-                      <button 
-                        className={`${styles.iconBtn} ${styles.editBtn}`} 
-                        title="Edit Details"
-                        onClick={() => openEditModal(row)}
-                      >
-                        <FaEdit />
-                      </button>
-                      <button 
-                        className={`${styles.iconBtn} ${styles.deleteBtn}`} 
-                        title="Delete Entry"
-                        onClick={() => confirmDelete(row.id)}
-                      >
-                        <FaTrash />
+                        Action <FiMoreVertical style={{ marginRight: '-4px' }} />
                       </button>
                     </div>
                   </td>
@@ -390,6 +420,68 @@ const MemberBankDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* ── ACTION DROPDOWN POPUP ── */}
+      {activeActionRow.id && (
+        <div 
+          className="action-dropdown-wrapper"
+          style={{
+            position: 'fixed',
+            top: activeActionRow.y,
+            left: activeActionRow.x,
+            background: '#ffffff',
+            borderRadius: '12px',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+            border: '1px solid #E2E8F0',
+            padding: '8px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+            zIndex: 9999,
+            minWidth: '160px',
+            animation: 'fadeIn 0.2s ease'
+          }}
+        >
+          <button 
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: '#334155', borderRadius: '8px', textAlign: 'left', transition: 'background 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            onClick={() => {
+              openEditModal(activeActionRow.row);
+              setActiveActionRow({ id: null, x: 0, y: 0, row: null });
+            }}
+          >
+            <FaEdit style={{ color: '#3B82F6' }} /> Edit Details
+          </button>
+
+          <button 
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: '#334155', borderRadius: '8px', textAlign: 'left', transition: 'background 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            onClick={() => {
+              confirmStatusChange(activeActionRow.row);
+              setActiveActionRow({ id: null, x: 0, y: 0, row: null });
+            }}
+          >
+            <FaPowerOff style={{ color: activeActionRow.row?.status === 'Active' ? '#E53E3E' : '#22C55E' }} /> 
+            {activeActionRow.row?.status === 'Active' ? 'Deactivate' : 'Activate'}
+          </button>
+
+          <div style={{ height: '1px', background: '#E2E8F0', margin: '4px 0' }} />
+
+          <button 
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: '#E53E3E', borderRadius: '8px', textAlign: 'left', transition: 'background 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            onClick={() => {
+              confirmDelete(activeActionRow.id);
+              setActiveActionRow({ id: null, x: 0, y: 0, row: null });
+            }}
+          >
+            <FaTrash /> Delete
+          </button>
+        </div>
+      )}
 
     </div>
   );

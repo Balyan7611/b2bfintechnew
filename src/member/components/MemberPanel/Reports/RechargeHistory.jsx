@@ -29,19 +29,25 @@ const RechargeHistory = () => {
         title="RECHARGE HISTORY"
         topContent={
           <div className={styles.filterSection}>
-            <div className={styles.filterRow}>
-              <div className={styles.formGroup}><label>From Date</label><input type="date" className={styles.inputControl} value={filters.fromDate} onChange={(e) => dispatch(updateRechargeFilters({fromDate: e.target.value}))} /></div>
-              <div className={styles.formGroup}><label>To Date</label><input type="date" className={styles.inputControl} value={filters.toDate} onChange={(e) => dispatch(updateRechargeFilters({toDate: e.target.value}))} /></div>
-              <div className={styles.formGroup}>
-                <label>Status</label>
-                <select className={styles.inputControl} value={filters.status} onChange={(e) => dispatch(updateRechargeFilters({status: e.target.value}))}>
-                  <option value="">All Status</option>
-                  <option value="SUCCESS">Success</option>
-                  <option value="PENDING">Pending</option>
-                  <option value="FAILED">Failed</option>
-                </select>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className={styles.filterRow}>
+                <div className={styles.formGroup}><label>From Date</label><input type="date" className={styles.inputControl} value={filters.fromDate} onChange={(e) => dispatch(updateRechargeFilters({fromDate: e.target.value}))} /></div>
+                <div className={styles.formGroup}><label>To Date</label><input type="date" className={styles.inputControl} value={filters.toDate} onChange={(e) => dispatch(updateRechargeFilters({toDate: e.target.value}))} /></div>
               </div>
-              <button className={styles.submitBtn}>Apply Filters</button>
+              <div className={styles.filterRow}>
+                <div className={styles.formGroup}>
+                  <label>Status</label>
+                  <select className={styles.inputControl} value={filters.status} onChange={(e) => dispatch(updateRechargeFilters({status: e.target.value}))}>
+                    <option value="">All Status</option>
+                    <option value="SUCCESS">Success</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="FAILED">Failed</option>
+                  </select>
+                </div>
+                <div className={styles.formGroup} style={{ flex: '0 0 auto', alignSelf: 'flex-end' }}>
+                  <button className={styles.submitBtn}>Apply Filters</button>
+                </div>
+              </div>
             </div>
           </div>
         }

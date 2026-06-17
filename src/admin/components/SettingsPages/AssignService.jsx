@@ -146,6 +146,7 @@ const AssignService = () => {
                    value={fetchedMember ? (fetchedMember.memberId || fetchedMember.id) : ""} 
                    onChange={handleSelectMember} 
                    placeholder="Search or Select Member ID..."
+                   style={{ height: '44px', width: '100%', borderRadius: '10px' }}
                  />
               </div>
 
@@ -157,7 +158,7 @@ const AssignService = () => {
                  <select 
                    value={categoryFilter}
                    onChange={(e) => setCategoryFilter(e.target.value)}
-                   style={{ height: '48px', borderRadius: '10px', border: '1px solid #CBD5E1', padding: '0 16px', color: '#1E293B', fontWeight: 600, outline: 'none', background: '#fff', cursor: 'pointer' }}
+                   style={{ height: '44px', borderRadius: '10px', border: '1px solid #CBD5E1', padding: '0 16px', color: '#1E293B', fontWeight: 600, outline: 'none', background: '#fff', cursor: 'pointer', width: '100%', boxSizing: 'border-box' }}
                  >
                     <option value="all">All Services (Show All)</option>
                     {categories.map(c => (

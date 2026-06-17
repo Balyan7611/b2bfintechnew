@@ -578,34 +578,34 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
     }} onClick={onClose}>
       <div style={{
         background: '#fff', borderRadius: 20,
-        width: '100%', maxWidth: 820, height: '90vh',
+        width: '100%', maxWidth: 580, height: '90vh',
         display: 'flex', flexDirection: 'column',
         boxShadow: '0 32px 80px rgba(0,0,0,0.22)',
         overflow: 'hidden',
       }} onClick={e => e.stopPropagation()}>
 
         {/* Top bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 24px', borderBottom: '1px solid #F1F5F9', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderBottom: '1px solid #F1F5F9', flexShrink: 0 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: '"DM Sans",sans-serif', fontSize: '1rem', fontWeight: 700, color: '#0D1B3E' }}>Transaction Receipt</div>
-            <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: 2, fontFamily: '"DM Sans",sans-serif' }}>Select size & print</div>
+            <div style={{ fontFamily: '"DM Sans",sans-serif', fontSize: '0.95rem', fontWeight: 700, color: '#0D1B3E' }}>Transaction Receipt</div>
+            <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: 1, fontFamily: '"DM Sans",sans-serif' }}>Select size & print</div>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             {SIZES.map(s => (
               <button key={s} onClick={() => setSize(s)} style={{
-                padding: '6px 14px', borderRadius: 8,
+                padding: '4px 10px', borderRadius: 8,
                 border: `1.5px solid ${size === s ? '#1756AA' : '#E2E8F0'}`,
                 background: size === s ? '#EFF6FF' : '#F8FAFC',
                 color: size === s ? '#1756AA' : '#94A3B8',
-                fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer',
+                fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer',
                 fontFamily: '"DM Sans",sans-serif', lineHeight: 1, transition: 'all 0.15s',
               }}>{s}</button>
             ))}
           </div>
           <button onClick={onClose} style={{
-            width: 32, height: 32, borderRadius: '50%',
+            width: 28, height: 28, borderRadius: '50%',
             border: '1px solid #E2E8F0', background: '#F8FAFC',
-            cursor: 'pointer', color: '#94A3B8', fontSize: '1rem',
+            cursor: 'pointer', color: '#94A3B8', fontSize: '0.85rem',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}>✕</button>
         </div>
@@ -614,7 +614,7 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
         <div ref={previewWrapRef} style={{
           flex: 1, background: '#EAEEF4',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: 24, overflow: 'hidden',
+          padding: 8, overflow: 'hidden',
         }}>
           <div style={{
             width: receiptPxWidth * scale,
@@ -639,15 +639,15 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
         </div>
 
         {/* Action bar */}
-        <div style={{ display: 'flex', gap: 10, padding: '16px 24px', borderTop: '1px solid #F1F5F9', background: '#fff', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 10, padding: '10px 20px', borderTop: '1px solid #F1F5F9', background: '#fff', flexShrink: 0 }}>
           <button onClick={printReceipt} style={{
-            flex: 1, padding: 13, borderRadius: 10,
+            flex: 1, padding: '8px 16px', borderRadius: 8,
             background: '#0D1B3E', color: '#fff', border: 'none',
-            fontWeight: 700, fontSize: '0.92rem', cursor: 'pointer',
+            fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer',
             fontFamily: '"DM Sans",sans-serif',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="6 9 6 2 18 2 18 9"/>
               <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
               <rect x="6" y="14" width="12" height="8"/>
@@ -655,10 +655,10 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
             Print {size}
           </button>
           <button onClick={onClose} style={{
-            flex: 1, padding: 13, borderRadius: 10,
+            flex: 1, padding: '8px 16px', borderRadius: 8,
             background: '#F8FAFC', color: '#475569',
             border: '1.5px solid #E2E8F0',
-            fontWeight: 700, fontSize: '0.92rem', cursor: 'pointer',
+            fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer',
             fontFamily: '"DM Sans",sans-serif',
           }}>
             Close

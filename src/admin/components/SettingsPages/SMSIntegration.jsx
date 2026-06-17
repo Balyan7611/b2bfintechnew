@@ -222,18 +222,132 @@ const SMSIntegration = () => {
             </tbody>
           </table>
         </div>
+
+        {/* ── PAGINATION ROW ── */}
+        <div className={styles.paginationRow} style={{ 
+          marginTop: '20px', 
+          paddingTop: '15px', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          borderTop: '1px solid #F1F5F9',
+          paddingLeft: '20px',
+          paddingRight: '20px',
+          paddingBottom: '15px'
+        }}>
+          <span style={{ fontSize: '0.75rem', color: '#718096', fontWeight: 600 }}>Showing {integrations.length} entries</span>
+          <div className={styles.pagination} style={{ display: 'flex', gap: '6px' }}>
+            <button className={styles.pageBtn} style={{ 
+              width: '32px', 
+              height: '32px', 
+              borderRadius: '8px', 
+              border: '1px solid #E2E8F0', 
+              background: '#fff', 
+              color: '#A0AEC0', 
+              cursor: 'not-allowed', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              fontSize: '0.8rem'
+            }} disabled><FaChevronLeft /></button>
+            <button className={`${styles.pageBtn} ${styles.pageActive}`} style={{ 
+              width: '32px', 
+              height: '32px', 
+              borderRadius: '8px', 
+              border: 'none', 
+              background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)', 
+              color: '#fff', 
+              fontWeight: 700, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              fontSize: '0.85rem',
+              boxShadow: '0 3px 8px rgba(30, 58, 138, 0.2)'
+            }}>1</button>
+            <button className={styles.pageBtn} style={{ 
+              width: '32px', 
+              height: '32px', 
+              borderRadius: '8px', 
+              border: '1px solid #E2E8F0', 
+              background: '#fff', 
+              color: '#A0AEC0', 
+              cursor: 'not-allowed', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              fontSize: '0.8rem'
+            }} disabled><FaChevronRight /></button>
+          </div>
+        </div>
       </div>
 
       {/* ── 2-STEP INTEGRATION MODAL ── */}
       {showModal && (
         <div className={styles.modalOverlay} style={{ zIndex: 3500 }}>
           <div className={styles.modalContainer} style={{ width: '700px', borderRadius: '16px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div className={styles.modalHeader} style={{ padding: '20px 30px 15px', borderBottom: '1px solid #F1F5F9' }}>
-               <div>
-                  <h3 className={styles.modalTitle} style={{ margin: 0, fontSize: '1.2rem' }}>{editingItem ? 'Edit Gateway' : 'Gateway Configuration'}</h3>
-                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#718096' }}>{editingItem ? 'Modify existing API connection' : 'Complete steps to register gateway'}</p>
+            <div style={{ 
+              padding: '12px 24px', 
+              borderBottom: '1px solid #E2E8F0', 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              background: 'linear-gradient(to right, #F8FAFC, #FFFFFF)' 
+            }}>
+               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                 <div style={{
+                   width: '36px',
+                   height: '36px',
+                   borderRadius: '10px',
+                   background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)',
+                   display: 'flex',
+                   alignItems: 'center',
+                   justifyContent: 'center',
+                   color: '#ffffff',
+                   boxShadow: '0 4px 10px rgba(30, 58, 138, 0.15)'
+                 }}>
+                   <FaSms style={{ fontSize: '1.1rem' }} />
+                 </div>
+                 <div>
+                    <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.01em' }}>
+                      {editingItem ? 'Edit Gateway' : 'Gateway Configuration'}
+                    </h3>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748B', fontWeight: 500 }}>
+                      {editingItem ? 'Modify existing API connection settings' : 'Complete steps to register gateway'}
+                    </p>
+                 </div>
                </div>
-               <button className={styles.closeBtn} onClick={resetForm}><FaTimes /></button>
+               <button 
+                 onClick={resetForm}
+                 style={{
+                   width: '30px',
+                   height: '30px',
+                   borderRadius: '50%',
+                   border: '1px solid #E2E8F0',
+                   background: '#F8FAFC',
+                   color: '#64748B',
+                   display: 'flex',
+                   alignItems: 'center',
+                   justifyContent: 'center',
+                   cursor: 'pointer',
+                   transition: 'all 0.2s ease',
+                   outline: 'none',
+                   padding: 0
+                 }}
+                 onMouseEnter={(e) => {
+                   e.currentTarget.style.background = '#EF4444';
+                   e.currentTarget.style.color = '#ffffff';
+                   e.currentTarget.style.borderColor = '#EF4444';
+                   e.currentTarget.style.transform = 'rotate(90deg)';
+                 }}
+                 onMouseLeave={(e) => {
+                   e.currentTarget.style.background = '#F8FAFC';
+                   e.currentTarget.style.color = '#64748B';
+                   e.currentTarget.style.borderColor = '#E2E8F0';
+                   e.currentTarget.style.transform = 'none';
+                 }}
+               >
+                 <FaTimes style={{ fontSize: '0.8rem' }} />
+               </button>
             </div>
 
             {/* STEPPER PROGRESS BAR - Compact */}

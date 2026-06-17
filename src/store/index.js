@@ -6,7 +6,6 @@ import loginReducer from './slices/loginSlice';
 import dashboardReducer from './slices/dashboardSlice';
 import supportReducer from './slices/supportSlice';
 import balanceReducer from './slices/balanceSlice';
-import shoppingReducer from './slices/shoppingSlice';
 import memberReducer from './slices/memberSlice';
 import commissionReducer from './slices/commissionSlice';
 import kycReducer from './slices/kycSlice';
@@ -25,7 +24,6 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     support: supportReducer,
     balance: balanceReducer,
-    shopping: shoppingReducer,
     member: memberReducer,
     commission: commissionReducer,
     kyc: kycReducer,

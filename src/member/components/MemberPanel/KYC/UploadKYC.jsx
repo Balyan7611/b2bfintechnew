@@ -105,8 +105,7 @@ const UploadKYC = () => {
       <KYCViewModal
         isOpen={!!selectedDoc}
         onClose={() => setSelectedDoc(null)}
-        documentName={selectedDoc?.documentName}
-        imageUrl={selectedDoc?.imageUrl}
+        doc={selectedDoc}
       />
 
     </div>

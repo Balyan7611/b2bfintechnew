@@ -127,10 +127,13 @@ const kycSlice = createSlice({
       }
     },
     rejectKyc: (state, action) => {
-      const request = state.kycRequests.find(r => r.id === action.payload);
+      const payloadObj = action.payload && typeof action.payload === 'object' && !Array.isArray(action.payload)
+        ? action.payload
+        : { id: action.payload, reason: 'Invalid Document Proof' };
+      const request = state.kycRequests.find(r => r.id === payloadObj.id);
       if (request) {
         request.status = 'Rejected';
-        request.reason = 'Invalid Document Proof';
+        request.reason = payloadObj.reason || 'Invalid Document Proof';
         request.approveDate = new Date().toLocaleString('en-GB');
       }
     },

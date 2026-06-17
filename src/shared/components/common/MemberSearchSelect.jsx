@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FiChevronDown, FiRefreshCw } from 'react-icons/fi';
 import { API } from '../../../api/endpoints';
 
-const MemberSearchSelect = ({ value, onChange, placeholder = "Search or Select Member ID..." }) => {
+const MemberSearchSelect = ({ value, onChange, placeholder = "Search or Select Member ID...", style = {} }) => {
   const [searchTerm, setSearchTerm] = useState(value || "");
   const [showDropdown, setShowDropdown] = useState(false);
   const [memberList, setMemberList] = useState([]);
@@ -96,7 +96,7 @@ const MemberSearchSelect = ({ value, onChange, placeholder = "Search or Select M
             if(!e.target.value && onChange) onChange(null); 
           }}
           onClick={() => setShowDropdown(true)}
-          style={{ width: '100%', padding: '12px 35px 12px 16px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '0.95rem', outline: 'none', background: '#fff', height: '48px', boxSizing: 'border-box' }}
+          style={{ width: '100%', padding: '0 35px 0 16px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '0.85rem', outline: 'none', background: '#fff', height: '38px', boxSizing: 'border-box', ...style }}
         />
         <FiChevronDown 
           onClick={() => setShowDropdown(prev => !prev)}

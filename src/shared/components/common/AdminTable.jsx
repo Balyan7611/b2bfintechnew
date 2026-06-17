@@ -131,7 +131,10 @@ const AdminTable = ({
       {/* PAGINATION */}
       <div className={styles.paginationRow}>
         <div className={styles.paginationInfo}>
-          Showing {totalEntries > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0} to {Math.min(currentPage * rowsPerPage, totalEntries)} of {totalEntries} entries
+          {totalEntries === 0 
+            ? "Showing 0 entries" 
+            : `Showing ${(currentPage - 1) * rowsPerPage + 1} to ${Math.min(currentPage * rowsPerPage, totalEntries)} of ${totalEntries} entries`
+          }
         </div>
         <div className={styles.pagination}>
           <button 

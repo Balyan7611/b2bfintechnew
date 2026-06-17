@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   FiShield, FiLock, FiCheckCircle, FiInfo, FiSmartphone, FiCreditCard, FiUserPlus, FiUsers, FiDollarSign, FiActivity
 } from 'react-icons/fi';
 import styles from '../MemberPages/MemberPages.module.css';
 
-const ToggleItem = ({ label, stateKey, permissions, handleToggle }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+const ToggleItem = ({ label, stateKey, permissions, handleToggle, disabled = false }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? 'none' : 'auto' }}>
      <label className={styles.switch} style={{ margin: 0, transform: 'scale(0.85)', transformOrigin: 'left center' }}>
-        <input type="checkbox" checked={permissions[stateKey]} onChange={() => handleToggle(stateKey)} />
+        <input type="checkbox" checked={permissions[stateKey]} onChange={() => handleToggle(stateKey)} disabled={disabled} />
         <span className={styles.slider}></span>
      </label>
      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', lineHeight: '1.4' }}>{label}</span>
@@ -66,11 +66,56 @@ const PermissionSetting = () => {
     cashoutTpin: true
   });
 
+  const lastActiveAuth = useRef('tpinLoginAdmin');
+
   const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
   const handleToggle = (key) => {
-    setPermissions(prev => ({ ...prev, [key]: !prev[key] }));
+    // Define groups of mutually exclusive toggles
+    const exclusiveGroups = [
+      ['otpLoginAdmin', 'tpinLoginAdmin', 'googleAuth'],
+      ['addBalanceOtp', 'addBalanceTpin'],
+      ['deductBalanceOtp', 'deductBalanceTpin'],
+      ['addBankOtp', 'addBankTpin'],
+      ['cashoutOtp', 'cashoutTpin']
+    ];
+
+    // Check if the toggled key belongs to any exclusive group
+    for (const group of exclusiveGroups) {
+      if (group.includes(key)) {
+        setPermissions(prev => {
+          // If turning ON, turn OFF the others in the group
+          if (!prev[key]) {
+             if (group.includes('googleAuth')) {
+               lastActiveAuth.current = key; // Remember for TwoWayAuth
+             }
+             const newState = { ...prev };
+             group.forEach(k => { newState[k] = (k === key); });
+             return newState;
+          }
+          // If turning OFF, just turn it OFF
+          return { ...prev, [key]: false };
+        });
+        return;
+      }
+    }
+    
+    setPermissions(prev => {
+      const newState = { ...prev, [key]: !prev[key] };
+      // If two way auth is turned off, automatically turn off the child options
+      if (key === 'twoWayAuthAdmin') {
+        if (!newState.twoWayAuthAdmin) {
+          newState.otpLoginAdmin = false;
+          newState.tpinLoginAdmin = false;
+          newState.googleAuth = false;
+        } else {
+          // Restore the last active auth option
+          newState[lastActiveAuth.current] = true;
+        }
+      }
+      return newState;
+    });
   };
 
   const handleSave = () => {
@@ -128,10 +173,10 @@ const PermissionSetting = () => {
         <SectionCard title="Admin Login Permission" icon={<FiLock size={16} />} headerAction={saveButton}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '25px' }}>
             <ToggleItem label="Two Way Authentication Admin" stateKey="twoWayAuthAdmin" permissions={permissions} handleToggle={handleToggle} />
-            <ToggleItem label="OTP Login For Admin Login" stateKey="otpLoginAdmin" permissions={permissions} handleToggle={handleToggle} />
-            <ToggleItem label="TPIN Login For Admin Login" stateKey="tpinLoginAdmin" permissions={permissions} handleToggle={handleToggle} />
+            <ToggleItem label="OTP Login For Admin Login" stateKey="otpLoginAdmin" permissions={permissions} handleToggle={handleToggle} disabled={!permissions.twoWayAuthAdmin} />
+            <ToggleItem label="TPIN Login For Admin Login" stateKey="tpinLoginAdmin" permissions={permissions} handleToggle={handleToggle} disabled={!permissions.twoWayAuthAdmin} />
             <ToggleItem label="System Down" stateKey="systemDown" permissions={permissions} handleToggle={handleToggle} />
-            <ToggleItem label="Google Auth" stateKey="googleAuth" permissions={permissions} handleToggle={handleToggle} />
+            <ToggleItem label="Google Auth" stateKey="googleAuth" permissions={permissions} handleToggle={handleToggle} disabled={!permissions.twoWayAuthAdmin} />
           </div>
           
           {permissions.googleAuth && (

@@ -10,7 +10,8 @@ import {
   FaChevronLeft, FaChevronRight, FaEllipsisV, FaCog, FaEdit, FaEye, 
   FaUserLock, FaTrash, FaCheck, FaExclamationCircle, FaFilter,
   FaCalendarAlt, FaUserTag, FaIdCard, FaMobileAlt, FaHandHoldingUsd, FaArrowRight,
-  FaUsersCog, FaUserFriends, FaEnvelope, FaSms, FaVideo, FaTimes, FaUserPlus
+  FaUsersCog, FaUserFriends, FaEnvelope, FaSms, FaVideo, FaTimes, FaUserPlus,
+  FaCheckCircle, FaExclamationTriangle, FaShieldAlt
 } from 'react-icons/fa';
 import { updateMemberDirect, deleteMember } from '../../../store/slices/memberSlice';
 import { MemberService } from '../../../services/member.service';
@@ -34,6 +35,51 @@ const ToggleSwitch = ({ checked, onChange }) => (
   </div>
 );
 
+const MaskedInfo = ({ value, type }) => {
+  const [isMasked, setIsMasked] = React.useState(true);
+
+  if (!value || value === 'N/A' || value === '—') return <span>—</span>;
+
+  const handleDoubleClick = () => {
+    setIsMasked(!isMasked);
+  };
+
+  const getMaskedValue = () => {
+    const clean = value.replace(/[\s-]/g, '');
+    if (type === 'aadhar') {
+      if (clean.length >= 12) {
+        return `•••• •••• ${clean.slice(-4)}`;
+      }
+      return '•••• •••• ' + clean.slice(-Math.min(4, clean.length));
+    } else if (type === 'pan') {
+      if (clean.length >= 10) {
+        return `••••••${clean.slice(-4)}`;
+      }
+      return '••••••' + clean.slice(-Math.min(4, clean.length));
+    }
+    return value;
+  };
+
+  return (
+    <span 
+      onDoubleClick={handleDoubleClick} 
+      title="Double tap to reveal / mask"
+      style={{ 
+        cursor: 'pointer', 
+        fontFamily: 'monospace', 
+        letterSpacing: '1px',
+        userSelect: 'none',
+        background: isMasked ? '#F8FAFC' : 'transparent',
+        padding: isMasked ? '2px 6px' : '0',
+        borderRadius: '4px',
+        border: isMasked ? '1px dashed #cbd5e1' : 'none'
+      }}
+    >
+      {isMasked ? getMaskedValue() : value}
+    </span>
+  );
+};
+
 const ManageMember = () => {
   const dispatch = useDispatch();
   const [activeDropdown, setActiveDropdown] = useState(null);
@@ -43,6 +89,9 @@ const ManageMember = () => {
   const [editMember, setEditMember] = useState(null);
   const [holdInputs, setHoldInputs] = useState({});
   const [confirmHold, setConfirmHold] = useState(null);
+  const [pendingToggle, setPendingToggle] = useState(null);
+  const [pendingAction, setPendingAction] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   // ── MEMBER SERVICES STATE & HELPERS ──────────────────────────────────────
   const [allServices, setAllServices] = useState([]);
@@ -245,10 +294,11 @@ const ManageMember = () => {
 
   const handleActionClick = (action, m) => {
     setActiveDropdown(null);
-    if (action === 'Edit') setEditMember({ ...m, initialEdit: true });
-    else if (action === 'Send Email') alert(`Email sent successfully to ${m.email}`);
-    else if (action === 'Send SMS') alert(`SMS sent successfully to ${m.mobile}`);
-    else if (action === 'Re-KYC') alert(`Re-KYC process initiated for ${m.name}`);
+    if (action === 'Edit') {
+      setEditMember({ ...m, initialEdit: true });
+    } else {
+      setPendingAction({ action, member: m });
+    }
   };
 
   const getPaginationPages = () => {
@@ -301,12 +351,12 @@ const ManageMember = () => {
           <button 
             onClick={() => setShowRegistrationModal(true)}
             style={{
-              padding: '6px 14px',
+              padding: '10px 18px',
               background: 'linear-gradient(135deg, #1756AA, #124d96)',
               color: '#fff',
               border: 'none',
               borderRadius: '8px',
-              fontSize: '0.75rem',
+              fontSize: '0.85rem',
               fontWeight: '700',
               cursor: 'pointer',
               display: 'flex',
@@ -326,13 +376,13 @@ const ManageMember = () => {
             <div className={styles.formGroup} style={{ flex: 1 }}>
               <label className={styles.label} style={{ fontSize: '0.75rem' }}>From Date</label>
               <div className={styles.inputWrap}>
-                <input type="date" name="fromDate" className={styles.inputControl} style={{ paddingLeft: '12px', fontSize: '0.85rem' }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+                <input type="date" name="fromDate" className={styles.inputControl} style={{ paddingLeft: '12px', fontSize: '0.85rem', height: '38px', boxSizing: 'border-box' }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
               </div>
             </div>
             <div className={styles.formGroup} style={{ flex: 1 }}>
               <label className={styles.label} style={{ fontSize: '0.75rem' }}>To Date</label>
               <div className={styles.inputWrap}>
-                <input type="date" name="toDate" className={styles.inputControl} style={{ paddingLeft: '12px', fontSize: '0.85rem' }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
+                <input type="date" name="toDate" className={styles.inputControl} style={{ paddingLeft: '12px', fontSize: '0.85rem', height: '38px', boxSizing: 'border-box' }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
               </div>
             </div>
           </div>
@@ -353,6 +403,7 @@ const ManageMember = () => {
               value={searchQuery} 
               onChange={(m) => setSearchQuery(m ? (m.memberId || m.loginId || m.id) : '')} 
               placeholder="Search Member..." 
+              style={{ height: '38px', fontSize: '0.85rem' }}
             />
           </div>
         </div>
@@ -516,17 +567,17 @@ const ManageMember = () => {
                             {/* Toggles */}
                             <div style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', fontSize: '0.8rem', color: '#4E6080', fontWeight: 600 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><FaVideo style={{ color: '#1756AA', fontSize: '1rem' }} /> Video KYC</div>
-                              <ToggleSwitch checked={m.videoKyc} onChange={() => handleToggle('videoKyc', m)} />
+                              <ToggleSwitch checked={m.videoKyc} onChange={() => setPendingToggle({ field: 'videoKyc', member: m, nextValue: !m.videoKyc })} />
                             </div>
 
                             <div style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', fontSize: '0.8rem', color: '#4E6080', fontWeight: 600 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><FaUserLock style={{ color: '#EAA21F', fontSize: '1rem' }} /> Acct Active</div>
-                              <ToggleSwitch checked={m.isActive !== false} onChange={() => handleToggle('isActive', m)} />
+                              <ToggleSwitch checked={m.isActive !== false} onChange={() => setPendingToggle({ field: 'isActive', member: m, nextValue: m.isActive === false })} />
                             </div>
 
                             <div style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', fontSize: '0.8rem', color: '#4E6080', fontWeight: 600 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><FaHandHoldingUsd style={{ color: '#E53E3E', fontSize: '1rem' }} /> Hold Acct</div>
-                              <ToggleSwitch checked={m.isHold} onChange={() => handleToggle('isHold', m)} />
+                              <ToggleSwitch checked={m.isHold} onChange={() => setPendingToggle({ field: 'isHold', member: m, nextValue: !m.isHold })} />
                             </div>
 
                             {/* Service Assignment Trigger */}
@@ -751,8 +802,8 @@ const ManageMember = () => {
                     <td>{m.email}</td>
                     <td>{m.alterNativeMobileNumber || m.whatsapp || 'N/A'}</td>
                     <td>{m.shopName || m.shop || 'N/A'}</td>
-                    <td>{m.aadhar || 'N/A'}</td>
-                    <td>{m.pan || 'N/A'}</td>
+                    <td><MaskedInfo value={m.aadhar} type="aadhar" /></td>
+                    <td><MaskedInfo value={m.pan} type="pan" /></td>
                     <td>{m.dob || 'N/A'}</td>
                     <td>{m.createdDate ? new Date(m.createdDate).toLocaleDateString('en-GB') : (m.doj || 'N/A')}</td>
                     <td>{m.joinedBy || 'N/A'}</td>
@@ -1117,6 +1168,176 @@ const ManageMember = () => {
             fetchMembers(pageNumber, rowsPerPage, searchQuery, filterRoleId, memberType, kycStatus, fromDate, toDate);
           }} 
         />
+      )}
+
+      {/* Confirmation Modal for Member Controls Toggles */}
+      {pendingToggle && (
+        <div className={styles.modalOverlay} style={{ zIndex: 4000, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className={styles.modalContainer} style={{ width: '360px', borderRadius: '16px', padding: '24px', background: '#fff', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', textAlign: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ 
+                width: '54px', 
+                height: '54px', 
+                background: pendingToggle.nextValue ? '#E6F4EA' : '#FDECEA', 
+                borderRadius: '50%', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                color: pendingToggle.nextValue ? '#1E7E34' : '#D93025', 
+                marginBottom: '16px',
+                boxShadow: pendingToggle.nextValue ? '0 4px 10px rgba(30,126,52,0.15)' : '0 4px 10px rgba(217,48,37,0.15)'
+              }}>
+                {pendingToggle.nextValue ? (
+                  <FaCheckCircle style={{ fontSize: '1.6rem' }} />
+                ) : (
+                  <FaExclamationTriangle style={{ fontSize: '1.5rem' }} />
+                )}
+              </div>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '1.15rem', color: '#0D1B3E', fontWeight: 800 }}>
+                {pendingToggle.nextValue ? 'Enable' : 'Disable'} Status?
+              </h3>
+              <p style={{ margin: '0 0 24px 0', fontSize: '0.82rem', color: '#64748B', lineHeight: '1.5' }}>
+                Are you sure you want to turn <strong style={{ color: pendingToggle.nextValue ? '#1E7E34' : '#D93025' }}>{pendingToggle.nextValue ? 'ON' : 'OFF'}</strong> the <strong>{
+                  pendingToggle.field === 'videoKyc' ? 'Video KYC' :
+                  pendingToggle.field === 'isActive' ? 'Account Active' :
+                  'Hold Account'
+                }</strong> status for <strong>{pendingToggle.member.name}</strong>?
+              </p>
+              <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+                <button
+                  onClick={() => setPendingToggle(null)}
+                  style={{ flex: 1, padding: '10px 16px', background: '#F1F5F9', border: 'none', borderRadius: '8px', color: '#4E6080', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    handleToggle(pendingToggle.field, pendingToggle.member);
+                    setPendingToggle(null);
+                  }}
+                  style={{ 
+                    flex: 1, 
+                    padding: '10px 16px', 
+                    background: pendingToggle.nextValue ? 'linear-gradient(135deg, #27AE60, #1E7E34)' : 'linear-gradient(135deg, #E53E3E, #D93025)', 
+                    border: 'none', 
+                    borderRadius: '8px', 
+                    color: '#fff', 
+                    fontWeight: 600, 
+                    cursor: 'pointer', 
+                    fontSize: '0.85rem',
+                    boxShadow: pendingToggle.nextValue ? '0 4px 10px rgba(39,174,96,0.2)' : '0 4px 10px rgba(229,62,62,0.2)',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Action Confirmation Modal (Email, SMS, Re-KYC) */}
+      {pendingAction && (
+        <div className={styles.modalOverlay} style={{ zIndex: 4000, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px', background: '#fff', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', textAlign: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ 
+                width: '54px', 
+                height: '54px', 
+                background: '#EDF4FF', 
+                borderRadius: '50%', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                color: '#1756AA', 
+                marginBottom: '16px',
+                boxShadow: '0 4px 10px rgba(23,86,170,0.15)'
+              }}>
+                {pendingAction.action === 'Send Email' ? (
+                  <FaEnvelope style={{ fontSize: '1.5rem', color: '#27AE60' }} />
+                ) : pendingAction.action === 'Send SMS' ? (
+                  <FaSms style={{ fontSize: '1.5rem', color: '#1756AA' }} />
+                ) : (
+                  <FaShieldAlt style={{ fontSize: '1.5rem', color: '#EAA21F' }} />
+                )}
+              </div>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '1.15rem', color: '#0D1B3E', fontWeight: 800 }}>
+                {pendingAction.action}
+              </h3>
+              <p style={{ margin: '0 0 24px 0', fontSize: '0.82rem', color: '#64748B', lineHeight: '1.5' }}>
+                {pendingAction.action === 'Send Email' ? (
+                  <>Are you sure you want to send a Gmail message to <strong>{pendingAction.member.email}</strong>?</>
+                ) : pendingAction.action === 'Send SMS' ? (
+                  <>Are you sure you want to send an SMS to <strong>{pendingAction.member.mobile}</strong>?</>
+                ) : (
+                  <>Are you sure you want to initiate Re-KYC for <strong>{pendingAction.member.name}</strong>?</>
+                )}
+              </p>
+              <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+                <button
+                  onClick={() => setPendingAction(null)}
+                  style={{ flex: 1, padding: '10px 16px', background: '#F1F5F9', border: 'none', borderRadius: '8px', color: '#4E6080', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    const actionType = pendingAction.action;
+                    const name = pendingAction.member.name;
+                    const target = actionType === 'Send Email' ? pendingAction.member.email : actionType === 'Send SMS' ? pendingAction.member.mobile : name;
+                    
+                    setPendingAction(null);
+                    
+                    if (actionType === 'Send Email') {
+                      setSuccessMessage(`Gmail sent successfully to ${target}!`);
+                    } else if (actionType === 'Send SMS') {
+                      setSuccessMessage(`SMS sent successfully to ${target}!`);
+                    } else {
+                      setSuccessMessage(`Re-KYC process initiated successfully for ${target}!`);
+                    }
+                  }}
+                  style={{ flex: 1, padding: '10px 16px', background: 'linear-gradient(135deg, #1756AA, #124d96)', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', boxShadow: '0 4px 10px rgba(23,86,170,0.2)' }}
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {successMessage && (
+        <div className={styles.modalOverlay} style={{ zIndex: 4001, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className={styles.modalContainer} style={{ width: '340px', borderRadius: '16px', padding: '24px', background: '#fff', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', textAlign: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ 
+                width: '54px', 
+                height: '54px', 
+                background: '#E6F4EA', 
+                borderRadius: '50%', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                color: '#1E7E34', 
+                marginBottom: '16px',
+                boxShadow: '0 4px 10px rgba(30,126,52,0.15)'
+              }}>
+                <FaCheckCircle style={{ fontSize: '1.6rem' }} />
+              </div>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '1.15rem', color: '#0D1B3E', fontWeight: 800 }}>Success</h3>
+              <p style={{ margin: '0 0 24px 0', fontSize: '0.82rem', color: '#64748B', lineHeight: '1.5' }}>
+                {successMessage}
+              </p>
+              <button
+                onClick={() => setSuccessMessage(null)}
+                style={{ width: '100%', padding: '10px 16px', background: 'linear-gradient(135deg, #27AE60, #1E7E34)', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', boxShadow: '0 4px 10px rgba(39,174,96,0.2)' }}
+              >
+                Okay
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

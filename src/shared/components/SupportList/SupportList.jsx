@@ -96,6 +96,7 @@ const SupportList = () => {
           <table className={styles.table}>
             <thead>
               <tr>
+                <th style={{ width: '60px' }}>S.NO</th>
                 <th>Action</th>
                 <th>Ticket ID</th>
                 <th>Login ID</th>
@@ -110,30 +111,34 @@ const SupportList = () => {
             <tbody>
               {currentData.length > 0 ? currentData.map((row, index) => (
                 <tr key={row.id} className={index % 2 === 0 ? styles.rowEven : styles.rowOdd}>
+                  <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{startIndex + index + 1}</td>
                   <td>
                     <div className={styles.actionBtns}>
                       <button
                         className={`${styles.actionBtn} ${styles.btnChat}`}
+                        style={{ padding: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         title="Chat"
                         onClick={() => handleChatOpen(row)}
                       >
-                        <FaCommentDots /> Chat
+                        <FaCommentDots />
                       </button>
                       <button 
                         className={`${styles.actionBtn} ${styles.btnApprove} ${row.status === 'Approved' ? styles.btnDisabled : ''}`}
+                        style={{ padding: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         title="Approve"
                         onClick={() => handleStatusChangeClick(row, 'Approved')}
                         disabled={row.status === 'Approved'}
                       >
-                        <FaCheck /> Approve
+                        <FaCheck />
                       </button>
                       <button 
                         className={`${styles.actionBtn} ${styles.btnReject} ${row.status === 'Rejected' ? styles.btnDisabled : ''}`}
+                        style={{ padding: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         title="Reject"
                         onClick={() => handleStatusChangeClick(row, 'Rejected')}
                         disabled={row.status === 'Rejected'}
                       >
-                        <FaTimes /> Reject
+                        <FaTimes />
                       </button>
                     </div>
                   </td>
@@ -152,7 +157,7 @@ const SupportList = () => {
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
+                  <td colSpan="10" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                       <FiDatabase style={{ fontSize: '1.5rem', opacity: 0.3 }} />
                       <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span>

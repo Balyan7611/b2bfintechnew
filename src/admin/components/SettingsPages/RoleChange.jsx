@@ -129,9 +129,9 @@ const RoleChange = () => {
         </div>
 
         {/* TOP FORM */}
-        <div style={{ padding: '25px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ padding: '20px 25px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px', alignItems: 'flex-end' }}>
             
             {/* Member ID Autocomplete */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -140,6 +140,7 @@ const RoleChange = () => {
                 value={fetchedMember ? (fetchedMember.memberId || fetchedMember.id) : ""} 
                 onChange={handleSelectMember} 
                 placeholder="Search Member ID..."
+                style={{ height: '42px' }}
               />
             </div>
 
@@ -150,7 +151,7 @@ const RoleChange = () => {
                 value={formData.roleId} 
                 onChange={(val) => setFormData({...formData, roleId: val})}
                 placeholder="Select Role"
-                style={{ padding: '10px 15px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', outline: 'none', color: '#334155', background: '#fff', cursor: 'pointer', height: '48px' }}
+                style={{ padding: '0 15px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', outline: 'none', color: '#334155', background: '#fff', cursor: 'pointer', height: '42px', width: '100%', boxSizing: 'border-box' }}
               />
             </div>
 
@@ -161,14 +162,14 @@ const RoleChange = () => {
                 value={formData.packageId}
                 onChange={(val) => setFormData({...formData, packageId: val})}
                 placeholder="Select Package"
-                style={{ padding: '10px 15px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', outline: 'none', color: '#334155', background: '#fff', cursor: 'pointer', height: '48px' }}
+                style={{ padding: '0 15px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', outline: 'none', color: '#334155', background: '#fff', cursor: 'pointer', height: '42px', width: '100%', boxSizing: 'border-box' }}
               />
             </div>
 
             {/* ID Change Checkbox */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1E293B' }}>ID Change(Yes/No)</label>
-              <div style={{ padding: '10px 15px', borderRadius: '8px', border: '1px solid #CBD5E1', display: 'flex', alignItems: 'center', height: '48px', boxSizing: 'border-box' }}>
+              <div style={{ padding: '0 15px', borderRadius: '8px', border: '1px solid #CBD5E1', display: 'flex', alignItems: 'center', height: '42px', width: '100%', boxSizing: 'border-box', background: '#fff' }}>
                 <input 
                   type="checkbox" 
                   checked={formData.idChange}
@@ -178,29 +179,31 @@ const RoleChange = () => {
               </div>
             </div>
 
-          </div>
+            {/* Submit Button */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%' }}>
+              <button 
+                onClick={handleChangeRole}
+                disabled={isLoading || !fetchedMember || !formData.roleId}
+                style={{ 
+                  background: (isLoading || !fetchedMember || !formData.roleId) ? '#94A3B8' : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', 
+                  color: '#fff', border: 'none', borderRadius: '8px', 
+                  padding: '0 24px', fontSize: '0.9rem', fontWeight: 700, 
+                  cursor: (isLoading || !fetchedMember || !formData.roleId) ? 'not-allowed' : 'pointer',
+                  boxShadow: (isLoading || !fetchedMember || !formData.roleId) ? 'none' : '0 4px 10px rgba(34, 197, 94, 0.3)',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  height: '42px', width: '100%', transition: 'all 0.3s', boxSizing: 'border-box'
+                }}
+              >
+                {isLoading ? (
+                  <>
+                    <FiRefreshCw className="global-spin" /> Changing...
+                  </>
+                ) : (
+                  'Change Role'
+                )}
+              </button>
+            </div>
 
-          <div>
-            <button 
-              onClick={handleChangeRole}
-              disabled={isLoading || !fetchedMember || !formData.roleId}
-              style={{ 
-                background: (isLoading || !fetchedMember || !formData.roleId) ? '#FCA5A5' : '#EF4444', 
-                color: '#fff', border: 'none', borderRadius: '8px', 
-                padding: '10px 24px', fontSize: '0.95rem', fontWeight: 700, 
-                cursor: (isLoading || !fetchedMember || !formData.roleId) ? 'not-allowed' : 'pointer',
-                boxShadow: (isLoading || !fetchedMember || !formData.roleId) ? 'none' : '0 4px 10px rgba(239, 68, 68, 0.3)',
-                display: 'flex', alignItems: 'center', gap: '8px'
-              }}
-            >
-              {isLoading ? (
-                <>
-                  <FiRefreshCw className="global-spin" /> Changing...
-                </>
-              ) : (
-                'ChangeRole'
-              )}
-            </button>
           </div>
         </div>
 

@@ -39,13 +39,14 @@ const MemberSecurity = () => {
     m.memberId?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const GlobalToggleCard = ({ label, field, active }) => (
-    <div className={styles.premiumToggleCard}>
+  const GlobalToggleCard = ({ label, field, active, disabled }) => (
+    <div className={styles.premiumToggleCard} style={disabled ? { opacity: 0.5, cursor: 'not-allowed', pointerEvents: 'none' } : {}}>
       <span className={styles.premiumToggleLabel}>{label}</span>
       <label className={`${styles.switch} ${styles.switchSmall}`}>
         <input 
           type="checkbox" 
           checked={active} 
+          disabled={disabled}
           onChange={() => handleToggle('global', field)} 
         />
         <span className={styles.slider}></span>
@@ -63,8 +64,8 @@ const MemberSecurity = () => {
           </div>
           <div className={styles.headerRight} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <GlobalToggleCard label="Two Way Auth" field="twoWay" active={globalToggles.twoWay} />
-            <GlobalToggleCard label="OTP Login" field="otp" active={globalToggles.otp} />
-            <GlobalToggleCard label="TPIN Login" field="tpin" active={globalToggles.tpin} />
+            <GlobalToggleCard label="OTP Login" field="otp" active={globalToggles.otp} disabled={!globalToggles.twoWay} />
+            <GlobalToggleCard label="TPIN Login" field="tpin" active={globalToggles.tpin} disabled={!globalToggles.twoWay} />
           </div>
         </div>
         
@@ -133,30 +134,32 @@ const MemberSecurity = () => {
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                      <label className={`${styles.switch} ${styles.switchSmall}`}>
+                      <label className={`${styles.switch} ${styles.switchSmall}`} style={!m.twoWay ? { opacity: 0.5, cursor: 'not-allowed', pointerEvents: 'none' } : {}}>
                         <input 
                           type="checkbox" 
                           checked={m.otp} 
+                          disabled={!m.twoWay}
                           onChange={() => handleToggle(m.id, 'otp')} 
                         />
                         <span className={styles.slider}></span>
                       </label>
-                      <span style={{ fontSize: '0.6rem', fontWeight: 800, color: m.otp ? '#27AE60' : '#A0AEC0' }}>
+                      <span style={{ fontSize: '0.6rem', fontWeight: 800, color: m.twoWay && m.otp ? '#27AE60' : '#A0AEC0' }}>
                         {m.otp ? 'ON' : 'OFF'}
                       </span>
                     </div>
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                      <label className={`${styles.switch} ${styles.switchSmall}`}>
+                      <label className={`${styles.switch} ${styles.switchSmall}`} style={!m.twoWay ? { opacity: 0.5, cursor: 'not-allowed', pointerEvents: 'none' } : {}}>
                         <input 
                           type="checkbox" 
                           checked={m.tpin} 
+                          disabled={!m.twoWay}
                           onChange={() => handleToggle(m.id, 'tpin')} 
                         />
                         <span className={styles.slider}></span>
                       </label>
-                      <span style={{ fontSize: '0.6rem', fontWeight: 800, color: m.tpin ? '#27AE60' : '#A0AEC0' }}>
+                      <span style={{ fontSize: '0.6rem', fontWeight: 800, color: m.twoWay && m.tpin ? '#27AE60' : '#A0AEC0' }}>
                         {m.tpin ? 'ON' : 'OFF'}
                       </span>
                     </div>

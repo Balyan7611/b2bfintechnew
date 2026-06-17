@@ -26,6 +26,19 @@ const DesignService = () => {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, design: null });
+  const [toggleConfirmModal, setToggleConfirmModal] = useState({ isOpen: false, design: null });
+
+  // Close action dropdown on outside click
+  React.useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (!e.target.closest('.action-dropdown-wrapper')) {
+        setActiveActionRow({ id: null, x: 0, y: 0, design: null });
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
 
   // Load section types and services from API and merge them dynamically
   const fetchInitialData = async () => {
@@ -215,11 +228,11 @@ const DesignService = () => {
 
         {/* ── TABLE ── */}
         <div className={styles.tableWrapper}>
-          <table className={styles.table} style={{ width: '100%', minWidth: '950px', tableLayout: 'auto' }}>
+          <table className={styles.table} style={{ width: '100%', tableLayout: 'auto' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
                 <th style={{ width: '60px' }}>S.NO</th>
-                <th style={{ width: '120px', textAlign: 'center' }}>ACTION</th>
+                <th style={{ width: '80px', textAlign: 'center' }}>ACTION</th>
                 <th style={{ width: '250px' }}>NAME</th>
                 <th style={{ width: '400px', textAlign: 'left' }}>SERVICE</th>
                 <th style={{ width: '100px', textAlign: 'center' }}>POSITION</th>
@@ -245,14 +258,24 @@ const DesignService = () => {
                 <tr key={design.id} className={styles.hoverRow} style={{ borderBottom: '1px solid #F1F5F9' }}>
                   <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{idx + 1}</td>
                   <td style={{ textAlign: 'center' }}>
-                     <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', alignItems: 'center' }}>
-                        <button onClick={() => confirmDelete(design.id)} style={{ background: '#FFF5F5', border: '1px solid #FED7D7', color: '#EF4444', fontSize: '1rem', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Delete"><FiTrash2 /></button>
-                        <label className={styles.switch} style={{ transform: 'scale(0.8)', margin: 0 }}>
-                           <input type="checkbox" checked={design.status} onChange={() => handleToggleStatus(design.id)} />
-                           <span className={styles.slider}></span>
-                        </label>
-                        <button onClick={() => handleEdit(design)} style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#3B82F6', fontSize: '1rem', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Edit"><FiEdit /></button>
-                     </div>
+                    <div className="action-dropdown-wrapper" style={{ display: 'inline-block' }}>
+                      <button
+                        className="action-dropdown-wrapper"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (activeActionRow.id === design.id) {
+                            setActiveActionRow({ id: null, x: 0, y: 0, design: null });
+                          } else {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setActiveActionRow({ id: design.id, x: rect.left + rect.width / 2, y: rect.bottom + 6, design });
+                          }
+                        }}
+                        style={{ width: '36px', height: '36px', borderRadius: '8px', background: activeActionRow.id === design.id ? '#D1FAE5' : '#10B981', color: activeActionRow.id === design.id ? '#059669' : '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 700, transition: 'all 0.15s', letterSpacing: '1px', boxShadow: activeActionRow.id === design.id ? 'none' : '0 2px 6px rgba(16,185,129,0.3)' }}
+                        title="Actions"
+                      >
+                        ⋯
+                      </button>
+                    </div>
                   </td>
                   <td>
                     <span style={{ color: '#1E293B', fontSize: '0.9rem', fontWeight: 600 }}>{design.name}</span>
@@ -473,6 +496,79 @@ const DesignService = () => {
             <div style={{ display: 'flex', gap: '12px' }}>
               <button onClick={() => setShowDeleteModal(false)} style={{ flex: 1, padding: '10px', background: '#F1F5F9', color: '#475569', border: 'none', borderRadius: '10px', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
               <button onClick={handleDelete} style={{ flex: 1, padding: '10px', background: '#EF4444', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── ACTION DROPDOWN PORTAL ── */}
+      {activeActionRow.id && (
+        <>
+          <style>{`
+            @keyframes dropdownFadeIn {
+              from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+              to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
+          `}</style>
+          <div
+            className="action-dropdown-wrapper"
+            style={{ position: 'fixed', top: activeActionRow.y, left: activeActionRow.x, transform: 'translateX(-50%)', background: '#fff', borderRadius: '12px', boxShadow: '0 8px 30px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.07)', border: '1px solid #E2E8F0', zIndex: 9999, minWidth: '180px', overflow: 'hidden', animation: 'dropdownFadeIn 0.15s ease-out' }}
+          >
+            <button
+              onClick={() => { handleEdit(activeActionRow.design); setActiveActionRow({ id: null, x: 0, y: 0, design: null }); }}
+              style={{ width: '100%', padding: '10px 16px', border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#334155', fontSize: '0.83rem', fontWeight: 600, textAlign: 'left' }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#F1F5F9'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <span style={{ width: '22px', height: '22px', borderRadius: '6px', background: '#EFF6FF', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><FiEdit size={12} /></span>
+              Edit
+            </button>
+            <div style={{ height: '1px', background: '#F1F5F9', margin: '0 12px' }} />
+            <button
+              onClick={() => { setToggleConfirmModal({ isOpen: true, design: activeActionRow.design }); setActiveActionRow({ id: null, x: 0, y: 0, design: null }); }}
+              style={{ width: '100%', padding: '10px 16px', border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#334155', fontSize: '0.83rem', fontWeight: 600, textAlign: 'left' }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#F0FDF4'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <div style={{ pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
+                <label className={styles.switch} style={{ transform: 'scale(0.8)', margin: 0 }}>
+                  <input type="checkbox" checked={activeActionRow.design.status === true} readOnly />
+                  <span className={styles.slider}></span>
+                </label>
+              </div>
+              Toggle Status
+            </button>
+            <div style={{ height: '1px', background: '#F1F5F9', margin: '0 12px' }} />
+            <button
+              onClick={() => { confirmDelete(activeActionRow.design.id); setActiveActionRow({ id: null, x: 0, y: 0, design: null }); }}
+              style={{ width: '100%', padding: '10px 16px', border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#E53E3E', fontSize: '0.83rem', fontWeight: 600, textAlign: 'left' }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#FFF5F5'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <span style={{ width: '22px', height: '22px', borderRadius: '6px', background: '#FFF5F5', color: '#E53E3E', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><FiTrash2 size={12} /></span>
+              Delete
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* ── CONFIRM TOGGLE ── */}
+      {toggleConfirmModal.isOpen && (
+        <div className={styles.modalOverlay} style={{ zIndex: 9999 }}>
+          <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
+            <div style={{ width: '52px', height: '52px', background: '#F0FDF4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10B981', margin: '0 auto 16px' }}>
+              <FiDatabase size={24} />
+            </div>
+            <h3 style={{ margin: '0 0 8px', fontSize: '1.1rem', color: '#0D1B3E' }}>Confirm Status Change</h3>
+            <p style={{ margin: '0 0 20px', fontSize: '0.85rem', color: '#718096', lineHeight: 1.5 }}>
+              Are you sure you want to toggle the <strong>Status</strong> for design layout "{toggleConfirmModal.design?.name}"?
+            </p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={() => setToggleConfirmModal({ isOpen: false, design: null })} style={{ flex: 1, padding: '10px', background: '#F1F5F9', border: 'none', borderRadius: '8px', color: '#4E6080', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => {
+                handleToggleStatus(toggleConfirmModal.design.id);
+                setToggleConfirmModal({ isOpen: false, design: null });
+              }} style={{ flex: 1, padding: '10px', background: '#10B981', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Confirm</button>
             </div>
           </div>
         </div>

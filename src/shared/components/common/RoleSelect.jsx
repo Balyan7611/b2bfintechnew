@@ -28,7 +28,7 @@ const RoleSelect = ({ value, onChange, placeholder = "Select Role", style = {} }
         color: '#1E293B', fontWeight: 600, ...style 
       }}
     >
-      <option value="">{placeholder}</option>
+      <option value="">All Roles</option>
       {roles.map(r => (
         <option key={r.id} value={r.id}>{r.name}</option>
       ))}

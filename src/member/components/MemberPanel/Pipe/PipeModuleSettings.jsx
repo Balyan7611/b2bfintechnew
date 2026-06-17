@@ -167,11 +167,32 @@ const PipeModuleSettings = () => {
   });
 
   const toggleField = (id, field) => {
-    setData(prev => prev.map(item => item.id === id ? { ...item, [field]: !item[field] } : item));
+    setData(prev => prev.map(item => {
+      if (item.id === id) {
+        if (field === 'isOtp' || field === 'isTpin') {
+          return {
+            ...item,
+            isOtp: !item.isOtp,
+            isTpin: !item.isTpin
+          };
+        }
+        return { ...item, [field]: !item[field] };
+      }
+      return item;
+    }));
   };
 
   const handleFormToggle = (field) => {
-    setFormData(prev => ({ ...prev, [field]: !prev[field] }));
+    setFormData(prev => {
+      if (field === 'isOtp' || field === 'isTpin') {
+        return {
+          ...prev,
+          isOtp: !prev.isOtp,
+          isTpin: !prev.isTpin
+        };
+      }
+      return { ...prev, [field]: !prev[field] };
+    });
   };
 
   const handleEdit = (item) => {

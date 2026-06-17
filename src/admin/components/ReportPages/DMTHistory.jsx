@@ -25,7 +25,7 @@ const DMTHistory = () => {
   }, [location.search]);
 
   return (
-    <div className={styles.container} style={{ padding: '20px' }}>
+    <div className={styles.container} style={{ padding: '20px 24px', maxWidth: '100%' }}>
       {/* Dynamic Keyframe Animations for Button Rays */}
       <style>{`
         @keyframes successGlow {
@@ -52,17 +52,17 @@ const DMTHistory = () => {
       {/* ── PREMIUM FILTER CARD ── */}
       <div style={{ 
         background: '#ffffff',
-        borderRadius: '20px',
-        boxShadow: '0 8px 24px rgba(23, 86, 170, 0.02), 0 1px 4px rgba(0, 0, 0, 0.01)',
+        borderRadius: '24px',
+        boxShadow: '0 10px 30px rgba(23, 86, 170, 0.04), 0 1px 8px rgba(0, 0, 0, 0.02)',
         border: '1px solid #E2E8F0',
-        padding: '20px 24px',
+        padding: '24px 32px',
         position: 'relative',
         overflow: 'hidden',
-        marginBottom: '20px'
+        marginBottom: '24px'
       }}>
         
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px', flexWrap: 'wrap', marginBottom: '16px' }}>
-          <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', letterSpacing: '0.3px' }}>DMT History</h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px', flexWrap: 'wrap', marginBottom: '20px' }}>
+          <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', letterSpacing: '0.3px' }}>DMT History</h3>
           
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             {/* Success Pill Button */}
@@ -161,7 +161,7 @@ const DMTHistory = () => {
         </div>
 
         <form onSubmit={(e) => e.preventDefault()}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', alignItems: 'flex-end' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>From Date</label>
               <input 
@@ -209,35 +209,6 @@ const DMTHistory = () => {
               />
             </div>
             <div className={styles.formGroup}>
-              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Transaction Status</label>
-              <select 
-                className={styles.inputControl} 
-                style={{ 
-                  paddingLeft: '12px', 
-                  paddingRight: '12px',
-                  height: '38px', 
-                  borderRadius: '10px', 
-                  fontSize: '0.825rem', 
-                  border: focusedField === 'status' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
-                  boxShadow: focusedField === 'status' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
-                  transition: 'all 0.25s', 
-                  width: '100%', 
-                  background: '#FCFDFE',
-                  color: '#334155',
-                  fontWeight: 500
-                }} 
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                onFocus={() => setFocusedField('status')}
-                onBlur={() => setFocusedField(null)}
-              >
-                <option value="">All Statuses</option>
-                <option value="Success">Success</option>
-                <option value="Pending">Pending</option>
-                <option value="Failed">Failed</option>
-              </select>
-            </div>
-            <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Operator</label>
               <select 
                 className={styles.inputControl} 
@@ -283,6 +254,35 @@ const DMTHistory = () => {
                 onBlur={() => setFocusedField(null)}
               >
                 <option value="">All APIs</option>
+              </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Transaction Status</label>
+              <select 
+                className={styles.inputControl} 
+                style={{ 
+                  paddingLeft: '12px', 
+                  paddingRight: '12px',
+                  height: '38px', 
+                  borderRadius: '10px', 
+                  fontSize: '0.825rem', 
+                  border: focusedField === 'status' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
+                  boxShadow: focusedField === 'status' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
+                  transition: 'all 0.25s', 
+                  width: '100%', 
+                  background: '#FCFDFE',
+                  color: '#334155',
+                  fontWeight: 500
+                }} 
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                onFocus={() => setFocusedField('status')}
+                onBlur={() => setFocusedField(null)}
+              >
+                <option value="">All Status</option>
+                <option value="Success">Success</option>
+                <option value="Pending">Pending</option>
+                <option value="Failed">Failed</option>
               </select>
             </div>
             <div className={styles.formGroup}>

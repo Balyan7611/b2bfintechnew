@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
 import { 
-  FaSms, FaTasks, FaSearch, FaEdit, FaTrash, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, 
-  FaPrint, FaChevronLeft, FaChevronRight, FaCheckCircle, FaTimesCircle, FaPlus, FaTimes, FaCheck, FaChartBar
+  FaPlus, FaSearch, FaTrash, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, 
+  FaPrint, FaChevronLeft, FaChevronRight, FaCheckCircle, FaTimesCircle, FaCheck, FaTimes, FaEdit, FaChartBar, FaFileAlt, FaDatabase
 } from 'react-icons/fa';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const ManageSMSTemplate = () => {
-  const [showModal, setShowModal] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
   const [editingItem, setEditingItem] = useState(null);
+  const [successToast, setSuccessToast] = useState('');
+
   const [formData, setFormData] = useState({
     name: '',
     approved: true,
-    usageCount: '0',
-    lastModified: ''
+    usageCount: '0'
   });
 
   const [templates, setTemplates] = useState([
@@ -35,16 +36,19 @@ const ManageSMSTemplate = () => {
     const now = new Date().toLocaleDateString();
     if (editingItem) {
       setTemplates(templates.map(t => t.id === editingItem.id ? { ...t, ...formData, lastModified: now } : t));
+      setSuccessToast('Template updated successfully!');
     } else {
       setTemplates([{ ...formData, id: Date.now(), lastModified: now }, ...templates]);
+      setSuccessToast('New template added successfully!');
     }
     resetForm();
+    setTimeout(() => setSuccessToast(''), 3000);
   };
 
   const resetForm = () => {
-    setFormData({ name: '', approved: true, usageCount: '0', lastModified: '' });
+    setFormData({ name: '', approved: true, usageCount: '0' });
     setEditingItem(null);
-    setShowModal(false);
+    setIsDrawerOpen(false);
   };
 
   const handleEdit = (tmp) => {
@@ -52,31 +56,82 @@ const ManageSMSTemplate = () => {
     setFormData({
       name: tmp.name,
       approved: tmp.approved,
-      usageCount: tmp.usageCount,
-      lastModified: tmp.lastModified
+      usageCount: tmp.usageCount
     });
-    setShowModal(true);
+    setIsDrawerOpen(true);
   };
 
   const handleDelete = () => {
     setTemplates(templates.filter(t => t.id !== showConfirmModal.id));
     setShowConfirmModal({ isOpen: false, id: null });
+    setSuccessToast('Template deleted successfully.');
+    setTimeout(() => setSuccessToast(''), 3000);
   };
 
   return (
-    <div className={styles.container} style={{ padding: '10px 15px', maxWidth: '100%' }}>
+    <div className={styles.container} style={{ padding: '10px 15px', maxWidth: '100%', position: 'relative' }}>
+      
+      <style>{`
+        @keyframes slideInRight {
+          from { transform: translateX(100%); }
+          to { transform: translateX(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .icon-action-btn {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+      `}</style>
+
+      {/* TOAST SUCCESS MESSAGE */}
+      {successToast && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: '#0F172A',
+          color: '#ffffff',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          zIndex: 4000,
+          fontSize: '0.85rem',
+          fontWeight: 600,
+          animation: 'fadeIn 0.2s ease'
+        }}>
+          <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: '#22C55E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <FaCheck style={{ fontSize: '0.65rem', color: '#fff' }} />
+          </div>
+          {successToast}
+        </div>
+      )}
+
       {/* ── MAIN LISTING CARD ── */}
       <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
         {/* CARD INTERNAL HEADER */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
-          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap' }}>Manage SMS Template</h2>
+          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap' }}>Manage SMS Templates</h2>
           <button style={{ 
             display: 'flex', alignItems: 'center', gap: '8px', 
-            background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', 
+            background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)', 
             color: '#fff', border: 'none', borderRadius: '8px', 
             padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, 
-            cursor: 'pointer', boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)' 
-          }} onClick={() => setShowModal(true)}>
+            cursor: 'pointer', boxShadow: '0 4px 12px rgba(30, 58, 138, 0.2)' 
+          }} onClick={() => setIsDrawerOpen(true)}>
             <FaPlus /> <span>Add Template</span>
           </button>
         </div>
@@ -116,7 +171,7 @@ const ManageSMSTemplate = () => {
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
                 <th style={{ width: '60px' }}>S.No</th>
-                <th style={{ width: '100px', textAlign: 'center' }}>ACTION</th>
+                <th style={{ width: '110px', textAlign: 'center' }}>ACTION</th>
                 <th style={{ width: '250px' }}>TEMPLATE NAME</th>
                 <th style={{ width: '150px', textAlign: 'left' }}>APPROVAL STATUS</th>
                 <th style={{ width: '120px', textAlign: 'left' }}>USAGE COUNT</th>
@@ -126,16 +181,54 @@ const ManageSMSTemplate = () => {
             <tbody>
               {templates.length === 0 ? (
                 <tr>
-                   <td colSpan="6" style={{ textAlign: 'center', padding: '60px', color: '#A0AEC0' }}>No templates found</td>
+                   <td colSpan="6" style={{ textAlign: 'center', padding: '60px', color: '#A0AEC0' }}>
+                     <FaDatabase style={{ fontSize: '2rem', opacity: 0.2, marginBottom: '10px' }} />
+                     <div>No templates found</div>
+                   </td>
                 </tr>
               ) : (
                 templates.map((tmp, idx) => (
                   <tr key={tmp.id} className={idx % 2 === 0 ? styles.rowEven : styles.rowOdd}>
                     <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{String(idx + 1).padStart(2, '0')}</td>
-                    <td style={{ textAlign: 'center' }}>
-                      <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                        <button className={styles.editBtn} style={{ width: '32px', height: '32px', background: '#1756AA', color: '#fff' }} onClick={() => handleEdit(tmp)}><FaEdit /></button>
-                        <button className={styles.deleteBtn} style={{ width: '32px', height: '32px', background: '#FFF5F5', color: '#E53E3E', border: '1px solid #FED7D7' }} onClick={() => setShowConfirmModal({ isOpen: true, id: tmp.id })}><FaTrash /></button>
+                    <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '12px 0' }}>
+                      <div style={{ display: 'inline-flex', gap: '8px', justifyContent: 'center', alignItems: 'center', flexWrap: 'nowrap', flexDirection: 'row', margin: '0 auto' }}>
+                        <button 
+                          onClick={() => handleEdit(tmp)}
+                          className="icon-action-btn"
+                          style={{
+                            background: '#3B82F6',
+                            color: '#ffffff',
+                            boxShadow: '0 2px 8px rgba(59, 130, 246, 0.2)'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = '#2563EB'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = '#3B82F6'}
+                          title="Edit Template"
+                        >
+                          <FaEdit style={{ fontSize: '0.85rem' }} />
+                        </button>
+                        <button 
+                          onClick={() => setShowConfirmModal({ isOpen: true, id: tmp.id })}
+                          className="icon-action-btn"
+                          style={{
+                            background: '#FFF5F5',
+                            color: '#E53E3E',
+                            border: '1px solid #FEE2E2',
+                            boxShadow: '0 2px 4px rgba(229, 62, 62, 0.05)'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#E53E3E';
+                            e.currentTarget.style.color = '#fff';
+                            e.currentTarget.style.borderColor = '#E53E3E';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#FFF5F5';
+                            e.currentTarget.style.color = '#E53E3E';
+                            e.currentTarget.style.borderColor = '#FEE2E2';
+                          }}
+                          title="Delete Template"
+                        >
+                          <FaTrash style={{ fontSize: '0.8rem' }} />
+                        </button>
                       </div>
                     </td>
                     <td>
@@ -145,11 +238,11 @@ const ManageSMSTemplate = () => {
                     </td>
                     <td style={{ textAlign: 'left' }}>
                       {tmp.approved ? (
-                        <span className={`${styles.badge} ${styles.badge_green}`} style={{ padding: '4px 12px', fontSize: '0.65rem' }}>
+                        <span className={`${styles.badge} ${styles.badge_green}`} style={{ padding: '4px 12px', fontSize: '0.65rem', fontWeight: 700 }}>
                            <FaCheckCircle style={{ marginRight: '5px' }} /> Approved
                         </span>
                       ) : (
-                        <span className={`${styles.badge} ${styles.badge_red}`} style={{ padding: '4px 12px', fontSize: '0.65rem' }}>
+                        <span className={`${styles.badge} ${styles.badge_red}`} style={{ padding: '4px 12px', fontSize: '0.65rem', fontWeight: 700, background: '#FEE2E2', color: '#EF4444' }}>
                            <FaTimesCircle style={{ marginRight: '5px' }} /> Pending
                         </span>
                       )}
@@ -160,74 +253,286 @@ const ManageSMSTemplate = () => {
                           <span style={{ fontWeight: 800, color: '#4E6080', fontSize: '0.9rem' }}>{tmp.usageCount}</span>
                        </div>
                     </td>
-                    <td style={{ textAlign: 'left', fontSize: '0.8rem', color: '#718096' }}>{tmp.lastModified}</td>
+                    <td style={{ textAlign: 'left', fontSize: '0.8rem', color: '#718096', fontWeight: 600 }}>{tmp.lastModified}</td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
         </div>
+
+        {/* ── PAGINATION ROW ── */}
+        <div className={styles.paginationRow} style={{ 
+          marginTop: '20px', 
+          paddingTop: '15px', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          borderTop: '1px solid #F1F5F9',
+          paddingLeft: '20px',
+          paddingRight: '20px',
+          paddingBottom: '15px'
+        }}>
+          <span style={{ fontSize: '0.75rem', color: '#718096', fontWeight: 600 }}>Showing {templates.length} entries</span>
+          <div className={styles.pagination} style={{ display: 'flex', gap: '6px' }}>
+            <button className={styles.pageBtn} style={{ 
+              width: '32px', 
+              height: '32px', 
+              borderRadius: '8px', 
+              border: '1px solid #E2E8F0', 
+              background: '#fff', 
+              color: '#A0AEC0', 
+              cursor: 'not-allowed', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              fontSize: '0.8rem'
+            }} disabled><FaChevronLeft /></button>
+            <button className={`${styles.pageBtn} ${styles.pageActive}`} style={{ 
+              width: '32px', 
+              height: '32px', 
+              borderRadius: '8px', 
+              border: 'none', 
+              background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)', 
+              color: '#fff', 
+              fontWeight: 700, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              fontSize: '0.85rem',
+              boxShadow: '0 3px 8px rgba(30, 58, 138, 0.2)'
+            }}>1</button>
+            <button className={styles.pageBtn} style={{ 
+              width: '32px', 
+              height: '32px', 
+              borderRadius: '8px', 
+              border: '1px solid #E2E8F0', 
+              background: '#fff', 
+              color: '#A0AEC0', 
+              cursor: 'not-allowed', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              fontSize: '0.8rem'
+            }} disabled><FaChevronRight /></button>
+          </div>
+        </div>
       </div>
 
-      {/* ── EDIT/ADD MODAL ── */}
-      {showModal && (
-        <div className={styles.modalOverlay} style={{ zIndex: 3500 }}>
-          <div className={styles.modalContainer} style={{ width: '450px', borderRadius: '16px' }}>
-            <div className={styles.modalHeader} style={{ padding: '20px 25px 15px', borderBottom: '1px solid #F1F5F9' }}>
+      {/* ── PREMIUM RIGHT-SIDE SLIDING DRAWER ── */}
+      {isDrawerOpen && (
+        <div 
+          onClick={resetForm}
+          style={{ 
+            position: 'fixed', 
+            inset: 0, 
+            background: 'rgba(15, 23, 42, 0.3)', 
+            backdropFilter: 'blur(4px)', 
+            zIndex: 3500,
+            animation: 'fadeIn 0.2s ease'
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            style={{ 
+              position: 'fixed', 
+              top: 0, 
+              right: 0, 
+              bottom: 0, 
+              width: '450px', 
+              background: '#ffffff', 
+              boxShadow: '-10px 0 30px rgba(0, 0, 0, 0.08)', 
+              zIndex: 3501, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              animation: 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+          >
+            {/* Drawer Header */}
+            <div style={{ 
+              padding: '16px 24px', 
+              borderBottom: '1px solid #E2E8F0', 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              background: '#F8FAFC' 
+            }}>
                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '38px', height: '38px', background: 'rgba(23, 86, 170, 0.08)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA' }}>
-                     <FaEdit />
+                  <div style={{ 
+                    width: '36px', 
+                    height: '36px', 
+                    background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)', 
+                    borderRadius: '10px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    color: '#ffffff',
+                    boxShadow: '0 4px 10px rgba(30, 58, 138, 0.15)'
+                  }}>
+                     <FaFileAlt />
                   </div>
                   <div>
-                    <h3 className={styles.modalTitle} style={{ margin: 0, fontSize: '1.1rem' }}>{editingItem ? 'Edit Template Info' : 'New Template Entry'}</h3>
-                    <p style={{ margin: 0, fontSize: '0.7rem', color: '#718096' }}>Update usage and approval status</p>
+                    <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#0F172A' }}>
+                      {editingItem ? 'Edit Template Info' : 'New Template Entry'}
+                    </h3>
+                    <p style={{ margin: 0, fontSize: '0.72rem', color: '#64748B', fontWeight: 500 }}>Update template usage rules</p>
                   </div>
                </div>
-               <button className={styles.closeBtn} onClick={resetForm}><FaTimes /></button>
+               <button 
+                 onClick={resetForm}
+                 style={{
+                   width: '28px',
+                   height: '28px',
+                   borderRadius: '50%',
+                   border: '1px solid #E2E8F0',
+                   background: '#FFFFFF',
+                   color: '#64748B',
+                   display: 'flex',
+                   alignItems: 'center',
+                   justifyContent: 'center',
+                   cursor: 'pointer',
+                   transition: 'all 0.2s ease',
+                   padding: 0
+                 }}
+                 onMouseEnter={(e) => {
+                   e.currentTarget.style.background = '#EF4444';
+                   e.currentTarget.style.color = '#ffffff';
+                   e.currentTarget.style.borderColor = '#EF4444';
+                   e.currentTarget.style.transform = 'rotate(90deg)';
+                 }}
+                 onMouseLeave={(e) => {
+                   e.currentTarget.style.background = '#FFFFFF';
+                   e.currentTarget.style.color = '#64748B';
+                   e.currentTarget.style.borderColor = '#E2E8F0';
+                   e.currentTarget.style.transform = 'none';
+                 }}
+               >
+                 <FaTimes style={{ fontSize: '0.75rem' }} />
+               </button>
             </div>
 
-            <form onSubmit={handleSubmit}>
-              <div className={styles.modalBody} style={{ padding: '20px 25px' }}>
-                 <div className={styles.formGroup} style={{ marginBottom: '15px' }}>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#4E6080', marginBottom: '6px', display: 'block' }}>Template Name</label>
+            {/* Drawer Body */}
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+              <div style={{ padding: '24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                 
+                 <div className={styles.formGroup}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4E6080', marginBottom: '6px', display: 'block', textTransform: 'uppercase' }}>Template Name</label>
                     <input 
                       type="text" 
                       name="name" 
                       className={styles.inputControl} 
-                      style={{ height: '40px', fontSize: '0.85rem' }} 
+                      style={{ height: '40px', fontSize: '0.85rem', width: '100%', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '0 12px' }} 
                       value={formData.name} 
                       onChange={handleInputChange} 
+                      placeholder="e.g. Transaction OTP"
                       required 
                     />
                  </div>
-                 <div className={styles.formGroup} style={{ marginBottom: '15px' }}>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#4E6080', marginBottom: '6px', display: 'block' }}>Usage Count</label>
+
+                 <div className={styles.formGroup}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4E6080', marginBottom: '6px', display: 'block', textTransform: 'uppercase' }}>Usage Count</label>
                     <input 
                       type="text" 
                       name="usageCount" 
                       className={styles.inputControl} 
-                      style={{ height: '40px', fontSize: '0.85rem' }} 
+                      style={{ height: '40px', fontSize: '0.85rem', width: '100%', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '0 12px' }} 
                       value={formData.usageCount} 
                       onChange={handleInputChange} 
+                      placeholder="0"
                     />
                  </div>
-                 <div className={styles.formGroup}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem', color: '#0D1B3E', fontWeight: 600 }}>
-                      <input 
-                        type="checkbox" 
-                        name="approved" 
-                        checked={formData.approved} 
-                        onChange={handleInputChange} 
-                      /> Approved & Active
-                    </label>
+
+                 <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '12px', border: '1px solid #E2E8F0', marginTop: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#1E3A8A', display: 'block' }}>Approval Status</span>
+                          <span style={{ fontSize: '0.7rem', color: '#64748B' }}>Enable template for immediate use</span>
+                       </div>
+                       
+                       {/* Custom Styled Switch Toggle for Approval */}
+                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                          <div 
+                            onClick={() => setFormData(prev => ({ ...prev, approved: !prev.approved }))}
+                            style={{
+                              width: '40px',
+                              height: '18px',
+                              borderRadius: '9px',
+                              background: formData.approved ? '#22C55E' : '#EF4444',
+                              padding: '2px',
+                              cursor: 'pointer',
+                              position: 'relative',
+                              transition: 'background-color 0.2s'
+                            }}
+                          >
+                            <div style={{
+                              width: '14px',
+                              height: '14px',
+                              borderRadius: '50%',
+                              background: '#ffffff',
+                              position: 'absolute',
+                              left: formData.approved ? '24px' : '2px',
+                              top: '2px',
+                              transition: 'left 0.2s'
+                            }} />
+                          </div>
+                          <span style={{ 
+                            fontSize: '0.6rem', 
+                            fontWeight: 800, 
+                            color: formData.approved ? '#22C55E' : '#EF4444',
+                            background: formData.approved ? '#DCFCE7' : '#FEE2E2',
+                            padding: '1px 6px',
+                            borderRadius: '3px',
+                            textTransform: 'uppercase'
+                          }}>
+                            {formData.approved ? 'Active' : 'Pending'}
+                          </span>
+                       </div>
+                    </div>
                  </div>
               </div>
 
-              <div className={styles.modalFooter} style={{ padding: '15px 25px', background: '#FBFDFF', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px' }}>
-                  <button type="button" className={styles.prevBtn} style={{ height: '38px', padding: '0 20px', fontSize: '0.8rem' }} onClick={resetForm}>Cancel</button>
-                  <div style={{ flex: 1 }}></div>
-                  <button type="submit" className={styles.publishBtn} style={{ height: '38px', padding: '0 30px', fontSize: '0.85rem' }}>
-                    <FaCheck /> {editingItem ? 'Save Changes' : 'Add Entry'}
+              {/* Drawer Footer */}
+              <div style={{ 
+                padding: '16px 24px', 
+                background: '#F8FAFC', 
+                borderTop: '1px solid #E2E8F0', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between' 
+              }}>
+                  <button 
+                    type="button" 
+                    onClick={resetForm}
+                    style={{ 
+                      height: '38px', 
+                      padding: '0 20px', 
+                      fontSize: '0.85rem', 
+                      background: '#FFFFFF', 
+                      border: '1px solid #D1D5DB', 
+                      borderRadius: '8px', 
+                      color: '#4B5563', 
+                      fontWeight: 600,
+                      cursor: 'pointer' 
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    style={{ 
+                      height: '38px', 
+                      padding: '0 25px', 
+                      fontSize: '0.85rem', 
+                      background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)', 
+                      border: 'none', 
+                      borderRadius: '8px', 
+                      color: '#ffffff', 
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(59, 130, 246, 0.25)' 
+                    }}
+                  >
+                    Save Changes
                   </button>
               </div>
             </form>

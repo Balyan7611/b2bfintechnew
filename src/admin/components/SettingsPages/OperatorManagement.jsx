@@ -111,6 +111,18 @@ const OperatorManagement = () => {
   });
 
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
+  const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, op: null });
+
+  // Close action dropdown on outside click
+  React.useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (!e.target.closest('.action-dropdown-wrapper')) {
+        setActiveActionRow({ id: null, x: 0, y: 0, op: null });
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
 
   // ── ADD FIELD BBPS MODAL ──
   const [addFieldModal, setAddFieldModal] = useState({ isOpen: false, operator: null });
@@ -329,7 +341,7 @@ const OperatorManagement = () => {
 
         {/* ── TABLE ── */}
         <div className={styles.tableWrapper}>
-          <table className={styles.table} style={{ minWidth: '1100px' }}>
+          <table className={styles.table} style={{ width: '100%' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
                 <th style={{ width: '60px' }}>S.NO</th>
@@ -350,11 +362,24 @@ const OperatorManagement = () => {
                 <tr key={op.id} className={styles.hoverRow}>
                   <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{(pageNumber - 1) * pageSize + idx + 1}</td>
                   <td style={{ textAlign: 'center' }}>
-                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                        <button className={styles.editBtn} style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#F8FAFC', color: '#3B82F6', border: '1px solid #E2E8F0', cursor: 'pointer' }} onClick={() => handleEdit(op)} title="Edit Operator"><FiEdit /></button>
-                        <button style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleOpenAddField(op)} title="Add Field BBPS"><FiList size={15} /></button>
-                        <button className={styles.deleteBtn} style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#FFF5F5', color: '#E53E3E', border: '1px solid #FED7D7', cursor: 'pointer' }} title="Delete Operator" onClick={() => setShowConfirmModal({ isOpen: true, id: op.id })}><FiTrash2 /></button>
-                     </div>
+                    <div className="action-dropdown-wrapper" style={{ display: 'inline-block' }}>
+                      <button
+                        className="action-dropdown-wrapper"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (activeActionRow.id === op.id) {
+                            setActiveActionRow({ id: null, x: 0, y: 0, op: null });
+                          } else {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setActiveActionRow({ id: op.id, x: rect.left + rect.width / 2, y: rect.bottom + 6, op });
+                          }
+                        }}
+                        style={{ width: '34px', height: '34px', borderRadius: '8px', background: activeActionRow.id === op.id ? '#EFF6FF' : '#F8FAFC', color: activeActionRow.id === op.id ? '#2563EB' : '#64748B', border: activeActionRow.id === op.id ? '1px solid #BFDBFE' : '1px solid #E2E8F0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', fontWeight: 700, transition: 'all 0.15s', letterSpacing: '1px' }}
+                        title="Actions"
+                      >
+                        ⋯
+                      </button>
+                    </div>
                   </td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -467,6 +492,52 @@ const OperatorManagement = () => {
           </div>
         </div>
       </div>
+
+      {/* ── ACTION DROPDOWN PORTAL (fixed position, never clipped) ── */}
+      {activeActionRow.id && (
+        <>
+          <style>{`
+            @keyframes dropdownFadeIn {
+              from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+              to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
+          `}</style>
+          <div
+            className="action-dropdown-wrapper"
+            style={{ position: 'fixed', top: activeActionRow.y, left: activeActionRow.x, transform: 'translateX(-50%)', background: '#fff', borderRadius: '12px', boxShadow: '0 8px 30px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.07)', border: '1px solid #E2E8F0', zIndex: 9999, minWidth: '168px', overflow: 'hidden', animation: 'dropdownFadeIn 0.15s ease-out' }}
+          >
+            <button
+              onClick={() => { handleEdit(activeActionRow.op); setActiveActionRow({ id: null, x: 0, y: 0, op: null }); }}
+              style={{ width: '100%', padding: '10px 16px', border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#334155', fontSize: '0.83rem', fontWeight: 600, textAlign: 'left' }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#F1F5F9'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <span style={{ width: '22px', height: '22px', borderRadius: '6px', background: '#EFF6FF', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><FiEdit size={12} /></span>
+              Edit
+            </button>
+            <div style={{ height: '1px', background: '#F1F5F9', margin: '0 12px' }} />
+            <button
+              onClick={() => { handleOpenAddField(activeActionRow.op); setActiveActionRow({ id: null, x: 0, y: 0, op: null }); }}
+              style={{ width: '100%', padding: '10px 16px', border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#334155', fontSize: '0.83rem', fontWeight: 600, textAlign: 'left' }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#F0FDF4'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <span style={{ width: '22px', height: '22px', borderRadius: '6px', background: '#F0FDF4', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><FiList size={12} /></span>
+              Add Field BBPS
+            </button>
+            <div style={{ height: '1px', background: '#F1F5F9', margin: '0 12px' }} />
+            <button
+              onClick={() => { setShowConfirmModal({ isOpen: true, id: activeActionRow.id }); setActiveActionRow({ id: null, x: 0, y: 0, op: null }); }}
+              style={{ width: '100%', padding: '10px 16px', border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#E53E3E', fontSize: '0.83rem', fontWeight: 600, textAlign: 'left' }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#FFF5F5'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <span style={{ width: '22px', height: '22px', borderRadius: '6px', background: '#FFF5F5', color: '#E53E3E', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><FiTrash2 size={12} /></span>
+              Delete
+            </button>
+          </div>
+        </>
+      )}
 
       {/* ── ADD/EDIT MODAL (DRAWER STYLE) ── */}
       {isModalOpen && (

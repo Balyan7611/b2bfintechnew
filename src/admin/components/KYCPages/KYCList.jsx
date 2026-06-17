@@ -19,7 +19,10 @@ const KYCList = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   
   // Custom Confirm Modal State
-  const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: '', id: null });
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: '', id: null, docIndex: null, label: '' });
+  const [docStatus, setDocStatus] = useState({});
+  const [docReasons, setDocReasons] = useState({});
+  const [rejectReason, setRejectReason] = useState('');
   
   const isFiltered = statusFilter !== 'All';
 
@@ -36,21 +39,37 @@ const KYCList = () => {
   });
 
   const handleApprove = (id) => {
-    setConfirmModal({ isOpen: true, type: 'APPROVE', id });
+    setConfirmModal({ isOpen: true, type: 'APPROVE', id, label: 'KYC Request' });
   };
 
   const handleReject = (id) => {
-    setConfirmModal({ isOpen: true, type: 'REJECT', id });
+    setRejectReason('');
+    setConfirmModal({ isOpen: true, type: 'REJECT', id, label: 'KYC Request' });
+  };
+
+  const handleApproveDoc = (idx, label) => {
+    setConfirmModal({ isOpen: true, type: 'APPROVE_DOC', docIndex: idx, label });
+  };
+
+  const handleRejectDoc = (idx, label) => {
+    setRejectReason('');
+    setConfirmModal({ isOpen: true, type: 'REJECT_DOC', docIndex: idx, label });
   };
 
   const confirmAction = () => {
     if (confirmModal.type === 'APPROVE') {
       dispatch(approveKyc(confirmModal.id));
+      dispatch(setSelectedKyc(null));
     } else if (confirmModal.type === 'REJECT') {
-      dispatch(rejectKyc(confirmModal.id));
+      dispatch(rejectKyc({ id: confirmModal.id, reason: rejectReason }));
+      dispatch(setSelectedKyc(null));
+    } else if (confirmModal.type === 'APPROVE_DOC') {
+      setDocStatus(prev => ({ ...prev, [confirmModal.docIndex]: 'Approved' }));
+    } else if (confirmModal.type === 'REJECT_DOC') {
+      setDocStatus(prev => ({ ...prev, [confirmModal.docIndex]: 'Rejected' }));
+      setDocReasons(prev => ({ ...prev, [confirmModal.docIndex]: rejectReason }));
     }
-    dispatch(setSelectedKyc(null));
-    setConfirmModal({ isOpen: false, type: '', id: null });
+    setConfirmModal({ isOpen: false, type: '', id: null, docIndex: null, label: '' });
   };
 
   return (
@@ -129,22 +148,21 @@ const KYCList = () => {
 
         {/* ── TABLE ── */}
         <div className={styles.tableWrapper}>
-          <table className={styles.table} style={{ minWidth: '1050px' }}>
+          <table className={styles.table} style={{ minWidth: '1000px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
                 <th style={{ width: '60px' }}>SR.</th>
                 <th>MEMBER INFO</th>
                 <th style={{ textAlign: 'center' }}>STATUS</th>
                 <th>DOCUMENT DETAILS</th>
-                <th style={{ textAlign: 'center' }}>PREVIEW</th>
-                <th style={{ textAlign: 'center' }}>ACTION</th>
+                <th style={{ textAlign: 'center' }}>VIEW</th>
                 <th style={{ textAlign: 'right' }}>TIMESTAMPS</th>
               </tr>
             </thead>
             <tbody>
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan="7" style={{ padding: 0, background: '#fff' }}>
+                  <td colSpan="6" style={{ padding: 0, background: '#fff' }}>
                     <div style={{ position: 'sticky', left: 0, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px', color: '#A0AEC0' }}>
                       <div style={{ marginBottom: '15px', fontSize: '2.5rem', opacity: 0.3 }}><FiDatabase /></div>
                       <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>No KYC requests found</div>
@@ -191,48 +209,10 @@ const KYCList = () => {
                         <FiEye /> View
                       </button>
                     </td>
-                    <td style={{ textAlign: 'center' }}>
-                       <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                          <button 
-                            className={styles.editBtn} 
-                            style={{ 
-                              background: '#27AE60', 
-                              color: '#fff', 
-                              width: '36px', 
-                              height: '36px',
-                              opacity: item.status === 'Approved' ? 0.35 : 1,
-                              cursor: item.status === 'Approved' ? 'not-allowed' : 'pointer',
-                              border: 'none'
-                            }} 
-                            onClick={() => handleApprove(item.id)} 
-                            disabled={item.status === 'Approved'}
-                            title="Approve"
-                          >
-                            <FiCheck />
-                          </button>
-                          <button 
-                            className={styles.editBtn} 
-                            style={{ 
-                              background: '#E53E3E', 
-                              color: '#fff', 
-                              width: '36px', 
-                              height: '36px',
-                              opacity: item.status === 'Rejected' ? 0.35 : 1,
-                              cursor: item.status === 'Rejected' ? 'not-allowed' : 'pointer',
-                              border: 'none'
-                            }} 
-                            onClick={() => handleReject(item.id)} 
-                            disabled={item.status === 'Rejected'}
-                            title="Reject"
-                          >
-                            <FiX />
-                          </button>
-                       </div>
-                    </td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                          <small style={{ fontSize: '0.7rem', color: '#718096' }}>Added: {item.addDate}</small>
-                         {item.approveDate !== '-' && <small style={{ fontSize: '0.7rem', color: '#27AE60', fontWeight: 600 }}>Action: {item.approveDate}</small>}
+                         <small style={{ fontSize: '0.7rem', color: '#27AE60', fontWeight: 600 }}>Action: {item.approveDate || '-'}</small>
                       </div>
                     </td>
                   </tr>
@@ -257,130 +237,351 @@ const KYCList = () => {
 
       {/* ── DETAILS MODAL ── */}
       {selectedKyc && (
-        <div className={styles.modalOverlay} style={{ zIndex: 1000 }}>
-          <div className={styles.modalContainer} style={{ width: '850px', borderRadius: '24px' }}>
-            <div className={styles.modalHeader} style={{ padding: '16px 24px', background: '#fff', borderBottom: '1px solid #F1F5F9' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '40px', height: '40px', background: 'rgba(23, 86, 170, 0.08)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA' }}>
-                  <FiUser />
+        <div className={styles.modalOverlay} style={{ zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)', background: 'rgba(15, 23, 42, 0.6)' }}>
+          <div className={styles.modalContainer} style={{ 
+            width: '95%', 
+            maxWidth: '1000px', 
+            height: '95vh', 
+            maxHeight: '900px',
+            borderRadius: '24px', 
+            display: 'flex', 
+            flexDirection: 'column',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            overflow: 'hidden',
+            animation: 'modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}>
+            <div className={styles.modalHeader} style={{ 
+              padding: '16px 24px', 
+              background: '#ffffff', 
+              borderBottom: '1px solid #E2E8F0', 
+              flexShrink: 0,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ 
+                  width: '40px', 
+                  height: '40px', 
+                  background: 'linear-gradient(135deg, rgba(23, 86, 170, 0.1) 0%, rgba(23, 86, 170, 0.2) 100%)', 
+                  borderRadius: '12px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  color: '#1756AA' 
+                }}>
+                  <FiUser size={20} />
                 </div>
                 <div>
-                  <h3 className={styles.modalTitle} style={{ fontSize: '1.1rem', color: '#0D1B3E', margin: 0 }}>KYC Review: {selectedKyc.name}</h3>
-                  <p className={styles.modalSubtitle} style={{ fontSize: '0.75rem', color: '#718096', margin: 0 }}>Verifying Member ID: {selectedKyc.memberId}</p>
+                  <h3 className={styles.modalTitle} style={{ fontSize: '1.15rem', color: '#0F172A', margin: 0, fontWeight: 700 }}>KYC Review: {selectedKyc.name}</h3>
+                  <p className={styles.modalSubtitle} style={{ fontSize: '0.75rem', color: '#64748B', margin: 0, marginTop: '2px' }}>Verifying Member ID: <span style={{ fontWeight: 600, color: '#1756AA' }}>{selectedKyc.memberId}</span></p>
                 </div>
               </div>
-              <button className={styles.closeBtn} onClick={() => dispatch(setSelectedKyc(null))}>
-                <FiX />
+              <button 
+                className={styles.closeBtn} 
+                onClick={() => { dispatch(setSelectedKyc(null)); setDocStatus({}); }} 
+                style={{ 
+                  width: '32px', 
+                  height: '32px', 
+                  borderRadius: '50%', 
+                  background: '#F1F5F9', 
+                  border: 'none', 
+                  color: '#64748B', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#E2E8F0'; e.currentTarget.style.color = '#0F172A'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#64748B'; }}
+              >
+                <FiX size={18} />
               </button>
             </div>
+ 
+            <div className={styles.modalBody} style={{ padding: '24px', overflowY: 'auto', flex: 1, background: '#F8FAFC' }}>
+               {[
+                 { type: selectedKyc.document, number: selectedKyc.docNumber, date: selectedKyc.addDate }
+               ].map((doc, idx) => {
+                 const status = docStatus[idx] || 'Pending';
+                 const bg = status === 'Approved' ? '#ECFDF5' : status === 'Rejected' ? '#FEF2F2' : '#ffffff';
+                 const border = status === 'Approved' ? '1px solid #10B981' : status === 'Rejected' ? '1px solid #EF4444' : '1px solid #E2E8F0';
+                 const shadow = status === 'Approved' ? '0 10px 15px -3px rgba(16, 185, 129, 0.05)' : status === 'Rejected' ? '0 10px 15px -3px rgba(239, 68, 68, 0.05)' : '0 4px 6px -1px rgba(0, 0, 0, 0.02)';
+ 
+                 return (
+                   <div 
+                     key={idx} 
+                     style={{ 
+                       background: bg, 
+                       borderRadius: '20px', 
+                       border: border, 
+                       padding: '24px', 
+                       marginBottom: '20px', 
+                       boxShadow: shadow, 
+                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' 
+                     }}
+                   >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
+                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', flex: 1 }}>
+                            <div>
+                              <small style={{ color: '#64748B', display: 'block', marginBottom: '6px', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Document Type</small>
+                              <span style={{ fontWeight: 700, color: '#1756AA', fontSize: '0.95rem' }}>{doc.type}</span>
+                            </div>
+                            <div>
+                              <small style={{ color: '#64748B', display: 'block', marginBottom: '6px', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Document Number</small>
+                              <span style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.95rem' }}>{doc.number}</span>
+                            </div>
+                            <div>
+                              <small style={{ color: '#64748B', display: 'block', marginBottom: '6px', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Submission Date</small>
+                              <span style={{ fontWeight: 700, color: '#475569', fontSize: '0.95rem' }}>{doc.date}</span>
+                            </div>
+                         </div>
+                         <div>
+                            <span style={{
+                              background: status === 'Approved' ? '#D1FAE5' : status === 'Rejected' ? '#FEE2E2' : '#FEF3C7',
+                              color: status === 'Approved' ? '#065F46' : status === 'Rejected' ? '#991B1B' : '#92400E',
+                              fontWeight: 800,
+                              fontSize: '0.72rem',
+                              padding: '6px 14px',
+                              borderRadius: '9999px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.05em',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                            }}>
+                              {status}
+                            </span>
+                         </div>
+                      </div>
+ 
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '20px' }}>
+                         <div>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>
+                              <FiActivity size={14} style={{ color: '#1756AA' }} /> Document Front
+                            </label>
+                            <div style={{ 
+                              height: '180px', 
+                              background: '#F8FAFF', 
+                              borderRadius: '16px', 
+                              border: '2px dashed #CBD5E1', 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center', 
+                              overflow: 'hidden',
+                              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#1756AA'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; }}
+                            >
+                              <span style={{ color: '#94A3B8', fontSize: '0.8rem', fontWeight: 500 }}>[IMAGE PREVIEW]</span>
+                            </div>
+                         </div>
+                         <div>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>
+                              <FiActivity size={14} style={{ color: '#1756AA' }} /> Document Back
+                            </label>
+                            <div style={{ 
+                              height: '180px', 
+                              background: '#F8FAFF', 
+                              borderRadius: '16px', 
+                              border: '2px dashed #CBD5E1', 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center', 
+                              overflow: 'hidden',
+                              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#1756AA'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; }}
+                            >
+                              <span style={{ color: '#94A3B8', fontSize: '0.8rem', fontWeight: 500 }}>[IMAGE PREVIEW]</span>
+                            </div>
+                         </div>
+                      </div>
+                      {/* Action buttons with no color backgrounds */}
+                      <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed #E2E8F0', paddingTop: '16px', flexWrap: 'wrap' }}>
+                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {status === 'Rejected' && docReasons[idx] && (
+                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#EF4444' }}>
+                                  <FiAlertCircle size={16} />
+                                  <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Rejected: {docReasons[idx]}</span>
+                               </div>
+                            )}
+                            {status === 'Approved' && (
+                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10B981' }}>
+                                  <FiCheck size={16} />
+                                  <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Approved: {new Date().toLocaleDateString('en-GB')}</span>
+                               </div>
+                            )}
+                         </div>
 
-            <div className={styles.modalBody} style={{ padding: '30px' }}>
-               <div style={{ background: '#F8FAFF', padding: '20px', borderRadius: '16px', border: '1.5px solid #E2E8F0', marginBottom: '24px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-                  <div>
-                    <small style={{ color: '#718096', display: 'block', marginBottom: '4px' }}>Document Type</small>
-                    <span style={{ fontWeight: 700, color: '#1756AA' }}>{selectedKyc.document}</span>
-                  </div>
-                  <div>
-                    <small style={{ color: '#718096', display: 'block', marginBottom: '4px' }}>Document Number</small>
-                    <span style={{ fontWeight: 700, color: '#0D1B3E' }}>{selectedKyc.docNumber}</span>
-                  </div>
-                  <div>
-                    <small style={{ color: '#718096', display: 'block', marginBottom: '4px' }}>Submission Date</small>
-                    <span style={{ fontWeight: 700, color: '#4E6080' }}>{selectedKyc.addDate}</span>
-                  </div>
-               </div>
-
-               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                  <div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', fontSize: '0.85rem', fontWeight: 600, color: '#0D1B3E' }}><FiActivity /> Document Front</label>
-                    <div style={{ height: '240px', background: '#F1F5F9', borderRadius: '16px', border: '2px dashed #CBD5E0', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                       <span style={{ color: '#94A3B8', fontSize: '0.75rem' }}>[IMAGE PREVIEW]</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', fontSize: '0.85rem', fontWeight: 600, color: '#0D1B3E' }}><FiActivity /> Document Back</label>
-                    <div style={{ height: '240px', background: '#F1F5F9', borderRadius: '16px', border: '2px dashed #CBD5E0', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                       <span style={{ color: '#94A3B8', fontSize: '0.75rem' }}>[IMAGE PREVIEW]</span>
-                    </div>
-                  </div>
-               </div>
-
-               {selectedKyc.status === 'Rejected' && (
-                  <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(229, 62, 62, 0.05)', borderRadius: '12px', borderLeft: '4px solid #E53E3E', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                     <FiAlertCircle style={{ color: '#E53E3E' }} />
+                         <div style={{ display: 'flex', gap: '12px' }}>
+                            <button 
+                              type="button"
+                              onClick={() => handleRejectDoc(idx, doc.type)}
+                              style={{ 
+                                background: '#FFF5F5', 
+                                color: '#EF4444', 
+                                border: '1.5px solid #EF4444', 
+                                width: 'auto', 
+                                padding: '0 16px', 
+                                height: '32px', 
+                                fontSize: '0.8rem', 
+                                fontWeight: 700, 
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = '#FEE2E2'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = '#FFF5F5'; }}
+                            >
+                              <FiX size={16} /> Reject
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => handleApproveDoc(idx, doc.type)}
+                              style={{ 
+                                background: '#ECFDF5', 
+                                color: '#10B981', 
+                                border: '1.5px solid #10B981', 
+                                width: 'auto', 
+                                padding: '0 16px', 
+                                height: '32px', 
+                                fontSize: '0.8rem', 
+                                fontWeight: 700, 
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = '#D1FAE5'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = '#ECFDF5'; }}
+                            >
+                              <FiCheck size={16} /> Accept
+                            </button>
+                         </div>
+                      </div>
+                   </div>
+                 );
+               })}
+ 
+               {selectedKyc.status === 'Rejected' && selectedKyc.reason && selectedKyc.reason !== '-' && (
+                  <div style={{ marginTop: '20px', padding: '16px', background: '#FEF2F2', borderRadius: '16px', borderLeft: '4px solid #EF4444', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                     <FiAlertCircle style={{ color: '#EF4444' }} size={20} />
                      <div>
-                        <small style={{ color: '#E53E3E', fontWeight: 700, display: 'block' }}>Rejection Reason</small>
-                        <span style={{ fontSize: '0.85rem', color: '#4A5568' }}>{selectedKyc.reason}</span>
+                        <small style={{ color: '#991B1B', fontWeight: 700, display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rejection Reason</small>
+                        <span style={{ fontSize: '0.9rem', color: '#7F1D1D', fontWeight: 500 }}>{selectedKyc.reason}</span>
                      </div>
                   </div>
                )}
             </div>
-
-            <div className={styles.modalFooter} style={{ padding: '16px 32px', background: '#FBFDFF' }}>
-                <button type="button" className={styles.prevBtn} style={{ height: '42px', padding: '0 24px' }} onClick={() => dispatch(setSelectedKyc(null))}>Close</button>
-                <div style={{ flex: 1 }}></div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button 
-                    className={styles.saveBtn} 
-                    style={{ 
-                      height: '42px', 
-                      background: '#E53E3E', 
-                      color: '#fff', 
-                      border: 'none', 
-                      padding: '0 24px',
-                      opacity: selectedKyc.status === 'Rejected' ? 0.35 : 1
-                    }} 
-                    onClick={() => handleReject(selectedKyc.id)}
-                    disabled={selectedKyc.status === 'Rejected'}
-                  >
-                    <FiX /> Reject KYC
-                  </button>
-                  <button 
-                    className={styles.publishBtn} 
-                    style={{ 
-                      height: '42px', 
-                      padding: '0 32px', 
-                      minWidth: '160px',
-                      opacity: selectedKyc.status === 'Approved' ? 0.35 : 1
-                    }} 
-                    onClick={() => handleApprove(selectedKyc.id)}
-                    disabled={selectedKyc.status === 'Approved'}
-                  >
-                    <FiCheck /> Approve KYC
-                  </button>
-                </div>
+ 
+            <div className={styles.modalFooter} style={{ padding: '4px 20px', background: '#ffffff', borderTop: '1px solid #E2E8F0', flexShrink: 0, height: '4px', minHeight: 'auto' }}>
             </div>
           </div>
         </div>
       )}
-
+ 
       {/* ── CUSTOM CONFIRM MODAL ── */}
       {confirmModal.isOpen && (
-        <div className={styles.modalOverlay} style={{ zIndex: 9999 }}>
-          <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '20px', padding: '30px', textAlign: 'center', background: '#fff', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
-            <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: confirmModal.type === 'APPROVE' ? '#E6F4EA' : '#FFF5F5', color: confirmModal.type === 'APPROVE' ? '#1E7E34' : '#E53E3E', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', margin: '0 auto 20px' }}>
-              {confirmModal.type === 'APPROVE' ? <FiCheck /> : <FiAlertCircle />}
+        <div className={styles.modalOverlay} style={{ zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)', background: 'rgba(15, 23, 42, 0.4)' }}>
+          <div className={styles.modalContainer} style={{ width: '90%', maxWidth: '400px', borderRadius: '24px', padding: '32px', textAlign: 'center', background: '#ffffff', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(0,0,0,0.05)', animation: 'modalSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+            <div style={{ 
+              width: '80px', 
+              height: '80px', 
+              borderRadius: '50%', 
+              background: confirmModal.type.startsWith('APPROVE') ? '#D1FAE5' : '#FEE2E2', 
+              color: confirmModal.type.startsWith('APPROVE') ? '#10B981' : '#EF4444', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              fontSize: '36px', 
+              margin: '0 auto 24px',
+              boxShadow: confirmModal.type.startsWith('APPROVE') ? '0 10px 15px -3px rgba(16, 185, 129, 0.2)' : '0 10px 15px -3px rgba(239, 68, 68, 0.2)'
+            }}>
+              {confirmModal.type.startsWith('APPROVE') ? <FiCheck /> : <FiAlertCircle />}
             </div>
-            <h3 style={{ fontSize: '1.3rem', color: '#0D1B3E', marginBottom: '12px', fontWeight: 800 }}>
-              {confirmModal.type === 'APPROVE' ? 'Approve KYC?' : 'Reject KYC?'}
+            <h3 style={{ fontSize: '1.4rem', color: '#0F172A', marginBottom: '12px', fontWeight: 800 }}>
+              {confirmModal.type.startsWith('APPROVE') ? 'Approve Document?' : 'Reject Document?'}
             </h3>
-            <p style={{ color: '#64748B', fontSize: '0.9rem', marginBottom: '28px', lineHeight: '1.5' }}>
-              Are you sure you want to {confirmModal.type.toLowerCase()} this KYC request? This action cannot be undone.
+            <p style={{ color: '#64748B', fontSize: '0.92rem', marginBottom: '20px', lineHeight: '1.6', fontWeight: 500 }}>
+              Are you sure you want to {confirmModal.type.startsWith('APPROVE') ? 'approve' : 'reject'} <strong style={{ color: '#0F172A', fontWeight: 750 }}>{confirmModal.label}</strong>? This action will update the status immediately.
             </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+
+            {confirmModal.type.startsWith('REJECT') && (
+              <div style={{ textAlign: 'left', marginBottom: '24px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rejection Reason</label>
+                <textarea
+                  placeholder="E.g., Document image is blurry, invalid details..."
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  style={{
+                    width: '100%',
+                    height: '80px',
+                    padding: '12px',
+                    borderRadius: '12px',
+                    border: '1.5px solid #E2E8F0',
+                    fontSize: '0.9rem',
+                    color: '#0F172A',
+                    outline: 'none',
+                    resize: 'none',
+                    fontFamily: 'inherit',
+                    boxSizing: 'border-box',
+                    transition: 'border-color 0.2s'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#EF4444'}
+                  onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
+                />
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '14px', justifyContent: 'center' }}>
               <button 
-                onClick={() => setConfirmModal({ isOpen: false, type: '', id: null })}
-                style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1.5px solid #E2E8F0', background: '#F8FAFF', color: '#4A5568', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
-                onMouseOver={(e) => e.target.style.background = '#EDF2F7'}
-                onMouseOut={(e) => e.target.style.background = '#F8FAFF'}
+                onClick={() => setConfirmModal({ isOpen: false, type: '', id: null, docIndex: null, label: '' })}
+                style={{ 
+                  flex: 1, 
+                  padding: '14px', 
+                  borderRadius: '14px', 
+                  border: '1.5px solid #E2E8F0', 
+                  background: '#ffffff', 
+                  color: '#475569', 
+                  fontWeight: 700, 
+                  fontSize: '0.95rem',
+                  cursor: 'pointer', 
+                  transition: 'all 0.2s' 
+                }}
+                onMouseOver={(e) => e.target.style.background = '#F8FAFC'}
+                onMouseOut={(e) => e.target.style.background = '#ffffff'}
               >
                 Cancel
               </button>
               <button 
                 onClick={confirmAction}
-                style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: confirmModal.type === 'APPROVE' ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : 'linear-gradient(135deg, #E53E3E 0%, #C53030 100%)', color: '#fff', fontWeight: 700, cursor: 'pointer', boxShadow: confirmModal.type === 'APPROVE' ? '0 4px 12px rgba(5, 150, 105, 0.2)' : '0 4px 12px rgba(229, 62, 62, 0.2)' }}
+                style={{ 
+                  flex: 1, 
+                  padding: '14px', 
+                  borderRadius: '14px', 
+                  border: 'none', 
+                  background: confirmModal.type.startsWith('APPROVE') ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' : 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)', 
+                  color: '#ffffff', 
+                  fontWeight: 700, 
+                  fontSize: '0.95rem',
+                  cursor: 'pointer', 
+                  boxShadow: confirmModal.type.startsWith('APPROVE') ? '0 4px 14px rgba(16, 185, 129, 0.3)' : '0 4px 14px rgba(239, 68, 68, 0.3)',
+                  transition: 'all 0.2s' 
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; }}
               >
-                Yes, {confirmModal.type === 'APPROVE' ? 'Approve' : 'Reject'}
+                Yes, {confirmModal.type.startsWith('APPROVE') ? 'Approve' : 'Reject'}
               </button>
             </div>
           </div>

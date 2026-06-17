@@ -22,18 +22,18 @@ const initialState = {
     confirmTpin: ['', '', '', ''],
   },
   securityState: {
-    globalToggles: { twoWay: true, otp: false, tpin: false },
+    globalToggles: { twoWay: true, otp: true, tpin: false },
     memberList: [
-      { id: 1, name: 'Pay99RT4190', memberId: '—', twoWay: true, otp: false, tpin: false },
-      { id: 2, name: 'Pay99RT4193', memberId: '—', twoWay: true, otp: false, tpin: false },
-      { id: 3, name: 'Pay99RT4200', memberId: '—', twoWay: true, otp: false, tpin: false },
-      { id: 4, name: 'Pay99RT4254', memberId: '—', twoWay: true, otp: false, tpin: false },
-      { id: 5, name: 'Pay99RT4521', memberId: '—', twoWay: true, otp: false, tpin: false },
-      { id: 6, name: 'Aabid Hussain', memberId: 'Pay99RT4412', twoWay: true, otp: false, tpin: false },
-      { id: 7, name: 'Aakash', memberId: 'Pay99RT4477', twoWay: true, otp: false, tpin: false },
-      { id: 8, name: 'Aakash Gautam', memberId: 'Pay99RT4489', twoWay: true, otp: false, tpin: false },
-      { id: 9, name: 'Aakash Tyagi', memberId: 'Pay99RT4547', twoWay: true, otp: false, tpin: false },
-      { id: 10, name: 'Askib', memberId: 'Pay99RT4528', twoWay: true, otp: false, tpin: false },
+      { id: 1, name: 'Pay99RT4190', memberId: '—', twoWay: true, otp: true, tpin: false },
+      { id: 2, name: 'Pay99RT4193', memberId: '—', twoWay: true, otp: true, tpin: false },
+      { id: 3, name: 'Pay99RT4200', memberId: '—', twoWay: true, otp: true, tpin: false },
+      { id: 4, name: 'Pay99RT4254', memberId: '—', twoWay: true, otp: true, tpin: false },
+      { id: 5, name: 'Pay99RT4521', memberId: '—', twoWay: true, otp: true, tpin: false },
+      { id: 6, name: 'Aabid Hussain', memberId: 'Pay99RT4412', twoWay: true, otp: true, tpin: false },
+      { id: 7, name: 'Aakash', memberId: 'Pay99RT4477', twoWay: true, otp: true, tpin: false },
+      { id: 8, name: 'Aakash Gautam', memberId: 'Pay99RT4489', twoWay: true, otp: true, tpin: false },
+      { id: 9, name: 'Aakash Tyagi', memberId: 'Pay99RT4547', twoWay: true, otp: true, tpin: false },
+      { id: 10, name: 'Askib', memberId: 'Pay99RT4528', twoWay: true, otp: true, tpin: false },
     ]
   },
   creditLimitState: {
@@ -123,10 +123,57 @@ const memberSlice = createSlice({
     updateSecurityToggle: (state, action) => {
       const { id, field } = action.payload;
       if (id === 'global') {
-        state.securityState.globalToggles[field] = !state.securityState.globalToggles[field];
+        const toggles = state.securityState.globalToggles;
+        if (field === 'twoWay') {
+          toggles.twoWay = !toggles.twoWay;
+          if (toggles.twoWay) {
+            toggles.otp = true;
+            toggles.tpin = false;
+            state.securityState.memberList.forEach(member => {
+              member.twoWay = true;
+              member.otp = true;
+              member.tpin = false;
+            });
+          } else {
+            toggles.otp = false;
+            toggles.tpin = false;
+            state.securityState.memberList.forEach(member => {
+              member.twoWay = false;
+              member.otp = false;
+              member.tpin = false;
+            });
+          }
+        } else if (toggles.twoWay) {
+          if (field === 'otp' || field === 'tpin') {
+            toggles.otp = !toggles.otp;
+            toggles.tpin = !toggles.tpin;
+            state.securityState.memberList.forEach(member => {
+              if (member.twoWay) {
+                member.otp = toggles.otp;
+                member.tpin = toggles.tpin;
+              }
+            });
+          }
+        }
       } else {
-        const member = state.securityState.memberList.find(m => m.id === id);
-        if (member) member[field] = !member[field];
+        const member = state.securityState.memberList.find(m => String(m.id) === String(id));
+        if (member) {
+          if (field === 'twoWay') {
+            member.twoWay = !member.twoWay;
+            if (member.twoWay) {
+              member.otp = true;
+              member.tpin = false;
+            } else {
+              member.otp = false;
+              member.tpin = false;
+            }
+          } else if (member.twoWay) {
+            if (field === 'otp' || field === 'tpin') {
+              member.otp = !member.otp;
+              member.tpin = !member.tpin;
+            }
+          }
+        }
       }
     },
     updateCreditLimitForm: (state, action) => {

@@ -107,12 +107,12 @@ const SwitchSystem = () => {
         </div>
 
         {/* ── NEW INLINE ADD FORM ── */}
-        <div style={{ padding: '20px 25px', borderBottom: '1px solid #F1F5F9', background: '#fff' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px', marginBottom: '20px', alignItems: 'start' }}>
+        <div style={{ padding: '24px 28px', borderBottom: '1px solid #F1F5F9', background: '#fff' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', alignItems: 'flex-end' }}>
             {/* Switch Type */}
             <div className={styles.formGroup} style={{ margin: 0 }}>
-              <label className={styles.label} style={{ fontSize: '0.85rem', color: '#1E293B', fontWeight: 700, marginBottom: '4px' }}>Switch Type</label>
-              <select className={styles.inputControl} style={{ height: '38px', borderRadius: '6px', border: '1px solid #E2E8F0', padding: '0 12px', color: '#9CA3AF', fontSize: '0.85rem' }}>
+              <label className={styles.label} style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Switch Type</label>
+              <select className={styles.inputControl} style={{ height: '42px', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', color: '#1E293B', fontSize: '0.85rem', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}>
                 <option value="">Select Switch Type</option>
                 <option value="user">User Switch</option>
                 <option value="operator">Operator Switch</option>
@@ -122,16 +122,16 @@ const SwitchSystem = () => {
             </div>
             {/* Service */}
             <div className={styles.formGroup} style={{ margin: 0 }}>
-              <label className={styles.label} style={{ fontSize: '0.85rem', color: '#1E293B', fontWeight: 700, marginBottom: '4px' }}>Service</label>
-              <select className={styles.inputControl} style={{ height: '38px', borderRadius: '6px', border: '1px solid #E2E8F0', padding: '0 12px', color: '#9CA3AF', fontSize: '0.85rem' }} value={selectedService} onChange={(e) => setSelectedService(e.target.value)}>
+              <label className={styles.label} style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Service</label>
+              <select className={styles.inputControl} style={{ height: '42px', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', color: '#1E293B', fontSize: '0.85rem', outline: 'none' }} value={selectedService} onChange={(e) => setSelectedService(e.target.value)} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}>
                 <option value="">Select Service</option>
                 {servicesList.map(srv => <option key={srv.id} value={srv.id}>{srv.name}</option>)}
               </select>
             </div>
             {/* Operator */}
             <div className={styles.formGroup} style={{ margin: 0 }}>
-              <label className={styles.label} style={{ fontSize: '0.85rem', color: '#1E293B', fontWeight: 700, marginBottom: '4px' }}>Operator</label>
-              <select className={styles.inputControl} style={{ height: '38px', borderRadius: '6px', border: '1px solid #E2E8F0', padding: '0 12px', color: '#9CA3AF', fontSize: '0.85rem' }} disabled={!selectedService && false}>
+              <label className={styles.label} style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Operator</label>
+              <select className={styles.inputControl} style={{ height: '42px', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', color: '#1E293B', fontSize: '0.85rem', outline: 'none' }} disabled={!selectedService} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}>
                 <option value="">{selectedService ? 'Select Operator' : 'Select All'}</option>
                 {selectedService && operatorsData[selectedService] && operatorsData[selectedService].map(op => (
                   <option key={op} value={op.toLowerCase()}>{op}</option>
@@ -140,41 +140,48 @@ const SwitchSystem = () => {
             </div>
             {/* Api List */}
             <div className={styles.formGroup} style={{ margin: 0 }}>
-              <label className={styles.label} style={{ fontSize: '0.85rem', color: '#1E293B', fontWeight: 700, marginBottom: '4px' }}>Api List</label>
-              <select className={styles.inputControl} style={{ height: '38px', borderRadius: '6px', border: '1px solid #E2E8F0', padding: '0 12px', color: '#9CA3AF', fontSize: '0.85rem' }}>
+              <label className={styles.label} style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Api List</label>
+              <select className={styles.inputControl} style={{ height: '42px', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', color: '#1E293B', fontSize: '0.85rem', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}>
                 <option value="">Select Api</option>
                 <option value="soni">SoniTechno</option>
                 <option value="paytm">Paytm</option>
               </select>
             </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
+
             {/* Slab */}
-            <div className={styles.formGroup} style={{ margin: 0, flex: 1 }}>
-              <label className={styles.label} style={{ fontSize: '0.85rem', color: '#1E293B', fontWeight: 700, marginBottom: '4px' }}>Slab</label>
-              <input type="text" className={styles.inputControl} style={{ height: '38px', borderRadius: '6px', border: '1px solid #E2E8F0', padding: '0 12px', width: '100%', maxWidth: '350px' }} />
-              <p style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '8px', lineHeight: '1.4', margin: '8px 0 0 0' }}>
-                Note : if you want fix amount then use "," and for range use "-" like (eg. 10, 20, 50-200, 300-500)
+            <div className={styles.formGroup} style={{ margin: 0, gridColumn: 'span 3', marginTop: '12px' }}>
+              <label className={styles.label} style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Slab</label>
+              <input type="text" className={styles.inputControl} placeholder="Enter slab details..." style={{ height: '42px', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', width: '100%', fontSize: '0.85rem', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'} />
+            </div>
+
+            {/* Save Button */}
+            <div className={styles.formGroup} style={{ margin: 0, gridColumn: 'span 1', marginTop: '12px' }}>
+              <button 
+                onClick={handleSave}
+                disabled={isSaving}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center',
+                  height: '42px', 
+                  background: isSaving ? '#9CA3AF' : 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', 
+                  color: '#fff', border: 'none', borderRadius: '10px', width: '100%',
+                  fontWeight: 700, fontSize: '0.85rem', cursor: isSaving ? 'not-allowed' : 'pointer', 
+                  transition: 'all 0.2s', boxShadow: isSaving ? 'none' : '0 4px 12px rgba(34, 197, 94, 0.15)', whiteSpace: 'nowrap',
+                  textTransform: 'uppercase', letterSpacing: '0.5px'
+                }} 
+                onMouseOver={(e) => { if(!isSaving) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(34, 197, 94, 0.25)'; } }} 
+                onMouseOut={(e) => { if(!isSaving) { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.15)'; } }}
+              >
+                {isSaving ? <FiRefreshCw style={{ animation: 'spin 1s linear infinite' }} /> : null}
+                {isSaving ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+
+            {/* Note */}
+            <div style={{ gridColumn: 'span 4', marginTop: '4px' }}>
+              <p style={{ fontSize: '0.75rem', color: '#64748B', lineHeight: '1.4', margin: 0 }}>
+                <strong>Note:</strong> if you want fix amount then use "," and for range use "-" like (eg. 10, 20, 50-200, 300-500)
               </p>
             </div>
-            {/* Save Button */}
-            <button 
-              onClick={handleSave}
-              disabled={isSaving}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center',
-                height: '38px', marginTop: '23px', 
-                background: isSaving ? '#9CA3AF' : 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', 
-                color: '#fff', border: 'none', borderRadius: '6px', padding: '0 35px', 
-                fontWeight: 700, fontSize: '0.9rem', cursor: isSaving ? 'not-allowed' : 'pointer', 
-                transition: 'all 0.2s', boxShadow: isSaving ? 'none' : '0 4px 10px rgba(34, 197, 94, 0.25)', whiteSpace: 'nowrap'
-              }} 
-              onMouseOver={(e) => { if(!isSaving) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(34, 197, 94, 0.3)'; } }} 
-              onMouseOut={(e) => { if(!isSaving) { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 10px rgba(34, 197, 94, 0.25)'; } }}
-            >
-              {isSaving ? <FiRefreshCw style={{ animation: 'spin 1s linear infinite' }} /> : null}
-              {isSaving ? 'Saving...' : 'Save'}
-            </button>
             <style>{`
               @keyframes spin { 100% { transform: rotate(360deg); } }
             `}</style>
@@ -212,7 +219,7 @@ const SwitchSystem = () => {
         </div>
 
         {/* ── TABLE ── */}
-        <div className={styles.tableWrapper}>
+        <div className={styles.tableWrapper} style={{ borderRadius: '16px', border: '1px solid #E2E8F0', overflowX: 'auto', overflowY: 'hidden', minHeight: 'auto' }}>
           <table className={styles.table} style={{ minWidth: '900px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>

@@ -3,10 +3,12 @@ import { useSelector, useDispatch } from 'react-redux';
 import { updateFundRequestStatus } from '../../../store/slices/balanceSlice';
 import { 
   FaSearch, FaFileExcel, FaFilePdf, FaPrint, FaCopy, FaFileCsv,
-  FaChevronLeft, FaChevronRight, FaFilter, FaClock, FaCheckCircle, FaTimesCircle 
+  FaChevronLeft, FaChevronRight, FaFilter, FaClock, FaCheckCircle, FaTimesCircle,
+  FaFileInvoiceDollar
 } from 'react-icons/fa';
 import { FiDatabase } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
+import ReceiptModal from '../../../shared/components/common/ReceiptModal';
 import styles from './FundRequest.module.css';
 
 const FundRequest = () => {
@@ -17,6 +19,7 @@ const FundRequest = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [actionModal, setActionModal] = useState({ open: false, row: null, type: '', reason: '' });
+  const [activeSlip, setActiveSlip] = useState(null);
   
   const [filters, setFilters] = useState({
     fromDate: '', toDate: '', memberId: '', status: '', paymentMode: '', bankName: ''
@@ -252,7 +255,19 @@ const FundRequest = () => {
                   <td>{row.addDate}</td>
                   <td>{row.approveRejectDate}</td>
                   <td>
-                    {row.cashSlip ? <a href="#" className={styles.linkText} title="View Slip">View Slip</a> : '-'}
+                    {row.cashSlip ? (
+                      <a 
+                        href="#" 
+                        className={styles.linkText} 
+                        title="View Slip"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setActiveSlip(row);
+                        }}
+                      >
+                        View Slip
+                      </a>
+                    ) : '-'}
                   </td>
                   <td>
                     {row.indemnityBond ? <a href="#" className={styles.linkText} title="View Bond">View Bond</a> : '-'}
@@ -339,6 +354,26 @@ const FundRequest = () => {
           </div>
         </div>
       )}
+
+      {/* Slip viewer modal */}
+      <ReceiptModal 
+        isOpen={!!activeSlip}
+        onClose={() => setActiveSlip(null)}
+        data={activeSlip ? {
+          amount: activeSlip.amount,
+          charge: 0,
+          date: activeSlip.paymentDate + ' 10:26:00',
+          customerName: 'Vishnu Prajapati',
+          customerMobile: '9784905576',
+          beneficiary: activeSlip.memberId.split(' [')[0],
+          bank: activeSlip.companyBankName,
+          accountNo: activeSlip.bankRefId,
+          mode: activeSlip.paymentMode,
+          total: activeSlip.amount,
+          bankTransId: activeSlip.bankRefId,
+          id: activeSlip.bankRefId
+        } : null}
+      />
     </div>
   );
 };

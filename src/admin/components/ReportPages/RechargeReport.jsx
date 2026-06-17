@@ -52,78 +52,84 @@ const RechargeReport = () => {
         title="RECHARGE HISTORY"
         icon={<FiFilter />}
         topContent={
-          <div className={styles.filterRow}>
-            <div className={styles.formGroup}>
-              <label>Search</label>
-              <input 
-                type="text" 
-                className={styles.inputControl}
-                placeholder="Search..."
-                name="search"
-                value={filters.search}
-                onChange={handleFilterChange}
-              />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className={styles.filterRow}>
+              <div className={styles.formGroup}>
+                <label>Search</label>
+                <input 
+                  type="text" 
+                  className={styles.inputControl}
+                  placeholder="Search..."
+                  name="search"
+                  value={filters.search}
+                  onChange={handleFilterChange}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Service</label>
+                <select 
+                  className={styles.inputControl}
+                  name="service"
+                  value={filters.service}
+                  onChange={handleFilterChange}
+                >
+                  <option value="">Select Service</option>
+                  <option value="Mobile">Mobile</option>
+                  <option value="DTH">DTH</option>
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label>From Date</label>
+                <input 
+                  type="date" 
+                  className={styles.inputControl}
+                  name="fromDate"
+                  value={filters.fromDate}
+                  onChange={handleFilterChange}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>To Date</label>
+                <input 
+                  type="date" 
+                  className={styles.inputControl}
+                  name="toDate"
+                  value={filters.toDate}
+                  onChange={handleFilterChange}
+                />
+              </div>
             </div>
-            <div className={styles.formGroup}>
-              <label>Service</label>
-              <select 
-                className={styles.inputControl}
-                name="service"
-                value={filters.service}
-                onChange={handleFilterChange}
-              >
-                <option value="">Select Service</option>
-                <option value="Mobile">Mobile</option>
-                <option value="DTH">DTH</option>
-              </select>
+            <div className={styles.filterRow}>
+              <div className={styles.formGroup}>
+                <label>Status</label>
+                <select 
+                  className={styles.inputControl}
+                  name="status"
+                  value={filters.status}
+                  onChange={handleFilterChange}
+                >
+                  <option value="">Select Status</option>
+                  <option value="SUCCESS">Success</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="FAILED">Failed</option>
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label>Member ID :</label>
+                <select 
+                  className={styles.inputControl}
+                  name="memberId"
+                  value={filters.memberId}
+                  onChange={handleFilterChange}
+                >
+                  <option value="">Select Member</option>
+                  <option value="RT1236">Sachin Balyan (RT1236)</option>
+                </select>
+              </div>
+              <div className={styles.formGroup} style={{ flex: '0 0 auto', alignSelf: 'flex-end' }}>
+                <button className={styles.submitBtn}>Submit</button>
+              </div>
             </div>
-            <div className={styles.formGroup}>
-              <label>From Date</label>
-              <input 
-                type="date" 
-                className={styles.inputControl}
-                name="fromDate"
-                value={filters.fromDate}
-                onChange={handleFilterChange}
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label>To Date</label>
-              <input 
-                type="date" 
-                className={styles.inputControl}
-                name="toDate"
-                value={filters.toDate}
-                onChange={handleFilterChange}
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label>Status</label>
-              <select 
-                className={styles.inputControl}
-                name="status"
-                value={filters.status}
-                onChange={handleFilterChange}
-              >
-                <option value="">Select Status</option>
-                <option value="SUCCESS">Success</option>
-                <option value="PENDING">Pending</option>
-                <option value="FAILED">Failed</option>
-              </select>
-            </div>
-            <div className={styles.formGroup}>
-              <label>Member ID :</label>
-              <select 
-                className={styles.inputControl}
-                name="memberId"
-                value={filters.memberId}
-                onChange={handleFilterChange}
-              >
-                <option value="">Select Member</option>
-                <option value="RT1236">Sachin Balyan (RT1236)</option>
-              </select>
-            </div>
-            <button className={styles.submitBtn}>Submit</button>
           </div>
         }
         columns={columns}

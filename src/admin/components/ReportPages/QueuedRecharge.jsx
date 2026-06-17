@@ -26,17 +26,10 @@ const QueuedRecharge = () => {
         </div>
 
         {/* CARD BOTTOM: FILTERS */}
-        <div style={{ padding: '20px 24px', background: '#FAFBFC' }}>
+        <div style={{ padding: '24px 28px', background: '#FAFBFC' }}>
           <form onSubmit={(e) => e.preventDefault()}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
               
-              <div className={styles.formGroup}>
-                <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Service</label>
-                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}>
-                  <option value="">All Services</option>
-                </select>
-              </div>
-
               <div className={styles.formGroup}>
                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>From Date</label>
                 <input type="date" className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'} />
@@ -45,6 +38,23 @@ const QueuedRecharge = () => {
               <div className={styles.formGroup}>
                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>To Date</label>
                 <input type="date" className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'} />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Service</label>
+                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}>
+                  <option value="">All Services</option>
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Status</label>
+                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}>
+                  <option value="">All Status</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Success">Success</option>
+                  <option value="Failed">Failed</option>
+                </select>
               </div>
               
               <div className={styles.formGroup}>
@@ -66,8 +76,8 @@ const QueuedRecharge = () => {
       </div>
 
       {/* ── DATA TABLE CARD ── */}
-      <div className={styles.cardFullMobile}>
-        <div className="global-table-toolbar">
+      <div className={styles.cardFullMobile} style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.02)' }}>
+        <div className="global-table-toolbar" style={{ padding: '12px 20px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.selectEntries}>
@@ -86,10 +96,10 @@ const QueuedRecharge = () => {
           </div>
         </div>
 
-        <div className={styles.tableWrapper}>
+        <div className={styles.tableWrapper} style={{ borderRadius: '16px', border: '1px solid #E2E8F0', overflowX: 'auto', overflowY: 'hidden', minHeight: 'auto' }}>
           <table className={styles.table} style={{ minWidth: '1800px' }}>
             <thead>
-              <tr style={{ background: 'linear-gradient(90deg, #4A5568 0%, #2D3748 100%)' }}>
+              <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
                 <th style={{ width: '60px' }}>#</th>
                 <th>TXID</th>
                 <th>OPERATOR</th>
@@ -102,29 +112,35 @@ const QueuedRecharge = () => {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td colSpan="9" style={{ textAlign: 'center', padding: '60px 0', color: '#A0AEC0' }}>
-                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                     <FiClock style={{ fontSize: '2.5rem', opacity: 0.3 }} />
-                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No queued recharge found</span>
-                   </div>
+              <tr style={{ height: '50px', background: '#F8FAFC' }}>
+                <td style={{ textAlign: 'center', color: '#CBD5E1' }}>-</td>
+                <td style={{ textAlign: 'center', color: '#CBD5E1' }}>-</td>
+                <td style={{ textAlign: 'center', color: '#CBD5E1' }}>-</td>
+                <td colSpan="5" style={{ textAlign: 'center', color: '#94A3B8', fontSize: '0.85rem', fontWeight: 500 }}>
+                  <FiClock style={{ marginRight: '8px', verticalAlign: 'middle', display: 'inline-block' }} /> No queued recharge found
                 </td>
+                <td style={{ textAlign: 'center', color: '#CBD5E1' }}>-</td>
+              </tr>
+              <tr style={{ height: '50px', background: '#FFFFFF' }}>
+                {Array.from({ length: 9 }).map((_, i) => (
+                  <td key={i} style={{ textAlign: 'center', color: '#E2E8F0' }}>-</td>
+                ))}
               </tr>
             </tbody>
           </table>
         </div>
 
         {/* ── QUEUE ACTIONS ── */}
-        <div style={{ display: 'flex', gap: '15px', marginTop: '25px', padding: '20px', background: '#F8FAFC', borderRadius: '16px', border: '1px solid #E2E8F0', flexWrap: 'wrap', alignItems: 'center' }}>
-           <button style={{ background: '#16A34A', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '12px', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(22, 163, 74, 0.25)'}} onMouseOut={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'}}>
+        <div style={{ display: 'flex', gap: '15px', marginTop: '20px', padding: '16px 20px', background: '#F8FAFC', borderRadius: '16px', border: '1px solid #E2E8F0', flexWrap: 'wrap', alignItems: 'center' }}>
+           <button style={{ background: '#16A34A', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(22, 163, 74, 0.25)'}} onMouseOut={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'}}>
              <FiCheckCircle size={18} strokeWidth={3} /> Force Success
            </button>
-           <button style={{ background: '#DC2626', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '12px', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(220, 38, 38, 0.25)'}} onMouseOut={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'}}>
+           <button style={{ background: '#DC2626', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(220, 38, 38, 0.25)'}} onMouseOut={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'}}>
              <FiXCircle size={18} strokeWidth={3} /> Force Fail
            </button>
         </div>
 
-        <div className="global-pagination">
+        <div className="global-pagination" style={{ padding: '12px 20px', borderTop: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>Showing 0 to 0 of 0 entries</div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button className="global-page-btn" disabled><FiChevronLeft /></button>

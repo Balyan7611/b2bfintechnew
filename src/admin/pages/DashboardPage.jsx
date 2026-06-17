@@ -38,10 +38,6 @@ import AddBank from '../components/BalancePages/AddBank';
 import MemberBankDetails from '../components/BalancePages/MemberBankDetails';
 import FundRequest from '../components/BalancePages/FundRequest';
 import Transfer from '../components/BalancePages/Transfer';
-import AddCategory from '../components/ShoppingPages/AddCategory';
-import AddProduct from '../components/ShoppingPages/AddProduct';
-import ProductList from '../components/ShoppingPages/ProductList';
-import OrderHistory from '../components/ShoppingPages/OrderHistory';
 import StaffRegistration from '../components/MemberPages/StaffRegistration';
 import StaffList from '../components/MemberPages/StaffList';
 import ChangePassword from '../components/MemberPages/ChangePassword';
@@ -72,8 +68,7 @@ import AEPSWalletReport from '../components/WalletPages/AEPSWalletReport';
 import DownLineBalance from '../components/WalletPages/DownLineBalance';
 import ListAPI from '../components/RechargeSettings/ListAPI';
 import APIBalance from '../components/RechargeSettings/APIBalance';
-import AutoSwitchAPI from '../components/RechargeSettings/AutoSwitchAPI';
-import Automation from '../components/RechargeSettings/Automation';
+
 import SwitchSystem from '../components/RechargeSettings/SwitchSystem';
 import AddAPI from '../components/RechargeSettings/AddAPI';
 import ManageCompany from '../components/SettingsPages/ManageCompany';
@@ -160,23 +155,12 @@ const SIDEBAR_LINKS = [
     ]
   },
   { 
-    id: 'shopping', 
-    label: 'Shopping', 
-    icon: FaShoppingCart,
-    subLinks: [
-      { id: 'add_category', label: 'Add Category' },
-      { id: 'add_product', label: 'Add Product' },
-      { id: 'product_list', label: 'Product List' },
-      { id: 'order_history', label: 'Order History' }
-    ]
-  },
-  { 
     id: 'member', 
     label: 'Member Management', 
     icon: FaUserTie,
     subLinks: [
-      { id: 'staff_reg', label: 'Staff Registration' },
-      { id: 'staff_list', label: 'Staff List' },
+      // { id: 'staff_reg', label: 'Staff Registration' },
+      // { id: 'staff_list', label: 'Staff List' },
       { id: 'set_password', label: 'Set Member Password' },
       { id: 'set_tpin', label: 'Set Member T-Pin' },
       { id: 'login_security', label: 'Login Security' },
@@ -265,8 +249,6 @@ const SIDEBAR_LINKS = [
     subLinks: [
       { id: 'list_api', label: 'List API' },
       { id: 'api_balance', label: 'API Balance' },
-      { id: 'auto_switch_api', label: 'Auto Switch API' },
-      { id: 'automation', label: 'Automation' },
       { id: 'add_api', label: 'Add API' },
       { id: 'switch_system', label: 'Switch System' }
     ]
@@ -292,8 +274,6 @@ const SIDEBAR_LINKS = [
       { id: 'manage_news', label: 'Manage News' },
       { id: 'assign_service', label: 'Assign Service' },
       // { id: 'assign_service_role', label: 'Assign Service On Role' },
-      { id: 'on_off_services', label: 'On/Off Services' },
-      { id: 'list_operator', label: 'List Operator' },
       { id: 'check_txn', label: 'Check TXN' },
       { id: 'employee_login_list', label: 'Employee Login List' }
     ]
@@ -1113,14 +1093,6 @@ const DashboardPage = () => {
             <FundRequest />
           ) : activeTab === 'transfer' ? (
             <Transfer />
-          ) : activeTab === 'add_category' ? (
-            <AddCategory />
-          ) : activeTab === 'add_product' ? (
-            <AddProduct />
-          ) : activeTab === 'product_list' ? (
-            <ProductList />
-          ) : activeTab === 'order_history' ? (
-            <OrderHistory />
           ) : activeTab === 'staff_reg' ? (
             <StaffRegistration />
           ) : activeTab === 'staff_list' ? (
@@ -1179,10 +1151,6 @@ const DashboardPage = () => {
             <ListAPI />
           ) : activeTab === 'api_balance' ? (
             <APIBalance />
-          ) : activeTab === 'auto_switch_api' ? (
-            <AutoSwitchAPI />
-          ) : activeTab === 'automation' ? (
-            <Automation />
           ) : activeTab === 'add_api' ? (
             <AddAPI />
           ) : activeTab === 'switch_system' ? (

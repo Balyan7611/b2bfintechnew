@@ -25,7 +25,7 @@ const RechargeHistory = () => {
   }, [location.search]);
 
   return (
-    <div className={styles.container} style={{ padding: '20px' }}>
+    <div className={styles.container} style={{ padding: '20px 24px', maxWidth: '100%' }}>
       {/* Dynamic Keyframe Animations for Button Rays */}
       <style>{`
         @keyframes successGlow {
@@ -51,8 +51,8 @@ const RechargeHistory = () => {
       {/* ── PREMIUM FILTER CARD ── */}
       <div style={{ 
         background: '#ffffff',
-        borderRadius: '20px',
-        boxShadow: '0 8px 24px rgba(23, 86, 170, 0.02), 0 1px 4px rgba(0, 0, 0, 0.01)',
+        borderRadius: '24px',
+        boxShadow: '0 10px 30px rgba(23, 86, 170, 0.04), 0 1px 8px rgba(0, 0, 0, 0.02)',
         border: '1px solid #E2E8F0',
         padding: '20px 24px',
         position: 'relative',
@@ -266,6 +266,32 @@ const RechargeHistory = () => {
               </select>
             </div>
             <div className={styles.formGroup}>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Provider</label>
+              <select 
+                className={styles.inputControl} 
+                style={{ 
+                  paddingLeft: '12px', 
+                  paddingRight: '12px',
+                  height: '38px', 
+                  borderRadius: '10px', 
+                  fontSize: '0.825rem', 
+                  border: focusedField === 'provider' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
+                  boxShadow: focusedField === 'provider' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
+                  transition: 'all 0.25s', 
+                  width: '100%', 
+                  background: '#FCFDFE',
+                  color: '#334155',
+                  fontWeight: 500
+                }} 
+                onFocus={() => setFocusedField('provider')}
+                onBlur={() => setFocusedField(null)}
+              >
+                <option value="">-- Select Provider --</option>
+                <option>Provider 1</option>
+                <option>Provider 2</option>
+              </select>
+            </div>
+            <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Status</label>
               <select 
                 className={styles.inputControl} 
@@ -292,32 +318,6 @@ const RechargeHistory = () => {
                 <option value="Success">Success</option>
                 <option value="Pending">Pending</option>
                 <option value="Failed">Failed</option>
-              </select>
-            </div>
-            <div className={styles.formGroup}>
-              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Provider</label>
-              <select 
-                className={styles.inputControl} 
-                style={{ 
-                  paddingLeft: '12px', 
-                  paddingRight: '12px',
-                  height: '38px', 
-                  borderRadius: '10px', 
-                  fontSize: '0.825rem', 
-                  border: focusedField === 'provider' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
-                  boxShadow: focusedField === 'provider' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
-                  transition: 'all 0.25s', 
-                  width: '100%', 
-                  background: '#FCFDFE',
-                  color: '#334155',
-                  fontWeight: 500
-                }} 
-                onFocus={() => setFocusedField('provider')}
-                onBlur={() => setFocusedField(null)}
-              >
-                <option value="">-- Select Provider --</option>
-                <option>Provider 1</option>
-                <option>Provider 2</option>
               </select>
             </div>
           

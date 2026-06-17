@@ -14,7 +14,7 @@ const BBPSTransaction = () => {
   const [focusedField, setFocusedField] = useState(null);
 
   return (
-    <div className={styles.container} style={{ padding: '20px' }}>
+    <div className={styles.container} style={{ padding: '20px 24px', maxWidth: '100%' }}>
       {/* Dynamic Keyframe Animations for Button Rays */}
       <style>{`
         @keyframes successGlow {
@@ -40,13 +40,13 @@ const BBPSTransaction = () => {
       {/* ── PREMIUM FILTER CARD ── */}
       <div style={{ 
         background: '#ffffff',
-        borderRadius: '20px',
-        boxShadow: '0 8px 24px rgba(23, 86, 170, 0.02), 0 1px 4px rgba(0, 0, 0, 0.01)',
+        borderRadius: '24px',
+        boxShadow: '0 10px 30px rgba(23, 86, 170, 0.04), 0 1px 8px rgba(0, 0, 0, 0.02)',
         border: '1px solid #E2E8F0',
-        padding: '20px 24px',
+        padding: '24px 32px',
         position: 'relative',
         overflow: 'hidden',
-        marginBottom: '20px'
+        marginBottom: '24px'
       }}>
         
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px', flexWrap: 'wrap', marginBottom: '16px' }}>
@@ -149,86 +149,7 @@ const BBPSTransaction = () => {
         </div>
 
         <form onSubmit={(e) => e.preventDefault()}>
-          {/* Row 1: 6 columns */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', alignItems: 'flex-end' }}>
-            <div className={styles.formGroup}>
-              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Service Category</label>
-              <select 
-                className={styles.inputControl} 
-                style={{ 
-                  paddingLeft: '12px', 
-                  paddingRight: '12px',
-                  height: '38px', 
-                  borderRadius: '10px', 
-                  fontSize: '0.825rem', 
-                  border: focusedField === 'category' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
-                  boxShadow: focusedField === 'category' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
-                  transition: 'all 0.25s', 
-                  width: '100%', 
-                  background: '#FCFDFE',
-                  color: '#334155',
-                  fontWeight: 500
-                }} 
-                onFocus={() => setFocusedField('category')}
-                onBlur={() => setFocusedField(null)}
-              >
-                <option value="">All Services</option>
-                <option>Electricity</option>
-                <option>Water</option>
-                <option>Gas</option>
-              </select>
-            </div>
-            <div className={styles.formGroup}>
-              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Operator</label>
-              <input 
-                type="text" 
-                placeholder="Operator name..." 
-                className={styles.inputControl} 
-                style={{ 
-                  paddingLeft: '12px', 
-                  paddingRight: '12px',
-                  height: '38px', 
-                  borderRadius: '10px', 
-                  fontSize: '0.825rem', 
-                  border: focusedField === 'operator' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
-                  boxShadow: focusedField === 'operator' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
-                  transition: 'all 0.25s', 
-                  width: '100%', 
-                  background: '#FCFDFE',
-                  color: '#334155',
-                  fontWeight: 500
-                }} 
-                onFocus={() => setFocusedField('operator')}
-                onBlur={() => setFocusedField(null)}
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Status</label>
-              <select 
-                className={styles.inputControl} 
-                style={{ 
-                  paddingLeft: '12px', 
-                  paddingRight: '12px',
-                  height: '38px', 
-                  borderRadius: '10px', 
-                  fontSize: '0.825rem', 
-                  border: focusedField === 'status' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
-                  boxShadow: focusedField === 'status' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
-                  transition: 'all 0.25s', 
-                  width: '100%', 
-                  background: '#FCFDFE',
-                  color: '#334155',
-                  fontWeight: 500
-                }} 
-                onFocus={() => setFocusedField('status')}
-                onBlur={() => setFocusedField(null)}
-              >
-                <option value="">All Statuses</option>
-                <option>Success</option>
-                <option>Pending</option>
-                <option>Failed</option>
-              </select>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>From Date</label>
               <input 
@@ -276,6 +197,64 @@ const BBPSTransaction = () => {
               />
             </div>
             <div className={styles.formGroup}>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Service Category</label>
+              <select 
+                className={styles.inputControl} 
+                style={{ 
+                  paddingLeft: '12px', 
+                  paddingRight: '12px',
+                  height: '38px', 
+                  borderRadius: '10px', 
+                  fontSize: '0.825rem', 
+                  border: focusedField === 'category' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
+                  boxShadow: focusedField === 'category' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
+                  transition: 'all 0.25s', 
+                  width: '100%', 
+                  background: '#FCFDFE',
+                  color: '#334155',
+                  fontWeight: 500
+                }} 
+                onFocus={() => setFocusedField('category')}
+                onBlur={() => setFocusedField(null)}
+              >
+                <option value="">All Services</option>
+                <option>Electricity</option>
+                <option>Water</option>
+                <option>Gas</option>
+              </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Operator</label>
+              <select 
+                className={styles.inputControl} 
+                style={{ 
+                  paddingLeft: '12px', 
+                  paddingRight: '12px',
+                  height: '38px', 
+                  borderRadius: '10px', 
+                  fontSize: '0.825rem', 
+                  border: focusedField === 'operator' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
+                  boxShadow: focusedField === 'operator' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
+                  transition: 'all 0.25s', 
+                  width: '100%', 
+                  background: '#FCFDFE',
+                  color: '#334155',
+                  fontWeight: 500
+                }} 
+                onFocus={() => setFocusedField('operator')}
+                onBlur={() => setFocusedField(null)}
+              >
+                <option value="">All Operators</option>
+                <option>Adani Electricity</option>
+                <option>Tata Power</option>
+                <option>MSEDC Maharashtra</option>
+                <option>BSES Rajdhani Delhi</option>
+                <option>BSES Yamuna Delhi</option>
+                <option>LICI</option>
+                <option>Delhi Jal Board</option>
+              </select>
+            </div>
+            <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Select Member</label>
               <select 
                 className={styles.inputControl} 
@@ -297,6 +276,33 @@ const BBPSTransaction = () => {
                 onBlur={() => setFocusedField(null)}
               >
                 <option value="">All Members</option>
+              </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Status</label>
+              <select 
+                className={styles.inputControl} 
+                style={{ 
+                  paddingLeft: '12px', 
+                  paddingRight: '12px',
+                  height: '38px', 
+                  borderRadius: '10px', 
+                  fontSize: '0.825rem', 
+                  border: focusedField === 'status' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
+                  boxShadow: focusedField === 'status' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
+                  transition: 'all 0.25s', 
+                  width: '100%', 
+                  background: '#FCFDFE',
+                  color: '#334155',
+                  fontWeight: 500
+                }} 
+                onFocus={() => setFocusedField('status')}
+                onBlur={() => setFocusedField(null)}
+              >
+                <option value="">All Status</option>
+                <option>Success</option>
+                <option>Pending</option>
+                <option>Failed</option>
               </select>
             </div>
           

@@ -103,66 +103,95 @@ const ParentChange = () => {
           <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#1E293B' }}>Parent Change</h3>
         </div>
 
-        <div style={{ padding: '25px 20px' }}>
+        <div style={{ padding: '15px 20px' }}>
            {/* 4 Fields Grid - Single Row on Large Screen */}
-           <div className={styles.formGrid4} style={{ gap: '20px', marginBottom: '25px' }}>
+           <div className={styles.formGrid4} style={{ gap: '20px', marginBottom: '20px', alignItems: 'end' }}>
               
               {/* Member ID searchable dropdown */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                 <label style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1E293B' }}>MemberID :</label>
+                 <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155' }}>MemberID</label>
                  <MemberSearchSelect 
                    value={fetchedMember ? (fetchedMember.memberId || fetchedMember.id) : ""}
                    onChange={handleSelectMember}
                    placeholder="Search or Select Member ID..."
+                   style={{ height: '42px' }}
                  />
               </div>
 
               {/* Current Parent ID */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                 <label style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1E293B' }}>Current ParentID :</label>
-                 <div style={{ padding: '12px 16px', background: '#F8FAFC', border: '1px dashed #CBD5E1', borderRadius: '10px', color: '#64748B', fontSize: '0.95rem', fontWeight: 600, height: '48px', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
+                 <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155' }}>Current ParentID</label>
+                 <div style={{ 
+                   padding: '0 16px', background: '#F8FAFC', border: '1px solid #E2E8F0', 
+                   borderRadius: '10px', color: '#64748B', fontSize: '0.95rem', fontWeight: 600, 
+                   height: '42px', display: 'flex', alignItems: 'center', boxSizing: 'border-box' 
+                 }}>
                    {fetchedMember ? (fetchedMember.parent || 'No Parent') : 'No member selected'}
                  </div>
               </div>
 
               {/* Role */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                 <label style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1E293B' }}>Role :</label>
+                 <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155' }}>Role</label>
                  <RoleSelect 
                    value={selectedRoleId}
                    onChange={setSelectedRoleId}
                    placeholder="Select Role"
+                   style={{ height: '42px' }}
                  />
               </div>
 
               {/* Parent ID searchable dropdown */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                 <label style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1E293B' }}>ParentID :</label>
+                 <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155' }}>New ParentID</label>
                  <MemberSearchSelect 
                    value={fetchedParent ? (fetchedParent.memberId || fetchedParent.id) : ""}
                    onChange={handleSelectParent}
                    placeholder="Search or Select Parent ID..."
+                   style={{ height: '42px' }}
                  />
               </div>
            </div>
 
-           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+              <style>{`
+                @keyframes parentChangeSpin {
+                  from { transform: rotate(0deg); }
+                  to { transform: rotate(360deg); }
+                }
+              `}</style>
               <button 
                 onClick={handleSave}
                 disabled={isSaving || !fetchedMember}
                 style={{ 
-                  background: (isSaving || !fetchedMember) ? '#60A5FA' : '#1756AA', color: '#fff', border: 'none', 
-                  padding: '12px 40px', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 800, 
+                  background: (isSaving || !fetchedMember) ? '#6EE7B7' : '#059669', color: '#fff', border: 'none', 
+                  padding: '12px 35px', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, 
                   cursor: (isSaving || !fetchedMember) ? 'not-allowed' : 'pointer',
-                  display: 'flex', alignItems: 'center', gap: '8px'
-                }}>
-                {isSaving && <FiRefreshCw className={styles.spin} />}
-                {isSaving ? 'Saving...' : 'Save'}
+                  display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s',
+                  boxShadow: (isSaving || !fetchedMember) ? 'none' : '0 6px 16px rgba(5, 150, 105, 0.25)'
+                }}
+                onMouseOver={e => { if (!isSaving && fetchedMember) e.currentTarget.style.transform = 'translateY(-2px)' }}
+                onMouseOut={e => { if (!isSaving && fetchedMember) e.currentTarget.style.transform = 'translateY(0)' }}
+              >
+                {isSaving && (
+                  <div style={{ 
+                    width: '18px', height: '18px', border: '3px solid rgba(255,255,255,0.3)', 
+                    borderTop: '3px solid #fff', borderRadius: '50%', animation: 'parentChangeSpin 0.8s linear infinite' 
+                  }} />
+                )}
+                {isSaving ? 'Saving Changes...' : 'Save Changes'}
               </button>
               
               {successMsg && (
-                <div style={{ color: '#16A34A', fontSize: '0.95rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <FiCheck style={{ fontSize: '1.2rem' }} /> {successMsg}
+                <div style={{ 
+                  background: '#F0FDF4', color: '#16A34A', padding: '10px 16px', borderRadius: '8px', 
+                  fontSize: '0.95rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px',
+                  animation: 'dropdownFadeIn 0.3s ease-out'
+                }}>
+                  <div style={{ width: '22px', height: '22px', background: '#16A34A', color: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <FiCheck size={14} />
+                  </div>
+                  {successMsg}
                 </div>
               )}
            </div>
