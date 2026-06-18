@@ -113,15 +113,22 @@ const OperatorManagement = () => {
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
   const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, op: null });
 
-  // Close action dropdown on outside click
+  // Close action dropdown on outside click and scroll
   React.useEffect(() => {
     const handleOutsideClick = (e) => {
       if (!e.target.closest('.action-dropdown-wrapper')) {
-        setActiveActionRow({ id: null, x: 0, y: 0, op: null });
+        setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, op: null } : prev);
       }
     };
+    const handleScroll = () => {
+      setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, op: null } : prev);
+    };
     document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
   }, []);
 
   // ── ADD FIELD BBPS MODAL ──
@@ -299,18 +306,10 @@ const OperatorManagement = () => {
         )}
 
         {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
-          <div className={styles.pillRow} style={{ alignItems: 'center' }}>
+        <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+          <div className={styles.pillRow} style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
-            <select 
-              className={styles.selectEntries} 
-              style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setPageNumber(1);
-              }}
-            >
+            <select className={styles.selectEntries} value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPageNumber(1); }} style={{ border: '1px solid #E2E8F0', borderRadius: '8px', padding: '4px 8px', outline: 'none', cursor: 'pointer', fontWeight: 600, color: '#334155' }}>
               <option value={10}>10</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
@@ -327,14 +326,14 @@ const OperatorManagement = () => {
             sheetName="Operators"
           />
 
-          <div className="global-search-box" style={{ maxWidth: '300px' }}>
-            <FiSearch />
+          <div className={styles.tableSearch} style={{ background: '#fff', minWidth: '240px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
+            <FiSearch color="#A0AEC0" />
             <input 
-              type="text" 
-              placeholder="Search operators..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ borderRadius: '10px' }}
+               type="text" 
+               placeholder="Search operators..." 
+               style={{ fontSize: '0.85rem', border: 'none', outline: 'none', background: 'transparent', width: '100%' }} 
+               value={searchQuery}
+               onChange={(e) => { setSearchQuery(e.target.value); setPageNumber(1); }}
             />
           </div>
         </div>
@@ -362,22 +361,31 @@ const OperatorManagement = () => {
                 <tr key={op.id} className={styles.hoverRow}>
                   <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{(pageNumber - 1) * pageSize + idx + 1}</td>
                   <td style={{ textAlign: 'center' }}>
-                    <div className="action-dropdown-wrapper" style={{ display: 'inline-block' }}>
+                    <div className="action-dropdown-wrapper" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                       <button
                         className="action-dropdown-wrapper"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (activeActionRow.id === op.id) {
-                            setActiveActionRow({ id: null, x: 0, y: 0, op: null });
+                            setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, op: null } : prev);
                           } else {
                             const rect = e.currentTarget.getBoundingClientRect();
-                            setActiveActionRow({ id: op.id, x: rect.left + rect.width / 2, y: rect.bottom + 6, op });
+                            const dropdownHeight = 160;
+                            const isUpward = (window.innerHeight - rect.bottom) < dropdownHeight;
+                            
+                            setActiveActionRow({ 
+                              id: op.id, 
+                              x: rect.right + 12, 
+                              y: isUpward ? rect.bottom : rect.top, 
+                              isUpward,
+                              op 
+                            });
                           }
                         }}
-                        style={{ width: '34px', height: '34px', borderRadius: '8px', background: activeActionRow.id === op.id ? '#EFF6FF' : '#F8FAFC', color: activeActionRow.id === op.id ? '#2563EB' : '#64748B', border: activeActionRow.id === op.id ? '1px solid #BFDBFE' : '1px solid #E2E8F0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', fontWeight: 700, transition: 'all 0.15s', letterSpacing: '1px' }}
+                        style={{ padding: '0 12px', height: '32px', borderRadius: '8px', background: activeActionRow.id === op.id ? '#D1FAE5' : '#10B981', color: activeActionRow.id === op.id ? '#059669' : '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: 700, transition: 'all 0.15s', boxShadow: activeActionRow.id === op.id ? 'none' : '0 2px 6px rgba(16,185,129,0.3)' }}
                         title="Actions"
                       >
-                        ⋯
+                        Action <span style={{ fontSize: '1.1rem', marginTop: '-2px', fontWeight: 900 }}>⋮</span>
                       </button>
                     </div>
                   </td>
@@ -429,23 +437,24 @@ const OperatorManagement = () => {
         </div>
 
         {/* ── PAGINATION ── */}
-        <div className="global-pagination" style={{ padding: '25px', borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
+        <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9' }}>
+          <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
             Showing {totalItems === 0 ? 0 : (pageNumber - 1) * pageSize + 1} to{' '}
-            {Math.min(pageNumber * pageSize, totalItems)} of {totalItems} records
-          </div>
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            {Math.min(pageNumber * pageSize, totalItems)} of {totalItems} entries
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button 
-              className="global-page-btn" 
+              className={styles.pageBtn} 
+              style={{ width: '36px', height: '36px', cursor: pageNumber <= 1 || isLoading ? 'not-allowed' : 'pointer', opacity: pageNumber <= 1 || isLoading ? 0.5 : 1, borderRadius: '8px', border: '1px solid #E2E8F0', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
               onClick={() => setPageNumber(p => Math.max(1, p - 1))}
-              disabled={pageNumber <= 1 || isLoading} 
-              style={{ borderRadius: '8px' }}
+              disabled={pageNumber <= 1 || isLoading}
             >
               <FiChevronLeft />
             </button>
             {(() => {
               const pages = [];
               const totalPageNumber = Math.ceil(totalItems / pageSize);
+              if (totalPageNumber === 0) return null;
               const delta = 2;
               const left = Math.max(2, pageNumber - delta);
               const right = Math.min(totalPageNumber - 1, pageNumber + delta);
@@ -456,25 +465,19 @@ const OperatorManagement = () => {
               if (totalPageNumber > 1) pages.push(totalPageNumber);
 
               return pages.map((p, idx) => p === '...' ? (
-                <span key={`ell-${idx}`} style={{ width: '35px', textAlign: 'center', color: '#A0AEC0', fontSize: '0.9rem' }}>...</span>
+                <span key={`ell-${idx}`} style={{ width: '36px', textAlign: 'center', color: '#A0AEC0', fontSize: '0.9rem' }}>...</span>
               ) : (
                 <button
                   key={p}
+                  className={p === pageNumber ? styles.pageActive : styles.pageBtn}
                   onClick={() => setPageNumber(p)}
                   disabled={isLoading}
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    width: '35px', 
-                    height: '35px', 
-                    background: p === pageNumber ? '#1756AA' : 'transparent', 
-                    color: p === pageNumber ? 'white' : '#64748B', 
-                    border: p === pageNumber ? 'none' : '1px solid #E2E8F0',
-                    borderRadius: '8px', 
-                    fontWeight: 700, 
-                    fontSize: '0.9rem',
-                    cursor: 'pointer'
+                  style={{
+                    width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600,
+                    background: p === pageNumber ? '#1756AA' : '#fff', 
+                    color: p === pageNumber ? '#fff' : '#475569',
+                    border: p === pageNumber ? 'none' : '1px solid #E2E8F0', cursor: 'pointer'
                   }}
                 >
                   {p}
@@ -482,10 +485,10 @@ const OperatorManagement = () => {
               ));
             })()}
             <button 
-              className="global-page-btn" 
+              className={styles.pageBtn} 
+              style={{ width: '36px', height: '36px', cursor: pageNumber >= Math.ceil(totalItems / pageSize) || isLoading ? 'not-allowed' : 'pointer', opacity: pageNumber >= Math.ceil(totalItems / pageSize) || isLoading ? 0.5 : 1, borderRadius: '8px', border: '1px solid #E2E8F0', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
               onClick={() => setPageNumber(p => Math.min(Math.ceil(totalItems / pageSize), p + 1))}
-              disabled={pageNumber >= Math.ceil(totalItems / pageSize) || isLoading} 
-              style={{ borderRadius: '8px' }}
+              disabled={pageNumber >= Math.ceil(totalItems / pageSize) || isLoading}
             >
               <FiChevronRight />
             </button>
@@ -497,14 +500,27 @@ const OperatorManagement = () => {
       {activeActionRow.id && (
         <>
           <style>{`
-            @keyframes dropdownFadeIn {
-              from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
-              to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+            @keyframes dropdownFadeInSideOperator {
+              from { opacity: 0; transform: translateX(-10px) ${activeActionRow.isUpward ? 'translateY(10px)' : 'translateY(-10px)'}; }
+              to   { opacity: 1; transform: translateX(0) translateY(0); }
             }
           `}</style>
           <div
             className="action-dropdown-wrapper"
-            style={{ position: 'fixed', top: activeActionRow.y, left: activeActionRow.x, transform: 'translateX(-50%)', background: '#fff', borderRadius: '12px', boxShadow: '0 8px 30px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.07)', border: '1px solid #E2E8F0', zIndex: 9999, minWidth: '168px', overflow: 'hidden', animation: 'dropdownFadeIn 0.15s ease-out' }}
+            style={{ 
+              position: 'fixed', 
+              top: activeActionRow.isUpward ? 'auto' : activeActionRow.y, 
+              bottom: activeActionRow.isUpward ? (window.innerHeight - activeActionRow.y) : 'auto',
+              left: activeActionRow.x, 
+              background: '#fff', 
+              borderRadius: '12px', 
+              boxShadow: '0 8px 30px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.07)', 
+              border: '1px solid #E2E8F0', 
+              zIndex: 9999, 
+              minWidth: '168px', 
+              overflow: 'hidden', 
+              animation: 'dropdownFadeInSideOperator 0.15s ease-out' 
+            }}
           >
             <button
               onClick={() => { handleEdit(activeActionRow.op); setActiveActionRow({ id: null, x: 0, y: 0, op: null }); }}

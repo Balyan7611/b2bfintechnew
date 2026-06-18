@@ -69,6 +69,7 @@ const Navbar = () => {
               <div className={styles.logoIcon}>
                 <img src={SITE_CONFIG.logo} alt={`${SITE_CONFIG.brandName} Logo`} className={styles.logoImg} />
               </div>
+
             </Link>
 
             {/* Desktop Navigation */}

@@ -23,6 +23,28 @@ const PackageManagement = () => {
   const [localPackages, setLocalPackages] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Pagination & Action Dropdown States
+  const [currentPage, setCurrentPage] = useState(1);
+  const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, pkg: null });
+
+  // Close action dropdown on outside click and scroll
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (!e.target.closest('.action-dropdown-wrapper')) {
+        setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, pkg: null } : prev);
+      }
+    };
+    const handleScroll = () => {
+      setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, pkg: null } : prev);
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, []);
+
   const fetchPackages = async () => {
     setIsLoading(true);
     try {
@@ -140,15 +162,10 @@ const PackageManagement = () => {
         )}
 
         {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '10px 15px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
-          <div className={styles.pillRow} style={{ alignItems: 'center' }}>
+        <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+          <div className={styles.pillRow} style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
-            <select 
-              className={styles.selectEntries} 
-              style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}
-              value={rowsPerPage}
-              onChange={(e) => setRowsPerPage(parseInt(e.target.value))}
-            >
+            <select className={styles.selectEntries} value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ border: '1px solid #E2E8F0', borderRadius: '8px', padding: '4px 8px', outline: 'none', cursor: 'pointer', fontWeight: 600, color: '#334155' }}>
               <option value={10}>10</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
@@ -165,12 +182,14 @@ const PackageManagement = () => {
             sheetName="Packages"
           />
 
-          <div className="global-search-box" style={{ maxWidth: '300px' }}>
-            <FiSearch />
+          <div className={styles.tableSearch} style={{ background: '#fff', minWidth: '240px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
+            <FiSearch color="#A0AEC0" />
             <input 
-              type="text" placeholder="Search packages..." 
-              style={{ borderRadius: '10px' }}
-              value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+               type="text" 
+               placeholder="Search packages..." 
+               style={{ fontSize: '0.85rem', border: 'none', outline: 'none', background: 'transparent', width: '100%' }} 
+               value={searchQuery}
+               onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             />
           </div>
         </div>
@@ -191,15 +210,67 @@ const PackageManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {localPackages.map((pkg, idx) => (
-                <tr key={pkg.id} className={styles.hoverRow}>
-                  <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{idx + 1}</td>
-                  <td style={{ textAlign: 'center' }}>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                      <button className={styles.editBtn} style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#F8FAFC', color: '#3B82F6', border: '1px solid #E2E8F0', cursor: 'pointer' }} onClick={() => handleEdit(pkg)} title="Edit Package"><FiEdit /></button>
-                      <button className={styles.deleteBtn} style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#FFF5F5', color: '#E53E3E', border: '1px solid #FED7D7', cursor: 'pointer' }} title="Delete Package" onClick={() => setShowConfirmModal({ isOpen: true, id: pkg.id })}><FiTrash2 /></button>
-                    </div>
-                  </td>
+              {(() => {
+                const filtered = localPackages.filter(p => p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || p.role?.toLowerCase().includes(searchQuery.toLowerCase()));
+                const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
+                const startIndex = (currentPage - 1) * rowsPerPage;
+                const currentEntries = filtered.slice(startIndex, startIndex + rowsPerPage);
+                
+                if (isLoading) {
+                  return (
+                    <tr>
+                      <td colSpan="8" style={{ textAlign: 'center', padding: '30px 0', color: '#64748B' }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Loading data...</span>
+                      </td>
+                    </tr>
+                  );
+                }
+                
+                if (currentEntries.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan="8" style={{ textAlign: 'center', padding: '30px 0', color: '#64748B' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                          <FiPackage style={{ fontSize: '1.5rem', opacity: 0.3 }} />
+                          <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }
+
+                return currentEntries.map((pkg, idx) => (
+                  <tr key={pkg.id} className={styles.hoverRow}>
+                    <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{startIndex + idx + 1}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <div className="action-dropdown-wrapper" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                        <button
+                          className="action-dropdown-wrapper"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (activeActionRow.id === pkg.id) {
+                              setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, pkg: null } : prev);
+                            } else {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const dropdownHeight = 120;
+                              const isUpward = (window.innerHeight - rect.bottom) < dropdownHeight;
+                              
+                              setActiveActionRow({ 
+                                id: pkg.id, 
+                                x: rect.right + 12, 
+                                y: isUpward ? rect.bottom : rect.top, 
+                                isUpward,
+                                pkg 
+                              });
+                            }
+                          }}
+                          style={{ padding: '0 12px', height: '32px', borderRadius: '8px', background: activeActionRow.id === pkg.id ? '#D1FAE5' : '#10B981', color: activeActionRow.id === pkg.id ? '#059669' : '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: 700, transition: 'all 0.15s', boxShadow: activeActionRow.id === pkg.id ? 'none' : '0 2px 6px rgba(16,185,129,0.3)' }}
+                          title="Actions"
+                        >
+                          Action <span style={{ fontSize: '1.1rem', marginTop: '-2px', fontWeight: 900 }}>⋮</span>
+                        </button>
+                      </div>
+                    </td>
                   <td>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ color: '#1756AA', fontSize: '0.95rem', fontWeight: 800 }}>{pkg.name}</span>
@@ -222,39 +293,115 @@ const PackageManagement = () => {
                   </td>
                   <td style={{ textAlign: 'left', fontWeight: 700, color: '#718096', fontSize: '0.85rem' }}>{pkg.addDate}</td>
                 </tr>
-              ))}
-              {isLoading ? (
-                <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '30px 0', color: '#64748B' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Loading data...</span>
-                  </td>
-                </tr>
-              ) : localPackages.length === 0 ? (
-                <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '30px 0', color: '#64748B' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                      <FiPackage style={{ fontSize: '1.5rem', opacity: 0.3 }} />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : null}
+                ));
+              })()}
             </tbody>
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div className="global-pagination" style={{ padding: '25px', borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
-            Showing 1 to {localPackages.length} of {localPackages.length} records
-          </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <button className="global-page-btn" disabled style={{ borderRadius: '8px' }}><FiChevronLeft /></button>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '35px', height: '35px', background: '#1756AA', color: 'white', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem' }}>1</div>
-            <button className="global-page-btn" disabled style={{ borderRadius: '8px' }}><FiChevronRight /></button>
-          </div>
-        </div>
+        {/* PAGINATION */}
+        {(() => {
+          const filtered = localPackages.filter(p => p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || p.role?.toLowerCase().includes(searchQuery.toLowerCase()));
+          const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
+          const startIndex = (currentPage - 1) * rowsPerPage;
+          
+          return (
+            <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9' }}>
+              <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
+                Showing {filtered.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, filtered.length)} of {filtered.length} entries
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <button 
+                  className={styles.pageBtn} 
+                  style={{ width: '36px', height: '36px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1, borderRadius: '8px', border: '1px solid #E2E8F0', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <FiChevronLeft />
+                </button>
+                
+                {[...Array(totalPages)].map((_, i) => {
+                   if (i + 1 < currentPage - 2 || i + 1 > currentPage + 2) return null;
+                   return (
+                    <button
+                      key={i}
+                      className={currentPage === i + 1 ? styles.pageActive : styles.pageBtn}
+                      onClick={() => setCurrentPage(i + 1)}
+                      style={{
+                        width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600,
+                        background: currentPage === i + 1 ? '#1756AA' : '#fff', 
+                        color: currentPage === i + 1 ? '#fff' : '#475569',
+                        border: currentPage === i + 1 ? 'none' : '1px solid #E2E8F0', cursor: 'pointer'
+                      }}
+                    >
+                      {i + 1}
+                    </button>
+                   )
+                })}
+                
+                <button 
+                  className={styles.pageBtn} 
+                  style={{ width: '36px', height: '36px', cursor: currentPage === totalPages || totalPages === 0 ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages || totalPages === 0 ? 0.5 : 1, borderRadius: '8px', border: '1px solid #E2E8F0', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                >
+                  <FiChevronRight />
+                </button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
+
+      {/* ── ACTION DROPDOWN PORTAL (fixed position, never clipped) ── */}
+      {activeActionRow.id && (
+        <>
+          <style>{`
+            @keyframes dropdownFadeInSidePkg {
+              from { opacity: 0; transform: translateX(-10px) ${activeActionRow.isUpward ? 'translateY(10px)' : 'translateY(-10px)'}; }
+              to   { opacity: 1; transform: translateX(0) translateY(0); }
+            }
+          `}</style>
+          <div
+            className="action-dropdown-wrapper"
+            style={{ 
+              position: 'fixed', 
+              top: activeActionRow.isUpward ? 'auto' : activeActionRow.y, 
+              bottom: activeActionRow.isUpward ? (window.innerHeight - activeActionRow.y) : 'auto',
+              left: activeActionRow.x, 
+              background: '#fff', 
+              borderRadius: '12px', 
+              boxShadow: '0 8px 30px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.07)', 
+              border: '1px solid #E2E8F0', 
+              zIndex: 9999, 
+              minWidth: '168px', 
+              overflow: 'hidden', 
+              animation: 'dropdownFadeInSidePkg 0.15s ease-out' 
+            }}
+          >
+            <button
+              onClick={() => { handleEdit(activeActionRow.pkg); setActiveActionRow({ id: null, x: 0, y: 0, pkg: null }); }}
+              style={{ width: '100%', padding: '10px 16px', border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#334155', fontSize: '0.83rem', fontWeight: 600, textAlign: 'left' }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#F1F5F9'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <span style={{ width: '22px', height: '22px', borderRadius: '6px', background: '#EFF6FF', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><FiEdit size={12} /></span>
+              Edit Package
+            </button>
+            <div style={{ height: '1px', background: '#F1F5F9', margin: '0 12px' }} />
+            <button
+              onClick={() => { setShowConfirmModal({ isOpen: true, id: activeActionRow.pkg.id }); setActiveActionRow({ id: null, x: 0, y: 0, pkg: null }); }}
+              style={{ width: '100%', padding: '10px 16px', border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#E53E3E', fontSize: '0.83rem', fontWeight: 600, textAlign: 'left' }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#FFF5F5'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <span style={{ width: '22px', height: '22px', borderRadius: '6px', background: '#FFF5F5', color: '#E53E3E', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><FiTrash2 size={12} /></span>
+              Delete Package
+            </button>
+          </div>
+        </>
+      )}
 
       {/* ── ADD/EDIT MODAL (DRAWER STYLE) ── */}
       {isModalOpen && (

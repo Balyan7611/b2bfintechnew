@@ -1,64 +1,28 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   FaMobileAlt, FaBolt, FaCreditCard, FaLock, 
   FaMoneyBillWave, FaUniversity, FaArrowRight,
   FaChevronLeft, FaChevronRight, FaExchangeAlt, FaFingerprint
 } from 'react-icons/fa';
+import { BrandContext } from '../../../context/BrandContext';
 import styles from './ServicesSection.module.css';
 
-const services = [
-  {
-    icon: FaMobileAlt,
-    title: 'Recharge',
-    description: 'We provide fast and secure mobile & DTH recharge services for all major operators like Airtel, Jio, VI, and BSNL with instant processing.',
-    color: 'var(--color-secondary)',
-  },
-  {
-    icon: FaBolt,
-    title: 'BBPS',
-    description: 'Pay electricity, water, gas, and other utility bills easily through BBPS with secure transactions and instant confirmation.',
-    color: 'var(--color-accent)',
-  },
-  {
-    icon: FaCreditCard,
-    title: 'CC Bill Payment',
-    description: 'Pay your credit card bills quickly and securely with our platform and avoid late payment charges with instant processing.',
-    color: 'var(--color-success)',
-  },
-  {
-    icon: FaLock,
-    title: 'Payment Gateway',
-    description: 'Accept online payments seamlessly with our secure payment gateway supporting multiple payment modes like UPI, cards, and net banking.',
-    color: 'var(--color-primary)',
-  },
-  {
-    icon: FaMoneyBillWave,
-    title: 'Payout',
-    description: 'Send money instantly to any bank account using our payout service with secure and reliable transactions.',
-    color: 'var(--color-secondary)',
-  },
-  {
-    icon: FaUniversity,
-    title: 'MATM',
-    description: 'Micro ATM service allows customers to withdraw cash, check balance, and perform banking transactions using debit cards.',
-    color: 'var(--color-accent)',
-  },
-  {
-    icon: FaExchangeAlt,
-    title: 'DMT',
-    description: 'Domestic Money Transfer allows instant remittance to any bank account across India. Fast, secure, and available 24x7 for your convenience.',
-    color: '#8B5CF6',
-  },
-  {
-    icon: FaFingerprint,
-    title: 'AePS',
-    description: 'Aadhaar enabled Payment System lets customers perform secure banking transactions using only their Aadhaar number and fingerprint.',
-    color: '#EC4899',
-  },
-];
+const iconMap = {
+  FaMobileAlt,
+  FaBolt,
+  FaCreditCard,
+  FaLock,
+  FaMoneyBillWave,
+  FaUniversity,
+  FaExchangeAlt,
+  FaFingerprint
+};
 
 const ServicesSection = () => {
+  const dynamicConfig = useContext(BrandContext);
+  const services = dynamicConfig.services || [];
+  
   const sectionRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -127,7 +91,7 @@ const ServicesSection = () => {
                     className={styles.iconWrapper}
                     style={{ backgroundColor: `${service.color}15`, color: service.color }}
                   >
-                    <service.icon />
+                    {iconMap[service.iconName] ? React.createElement(iconMap[service.iconName]) : <FaBolt />}
                   </div>
                   <h3 className={styles.serviceTitle}>{service.title}</h3>
                   <p className={styles.serviceDescription}>{service.description}</p>

@@ -18,6 +18,11 @@ const AssignTID = () => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
+  // Pagination & Search States
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     dispatch(updateTidForm({ [name]: value }));
@@ -40,6 +45,21 @@ const AssignTID = () => {
     setShowAssignModal(false);
   };
 
+  // Filter & Pagination Logic
+  const filteredList = list.filter(item => 
+    item.member?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.aepsid?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.mobile?.includes(searchTerm) ||
+    item.bank?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filteredList.length / rowsPerPage));
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const currentData = filteredList.slice(startIndex, startIndex + rowsPerPage);
+
+  const handleNextPage = () => setCurrentPage(p => Math.min(totalPages, p + 1));
+  const handlePrevPage = () => setCurrentPage(p => Math.max(1, p - 1));
+
   return (
     <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
       {/* ── MAIN LISTING CARD ── */}
@@ -59,10 +79,11 @@ const AssignTID = () => {
         <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
-            <select className={styles.selectEntries}>
-              <option>10</option>
-              <option>25</option>
-              <option>50</option>
+            <select className={styles.selectEntries} value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}>
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
             </select>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>entries</span>
           </div>
@@ -71,12 +92,18 @@ const AssignTID = () => {
 
           <div className={styles.tableSearch} style={{ background: '#fff', minWidth: '240px' }}>
             <FaSearch />
-            <input type="text" placeholder="Search terminals..." style={{ fontSize: '0.85rem' }} />
+            <input 
+               type="text" 
+               placeholder="Search terminals..." 
+               style={{ fontSize: '0.85rem' }} 
+               value={searchTerm}
+               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+            />
           </div>
         </div>
 
         {/* TABLE CONTENT */}
-        <div className={styles.tableContainer}>
+        <div className={styles.tableContainer} style={{ paddingBottom: '10px' }}>
           <table className={styles.tableFull} style={{ minWidth: '1400px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -92,9 +119,9 @@ const AssignTID = () => {
               </tr>
             </thead>
             <tbody>
-              {list.length > 0 ? list.map((item, i) => (
+              {currentData.length > 0 ? currentData.map((item, i) => (
                 <tr key={item.id} className={i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
-                  <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{String(i + 1).padStart(2, '0')}</td>
+                  <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{String(startIndex + i + 1).padStart(2, '0')}</td>
                   <td style={{ textAlign: 'center' }}>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                       <button className={styles.editBtn} style={{ width: '32px', height: '32px', background: '#1756AA', color: '#fff' }} onClick={() => handleEdit(item)} title="Edit Terminal">
@@ -146,17 +173,27 @@ const AssignTID = () => {
         {/* ── PAGINATION ── */}
         <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
           <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
-            Showing 1 to {list.length} of {list.length} entries
+            Showing {filteredList.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, filteredList.length)} of {filteredList.length} entries
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <button className={styles.pageBtn} style={{ width: '36px', height: '36px' }}>
+            <button 
+              className={styles.pageBtn} 
+              style={{ width: '36px', height: '36px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1 }} 
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+            >
               <FaChevronLeft />
             </button>
             <span className={styles.pageActive} style={{ 
               width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
               borderRadius: '8px', background: '#1756AA', color: '#fff', fontSize: '0.9rem', fontWeight: 600
-            }}>1</span>
-            <button className={styles.pageBtn} style={{ width: '36px', height: '36px' }}>
+            }}>{currentPage}</span>
+            <button 
+              className={styles.pageBtn} 
+              style={{ width: '36px', height: '36px', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.5 : 1 }} 
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+            >
               <FaChevronRight />
             </button>
           </div>

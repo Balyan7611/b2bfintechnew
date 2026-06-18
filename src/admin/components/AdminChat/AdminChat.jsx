@@ -160,6 +160,10 @@ const AdminChat = () => {
     return combined;
   }, [memberList]);
 
+  // Dynamically extract unique roles and statuses
+  const uniqueRoles = useMemo(() => ['All', ...new Set(allMembers.map(m => m.role))], [allMembers]);
+  const uniqueStatuses = useMemo(() => ['All', ...new Set(allMembers.map(m => m.status))], [allMembers]);
+
   const filteredMembers = useMemo(() => {
     return allMembers.filter(m => {
       const matchesSearch = 
@@ -198,11 +202,29 @@ const AdminChat = () => {
   const handleSendMessage = () => {
     if ((!newMessage.trim() && !selectedImage) || selectedIds.length === 0) return;
 
+    let targetDescription = '';
+    if (selectedIds.length === filteredMembers.length) {
+       if (roleFilter !== 'All' && statusFilter !== 'All') {
+          targetDescription = `All ${statusFilter} ${roleFilter}s`;
+       } else if (roleFilter !== 'All') {
+          targetDescription = `All ${roleFilter}s`;
+       } else if (statusFilter !== 'All') {
+          targetDescription = `All ${statusFilter} Users`;
+       } else {
+          targetDescription = 'All Users';
+       }
+    } else if (selectedIds.length <= 3) {
+       targetDescription = allMembers.filter(m => selectedIds.includes(m.id)).map(m => m.name).join(', ');
+    } else {
+       targetDescription = `${selectedIds.length} users`;
+    }
+
     const timeString = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     const userMsg = {
       id: Date.now(),
       text: newMessage,
       time: timeString,
+      targetDescription,
       recipients: selectedIds.length,
       image: selectedImage ? selectedImage.previewUrl : null,
       isPdf: selectedImage?.isPdf,
@@ -220,7 +242,7 @@ const AdminChat = () => {
       image: selectedImage ? selectedImage.previewUrl : null,
       isPdf: selectedImage?.isPdf,
       fileName: selectedImage?.name,
-      icon: '/images/browser_logo.jpeg'
+      icon: SITE_CONFIG.logo || '/images/header_logo.png'
     }));
 
     setNewMessage('');
@@ -300,8 +322,8 @@ const AdminChat = () => {
             {/* LEFT SIDEBAR */}
             <aside className={styles.sidebar}>
               <div className={styles.sidebarHeader}>
-                <div className={styles.avatarAdmin} style={{ background: 'transparent', fontSize: '1.4rem', border: 'none', width: 'auto', paddingRight: '10px' }}>
-                  <img src="/images/browser_logo.jpeg" alt="Logo" className={styles.headerLogo} style={{ height: '28px', width: 'auto' }} />
+                <div className={styles.avatarAdmin} style={{ background: 'transparent', border: 'none', width: 'auto', padding: '0', display: 'flex', alignItems: 'center' }}>
+                  <img src={SITE_CONFIG.logo || '/images/header_logo.png'} alt="Logo" className={styles.headerLogo} style={{ height: '35px', width: 'auto', objectFit: 'contain' }} />
                 </div>
                 <h4>{SITE_CONFIG.brandName}</h4>
               </div>
@@ -323,11 +345,9 @@ const AdminChat = () => {
                       value={roleFilter} 
                       onChange={(e) => setRoleFilter(e.target.value)}
                     >
-                      <option value="All">All Roles</option>
-                      <option value="Master Distributor">Master Dist.</option>
-                      <option value="Distributor">Distributor</option>
-                      <option value="Retailer">Retailer</option>
-                      <option value="API User">API User</option>
+                      {uniqueRoles.map(role => (
+                        <option key={role} value={role}>{role === 'All' ? 'All Roles' : role}</option>
+                      ))}
                     </select>
                   </div>
                   <div className={styles.selectWrap}>
@@ -335,10 +355,9 @@ const AdminChat = () => {
                       value={statusFilter} 
                       onChange={(e) => setStatusFilter(e.target.value)}
                     >
-                      <option value="All">All Status</option>
-                      <option value="Approved">Approved</option>
-                      <option value="Pending">Pending</option>
-                      <option value="Rejected">Rejected</option>
+                      {uniqueStatuses.map(status => (
+                        <option key={status} value={status}>{status === 'All' ? 'All Status' : status}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -433,7 +452,7 @@ const AdminChat = () => {
                     <div className={styles.messageCol}>
                       {/* Recipients tag OUTSIDE the bubble, above it */}
                       <div className={styles.msgRecipientTag}>
-                        <FaCommentDots style={{ fontSize: '0.65rem' }}/> Sent to {msg.recipients} users
+                        <FaCommentDots style={{ fontSize: '0.65rem' }}/> Sent to: {msg.targetDescription}
                       </div>
                       
                       {/* WhatsApp style Bubble */}

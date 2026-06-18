@@ -1205,23 +1205,19 @@
   color: inherit;
 }
 
-/* ── NEW DASHBOARD LAYOUT ── */
 .dashboardMainContent {
-  padding: 24px;
-  /* Increased from 16px for better spacing from edges */
+  padding: 12px 12px 20px 12px; /* Balanced side padding (12px) for a clean gap */
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  /* Also increased gap for consistency */
+  gap: 16px; /* Reduced gap for consistency */
   width: 100%;
 }
 
 .dashboardColumns {
   display: grid;
-  grid-template-columns: 40% 60%;
+  grid-template-columns: 2fr 3fr; /* Changed from 40% 60% to prevent gap overflow */
   gap: 16px;
-  /* Reduced gap */
   width: 100%;
   margin: 0;
   align-items: stretch;

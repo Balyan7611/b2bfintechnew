@@ -1,45 +1,120 @@
-import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
 import { 
-  FiFileText, FiSearch, FiChevronRight, FiEdit2, FiTrash2, FiPlus, FiX, FiChevronLeft, FiFilter
+  FiFileText, FiSearch, FiChevronRight, FiEdit2, FiTrash2, FiPlus, FiX, FiChevronLeft, FiImage, FiHash, FiUser
 } from 'react-icons/fi';
 import { 
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint 
 } from 'react-icons/fa';
-import { 
-  updateLegalForm, addTerm, deleteTerm, toggleRowExpansion, setIsSubmitting 
-} from '../../../store/slices/legalSlice';
+import { API } from '../../../api/endpoints';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const TermsAndConditions = () => {
-  const dispatch = useDispatch();
-  const { legalForm, termsList, expandedRow, isSubmitting } = useSelector(state => state.legal);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [termsList, setTermsList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const [formState, setFormState] = useState({
+    id: 0,
+    name: '',
+    description: '',
+    image: '',
+    msrno: 1,
+    companyMemberId: 1
+  });
+
+  const [expandedRows, setExpandedRows] = useState({});
+
+  const fetchTerms = async () => {
+    setLoading(true);
+    try {
+      const data = await API.termsCondition.getAll();
+      setTermsList(data || []);
+    } catch (error) {
+      console.error('Failed to fetch terms:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTerms();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    dispatch(updateLegalForm({ name, value }));
+    setFormState(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleOpenAdd = () => {
+    setFormState({
+      id: 0,
+      name: '',
+      description: '',
+      image: '',
+      msrno: 1,
+      companyMemberId: 1
+    });
+    setIsEdit(false);
+    setShowFormModal(true);
+  };
+
+  const handleOpenEdit = (item) => {
+    setFormState({
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      image: item.image || '',
+      msrno: item.msrno || 1,
+      companyMemberId: item.companyMemberId || 1
+    });
+    setIsEdit(true);
+    setShowFormModal(true);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!legalForm.newsName || !legalForm.description) return;
-    
-    dispatch(setIsSubmitting(true));
-    setTimeout(() => {
-      dispatch(addTerm());
-      dispatch(setIsSubmitting(false));
-      setShowAddModal(false);
-    }, 1000);
-  };
+    if (!formState.name || !formState.description) return;
 
-  const handleDelete = () => {
-    if (confirmDeleteId) {
-      dispatch(deleteTerm(confirmDeleteId));
-      setConfirmDeleteId(null);
+    setIsSubmitting(true);
+    try {
+      if (isEdit) {
+        await API.termsCondition.update(formState);
+      } else {
+        await API.termsCondition.create(formState);
+      }
+      setShowFormModal(false);
+      fetchTerms();
+    } catch (error) {
+      console.error('Failed to save terms:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  const handleDelete = async () => {
+    if (confirmDeleteId) {
+      try {
+        await API.termsCondition.delete(confirmDeleteId);
+        setConfirmDeleteId(null);
+        fetchTerms();
+      } catch (error) {
+        console.error('Failed to delete terms:', error);
+      }
+    }
+  };
+
+  const toggleRowExpansion = (id) => {
+    setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const filteredList = termsList.filter(item => 
+    item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
@@ -53,7 +128,7 @@ const TermsAndConditions = () => {
             background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', 
             color: '#fff', border: 'none', borderRadius: '8px', 
             padding: '6px 14px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' 
-          }} onClick={() => setShowAddModal(true)}>
+          }} onClick={handleOpenAdd}>
             <FiPlus /> <span>Add New Term</span>
           </button>
         </div>
@@ -79,7 +154,13 @@ const TermsAndConditions = () => {
 
           <div className="global-search-box" style={{ maxWidth: '220px', display: 'flex', alignItems: 'center', background: '#fff', borderRadius: '6px', border: '1px solid #E2E8F0', padding: '0 10px', height: '32px' }}>
             <FiSearch style={{ color: '#9CA3AF' }} />
-            <input type="text" placeholder="Search terms..." style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', fontSize: '0.8rem', paddingLeft: '8px' }} />
+            <input 
+              type="text" 
+              placeholder="Search terms..." 
+              style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', fontSize: '0.8rem', paddingLeft: '8px' }} 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
         </div>
 
@@ -91,63 +172,90 @@ const TermsAndConditions = () => {
                 <th style={{ width: '60px', padding: '10px 15px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>#</th>
                 <th style={{ width: '200px', padding: '10px 15px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>TITLE / NAME</th>
                 <th style={{ padding: '10px 15px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>DESCRIPTION / CONTENT</th>
-                <th style={{ width: '100px', textAlign: 'center', padding: '10px 15px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>ACTION</th>
+                <th style={{ width: '120px', textAlign: 'center', padding: '10px 15px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>ACTION</th>
               </tr>
             </thead>
             <tbody>
-              {termsList.map((item, index) => (
-                <tr key={item.id} style={{ verticalAlign: 'top' }} className={styles.hoverRow}>
-                  <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{index + 1}</td>
-                  <td style={{ fontWeight: 800, color: '#0D1B3E', lineHeight: '1.4' }}>
-                    {item.name}
-                  </td>
-                  <td style={{ borderLeft: '1px solid #F1F5F9', paddingLeft: '20px' }}>
-                    <div style={{ 
-                      maxHeight: expandedRow === item.id ? 'none' : '4.5em', 
-                      overflow: 'hidden',
-                      position: 'relative',
-                      fontSize: '0.85rem',
-                      lineHeight: '1.6',
-                      color: '#4E6080',
-                      whiteSpace: 'pre-wrap'
-                    }}>
-                      {item.description}
-                    </div>
-                    <button 
-                      onClick={() => dispatch(toggleRowExpansion(item.id))}
-                      style={{ 
-                        border: 'none', 
-                        background: 'rgba(23, 86, 170, 0.05)', 
-                        color: '#1756AA', 
-                        fontWeight: 700, 
-                        fontSize: '0.75rem', 
-                        cursor: 'pointer',
-                        marginTop: '10px',
-                        padding: '4px 10px',
-                        borderRadius: '4px'
-                      }}
-                    >
-                      {expandedRow === item.id ? 'Read Less' : 'Read More'}
-                    </button>
-                  </td>
-                  <td style={{ textAlign: 'center' }}>
-                    <button 
-                      className={styles.actionBtn}
-                      style={{ background: 'rgba(231, 76, 60, 0.1)', color: '#E74C3C', border: 'none', padding: '8px', borderRadius: '8px', margin: '0 auto' }}
-                      onClick={() => setConfirmDeleteId(item.id)}
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </td>
+              {loading ? (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '30px', color: '#4E6080', fontWeight: 600 }}>Loading terms...</td>
                 </tr>
-              ))}
+              ) : filteredList.length === 0 ? (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '30px', color: '#4E6080', fontWeight: 600 }}>No terms found.</td>
+                </tr>
+              ) : (
+                filteredList.map((item, index) => (
+                  <tr key={item.id} style={{ verticalAlign: 'top' }} className={styles.hoverRow}>
+                    <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{index + 1}</td>
+                    <td style={{ fontWeight: 800, color: '#0D1B3E', lineHeight: '1.4' }}>
+                      {item.name}
+                      {item.image && (
+                        <div style={{ fontSize: '0.7rem', color: '#718096', marginTop: '5px', fontWeight: 500 }}>
+                          Image: <span style={{ fontFamily: 'monospace' }}>{item.image}</span>
+                        </div>
+                      )}
+                      <div style={{ fontSize: '0.7rem', color: '#A0AEC0', marginTop: '5px', fontWeight: 500 }}>
+                        MSR No: {item.msrno} | Member ID: {item.companyMemberId}
+                      </div>
+                    </td>
+                    <td style={{ borderLeft: '1px solid #F1F5F9', paddingLeft: '20px' }}>
+                      <div style={{ 
+                        maxHeight: expandedRows[item.id] ? 'none' : '4.5em', 
+                        overflow: 'hidden',
+                        position: 'relative',
+                        fontSize: '0.85rem',
+                        lineHeight: '1.6',
+                        color: '#4E6080',
+                        whiteSpace: 'pre-wrap'
+                      }}>
+                        {item.description}
+                      </div>
+                      <button 
+                        onClick={() => toggleRowExpansion(item.id)}
+                        style={{ 
+                          border: 'none', 
+                          background: 'rgba(23, 86, 170, 0.05)', 
+                          color: '#1756AA', 
+                          fontWeight: 700, 
+                          fontSize: '0.75rem', 
+                          cursor: 'pointer',
+                          marginTop: '10px',
+                          padding: '4px 10px',
+                          borderRadius: '4px'
+                        }}
+                      >
+                        {expandedRows[item.id] ? 'Read Less' : 'Read More'}
+                      </button>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                        <button 
+                          className={styles.actionBtn}
+                          style={{ background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', border: 'none', padding: '8px', borderRadius: '8px' }}
+                          onClick={() => handleOpenEdit(item)}
+                        >
+                          <FiEdit2 />
+                        </button>
+                        <button 
+                          className={styles.actionBtn}
+                          style={{ background: 'rgba(231, 76, 60, 0.1)', color: '#E74C3C', border: 'none', padding: '8px', borderRadius: '8px' }}
+                          onClick={() => setConfirmDeleteId(item.id)}
+                        >
+                          <FiTrash2 />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
         {/* PAGINATION */}
         <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ fontSize: '0.8rem', color: '#718096', fontWeight: 600 }}>Showing 1 to {termsList.length} entries</div>
+          <div style={{ fontSize: '0.8rem', color: '#718096', fontWeight: 600 }}>Showing 1 to {filteredList.length} entries</div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <button className="global-page-btn" disabled style={{ borderRadius: '6px', width: '30px', height: '30px' }}><FiChevronLeft size={14} /></button>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', background: '#1756AA', color: 'white', borderRadius: '6px', fontWeight: 700, fontSize: '0.85rem' }}>1</div>
@@ -156,38 +264,92 @@ const TermsAndConditions = () => {
         </div>
       </div>
 
-      {/* ── ADD MODAL ── */}
-      {showAddModal && (
-        <div className={styles.drawerOverlay} onClick={() => setShowAddModal(false)}>
+      {/* ── ADD/EDIT MODAL ── */}
+      {showFormModal && (
+        <div className={styles.drawerOverlay} onClick={() => setShowFormModal(false)}>
           <div className={styles.drawer} onClick={(e) => e.stopPropagation()} style={{ width: '480px', maxWidth: '95%' }}>
             <div className={styles.drawerHeader} style={{ padding: '15px 20px' }}>
               <div className={styles.directoryTitleGroup} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <FiPlus />
+                  {isEdit ? <FiEdit2 /> : <FiPlus />}
                 </div>
-                <h2 className={styles.directoryTitle} style={{ fontSize: '1.1rem', margin: 0 }}>Add New Term</h2>
+                <h2 className={styles.directoryTitle} style={{ fontSize: '1.1rem', margin: 0 }}>
+                  {isEdit ? 'Edit Term' : 'Add New Term'}
+                </h2>
               </div>
-              <button onClick={() => setShowAddModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.5rem', color: '#4E6080' }}>
+              <button onClick={() => setShowFormModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.5rem', color: '#4E6080' }}>
                 <FiX />
               </button>
             </div>
             
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               <div className={styles.drawerBody} style={{ padding: '20px', flex: 1, overflowY: 'auto' }}>
-                <div className={styles.formGroup} style={{ marginBottom: '20px' }}>
-                  <label className={styles.label} style={{ fontSize: '0.75rem' }}>News Name / Title</label>
+                <div className={styles.formGroup} style={{ marginBottom: '15px' }}>
+                  <label className={styles.label} style={{ fontSize: '0.75rem' }}>Term Name / Title</label>
                   <div className={styles.inputWrap}>
                     <FiFileText className={styles.inputIcon} />
                     <input 
                       type="text" 
-                      name="newsName"
+                      name="name"
                       className={styles.inputControl}
                       placeholder="Enter Title"
-                      value={legalForm.newsName}
+                      value={formState.name}
                       onChange={handleInputChange}
                       style={{ paddingLeft: '40px' }}
                       required
                     />
+                  </div>
+                </div>
+
+                <div className={styles.formGroup} style={{ marginBottom: '15px' }}>
+                  <label className={styles.label} style={{ fontSize: '0.75rem' }}>Image URL / Name (Optional)</label>
+                  <div className={styles.inputWrap}>
+                    <FiImage className={styles.inputIcon} />
+                    <input 
+                      type="text" 
+                      name="image"
+                      className={styles.inputControl}
+                      placeholder="Enter Image link or name"
+                      value={formState.image}
+                      onChange={handleInputChange}
+                      style={{ paddingLeft: '40px' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label} style={{ fontSize: '0.75rem' }}>MSR Serial No</label>
+                    <div className={styles.inputWrap}>
+                      <FiHash className={styles.inputIcon} />
+                      <input 
+                        type="number" 
+                        name="msrno"
+                        className={styles.inputControl}
+                        placeholder="MSR No"
+                        value={formState.msrno}
+                        onChange={handleInputChange}
+                        style={{ paddingLeft: '40px' }}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup} style={{ flex: 1 }}>
+                    <label className={styles.label} style={{ fontSize: '0.75rem' }}>Company Member ID</label>
+                    <div className={styles.inputWrap}>
+                      <FiUser className={styles.inputIcon} />
+                      <input 
+                        type="number" 
+                        name="companyMemberId"
+                        className={styles.inputControl}
+                        placeholder="Company Member ID"
+                        value={formState.companyMemberId}
+                        onChange={handleInputChange}
+                        style={{ paddingLeft: '40px' }}
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -206,16 +368,16 @@ const TermsAndConditions = () => {
                     }}
                     placeholder="Write details here..."
                     name="description"
-                    value={legalForm.description}
+                    value={formState.description}
                     onChange={handleInputChange}
                     required
                   />
                 </div>
               </div>
 
-              {/* CLEAN FOOTER WITHOUT ANY YELLOW OR WEIRD BACKGROUND */}
+              {/* FOOTER */}
               <div className={styles.drawerFooter} style={{ background: '#fff', borderTop: '1px solid #E2E8F0', padding: '12px 20px', paddingRight: '80px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                <button type="button" className={styles.saveBtn} style={{ background: '#F1F5F9', color: '#4E6080', boxShadow: 'none' }} onClick={() => setShowAddModal(false)}>
+                <button type="button" className={styles.saveBtn} style={{ background: '#F1F5F9', color: '#4E6080', boxShadow: 'none' }} onClick={() => setShowFormModal(false)}>
                   Cancel
                 </button>
                 <button 

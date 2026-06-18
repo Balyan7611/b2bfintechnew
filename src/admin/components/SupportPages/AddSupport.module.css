@@ -1,6 +1,5 @@
-/* ── PAGE WRAPPER ── */
 .page {
-  padding: 24px 24px 0px 24px;
+  padding: 12px 12px 0px 12px; /* Reduced from 24px to match dashboard gap */
   display: flex;
   flex-direction: column;
   gap: 0;

@@ -11,6 +11,13 @@ import { WalletTypeService } from '../services/walletType.service';
 import { SectionTypeService } from '../services/sectionType.service';
 import { StateService } from '../services/state.service';
 import { MemberService } from '../services/member.service';
+import { PrivacyPolicyService } from '../services/privacyPolicy.service';
+import { RefundPolicyService } from '../services/refundPolicy.service';
+import { TermsConditionService } from '../services/termsCondition.service';
+import { PipeMasterService } from '../services/pipeMaster.service';
+import { PipeModuleSettingService } from '../services/pipeModuleSetting.service';
+import { CompanyBankDetailService } from '../services/companyBankDetail.service';
+import { MemberBankDetailService } from '../services/memberBankDetail.service';
 
 // Re-exporting everything exactly as before to maintain backward compatibility
 export const API = {
@@ -32,6 +39,13 @@ export const API = {
     sectionType: SectionTypeService,
     state: StateService,
     member: MemberService,
+    privacyPolicy: PrivacyPolicyService,
+    refundPolicy: RefundPolicyService,
+    termsCondition: TermsConditionService,
+    pipeMaster: PipeMasterService,
+    pipeModuleSetting: PipeModuleSettingService,
+    companyBankDetail: CompanyBankDetailService,
+    memberBankDetail: MemberBankDetailService,
 };
 
 export const fetchCompanyData = CompanyService.fetchCompanyData;
@@ -44,5 +58,12 @@ export {
     GenderService,
     WalletTypeService,
     SectionTypeService,
-    StateService
+    StateService,
+    PrivacyPolicyService,
+    RefundPolicyService,
+    TermsConditionService,
+    PipeMasterService,
+    PipeModuleSettingService,
+    CompanyBankDetailService,
+    MemberBankDetailService
 };

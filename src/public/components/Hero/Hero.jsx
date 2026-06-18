@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { FaArrowRight, FaBatteryFull, FaMobileAlt, FaPlay, FaSignal, FaTv, FaUniversity, FaWifi } from 'react-icons/fa';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -96,20 +96,17 @@ const Hero = () => {
 
               {/* Stats row */}
               <div className={styles.statsRow}>
-                <div className={styles.statItem}>
-                  <span className={styles.statVal}><CountUp end={500} suffix="+" /></span>
-                  <span className={styles.statLbl}>API Users</span>
-                </div>
-                <div className={styles.statDivider}></div>
-                <div className={styles.statItem}>
-                  <span className={styles.statVal}><CountUp end={150} suffix="M+" /></span>
-                  <span className={styles.statLbl}>Monthly Volume</span>
-                </div>
-                <div className={styles.statDivider}></div>
-                <div className={styles.statItem}>
-                  <span className={styles.statVal}><CountUp end={99.9} decimals={1} suffix="%" /></span>
-                  <span className={styles.statLbl}>API Uptime</span>
-                </div>
+                {dynamicConfig.liveStats?.map((stat, idx) => (
+                  <React.Fragment key={idx}>
+                    <div className={styles.statItem}>
+                      <span className={styles.statVal}>
+                        <CountUp end={stat.value} decimals={stat.decimals || 0} suffix={stat.suffix || ''} />
+                      </span>
+                      <span className={styles.statLbl}>{stat.label}</span>
+                    </div>
+                    {idx < dynamicConfig.liveStats.length - 1 && <div className={styles.statDivider}></div>}
+                  </React.Fragment>
+                ))}
               </div>
 
             </div>{/* /heroLeft */}
@@ -190,7 +187,7 @@ const Hero = () => {
                         <h4 className={styles.phoneUsername}>{SITE_CONFIG.shortName} </h4>
                       </div>
                       <div className={styles.phoneAvatar} style={{ background: 'transparent' }}>
-                        <img src="/images/browser_logo.png" alt="Logo" style={{ width: '24px', height: '24px', objectFit: 'contain', borderRadius: '50%' }} />
+                        <img src={SITE_CONFIG.logo} alt="Logo" style={{ width: '24px', height: '24px', objectFit: 'contain', borderRadius: '50%' }} />
                       </div>
                     </div>
 

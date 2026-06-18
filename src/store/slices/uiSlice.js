@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-// Read saved theme from localStorage
-const savedTheme = localStorage.getItem('theme') || 'light';
+// Read saved theme from localStorage, use app-specific key to avoid localhost conflicts
+const savedTheme = localStorage.getItem('bss_theme') || 'light';
 // Apply immediately to avoid flash
 document.documentElement.setAttribute('data-theme', savedTheme);
 
@@ -30,7 +30,7 @@ const uiSlice = createSlice({
       state.isDarkMode = !state.isDarkMode;
       const theme = state.isDarkMode ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('theme', theme);
+      localStorage.setItem('bss_theme', theme);
     },
     showLoader: (state) => {
       state.globalLoading = true;

@@ -40,16 +40,27 @@ const ServiceManagement = () => {
   const [showImageModal, setShowImageModal] = useState({ isOpen: false, url: null });
   const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, service: null });
   const [toggleConfirmModal, setToggleConfirmModal] = useState({ isOpen: false, type: '', service: null });
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // Close action dropdown on outside click
+  // Close action dropdown on outside click and scroll
   React.useEffect(() => {
     const handleOutsideClick = (e) => {
       if (!e.target.closest('.action-dropdown-wrapper')) {
-        setActiveActionRow({ id: null, x: 0, y: 0, service: null });
+        setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, service: null } : prev);
       }
     };
+    const handleScroll = () => {
+      setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, service: null } : prev);
+    };
     document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
+    window.addEventListener('scroll', handleScroll, true); // true for capturing scroll on any container
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
   }, []);
 
   /* ── toast helper ── */
@@ -244,11 +255,22 @@ const ServiceManagement = () => {
     }
   };
 
-  /* ── 10. Filtered list ── */
+  /* ── 10. Filtered list & Pagination ── */
   const filtered = localServices.filter(s =>
     s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     String(s.sectionType || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const currentData = filtered.slice(startIndex, startIndex + rowsPerPage);
+
+  const handleNextPage = () => setCurrentPage(p => Math.min(totalPages, p + 1));
+  const handlePrevPage = () => setCurrentPage(p => Math.max(1, p - 1));
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, rowsPerPage]);
 
   /* ── Helper: sectionType name from id ── */
   const getSectionName = (id) => {
@@ -296,20 +318,34 @@ const ServiceManagement = () => {
           </div>
         )}
 
-        {/* Toolbar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', flexWrap: 'wrap', gap: '12px' }}>
+        {/* TOOLBAR */}
+        <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+          <div className={styles.pillRow} style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
+            <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
+            <select className={styles.selectEntries} value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ border: '1px solid #E2E8F0', borderRadius: '8px', padding: '4px 8px', outline: 'none', cursor: 'pointer', fontWeight: 600, color: '#334155' }}>
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+            <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>entries</span>
+          </div>
+
           <ExportButtons
-            headers={['Service Name', 'Section', 'URL', 'Price', 'Active', 'OnOff', 'Position']}
-            rows={filtered.map(s => [s.name, getSectionName(s.sectionType), s.url, s.price, s.isActive ? 'Yes' : 'No', s.onoff ? 'On' : 'Off', s.position])}
+            headers={['Service Name', 'Section', 'URL', 'Price', 'Active', 'Position']}
+            rows={filtered.map(s => [s.name, getSectionName(s.sectionType), s.url, s.price, s.isActive ? 'Yes' : 'No', s.position])}
             fileNamePrefix="service_report"
             sheetName="Services"
           />
-          <div className="global-search-box" style={{ maxWidth: '280px' }}>
-            <FiSearch />
-            <input
-              type="text" placeholder="Search services..."
-              value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-              style={{ borderRadius: '10px' }}
+
+          <div className={styles.tableSearch} style={{ background: '#fff', minWidth: '240px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
+            <FiSearch color="#A0AEC0" />
+            <input 
+               type="text" 
+               placeholder="Search services..." 
+               style={{ fontSize: '0.85rem', border: 'none', outline: 'none', background: 'transparent', width: '100%' }} 
+               value={searchQuery}
+               onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             />
           </div>
         </div>
@@ -345,30 +381,39 @@ const ServiceManagement = () => {
                     </div>
                   </td>
                 </tr>
-              ) : filtered.map((service, idx) => (
+              ) : currentData.map((service, idx) => (
                 <tr key={service.id} className={styles.hoverRow}>
                   {/* S.NO */}
                   <td style={{ textAlign: 'center', fontWeight: 700, color: '#A0AEC0' }}>
-                    {idx + 1}
+                    {startIndex + idx + 1}
                   </td>
                   {/* Actions Column */}
                   <td style={{ textAlign: 'center' }}>
-                    <div className="action-dropdown-wrapper" style={{ display: 'inline-block' }}>
+                    <div className="action-dropdown-wrapper" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                       <button
                         className="action-dropdown-wrapper"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (activeActionRow.id === service.id) {
-                            setActiveActionRow({ id: null, x: 0, y: 0, service: null });
+                            setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, service: null } : prev);
                           } else {
                             const rect = e.currentTarget.getBoundingClientRect();
-                            setActiveActionRow({ id: service.id, x: rect.left + rect.width / 2, y: rect.bottom + 6, service });
+                            const dropdownHeight = 160;
+                            const isUpward = (window.innerHeight - rect.bottom) < dropdownHeight;
+                            
+                            setActiveActionRow({ 
+                              id: service.id, 
+                              x: rect.right + 12, 
+                              y: isUpward ? rect.bottom : rect.top, 
+                              isUpward,
+                              service 
+                            });
                           }
                         }}
-                        style={{ width: '36px', height: '36px', borderRadius: '8px', background: activeActionRow.id === service.id ? '#D1FAE5' : '#10B981', color: activeActionRow.id === service.id ? '#059669' : '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 700, transition: 'all 0.15s', letterSpacing: '1px', boxShadow: activeActionRow.id === service.id ? 'none' : '0 2px 6px rgba(16,185,129,0.3)' }}
+                        style={{ padding: '0 12px', height: '32px', borderRadius: '8px', background: activeActionRow.id === service.id ? '#D1FAE5' : '#10B981', color: activeActionRow.id === service.id ? '#059669' : '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: 700, transition: 'all 0.15s', boxShadow: activeActionRow.id === service.id ? 'none' : '0 2px 6px rgba(16,185,129,0.3)' }}
                         title="Actions"
                       >
-                        ⋯
+                        Action <span style={{ fontSize: '1.1rem', marginTop: '-2px', fontWeight: 900 }}>⋮</span>
                       </button>
                     </div>
                   </td>
@@ -414,15 +459,32 @@ const ServiceManagement = () => {
           </table>
         </div>
 
-        {/* Pagination */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderTop: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '10px' }}>
-          <div style={{ fontSize: '0.82rem', color: '#718096', fontWeight: 600 }}>
-            Showing {filtered.length} of {localServices.length} records
-          </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <button className="global-page-btn" disabled style={{ borderRadius: '8px' }}><FiChevronLeft /></button>
-            <div style={{ width: '32px', height: '32px', background: '#1756AA', color: '#fff', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.85rem' }}>1</div>
-            <button className="global-page-btn" disabled style={{ borderRadius: '8px' }}><FiChevronRight /></button>
+        {/* PAGINATION */}
+        <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9' }}>
+          <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
+            Showing {filtered.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, filtered.length)} of {filtered.length} entries
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button 
+              className={styles.pageBtn} 
+              style={{ width: '36px', height: '36px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1, borderRadius: '8px', border: '1px solid #E2E8F0', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+            >
+              <FiChevronLeft />
+            </button>
+            <span className={styles.pageActive} style={{ 
+              width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: '8px', background: '#1756AA', color: '#fff', fontSize: '0.9rem', fontWeight: 600
+            }}>{currentPage}</span>
+            <button 
+              className={styles.pageBtn} 
+              style={{ width: '36px', height: '36px', cursor: currentPage === totalPages || totalPages === 0 ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages || totalPages === 0 ? 0.5 : 1, borderRadius: '8px', border: '1px solid #E2E8F0', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages || totalPages === 0}
+            >
+              <FiChevronRight />
+            </button>
           </div>
         </div>
       </div>
@@ -431,14 +493,27 @@ const ServiceManagement = () => {
       {activeActionRow.id && (
         <>
           <style>{`
-            @keyframes dropdownFadeIn {
-              from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
-              to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+            @keyframes dropdownFadeInSide {
+              from { opacity: 0; transform: translateX(-10px) ${activeActionRow.isUpward ? 'translateY(10px)' : 'translateY(-10px)'}; }
+              to   { opacity: 1; transform: translateX(0) translateY(0); }
             }
           `}</style>
           <div
             className="action-dropdown-wrapper"
-            style={{ position: 'fixed', top: activeActionRow.y, left: activeActionRow.x, transform: 'translateX(-50%)', background: '#fff', borderRadius: '12px', boxShadow: '0 8px 30px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.07)', border: '1px solid #E2E8F0', zIndex: 9999, minWidth: '180px', overflow: 'hidden', animation: 'dropdownFadeIn 0.15s ease-out' }}
+            style={{ 
+              position: 'fixed', 
+              top: activeActionRow.isUpward ? 'auto' : activeActionRow.y, 
+              bottom: activeActionRow.isUpward ? (window.innerHeight - activeActionRow.y) : 'auto',
+              left: activeActionRow.x, 
+              background: '#fff', 
+              borderRadius: '12px', 
+              boxShadow: '0 8px 30px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.07)', 
+              border: '1px solid #E2E8F0', 
+              zIndex: 9999, 
+              minWidth: '180px', 
+              overflow: 'hidden', 
+              animation: 'dropdownFadeInSide 0.15s ease-out' 
+            }}
           >
             <button
               onClick={() => { handleEdit(activeActionRow.service); setActiveActionRow({ id: null, x: 0, y: 0, service: null }); }}
@@ -463,21 +538,6 @@ const ServiceManagement = () => {
                 </label>
               </div>
               Toggle Active
-            </button>
-            <div style={{ height: '1px', background: '#F1F5F9', margin: '0 12px' }} />
-            <button
-              onClick={() => { setToggleConfirmModal({ isOpen: true, type: 'onoff', service: activeActionRow.service }); setActiveActionRow({ id: null, x: 0, y: 0, service: null }); }}
-              style={{ width: '100%', padding: '10px 16px', border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#334155', fontSize: '0.83rem', fontWeight: 600, textAlign: 'left' }}
-              onMouseOver={(e) => e.currentTarget.style.background = '#FEF3C7'}
-              onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
-            >
-              <div style={{ pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
-                <label className={styles.switch} style={{ transform: 'scale(0.8)', margin: 0 }}>
-                  <input type="checkbox" checked={activeActionRow.service.onoff === true} readOnly />
-                  <span className={styles.slider}></span>
-                </label>
-              </div>
-              Toggle On/Off
             </button>
             <div style={{ height: '1px', background: '#F1F5F9', margin: '0 12px' }} />
             <button

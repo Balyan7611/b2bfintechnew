@@ -1,5 +1,5 @@
 .container {
-  padding: 10px 16px 16px; /* Reduced from 24px to 16px */
+  padding: 10px 2px 16px 2px; /* Super reduced side padding to decrease gap further */
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -9,8 +9,8 @@
 
 .dashboardGrid {
   display: grid;
-  grid-template-columns: 40% 60%; /* Optimized 40/60 split */
-  gap: 16px; /* Reduced from 24px */
+  grid-template-columns: 2fr 3fr; /* Changed from 40% 60% to fix gap overflow */
+  gap: 16px; 
   width: 100%;
 }
 

@@ -31,7 +31,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 4px 4px 16px; /* Reduced top padding to 4px */
+  padding: 4px 2px 16px 2px; /* Super reduced side padding */
 }
 
 .newsTickerWrapper {

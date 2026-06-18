@@ -1,27 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   FaPlus, FaEdit, FaTrash, FaCopy, FaCheck, FaDatabase,
   FaFileExcel, FaFilePdf, FaFileCsv, FaPrint, FaSearch, FaChevronLeft, FaChevronRight, FaProjectDiagram, FaTimes, FaChevronDown
 } from 'react-icons/fa';
+import { API } from '../../../../api/endpoints';
 import styles from '../../../../admin/components/MemberPages/MemberPages.module.css';
-
-const ALL_SERVICES = [
-  'AEPS', 'Account Opening', 'Account Verification', 'Aeps Registration', 'Broadband', 'BroadBand',
-  'Broadband Postpaid', 'BUS BOOKING', 'Credit Card Payment', 'DataCard', 'Digital Voucher',
-  'DMT PPI', 'EXPRESS DMT', 'FLIGHT BOOKING', 'FundRequest', 'GOLD PURCHASE', 'Google Game',
-  'HOLIDAY PACKAGE', 'HOTEL BOOKING', 'IRCTC', 'MATM', 'MATM OnBoard', 'Metro', 'Money Transfer',
-  'My Services', 'NSDL PAN', 'Offline', 'offlinelink', 'Payment Gateway', 'Quick Search',
-  'Settlement', 'Upgrade Plan', 'UPI Payment', 'Wallet 2 Wallet', 'XOMO EXPRESS', 'XOMO EXPRESS DMT',
-  'XOMO UPI'
-];
-
-const INITIAL_DATA = [
-  { id: 1, service: 'AEPS', pipeName: 'pipe9', aliasName: 'Jio', isActive: true },
-  { id: 2, service: 'XOMO EXPRESS DMT', pipeName: 'Payout', aliasName: 'Safe', isActive: true },
-  { id: 3, service: 'XOMO EXPRESS DMT', pipeName: 'DMTPayoutSettlement', aliasName: 'bank2', isActive: true },
-  { id: 4, service: 'XOMO EXPRESS DMT', pipeName: 'Bank1', aliasName: 'Fino Bank', isActive: true },
-  { id: 5, service: 'XOMO UPI', pipeName: 'Payout', aliasName: 'UPI', isActive: true },
-];
 
 const ToggleSwitch = ({ checked, onChange }) => {
   return (
@@ -40,27 +23,33 @@ const ToggleSwitch = ({ checked, onChange }) => {
   );
 };
 
-const SearchableSelect = ({ options, value, onChange, placeholder }) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [searchTerm, setSearchTerm] = React.useState(value);
-  const wrapperRef = React.useRef(null);
+const SearchableSelect = ({ options = [], value, onChange, placeholder }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const wrapperRef = useRef(null);
 
-  React.useEffect(() => {
-    setSearchTerm(value);
-  }, [value]);
+  useEffect(() => {
+    const opts = Array.isArray(options) ? options : [];
+    const selected = opts.find(opt => opt.id === value);
+    setSearchTerm(selected ? selected.name : '');
+  }, [value, options]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setIsOpen(false);
+        const opts = Array.isArray(options) ? options : [];
+        const selected = opts.find(opt => opt.id === value);
+        setSearchTerm(selected ? selected.name : '');
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [value, options]);
 
-  const filteredOptions = options.filter(opt =>
-    opt.toLowerCase().includes(searchTerm.toLowerCase())
+  const opts = Array.isArray(options) ? options : [];
+  const filteredOptions = opts.filter(opt =>
+    opt.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -78,20 +67,20 @@ const SearchableSelect = ({ options, value, onChange, placeholder }) => {
       />
       <FaChevronDown style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none', fontSize: '0.8rem' }} />
       {isOpen && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '4px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', maxHeight: '200px', overflowY: 'auto', zIndex: 1000 }}>
-          {filteredOptions.length > 0 ? filteredOptions.map((opt, i) => (
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '4px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', maxHeight: '200px', overflowY: 'auto', zIndex: 4000 }}>
+          {filteredOptions.length > 0 ? filteredOptions.map((opt) => (
             <div
-              key={i}
+              key={opt.id}
               style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', fontSize: '0.85rem', color: '#334155' }}
               onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
               onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               onClick={() => {
-                onChange(opt);
-                setSearchTerm(opt);
+                onChange(opt.id);
+                setSearchTerm(opt.name);
                 setIsOpen(false);
               }}
             >
-              {opt}
+              {opt.name}
             </div>
           )) : (
             <div style={{ padding: '10px 14px', fontSize: '0.85rem', color: '#94a3b8' }}>No results found</div>
@@ -103,21 +92,55 @@ const SearchableSelect = ({ options, value, onChange, placeholder }) => {
 };
 
 const PipeMasterNew = () => {
-  const [data, setData] = useState(INITIAL_DATA);
+  const [data, setData] = useState([]);
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [formData, setFormData] = useState({
-    service: '',
+    id: 0,
+    serviceId: 0,
     pipeName: '',
     aliasName: '',
     isActive: true
   });
 
-  const toggleField = (id, field) => {
-    setData(prev => prev.map(item => item.id === id ? { ...item, [field]: !item[field] } : item));
+  const fetchServicesAndPipes = async () => {
+    setLoading(true);
+    try {
+      const [sRes, pipesData] = await Promise.all([
+        API.service.getAll().catch(() => null),
+        API.pipeMaster.getAll().catch(() => [])
+      ]);
+      const servicesList = (sRes && sRes.status && Array.isArray(sRes.data)) ? sRes.data : [];
+      setServices(servicesList);
+      setData(pipesData || []);
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchServicesAndPipes();
+  }, []);
+
+  const toggleField = async (id, fieldName) => {
+    const record = data.find(item => item.id === id);
+    if (!record) return;
+    
+    try {
+      const updated = { ...record, [fieldName]: !record[fieldName] };
+      await API.pipeMaster.update(updated);
+      setData(prev => prev.map(item => item.id === id ? updated : item));
+    } catch (error) {
+      console.error('Failed to toggle active status:', error);
+    }
   };
 
   const handleFormToggle = (field) => {
@@ -126,7 +149,8 @@ const PipeMasterNew = () => {
 
   const handleEdit = (item) => {
     setFormData({
-      service: item.service,
+      id: item.id,
+      serviceId: item.serviceId,
       pipeName: item.pipeName,
       aliasName: item.aliasName,
       isActive: item.isActive
@@ -139,14 +163,46 @@ const PipeMasterNew = () => {
     setIsModalOpen(false);
     setEditingId(null);
     setFormData({
-      service: '', pipeName: '', aliasName: '', isActive: true
+      id: 0, serviceId: 0, pipeName: '', aliasName: '', isActive: true
     });
   };
 
-  const handleDelete = () => {
-    setData(prev => prev.filter(item => item.id !== showConfirmModal.id));
-    setShowConfirmModal({ isOpen: false, id: null });
+  const handleDelete = async () => {
+    if (showConfirmModal.id) {
+      try {
+        await API.pipeMaster.delete(showConfirmModal.id);
+        setData(prev => prev.filter(item => item.id !== showConfirmModal.id));
+      } catch (error) {
+        console.error('Failed to delete record:', error);
+      } finally {
+        setShowConfirmModal({ isOpen: false, id: null });
+      }
+    }
   };
+
+  const handleConfirmSubmit = async () => {
+    setShowConfirmSubmit(false);
+    try {
+      if (editingId) {
+        await API.pipeMaster.update(formData);
+      } else {
+        await API.pipeMaster.create(formData);
+      }
+      handleCloseModal();
+      fetchServicesAndPipes();
+    } catch (error) {
+      console.error('Failed to save record:', error);
+    }
+  };
+
+  const filteredData = data.filter(item => {
+    const serviceName = services.find(s => s.id === item.serviceId)?.name || '';
+    return (
+      serviceName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.pipeName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.aliasName?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
 
   return (
     <div className={styles.container} style={{ padding: '10px 15px 200px 15px', maxWidth: '100%', minHeight: '100vh' }}>
@@ -162,8 +218,8 @@ const PipeMasterNew = () => {
             <h3 style={{ margin: 0, fontSize: 'clamp(1rem, 3.5vw, 1.25rem)', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Pipe Master</h3>
           </div>
           <button
-            onClick={() => {
-              setFormData({ service: '', pipeName: '', aliasName: '', isActive: true });
+            onClick={handleOpenAdd => {
+              setFormData({ id: 0, serviceId: 0, pipeName: '', aliasName: '', isActive: true });
               setEditingId(null);
               setIsModalOpen(true);
             }}
@@ -199,6 +255,8 @@ const PipeMasterNew = () => {
               type="text"
               placeholder="Search pipe master..."
               style={{ borderRadius: '10px' }}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
@@ -216,31 +274,44 @@ const PipeMasterNew = () => {
               </tr>
             </thead>
             <tbody>
-              {data.map((item, index) => (
-                <tr key={item.id} className={index % 2 === 0 ? styles.rowEven : styles.rowOdd}>
-                  <td style={{ color: '#A0AEC0', fontWeight: 700, padding: '12px 16px' }}>{item.id}</td>
-                  <td style={{ textAlign: 'center', padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                      <button onClick={() => handleEdit(item)} className={styles.editBtn} style={{ width: '32px', height: '32px', background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', border: 'none', borderRadius: '8px', cursor: 'pointer' }} title="Edit"><FaEdit /></button>
-                      <button onClick={() => setShowConfirmModal({ isOpen: true, id: item.id })} className={styles.deleteBtn} style={{ width: '32px', height: '32px', background: 'rgba(239, 68, 68, 0.1)', color: '#E53E3E', border: 'none', borderRadius: '8px', cursor: 'pointer' }} title="Delete"><FaTrash /></button>
-                    </div>
-                  </td>
-                  <td style={{ fontWeight: 600, color: '#334155', padding: '12px 16px' }}>{item.service}</td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <span style={{ background: 'rgba(23, 86, 170, 0.08)', color: '#1756AA', padding: '4px 8px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem' }}>
-                      {item.pipeName}
-                    </span>
-                  </td>
-                  <td style={{ color: '#475569', padding: '12px 16px' }}>{item.aliasName}</td>
-                  <td style={{ padding: '12px 16px' }}><ToggleSwitch checked={item.isActive} onChange={() => toggleField(item.id, 'isActive')} /></td>
+              {loading ? (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>Loading data...</td>
                 </tr>
-              ))}
+              ) : filteredData.length === 0 ? (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>No records found</td>
+                </tr>
+              ) : (
+                filteredData.map((item, index) => {
+                  const serviceName = services.find(s => s.id === item.serviceId)?.name || `Service #${item.serviceId}`;
+                  return (
+                    <tr key={item.id} className={index % 2 === 0 ? styles.rowEven : styles.rowOdd}>
+                      <td style={{ color: '#A0AEC0', fontWeight: 700, padding: '12px 16px' }}>{index + 1}</td>
+                      <td style={{ textAlign: 'center', padding: '12px 16px' }}>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                          <button onClick={() => handleEdit(item)} className={styles.editBtn} style={{ width: '32px', height: '32px', background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', border: 'none', borderRadius: '8px', cursor: 'pointer' }} title="Edit"><FaEdit /></button>
+                          <button onClick={() => setShowConfirmModal({ isOpen: true, id: item.id })} className={styles.deleteBtn} style={{ width: '32px', height: '32px', background: 'rgba(239, 68, 68, 0.1)', color: '#E53E3E', border: 'none', borderRadius: '8px', cursor: 'pointer' }} title="Delete"><FaTrash /></button>
+                        </div>
+                      </td>
+                      <td style={{ fontWeight: 600, color: '#334155', padding: '12px 16px' }}>{serviceName}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span style={{ background: 'rgba(23, 86, 170, 0.08)', color: '#1756AA', padding: '4px 8px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem' }}>
+                          {item.pipeName}
+                        </span>
+                      </td>
+                      <td style={{ color: '#475569', padding: '12px 16px' }}>{item.aliasName}</td>
+                      <td style={{ padding: '12px 16px' }}><ToggleSwitch checked={item.isActive} onChange={() => toggleField(item.id, 'isActive')} /></td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
 
         <div className={styles.paginationRow} style={{ marginTop: '20px', padding: '15px 20px 25px 20px', borderTop: '1px solid #F1F5F9' }}>
-          <span style={{ fontSize: '0.75rem', color: '#718096' }}>Showing {data.length} records</span>
+          <span style={{ fontSize: '0.75rem', color: '#718096' }}>Showing {filteredData.length} records</span>
           <div className={styles.pagination} style={{ display: 'flex', gap: '6px' }}>
             <button className={styles.pageBtn} style={{ width: '32px', height: '32px' }} disabled><FaChevronLeft /></button>
             <button className={`${styles.pageBtn} ${styles.pageActive}`} style={{ width: '32px', height: '32px' }}>1</button>
@@ -278,9 +349,9 @@ const PipeMasterNew = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Service <span style={{ color: '#ef4444' }}>*</span></label>
                   <SearchableSelect
-                    options={ALL_SERVICES}
-                    value={formData.service}
-                    onChange={(val) => setFormData({ ...formData, service: val })}
+                    options={services}
+                    value={formData.serviceId}
+                    onChange={(val) => setFormData({ ...formData, serviceId: val })}
                     placeholder="Search Service..."
                   />
                 </div>
@@ -351,10 +422,7 @@ const PipeMasterNew = () => {
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    setShowConfirmSubmit(false);
-                    handleCloseModal();
-                  }}
+                  onClick={handleConfirmSubmit}
                   style={{ flex: 1, padding: '10px', background: '#0ea5e9', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
                 >
                   Confirm
