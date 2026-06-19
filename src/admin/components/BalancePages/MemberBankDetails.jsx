@@ -548,15 +548,11 @@ const MemberBankDetails = () => {
                       <td>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                           <span className={styles.fwBold}>{row.name}</span>
-                          <span className={styles.subText}>MSR: {row.msrno}</span>
-                        </div>
-                      </td>
+                          <span className={styles.subText}>MSR: {row.msrno}</span></div></td>
                       <td>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                           <span className={styles.fwBold}>{bankObj ? bankObj.bankName || bankObj.name : `Bank #${row.bankId}`}</span>
-                          <span className={styles.subText}>{row.ifsccode}</span>
-                        </div>
-                      </td>
+                          <span className={styles.subText}>{row.ifsccode}</span></div></td>
                       <td>{row.branchName}</td>
                       <td className={styles.fwBold}>{row.accountNumber}</td>
                       <td>{row.accountHolderName}</td>
@@ -576,11 +572,8 @@ const MemberBankDetails = () => {
               ) : (
                 <tr>
                   <td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                      <FiDatabase style={{ fontSize: '1.5rem', opacity: 0.3 }} />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span>
-                    </div>
-                  </td>
+                    
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span></td>
                 </tr>
               )}
             </tbody>

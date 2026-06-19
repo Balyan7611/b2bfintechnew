@@ -23,10 +23,8 @@ const QuickSearch = () => {
         {/* CARD TOP: TITLE */}
         <div style={{ padding: '12px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', letterSpacing: '0.2px' }}>Quick Search</h2>
-          <div style={{ background: 'rgba(246, 173, 85, 0.1)', color: '#F6AD55', padding: '6px 15px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <FiDatabase /> Real-time DB Lookup
+           Real-time DB Lookup
           </div>
-        </div>
 
         {/* CARD BOTTOM: FILTERS */}
         <div style={{ padding: '20px', background: '#FAFBFC' }}>
@@ -94,12 +92,9 @@ const QuickSearch = () => {
             </thead>
             <tbody>
               <tr>
-                <td colSpan="13" style={{ textAlign: 'center', padding: '60px 0', color: '#A0AEC0' }}>
-                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                     <FiDatabase style={{ fontSize: '2rem', opacity: 0.3 }} />
-                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No search results found</span>
-                   </div>
-                </td>
+                <td colSpan="13" style={{ textAlign: 'center', padding: '20px 0', color: '#A0AEC0' }}>
+                   
+                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No search results found</span></td>
               </tr>
             </tbody>
           </table>

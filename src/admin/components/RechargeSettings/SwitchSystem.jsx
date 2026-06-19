@@ -233,24 +233,16 @@ const SwitchSystem = () => {
             </thead>
             <tbody>
               {switchRules.length === 0 ? (
-                <>
-                  <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    <td style={{ padding: '15px', color: '#A0AEC0' }}>-</td>
-                    <td style={{ color: '#A0AEC0', fontSize: '0.85rem' }}>No data available</td>
-                    <td style={{ textAlign: 'center', color: '#A0AEC0' }}>-</td>
-                    <td style={{ textAlign: 'center', color: '#A0AEC0' }}>-</td>
-                    <td style={{ textAlign: 'center', color: '#A0AEC0' }}>-</td>
-                    <td style={{ textAlign: 'center', color: '#A0AEC0' }}>-</td>
-                  </tr>
-                  <tr>
-                    <td style={{ padding: '15px', color: '#A0AEC0' }}>-</td>
-                    <td style={{ color: '#A0AEC0' }}>-</td>
-                    <td style={{ textAlign: 'center', color: '#A0AEC0' }}>-</td>
-                    <td style={{ textAlign: 'center', color: '#A0AEC0' }}>-</td>
-                    <td style={{ textAlign: 'center', color: '#A0AEC0' }}>-</td>
-                    <td style={{ textAlign: 'center', color: '#A0AEC0' }}>-</td>
-                  </tr>
-                </>
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '20px 0', color: '#A0AEC0' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+                      
+                      </div>
+                      <div style={{ textAlign: 'center' }}>
+                        <span style={{ fontSize: '1rem', fontWeight: 800, color: '#0D1B3E', display: 'block', marginBottom: '4px' }}>No Switch Rules found</span>
+                        <p style={{ fontSize: '0.8rem', color: '#718096', margin: 0 }}>Create a new switch rule to see it here</p>
+                      </div></td>
+                </tr>
               ) : (
                 switchRules.map((rule, idx) => (
                   <tr key={idx} className={styles.hoverRow}>
@@ -260,9 +252,7 @@ const SwitchSystem = () => {
                           <div style={{ width: '32px', height: '32px', background: 'rgba(23, 86, 170, 0.05)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA' }}>
                              <FiSettings />
                           </div>
-                          <span style={{ color: '#1756AA', fontWeight: 800 }}>{rule.name}</span>
-                       </div>
-                    </td>
+                          <span style={{ color: '#1756AA', fontWeight: 800 }}>{rule.name}</span></div></td>
                     <td style={{ textAlign: 'center' }}>
                        <span style={{ background: '#F1F5F9', color: '#4E6080', padding: '4px 12px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 700 }}>
                          {rule.type}
@@ -286,9 +276,9 @@ const SwitchSystem = () => {
         </div>
 
         {/* ── PAGINATION ── */}
-        <div className="global-pagination" style={{ padding: '25px', borderTop: '1px solid #F1F5F9' }}>
+        <div className="global-pagination" style={{ padding: '15px 20px', borderTop: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
-            Showing 0 to 0 of 0 records
+            Showing {switchRules.length > 0 ? 1 : 0} to {switchRules.length} of {switchRules.length} records
           </div>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <button className="global-page-btn" disabled style={{ borderRadius: '8px' }}><FiChevronLeft /></button>

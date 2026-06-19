@@ -5,99 +5,14 @@ const initialState = {
     documentName: '',
     side: '1'
   },
-  kycList: [
-    { id: 1, name: 'Selfie Photo', side: '1', addDate: '09/08/2022 12:32:09' },
-    { id: 2, name: 'Pan Card', side: '1', addDate: '09/08/2022 12:32:14' },
-    { id: 3, name: 'Aadhar Both Side', side: '2', addDate: '09/08/2022 12:32:21' },
-    { id: 4, name: 'Shop Front Photo', side: '1', addDate: '09/08/2022 13:47:41' },
-    { id: 5, name: 'Business proof', side: '1', addDate: '24/04/2024 16:50:56' },
-    { id: 6, name: 'Bank Details', side: '1', addDate: '29/01/2025 12:49:05' },
-    { id: 7, name: 'Driving License', side: '2', addDate: '05/06/2025 09:55:50' },
-    { id: 8, name: 'Voter ID', side: '2', addDate: '05/06/2025 10:00:23' },
-    { id: 9, name: 'Passport Front', side: '1', addDate: '10/06/2025 11:12:00' },
-    { id: 10, name: 'Passport Back', side: '1', addDate: '10/06/2025 11:15:30' },
-    { id: 11, name: 'Electricity Bill', side: '1', addDate: '11/06/2025 14:20:45' },
-    { id: 12, name: 'Water Bill', side: '1', addDate: '12/06/2025 09:10:11' },
-    { id: 13, name: 'Rent Agreement', side: '2', addDate: '15/06/2025 16:05:22' },
-    { id: 14, name: 'GST Certificate', side: '1', addDate: '18/06/2025 10:45:30' },
-    { id: 15, name: 'MSME Certificate', side: '1', addDate: '20/06/2025 13:22:15' },
-    { id: 16, name: 'Cancelled Cheque', side: '1', addDate: '22/06/2025 15:30:50' },
-    { id: 17, name: 'Passbook Front Page', side: '1', addDate: '25/06/2025 11:40:20' },
-    { id: 18, name: 'ITR Copy', side: '2', addDate: '28/06/2025 09:15:10' },
-    { id: 19, name: 'Property Tax Receipt', side: '1', addDate: '01/07/2025 14:50:35' },
-    { id: 20, name: 'Trade License', side: '1', addDate: '05/07/2025 10:25:40' },
-    { id: 21, name: 'Shop Inside Photo', side: '1', addDate: '08/07/2025 16:10:15' },
-    { id: 22, name: 'Partnership Deed', side: '2', addDate: '10/07/2025 11:05:55' },
-    { id: 23, name: 'Board Resolution', side: '2', addDate: '12/07/2025 13:40:25' },
-    { id: 24, name: 'Company PAN', side: '1', addDate: '15/07/2025 15:20:30' },
-    { id: 25, name: 'Director Aadhar', side: '2', addDate: '18/07/2025 09:55:45' }
-  ],
-  kycRequests: [
-    { 
-      id: 1, 
-      memberId: 'MEM8472', 
-      name: 'Rahul Sharma', 
-      status: 'Pending', 
-      reason: '-', 
-      document: 'Aadhar Card', 
-      docNumber: 'XXXX-XXXX-1234',
-      addDate: '2026-05-01 10:20:15',
-      approveDate: '-'
-    },
-    { 
-      id: 2, 
-      memberId: 'MEM9021', 
-      name: 'Priya Singh', 
-      status: 'Approved', 
-      reason: 'Verified', 
-      document: 'PAN Card', 
-      docNumber: 'ABCDE1234F',
-      addDate: '2026-04-28 14:15:30',
-      approveDate: '2026-04-30 11:00:00'
-    },
-    { 
-      id: 3, 
-      memberId: 'MEM4521', 
-      name: 'Amit Kumar', 
-      status: 'Pending', 
-      reason: '-', 
-      document: 'Voter ID', 
-      docNumber: 'VOT1234567',
-      addDate: '2026-05-03 16:45:10',
-      approveDate: '-'
-    },
-  ],
+  kycList: [],
+  kycRequests: [],
   selectedKyc: null,
   openActionMenu: null,
   isSubmitting: false,
   memberUpload: {
     uploadRows: [{ id: 1, document: '', file: null, number: '', status: 'idle' }],
-    myDocuments: [
-      { 
-        id: 1, 
-        documentName: 'Aadhar Card', 
-        status: 'Approved', 
-        reason: '-', 
-        addDate: '01/05/2026',
-        imageUrl: 'https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?auto=format&fit=crop&q=80&w=600'
-      },
-      { 
-        id: 2, 
-        documentName: 'PAN Card', 
-        status: 'Pending', 
-        reason: '-', 
-        addDate: '05/05/2026',
-        imageUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=600'
-      },
-      { 
-        id: 3, 
-        documentName: 'Bank Details', 
-        status: 'Rejected', 
-        reason: 'Unclear Image', 
-        addDate: '02/05/2026',
-        imageUrl: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=600'
-      }
-    ],
+    myDocuments: [],
     searchQuery: '',
     rowsPerPage: 10,
     currentPage: 1

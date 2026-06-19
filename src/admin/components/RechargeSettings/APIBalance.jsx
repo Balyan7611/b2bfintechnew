@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { FiDollarSign, FiSearch, FiDatabase, FiRefreshCw } from 'react-icons/fi';
+import { FiDollarSign, FiSearch, FiDatabase, FiRefreshCw, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const APIBalance = () => {
@@ -69,17 +69,14 @@ const APIBalance = () => {
             <tbody>
               {apiBalances.length === 0 ? (
                 <tr>
-                  <td colSpan="3" style={{ textAlign: 'center', padding: '100px 0', color: '#A0AEC0' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-                      <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#F8FAFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <FiDatabase style={{ fontSize: '2.5rem', opacity: 0.2, color: '#1756AA' }} />
+                  <td colSpan="3" style={{ textAlign: 'center', padding: '20px 0', color: '#A0AEC0' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+                      
                       </div>
                       <div style={{ textAlign: 'center' }}>
-                        <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', display: 'block', marginBottom: '5px' }}>No API balance data found</span>
-                        <p style={{ fontSize: '0.85rem', color: '#718096', margin: 0 }}>Check your API gateway connections</p>
-                      </div>
-                    </div>
-                  </td>
+                        <span style={{ fontSize: '1rem', fontWeight: 800, color: '#0D1B3E', display: 'block', marginBottom: '4px' }}>No API balance data found</span>
+                        <p style={{ fontSize: '0.8rem', color: '#718096', margin: 0 }}>Check your API gateway connections</p>
+                      </div></td>
                 </tr>
               ) : (
                 apiBalances.map((api) => (
@@ -97,9 +94,14 @@ const APIBalance = () => {
         </div>
 
         {/* ── FOOTER ── */}
-        <div className="global-pagination" style={{ padding: '12px 20px', borderTop: '1px solid #F1F5F9' }}>
+        <div className="global-pagination" style={{ padding: '15px 20px', borderTop: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
-            Showing {apiBalances.length} API gateway balances
+            Showing {apiBalances.length > 0 ? 1 : 0} to {apiBalances.length} of {apiBalances.length} records
+          </div>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button className="global-page-btn" disabled style={{ borderRadius: '8px' }}><FiChevronLeft /></button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '35px', height: '35px', background: '#1756AA', color: 'white', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem' }}>1</div>
+            <button className="global-page-btn" disabled style={{ borderRadius: '8px' }}><FiChevronRight /></button>
           </div>
         </div>
       </div>

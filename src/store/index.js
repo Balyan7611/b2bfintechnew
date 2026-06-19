@@ -14,6 +14,10 @@ import walletReducer from './slices/walletSlice';
 import rechargeReducer from './slices/rechargeSlice';
 import reportReducer from './slices/reportSlice';
 import memberPanelReducer from './slices/memberPanelSlice';
+import smsCategoryReducer from './slices/smsCategorySlice';
+import smsSettingReducer from './slices/smsSettingSlice';
+import smsTemplateReducer from './slices/smsTemplateSlice';
+import memberSecurityReducer from './slices/memberSecuritySlice';
 
 export const store = configureStore({
   reducer: {
@@ -32,6 +36,10 @@ export const store = configureStore({
     recharge: rechargeReducer,
     report: reportReducer,
     memberPanel: memberPanelReducer,
+    smsCategory: smsCategoryReducer,
+    smsSetting: smsSettingReducer,
+    smsTemplate: smsTemplateReducer,
+    memberSecurity: memberSecurityReducer,
   },
 });
 

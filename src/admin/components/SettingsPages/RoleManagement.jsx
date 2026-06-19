@@ -13,6 +13,7 @@ import {
   FiUsers,
   FiX
 } from 'react-icons/fi';
+import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import { API } from '../../../api/endpoints';
 import styles from '../MemberPages/MemberPages.module.css';
 
@@ -363,15 +364,9 @@ const RoleManagement = () => {
       <div className={styles.cardFullMobile} style={{ margin: '8px 8px 15px 8px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', background: '#fff', borderRadius: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '10px' }}>
           <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0F172A' }}>System Roles</h3>
-          <button style={{
-            display: 'flex', alignItems: 'center', gap: '8px',
-            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-            color: '#fff', border: 'none', borderRadius: '8px',
-            padding: '10px 20px', fontSize: '0.85rem', fontWeight: 700,
-            cursor: 'pointer', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-          }} onClick={handleAddClick}>
+          <PrimaryButton onClick={handleAddClick}>
             <FiPlus size={16} /> <span>Add New Role</span>
-          </button>
+          </PrimaryButton>
         </div>
 
         {errorMsg && (
@@ -435,11 +430,11 @@ const RoleManagement = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '50px' }}>Loading...</td>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '20px 0' }}>Loading...</td>
                 </tr>
               ) : currentEntries.length === 0 ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '50px' }}>No roles found</td>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '20px 0' }}>No roles found</td>
                 </tr>
               ) : (
                 currentEntries.map((role, idx) => (
@@ -488,9 +483,7 @@ const RoleManagement = () => {
                             {role.name}
                           </span>
                           <small style={{ color: '#718096', fontWeight: 600 }}>Reg. Count: {role.regCount || role.startId}</small>
-                        </div>
-                      </div>
-                    </td>
+                        </div></div></td>
                     <td style={{ textAlign: 'left' }}>
                       <span style={{ background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', padding: '4px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 800 }}>
                         {role.prefix}
@@ -832,9 +825,9 @@ const RoleManagement = () => {
                   <button type="button" style={{ padding: '12px 20px', background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#475569', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', flex: 1 }} onClick={() => setIsModalOpen(false)}>
                     Cancel
                   </button>
-                  <button type="submit" style={{ padding: '12px 20px', background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', border: 'none', color: '#fff', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flex: 1.5, boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}>
+                  <PrimaryButton type="submit" style={{ flex: 1.5 }}>
                     Save Role <FiCheck size={16} />
-                  </button>
+                  </PrimaryButton>
                 </div>
               </form>
             </div>

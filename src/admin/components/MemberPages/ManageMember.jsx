@@ -522,9 +522,7 @@ const ManageMember = () => {
                   <td colSpan="21" style={{ textAlign: 'center', padding: '40px', color: '#718096' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
                       <div style={{ width: '32px', height: '32px', border: '3px solid #E2E8F0', borderTop: '3px solid #1756AA', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Loading members...</span>
-                    </div>
-                  </td>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Loading members...</span></div></td>
                 </tr>
               ) : members.length === 0 ? (
                 <tr>
@@ -730,16 +728,12 @@ const ManageMember = () => {
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         <span className={styles.fwBold}>{m.name}</span>
-                        <span style={{ fontSize: '0.68rem', color: '#718096', fontWeight: 700 }}>ID: {m.loginId || m.id}</span>
-                      </div>
-                    </td>
+                        <span style={{ fontSize: '0.68rem', color: '#718096', fontWeight: 700 }}>ID: {m.loginId || m.id}</span></div></td>
                     <td>{m.city || m.postOffice || 'N/A'}</td>
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         <span className={styles.roleTag} style={{ fontSize: '0.7rem', padding: '2px 6px' }}>{m.roleName}</span>
-                        <span style={{ fontSize: '0.68rem', color: '#718096', fontWeight: 700 }}>{m.packageName}</span>
-                      </div>
-                    </td>
+                        <span style={{ fontSize: '0.68rem', color: '#718096', fontWeight: 700 }}>{m.packageName}</span></div></td>
                     <td>{m.mobile}</td>
                     <td className={styles.fwBold} style={{ color: '#27AE60' }}>₹ {m.balance || m.mainBal || 0}</td>
                     <td className={styles.fwBold} style={{ color: '#1756AA' }}>₹ {m.aepsBalance || m.aepsBal || 0}</td>

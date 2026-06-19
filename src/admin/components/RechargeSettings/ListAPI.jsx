@@ -101,16 +101,8 @@ const ListAPI = () => {
             <tbody>
               {apis.length === 0 ? (
                 <tr>
-                  <td colSpan="9" style={{ textAlign: 'center', padding: '100px 0', color: '#A0AEC0' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-                      <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#F8FAFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <FiDatabase style={{ fontSize: '2.5rem', opacity: 0.2, color: '#1756AA' }} />
-                      </div>
-                      <div style={{ textAlign: 'center' }}>
-                        <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', display: 'block', marginBottom: '5px' }}>No API Gateways configured</span>
-                        <p style={{ fontSize: '0.85rem', color: '#718096', margin: 0 }}>Connect your first provider to start processing</p>
-                      </div>
-                    </div>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
+                    <div>No API Gateways configured</div>
                   </td>
                 </tr>
               ) : (
@@ -125,9 +117,7 @@ const ListAPI = () => {
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                            <span style={{ color: '#1756AA', fontSize: '0.9rem', fontWeight: 800 }}>{api.name}</span>
                            <small style={{ color: '#718096', fontSize: '0.7rem', fontWeight: 600 }}>ID: #{api.apiId}</small>
-                        </div>
-                      </div>
-                    </td>
+                        </div></div></td>
                     <td style={{ textAlign: 'center', fontSize: '0.8rem', color: '#718096', fontWeight: 600 }}>{api.createDate}</td>
                     <td style={{ textAlign: 'center', fontSize: '0.8rem', color: '#718096', fontWeight: 600 }}>{api.lastUpdate}</td>
                     <td style={{ textAlign: 'center' }}>
@@ -161,9 +151,9 @@ const ListAPI = () => {
         </div>
 
         {/* ── PAGINATION ── */}
-        <div className="global-pagination" style={{ padding: '25px', borderTop: '1px solid #F1F5F9' }}>
+        <div className="global-pagination" style={{ padding: '15px 20px', borderTop: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
-            Showing {apis.length} of {apis.length} records
+            Showing {apis.length > 0 ? 1 : 0} to {apis.length} of {apis.length} records
           </div>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <button className="global-page-btn" disabled style={{ borderRadius: '8px' }}><FiChevronLeft /></button>

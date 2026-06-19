@@ -155,16 +155,21 @@ const PipeModuleSettings = () => {
     wadhIris: ''
   });
 
+  const [pipes, setPipes] = useState([]);
+
   const fetchServicesAndSettings = async () => {
     setLoading(true);
     try {
-      const [sRes, settingsData] = await Promise.all([
+      const [sRes, settingsData, pipeData] = await Promise.all([
         API.service.getAll().catch(() => null),
-        API.pipeModuleSetting.getAll().catch(() => [])
+        API.pipeModuleSetting.getAll().catch(() => []),
+        API.pipeMaster.getAll().catch(() => [])
       ]);
       const servicesList = (sRes && sRes.status && Array.isArray(sRes.data)) ? sRes.data : [];
       setServices(servicesList);
       setData(settingsData || []);
+      const pList = Array.isArray(pipeData) ? pipeData.map(p => ({ id: p.pipeName, name: p.pipeName })) : [];
+      setPipes(pList);
     } catch (error) {
       console.error('Failed to fetch data:', error);
     } finally {
@@ -461,11 +466,11 @@ const PipeModuleSettings = () => {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Pipe <span style={{ color: '#ef4444' }}>*</span></label>
-                  <input
-                    type="text"
-                    placeholder="Enter Pipe (e.g. Bank1)"
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.9rem', color: '#334155', outline: 'none' }}
-                    value={formData.pipe} onChange={(e) => setFormData({ ...formData, pipe: e.target.value })}
+                  <SearchableSelect
+                    options={pipes}
+                    value={formData.pipe}
+                    onChange={(val) => setFormData({ ...formData, pipe: val })}
+                    placeholder="Search Pipe..."
                   />
                 </div>
 
@@ -480,64 +485,82 @@ const PipeModuleSettings = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px', background: '#f8fafc', padding: '15px 20px', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px', background: '#f8fafc', padding: '15px 20px', borderRadius: '12px', border: '1px dashed #cbd5e1', transition: 'all 0.3s ease' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Is Required</span>
                   <ToggleSwitch checked={formData.isRequired} onChange={() => handleFormToggle('isRequired')} />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Is OTP</span>
-                  <ToggleSwitch checked={formData.isOtp} onChange={() => handleFormToggle('isOtp')} />
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Is TPIN</span>
-                  <ToggleSwitch checked={formData.isTpin} onChange={() => handleFormToggle('isTpin')} />
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Is Face</span>
-                  <ToggleSwitch checked={formData.isface} onChange={() => handleFormToggle('isface')} />
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Is Finger</span>
-                  <ToggleSwitch checked={formData.isfinger} onChange={() => handleFormToggle('isfinger')} />
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Is Iris</span>
-                  <ToggleSwitch checked={formData.isIris} onChange={() => handleFormToggle('isIris')} />
-                </div>
+                {formData.isRequired && (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Is OTP</span>
+                      <ToggleSwitch checked={formData.isOtp} onChange={() => handleFormToggle('isOtp')} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Is TPIN</span>
+                      <ToggleSwitch checked={formData.isTpin} onChange={() => handleFormToggle('isTpin')} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Is Face</span>
+                      <ToggleSwitch checked={formData.isface} onChange={() => handleFormToggle('isface')} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Is Finger</span>
+                      <ToggleSwitch checked={formData.isfinger} onChange={() => handleFormToggle('isfinger')} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Is Iris</span>
+                      <ToggleSwitch checked={formData.isIris} onChange={() => handleFormToggle('isIris')} />
+                    </div>
+                  </>
+                )}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>WADH Face</label>
-                  <input
-                    type="text"
-                    placeholder="Enter WADH Face value"
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.9rem', color: '#334155', outline: 'none' }}
-                    value={formData.wadhFace} onChange={(e) => setFormData({ ...formData, wadhFace: e.target.value })}
-                  />
-                </div>
+              {formData.isRequired && (formData.isface || formData.isfinger || formData.isIris) && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', background: '#F8FAFC', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0', marginTop: '-5px' }}>
+                  {formData.isface && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>WADH Face</label>
+                      <input
+                        type="text"
+                        placeholder="Enter WADH Face value"
+                        style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', color: '#334155', outline: 'none', transition: 'all 0.2s ease', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)' }}
+                        value={formData.wadhFace} onChange={(e) => setFormData({ ...formData, wadhFace: e.target.value })}
+                        onFocus={(e) => e.target.style.borderColor = '#1756AA'}
+                        onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
+                      />
+                    </div>
+                  )}
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>WADH Finger</label>
-                  <input
-                    type="text"
-                    placeholder="Enter WADH Finger value"
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.9rem', color: '#334155', outline: 'none' }}
-                    value={formData.wadhFinger} onChange={(e) => setFormData({ ...formData, wadhFinger: e.target.value })}
-                  />
-                </div>
+                  {formData.isfinger && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>WADH Finger</label>
+                      <input
+                        type="text"
+                        placeholder="Enter WADH Finger value"
+                        style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', color: '#334155', outline: 'none', transition: 'all 0.2s ease', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)' }}
+                        value={formData.wadhFinger} onChange={(e) => setFormData({ ...formData, wadhFinger: e.target.value })}
+                        onFocus={(e) => e.target.style.borderColor = '#1756AA'}
+                        onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
+                      />
+                    </div>
+                  )}
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>WADH Iris</label>
-                  <input
-                    type="text"
-                    placeholder="Enter WADH Iris value"
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.9rem', color: '#334155', outline: 'none' }}
-                    value={formData.wadhIris} onChange={(e) => setFormData({ ...formData, wadhIris: e.target.value })}
-                  />
+                  {formData.isIris && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>WADH Iris</label>
+                      <input
+                        type="text"
+                        placeholder="Enter WADH Iris value"
+                        style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', color: '#334155', outline: 'none', transition: 'all 0.2s ease', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)' }}
+                        value={formData.wadhIris} onChange={(e) => setFormData({ ...formData, wadhIris: e.target.value })}
+                        onFocus={(e) => e.target.style.borderColor = '#1756AA'}
+                        onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Modal Footer */}

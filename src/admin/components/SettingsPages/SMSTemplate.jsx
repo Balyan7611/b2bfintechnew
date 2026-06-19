@@ -3,6 +3,8 @@ import {
   FaSms, FaPlus, FaSearch, FaTrash, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, 
   FaPrint, FaChevronLeft, FaChevronRight, FaCheck, FaTimes, FaEdit, FaFileAlt, FaDatabase
 } from 'react-icons/fa';
+import PrimaryButton from '../../../shared/components/common/PrimaryButton';
+import { API } from '../../../api/endpoints';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const SMSTemplate = () => {
@@ -23,32 +25,49 @@ const SMSTemplate = () => {
     whatsappMessage: ''
   });
 
-  const [templates, setTemplates] = useState([
-    { 
-      id: 1, 
-      category: 'Admin Login OTP', 
-      isSms: true, 
-      smsMessage: 'Dear Sir, your Admin Login OTP is {#var1#} JALDIPAY', 
-      templateId: '1707178100631731567', 
-      isMail: false, 
-      emailMessage: '',
-      isWhatsapp: false,
-      whatsappMessage: '',
-      addDate: '14/08/2024 14:59:03' 
-    },
-    { 
-      id: 2, 
-      category: 'Admin Fund Add OTP', 
-      isSms: true, 
-      smsMessage: 'Your {#var1#} OTP of Add Fund is do not share this OTP with anyone else. JALDIPAY', 
-      templateId: '1707155979701254563', 
-      isMail: false, 
-      emailMessage: '',
-      isWhatsapp: false,
-      whatsappMessage: '',
-      addDate: '14/08/2024 15:00:54' 
-    },
-  ]);
+  const [templates, setTemplates] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [activeIntegrations, setActiveIntegrations] = useState({
+    sms: false,
+    whatsapp: false,
+    email: false
+  });
+
+  const fetchData = async () => {
+    try {
+      const [templateRes, categoryRes, integrationRes] = await Promise.all([
+        API.smsTemplate.getAll().catch(() => []),
+        API.smsCategory.getAll().catch(() => []),
+        API.smsSetting.getAll().catch(() => [])
+      ]);
+      
+      if (templateRes && templateRes.data) setTemplates(templateRes.data);
+      else if (Array.isArray(templateRes)) setTemplates(templateRes);
+
+      if (categoryRes && categoryRes.data) setCategories(categoryRes.data);
+      else if (Array.isArray(categoryRes)) setCategories(categoryRes);
+
+      const integrationsList = (integrationRes && integrationRes.data) ? integrationRes.data : (Array.isArray(integrationRes) ? integrationRes : []);
+      
+      // Determine active services
+      const hasSms = integrationsList.some(item => item.integrationtype === 1);
+      const hasWhatsapp = integrationsList.some(item => item.integrationtype === 2);
+      const hasEmail = integrationsList.some(item => item.integrationtype === 3);
+
+      setActiveIntegrations({
+        sms: hasSms,
+        whatsapp: hasWhatsapp,
+        email: hasEmail
+      });
+
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchData();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -61,40 +80,76 @@ const SMSTemplate = () => {
   const openEditDrawer = (row) => {
     setEditingRowId(row.id);
     setFormData({
-      category: row.category || '',
+      category: row.categoryId || '',
       isSms: row.isSms || false,
-      smsMessage: row.smsMessage || '',
+      smsMessage: row.template || '',
       templateId: row.templateId || '',
-      isMail: row.isMail || false,
-      emailMessage: row.emailMessage || '',
-      isWhatsapp: row.isWhatsapp || false,
-      whatsappMessage: row.whatsappMessage || ''
+      isMail: row.isEmail || false,
+      emailMessage: row.emailTemplate || '',
+      isWhatsapp: row.isWhatsApp || false,
+      whatsappMessage: row.whatsAppTemplate || ''
     });
     setIsDrawerOpen(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingRowId) {
-      setTemplates(templates.map(t => t.id === editingRowId ? { ...t, ...formData } : t));
-      setSuccessToast(`Template updated successfully!`);
-    } else {
-      const newTemplate = {
-        ...formData,
-        id: Date.now(),
-        addDate: new Date().toLocaleString()
-      };
-      setTemplates([newTemplate, ...templates]);
-      setSuccessToast('New template configuration created!');
+    const payload = {
+      id: editingRowId ? editingRowId : 0,
+      categoryId: formData.category ? parseInt(formData.category) : 0,
+      template: formData.smsMessage,
+      templateId: formData.templateId,
+      emailTemplate: formData.emailMessage,
+      whatsAppTemplate: formData.whatsappMessage,
+      isActive: true,
+      msrno: 3180, // Using default or keeping from item if available
+      companyMemberId: 7093,
+      integrationType: 7398,
+      isSms: formData.isSms,
+      isEmail: formData.isMail,
+      isWhatsApp: formData.isWhatsapp
+    };
+
+    try {
+      if (editingRowId) {
+        await API.smsTemplate.update(payload);
+        setSuccessToast(`Template updated successfully!`);
+      } else {
+        await API.smsTemplate.create(payload);
+        setSuccessToast('New template configuration created!');
+      }
+      fetchData();
+      resetForm();
+    } catch (error) {
+      console.error("Error saving template:", error);
+      alert("Failed to save template. Please try again.");
     }
-    resetForm();
     setTimeout(() => setSuccessToast(''), 3000);
   };
 
-  const handleDelete = () => {
-    setTemplates(templates.filter(t => t.id !== showConfirmModal.id));
-    setShowConfirmModal({ isOpen: false, id: null });
-    setSuccessToast('Template deleted successfully.');
+  const handleDelete = async () => {
+    try {
+      await API.smsTemplate.delete(showConfirmModal.id);
+      fetchData();
+      setShowConfirmModal({ isOpen: false, id: null });
+      setSuccessToast('Template deleted successfully.');
+    } catch (error) {
+      console.error("Error deleting template:", error);
+      alert("Failed to delete template.");
+    }
+    setTimeout(() => setSuccessToast(''), 3000);
+  };
+
+  const toggleStatus = async (tmp, type) => {
+    try {
+      const payload = { ...tmp, [type]: !tmp[type] };
+      await API.smsTemplate.update(payload);
+      setSuccessToast(`Status updated successfully!`);
+      fetchData();
+    } catch (error) {
+      console.error("Error toggling status:", error);
+      alert("Failed to update status.");
+    }
     setTimeout(() => setSuccessToast(''), 3000);
   };
 
@@ -175,15 +230,9 @@ const SMSTemplate = () => {
         {/* CARD INTERNAL HEADER */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap' }}>SMS & Notification Templates</h2>
-          <button style={{ 
-            display: 'flex', alignItems: 'center', gap: '8px', 
-            background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)', 
-            color: '#fff', border: 'none', borderRadius: '8px', 
-            padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, 
-            cursor: 'pointer', boxShadow: '0 4px 12px rgba(30, 58, 138, 0.2)' 
-          }} onClick={() => setIsDrawerOpen(true)}>
+          <PrimaryButton onClick={() => setIsDrawerOpen(true)}>
             <FaPlus /> <span>New Template</span>
-          </button>
+          </PrimaryButton>
         </div>
 
         {/* ── TOOLBAR ── */}
@@ -236,8 +285,7 @@ const SMSTemplate = () => {
             <tbody>
               {templates.length === 0 ? (
                 <tr>
-                   <td colSpan="10" style={{ textAlign: 'center', padding: '60px', color: '#A0AEC0' }}>
-                      <FaDatabase style={{ fontSize: '2rem', opacity: 0.2, marginBottom: '10px' }} />
+                   <td colSpan="10" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
                       <div>No templates defined</div>
                    </td>
                 </tr>
@@ -293,13 +341,16 @@ const SMSTemplate = () => {
 
                       {/* Type / Category */}
                       <td>
-                        <span style={{ fontWeight: 800, color: '#0F172A', fontSize: '0.85rem' }}>{tmp.category}</span>
+                        <span style={{ fontWeight: 800, color: '#0F172A', fontSize: '0.85rem' }}>
+                          {categories.find(c => c.id == tmp.categoryId)?.name || tmp.categoryId || tmp.category || 'N/A'}
+                        </span>
                       </td>
                       
                       {/* Is SMS Toggle */}
                       <td style={{ textAlign: 'center' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                           <div 
+                            onClick={() => toggleStatus(tmp, 'isSms')}
                             style={{
                               width: '40px',
                               height: '18px',
@@ -307,7 +358,8 @@ const SMSTemplate = () => {
                               background: tmp.isSms ? '#22C55E' : '#EF4444',
                               padding: '2px',
                               position: 'relative',
-                              opacity: 0.9
+                              opacity: 0.9,
+                              cursor: 'pointer'
                             }}
                           >
                             <div style={{
@@ -330,9 +382,7 @@ const SMSTemplate = () => {
                             textTransform: 'uppercase'
                           }}>
                             {tmp.isSms ? 'ON' : 'OFF'}
-                          </span>
-                        </div>
-                      </td>
+                          </span></div></td>
                       
                       {/* SMS Message textarea */}
                       <td>
@@ -352,7 +402,7 @@ const SMSTemplate = () => {
                             wordBreak: 'break-word'
                           }}
                         >
-                           {tmp.smsMessage || '-'}
+                           {tmp.template || tmp.smsMessage || '-'}
                         </div>
                       </td>
                       
@@ -378,14 +428,16 @@ const SMSTemplate = () => {
                       <td style={{ textAlign: 'center' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                           <div 
+                            onClick={() => toggleStatus(tmp, 'isEmail')}
                             style={{
                               width: '40px',
                               height: '18px',
                               borderRadius: '9px',
-                              background: tmp.isMail ? '#22C55E' : '#EF4444',
+                              background: tmp.isEmail ? '#22C55E' : '#EF4444',
                               padding: '2px',
                               position: 'relative',
-                              opacity: 0.9
+                              opacity: 0.9,
+                              cursor: 'pointer'
                             }}
                           >
                             <div style={{
@@ -394,23 +446,21 @@ const SMSTemplate = () => {
                               borderRadius: '50%',
                               background: '#ffffff',
                               position: 'absolute',
-                              left: tmp.isMail ? '24px' : '2px',
+                              left: tmp.isEmail ? '24px' : '2px',
                               top: '2px'
                             }} />
                           </div>
                           <span style={{ 
                             fontSize: '0.6rem', 
                             fontWeight: 800, 
-                            color: tmp.isMail ? '#22C55E' : '#EF4444',
-                            background: tmp.isMail ? '#DCFCE7' : '#FEE2E2',
+                            color: tmp.isEmail ? '#22C55E' : '#EF4444',
+                            background: tmp.isEmail ? '#DCFCE7' : '#FEE2E2',
                             padding: '1px 6px',
                             borderRadius: '3px',
                             textTransform: 'uppercase'
                           }}>
-                            {tmp.isMail ? 'ON' : 'OFF'}
-                          </span>
-                        </div>
-                      </td>
+                            {tmp.isEmail ? 'ON' : 'OFF'}
+                          </span></div></td>
                       
                       {/* Email Message textarea */}
                       <td>
@@ -423,14 +473,14 @@ const SMSTemplate = () => {
                             border: '1px solid #E2E8F0',
                             background: '#F8FAFC',
                             fontSize: '0.75rem',
-                            color: tmp.isMail ? '#334155' : '#94A3B8',
+                            color: tmp.isEmail ? '#334155' : '#94A3B8',
                             overflowY: 'auto',
                             lineHeight: '1.4',
                             whiteSpace: 'normal',
                             wordBreak: 'break-word'
                           }}
                         >
-                           {tmp.emailMessage || '-'}
+                           {tmp.emailTemplate || tmp.emailMessage || '-'}
                         </div>
                       </td>
                       
@@ -438,14 +488,16 @@ const SMSTemplate = () => {
                       <td style={{ textAlign: 'center' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                           <div 
+                            onClick={() => toggleStatus(tmp, 'isWhatsApp')}
                             style={{
                               width: '40px',
                               height: '18px',
                               borderRadius: '9px',
-                              background: tmp.isWhatsapp ? '#22C55E' : '#EF4444',
+                              background: tmp.isWhatsApp ? '#22C55E' : '#EF4444',
                               padding: '2px',
                               position: 'relative',
-                              opacity: 0.9
+                              opacity: 0.9,
+                              cursor: 'pointer'
                             }}
                           >
                             <div style={{
@@ -454,23 +506,21 @@ const SMSTemplate = () => {
                               borderRadius: '50%',
                               background: '#ffffff',
                               position: 'absolute',
-                              left: tmp.isWhatsapp ? '24px' : '2px',
+                              left: tmp.isWhatsApp ? '24px' : '2px',
                               top: '2px'
                             }} />
                           </div>
                           <span style={{ 
                             fontSize: '0.6rem', 
                             fontWeight: 800, 
-                            color: tmp.isWhatsapp ? '#22C55E' : '#EF4444',
-                            background: tmp.isWhatsapp ? '#DCFCE7' : '#FEE2E2',
+                            color: tmp.isWhatsApp ? '#22C55E' : '#EF4444',
+                            background: tmp.isWhatsApp ? '#DCFCE7' : '#FEE2E2',
                             padding: '1px 6px',
                             borderRadius: '3px',
                             textTransform: 'uppercase'
                           }}>
-                            {tmp.isWhatsapp ? 'ON' : 'OFF'}
-                          </span>
-                        </div>
-                      </td>
+                            {tmp.isWhatsApp ? 'ON' : 'OFF'}
+                          </span></div></td>
                       
                       {/* WhatsApp Message textarea */}
                       <td>
@@ -483,14 +533,14 @@ const SMSTemplate = () => {
                             border: '1px solid #E2E8F0',
                             background: '#F8FAFC',
                             fontSize: '0.75rem',
-                            color: tmp.isWhatsapp ? '#334155' : '#94A3B8',
+                            color: tmp.isWhatsApp ? '#334155' : '#94A3B8',
                             overflowY: 'auto',
                             lineHeight: '1.4',
                             whiteSpace: 'normal',
                             wordBreak: 'break-word'
                           }}
                         >
-                           {tmp.whatsappMessage || '-'}
+                           {tmp.whatsAppTemplate || tmp.whatsappMessage || '-'}
                         </div>
                       </td>
                     </tr>
@@ -502,7 +552,7 @@ const SMSTemplate = () => {
         </div>
 
         <div className={styles.paginationRow} style={{ marginTop: '20px', paddingTop: '12px' }}>
-          <span style={{ fontSize: '0.75rem', color: '#718096' }}>Showing {templates.length} entries</span>
+          <span style={{ fontSize: '0.75rem', color: '#718096' }}>Showing {templates.length > 0 ? 1 : 0} to {templates.length} of {templates.length} entries</span>
           <div className={styles.pagination} style={{ display: 'flex', gap: '6px' }}>
             <button className={styles.pageBtn} style={{ width: '32px', height: '32px' }} disabled><FaChevronLeft /></button>
             <button className={`${styles.pageBtn} ${styles.pageActive}`} style={{ width: '32px', height: '32px' }}>1</button>
@@ -619,98 +669,105 @@ const SMSTemplate = () => {
                       required
                     >
                       <option value="">Select Category</option>
-                      <option value="Admin Login OTP">Admin Login OTP</option>
-                      <option value="Admin Fund Add OTP">Admin Fund Add OTP</option>
-                      <option value="Member Reg OTP">Member Reg OTP</option>
-                      <option value="Password Reset OTP">Password Reset OTP</option>
-                      <option value="Fund Refund Alert">Fund Refund Alert</option>
+                      {categories.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
                     </select>
                  </div>
 
                  <hr style={{ border: '0', borderTop: '1px solid #F1F5F9', margin: '5px 0' }} />
 
-                 {/* SMS Settings */}
-                 <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                       <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#1E3A8A' }}>SMS Channel Settings</span>
-                       <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, color: '#4E6080' }}>
-                         <input type="checkbox" name="isSms" checked={formData.isSms} onChange={handleInputChange} /> Enable
+                 {/* SMS Configuration Block */}
+                 {activeIntegrations.sms && (
+                 <div className={styles.sectionBlock} style={{ background: '#F8FAFC', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                       <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3B82F6' }}></div>
+                          SMS Channel Settings
+                       </span>
+                       <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, color: '#4E6080' }}>
+                          <input type="checkbox" name="isSms" checked={formData.isSms} onChange={handleInputChange} style={{ width: '16px', height: '16px', accentColor: '#3B82F6' }} />
+                          Enable
                        </label>
                     </div>
                     {formData.isSms && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                         <div>
-                            <label style={{ fontSize: '0.7rem', fontWeight: 700, color: '#4E6080', marginBottom: '4px', display: 'block' }}>SMS Message Content</label>
-                            <textarea 
-                              name="smsMessage"
-                              placeholder="Dear Sir, your OTP is {#var1#}"
-                              style={{ width: '100%', height: '70px', padding: '8px 12px', border: '1px solid #E2E8F0', borderRadius: '6px', fontSize: '0.8rem', resize: 'none' }}
-                              value={formData.smsMessage}
-                              onChange={handleInputChange}
-                              required
-                            />
-                         </div>
-                         <div>
-                            <label style={{ fontSize: '0.7rem', fontWeight: 700, color: '#4E6080', marginBottom: '4px', display: 'block' }}>DLT Template ID</label>
-                            <input 
-                              type="text" 
-                              name="templateId"
-                              placeholder="e.g. 170717..."
-                              style={{ width: '100%', height: '36px', padding: '0 12px', border: '1px solid #E2E8F0', borderRadius: '6px', fontSize: '0.8rem' }}
-                              value={formData.templateId}
-                              onChange={handleInputChange}
-                              required
-                            />
-                         </div>
-                      </div>
+                       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', animation: 'fadeIn 0.3s ease' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                             <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B' }}>SMS Message Content</label>
+                             <textarea 
+                               name="smsMessage" value={formData.smsMessage} onChange={handleInputChange}
+                               placeholder="Dear Sir, your OTP is {#var1#}"
+                               style={{ width: '100%', height: '80px', padding: '12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.85rem', color: '#1E293B', resize: 'vertical' }}
+                               required
+                             ></textarea>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                             <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B' }}>DLT Template ID</label>
+                             <input 
+                               type="text" name="templateId" value={formData.templateId} onChange={handleInputChange}
+                               placeholder="e.g. 170717..."
+                               style={{ width: '100%', height: '40px', padding: '0 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.85rem', color: '#1E293B' }}
+                               required
+                             />
+                          </div>
+                       </div>
                     )}
                  </div>
+                 )}
 
-                 {/* Mail Settings */}
-                 <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                       <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#1E3A8A' }}>Email Channel Settings</span>
-                       <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, color: '#4E6080' }}>
-                         <input type="checkbox" name="isMail" checked={formData.isMail} onChange={handleInputChange} /> Enable
+                 {/* Email Configuration Block */}
+                 {activeIntegrations.email && (
+                 <div className={styles.sectionBlock} style={{ background: '#F8FAFC', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: formData.isMail ? '15px' : '0' }}>
+                       <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#EAB308' }}></div>
+                          Email Channel Settings
+                       </span>
+                       <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, color: '#4E6080' }}>
+                          <input type="checkbox" name="isMail" checked={formData.isMail} onChange={handleInputChange} style={{ width: '16px', height: '16px', accentColor: '#EAB308' }} />
+                          Enable
                        </label>
                     </div>
                     {formData.isMail && (
-                      <div>
-                         <label style={{ fontSize: '0.7rem', fontWeight: 700, color: '#4E6080', marginBottom: '4px', display: 'block' }}>Email Body Content</label>
-                         <textarea 
-                           name="emailMessage"
-                           placeholder="Enter email template markup or text..."
-                           style={{ width: '100%', height: '70px', padding: '8px 12px', border: '1px solid #E2E8F0', borderRadius: '6px', fontSize: '0.8rem', resize: 'none' }}
-                           value={formData.emailMessage}
-                           onChange={handleInputChange}
-                           required
-                         />
-                      </div>
+                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', animation: 'fadeIn 0.3s ease' }}>
+                          <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B' }}>Email HTML/Text Content</label>
+                          <textarea 
+                            name="emailMessage" value={formData.emailMessage} onChange={handleInputChange}
+                            placeholder="<html><body>...</body></html>"
+                            style={{ width: '100%', height: '100px', padding: '12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.85rem', color: '#1E293B', resize: 'vertical', fontFamily: 'monospace' }}
+                            required
+                          ></textarea>
+                       </div>
                     )}
                  </div>
+                 )}
 
-                 {/* WhatsApp Settings */}
-                 <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                       <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#1E3A8A' }}>WhatsApp Channel Settings</span>
-                       <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, color: '#4E6080' }}>
-                         <input type="checkbox" name="isWhatsapp" checked={formData.isWhatsapp} onChange={handleInputChange} /> Enable
+                 {/* WhatsApp Configuration Block */}
+                 {activeIntegrations.whatsapp && (
+                 <div className={styles.sectionBlock} style={{ background: '#F8FAFC', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: formData.isWhatsapp ? '15px' : '0' }}>
+                       <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22C55E' }}></div>
+                          WhatsApp Channel Settings
+                       </span>
+                       <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, color: '#4E6080' }}>
+                          <input type="checkbox" name="isWhatsapp" checked={formData.isWhatsapp} onChange={handleInputChange} style={{ width: '16px', height: '16px', accentColor: '#22C55E' }} />
+                          Enable
                        </label>
                     </div>
                     {formData.isWhatsapp && (
-                      <div>
-                         <label style={{ fontSize: '0.7rem', fontWeight: 700, color: '#4E6080', marginBottom: '4px', display: 'block' }}>WhatsApp Message Body</label>
-                         <textarea 
-                           name="whatsappMessage"
-                           placeholder="Enter WhatsApp template message..."
-                           style={{ width: '100%', height: '70px', padding: '8px 12px', border: '1px solid #E2E8F0', borderRadius: '6px', fontSize: '0.8rem', resize: 'none' }}
-                           value={formData.whatsappMessage}
-                           onChange={handleInputChange}
-                           required
-                         />
-                      </div>
+                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', animation: 'fadeIn 0.3s ease' }}>
+                          <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B' }}>WhatsApp Payload/Message</label>
+                          <textarea 
+                            name="whatsappMessage" value={formData.whatsappMessage} onChange={handleInputChange}
+                            placeholder="Hello, here is your update..."
+                            style={{ width: '100%', height: '80px', padding: '12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.85rem', color: '#1E293B', resize: 'vertical' }}
+                            required
+                          ></textarea>
+                       </div>
                     )}
                  </div>
+                 )}
               </div>
 
               {/* Drawer Footer */}
@@ -739,23 +796,9 @@ const SMSTemplate = () => {
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="submit" 
-                    style={{ 
-                      height: '38px', 
-                      padding: '0 25px', 
-                      fontSize: '0.85rem', 
-                      background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)', 
-                      border: 'none', 
-                      borderRadius: '8px', 
-                      color: '#ffffff', 
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(59, 130, 246, 0.25)' 
-                    }}
-                  >
+                  <PrimaryButton type="submit" style={{ height: '38px', padding: '0 25px', fontSize: '0.85rem' }}>
                     Save Configuration
-                  </button>
+                  </PrimaryButton>
               </div>
             </form>
           </div>

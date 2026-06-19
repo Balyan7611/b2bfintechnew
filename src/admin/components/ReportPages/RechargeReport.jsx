@@ -24,10 +24,7 @@ const RechargeReport = () => {
 
   // Load dummy data
   useEffect(() => {
-    const dummyData = [
-      { id: 1, date: '2026-05-01 10:20', status: 'SUCCESS', rechargeBy: 'Sachin Balyan', txid: 'TXN1001', operator: 'Airtel', number: '9876543210', amount: 500.00, commission: 15.00, operatorId: 'OP123', receipt: 'REC001' },
-      { id: 2, date: '2026-05-02 14:15', status: 'FAILED', rechargeBy: 'Sachin Balyan', txid: 'TXN1002', operator: 'Jio', number: '9876543211', amount: 249.00, commission: 0.00, operatorId: 'OP124', receipt: 'REC002' },
-    ];
+    const dummyData = [];
     dispatch(setRechargeList(dummyData));
   }, [dispatch]);
 

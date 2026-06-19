@@ -156,9 +156,7 @@ const StaffList = () => {
                   <td>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontSize: '0.85rem', color: '#0D1B3E', fontWeight: 600 }}>{staff.mobile}</span>
-                      <span style={{ fontSize: '0.75rem', color: '#718096' }}>{staff.email}</span>
-                    </div>
-                  </td>
+                      <span style={{ fontSize: '0.75rem', color: '#718096' }}>{staff.email}</span></div></td>
                   <td style={{ fontSize: '0.85rem', color: '#4E6080' }}>{staff.doj || 'N/A'}</td>
                   <td>
                     <span className={styles.directoryBadge} style={{ padding: '4px 12px', fontSize: '0.7rem' }}>
@@ -168,14 +166,12 @@ const StaffList = () => {
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '60px' }}>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '20px 0' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
                       <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F8FAFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <HiOutlineUserGroup style={{ fontSize: '2rem', color: '#E2E8F0' }} />
                       </div>
-                      <p style={{ color: '#A0AEC0', margin: 0, fontWeight: 500 }}>No employee records found in directory</p>
-                    </div>
-                  </td>
+                      <p style={{ color: '#A0AEC0', margin: 0, fontWeight: 500 }}>No employee records found in directory</p></div></td>
                 </tr>
               )}
             </tbody>

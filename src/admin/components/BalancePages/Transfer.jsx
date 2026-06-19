@@ -125,9 +125,7 @@ const Transfer = () => {
                   <td>
                     <div className={styles.userCell}>
                       <span className={styles.userName}><FaUserAlt style={{ fontSize: '0.75rem', color: '#1756AA' }} /> {row.userText}</span>
-                      <span className={styles.userMobile}>{row.mobile}</span>
-                    </div>
-                  </td>
+                      <span className={styles.userMobile}>{row.mobile}</span></div></td>
                   <td className={styles.balanceText}>₹ {row.bal}</td>
                   <td className={styles.balanceText}>₹ {row.aepsBal}</td>
                   <td className={styles.balanceText}>₹ {row.creditLimit}</td>
@@ -150,11 +148,8 @@ const Transfer = () => {
               )) : (
                 <tr>
                   <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                      <FiDatabase style={{ fontSize: '1.5rem', opacity: 0.3 }} />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span>
-                    </div>
-                  </td>
+                    
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span></td>
                 </tr>
               )}
             </tbody>

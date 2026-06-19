@@ -7,6 +7,7 @@ import {
 import { 
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint 
 } from 'react-icons/fa';
+import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const DesignService = () => {
@@ -175,25 +176,20 @@ const DesignService = () => {
   };
 
   return (
-    <div className={styles.container} style={{ padding: '20px', maxWidth: '100%', background: '#F4F7FE', minHeight: '100vh' }}>
-      {/* ── MAIN REPOSITORY CARD ── */}
+    <>
+      <div className={styles.container} style={{ padding: '20px', maxWidth: '100%', background: '#F4F7FE', minHeight: '100vh' }}>
+        {/* ── MAIN REPOSITORY CARD ── */}
       <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', border: '1px solid #F1F5F9' }}>
         {/* CARD INTERNAL HEADER */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0F172A' }}>Design Service</h3>
-          <button style={{ 
-            display: 'flex', alignItems: 'center', gap: '8px', 
-            background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', 
-            color: '#fff', border: 'none', borderRadius: '8px', 
-            padding: '10px 18px', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
-          }} onClick={() => {
+          <PrimaryButton onClick={() => {
             setFormData({ name: '', boxColor: '#ffffff', textColor: '#333333', serviceType: '', bannerImage: null });
             setSelectedServices({});
             setIsModalOpen(true);
           }}>
-            <FiPlus /> <span>New Design Service</span>
-          </button>
+            <FiPlus size={16} /> <span>Create Service</span>
+          </PrimaryButton>
         </div>
 
         {/* ── TOOLBAR ── */}
@@ -248,11 +244,8 @@ const DesignService = () => {
               ) : designsList.length === 0 ? (
                 <tr>
                   <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                      <FiDatabase size={28} style={{ opacity: 0.3 }} />
-                      <span style={{ fontWeight: 600 }}>No design layouts found</span>
-                    </div>
-                  </td>
+                    
+                      <span style={{ fontWeight: 600 }}>No design layouts found</span></td>
                 </tr>
               ) : designsList.map((design, idx) => (
                 <tr key={design.id} className={styles.hoverRow} style={{ borderBottom: '1px solid #F1F5F9' }}>
@@ -454,17 +447,9 @@ const DesignService = () => {
             {/* Footer */}
             <div style={{ padding: '15px 25px', borderTop: '1px solid #F1F5F9', background: '#fff', borderRadius: '0 0 20px 20px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <button onClick={() => setIsModalOpen(false)} style={{ padding: '10px 20px', borderRadius: '8px', background: '#F1F5F9', color: '#475569', border: 'none', fontWeight: 700, cursor: 'pointer' }} disabled={isSaving}>Cancel</button>
-              <button 
+              <PrimaryButton 
                 onClick={handleSave} 
                 disabled={isSaving}
-                style={{ 
-                  padding: '10px 25px', borderRadius: '8px', 
-                  background: isSaving ? '#CBD5E1' : '#3B82F6', 
-                  color: '#fff', border: 'none', fontWeight: 700, 
-                  cursor: isSaving ? 'not-allowed' : 'pointer', 
-                  boxShadow: isSaving ? 'none' : '0 4px 12px rgba(59, 130, 246, 0.3)', 
-                  display: 'flex', alignItems: 'center', gap: '8px' 
-                }}
               >
                 {isSaving ? (
                   <>
@@ -476,7 +461,7 @@ const DesignService = () => {
                     <FiCheckCircle size={16} /> <span>Assign Section</span>
                   </>
                 )}
-              </button>
+              </PrimaryButton>
             </div>
           </div>
         </div>
@@ -556,9 +541,7 @@ const DesignService = () => {
       {toggleConfirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 9999 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
-            <div style={{ width: '52px', height: '52px', background: '#F0FDF4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10B981', margin: '0 auto 16px' }}>
-              <FiDatabase size={24} />
-            </div>
+            
             <h3 style={{ margin: '0 0 8px', fontSize: '1.1rem', color: '#0D1B3E' }}>Confirm Status Change</h3>
             <p style={{ margin: '0 0 20px', fontSize: '0.85rem', color: '#718096', lineHeight: 1.5 }}>
               Are you sure you want to toggle the <strong>Status</strong> for design layout "{toggleConfirmModal.design?.name}"?
@@ -573,8 +556,8 @@ const DesignService = () => {
           </div>
         </div>
       )}
-
-    </div>
+      </div>
+    </>
   );
 };
 

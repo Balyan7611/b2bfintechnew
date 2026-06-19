@@ -506,11 +506,8 @@ const CompanyBank = () => {
               ) : (
                 <tr>
                   <td colSpan="12" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                      <FiDatabase style={{ fontSize: '1.5rem', opacity: 0.3 }} />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span>
-                    </div>
-                  </td>
+                    
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span></td>
                 </tr>
               )}
             </tbody>

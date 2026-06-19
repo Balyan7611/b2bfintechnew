@@ -165,10 +165,8 @@ const KYCDetails = () => {
                 <tr>
                    <td colSpan="7" style={{ padding: 0, background: '#fff' }}>
                      <div style={{ position: 'sticky', left: 0, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '50px 20px', color: '#A0AEC0' }}>
-                       <div style={{ fontSize: '1.5rem', opacity: 0.3 }}><FiDatabase /></div>
-                       <div style={{ fontSize: '0.85rem' }}>No records match selection</div>
-                     </div>
-                   </td>
+                       
+                       <div style={{ fontSize: '0.85rem' }}>No records match selection</div></div></td>
                 </tr>
               ) : (
                 filteredData.map((item, index) => (

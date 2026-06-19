@@ -3,6 +3,8 @@ import {
   FaSms, FaPlus, FaSearch, FaEdit, FaTrash, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, 
   FaPrint, FaChevronLeft, FaChevronRight, FaLayerGroup, FaCheck, FaCalendarAlt, FaTimes, FaDatabase, FaChevronDown
 } from 'react-icons/fa';
+import PrimaryButton from '../../../shared/components/common/PrimaryButton';
+import { API } from '../../../api/endpoints';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const SMSCategory = () => {
@@ -27,36 +29,60 @@ const SMSCategory = () => {
     'Promotional Blast'
   ];
 
-  const [categories, setCategories] = useState([
-    { id: 1, name: 'Admin Login OTP', status: 'Active', addDate: '07/07/2021 17:10:35' },
-    { id: 2, name: 'Admin Fund Add OTP', status: 'Active', addDate: '07/07/2021 17:10:40' },
-    { id: 3, name: 'Admin Deduct Fund OTP', status: 'Active', addDate: '07/07/2021 17:10:50' },
-    { id: 4, name: 'Redemption', status: 'Active', addDate: '09/07/2021 14:00:10' },
-    { id: 5, name: 'Login OTP', status: 'Active', addDate: '09/07/2021 14:00:25' },
-  ]);
+  const [categories, setCategories] = useState([]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await API.smsCategory.getAll();
+      if (response && response.data) {
+        setCategories(response.data);
+      } else if (Array.isArray(response)) {
+        setCategories(response);
+      }
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const filteredSuggestions = standardCategories.filter(item => 
     item.toLowerCase().includes(categoryName.toLowerCase())
   );
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingCategory) {
-      setCategories(categories.map(c => c.id === editingCategory.id ? { ...c, name: categoryName, status } : c));
-    } else {
-      setCategories([{
-        id: Date.now(),
-        name: categoryName,
-        status,
-        addDate: new Date().toLocaleString()
-      }, ...categories]);
+    const payload = {
+      id: editingCategory ? editingCategory.id : 0,
+      name: categoryName,
+      isActive: status === 'Active'
+    };
+
+    try {
+      if (editingCategory) {
+        await API.smsCategory.update(payload);
+      } else {
+        await API.smsCategory.create(payload);
+      }
+      fetchCategories();
+      resetForm();
+    } catch (error) {
+      console.error("Error saving category:", error);
+      alert("Failed to save category. Please try again.");
     }
-    resetForm();
   };
 
-  const handleDelete = () => {
-    setCategories(categories.filter(c => c.id !== showConfirmModal.id));
-    setShowConfirmModal({ isOpen: false, id: null });
+  const handleDelete = async () => {
+    try {
+      await API.smsCategory.delete(showConfirmModal.id);
+      fetchCategories();
+      setShowConfirmModal({ isOpen: false, id: null });
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      alert("Failed to delete category.");
+    }
   };
 
   const resetForm = () => {
@@ -70,7 +96,7 @@ const SMSCategory = () => {
   const handleEdit = (cat) => {
     setEditingCategory(cat);
     setCategoryName(cat.name);
-    setStatus(cat.status);
+    setStatus(cat.isActive !== false && cat.status !== 'Deactive' ? 'Active' : 'Deactive');
     setShowModal(true);
   };
 
@@ -91,15 +117,9 @@ const SMSCategory = () => {
         {/* CARD INTERNAL HEADER */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap' }}>SMS Categories</h2>
-          <button style={{ 
-            display: 'flex', alignItems: 'center', gap: '8px', 
-            background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', 
-            color: '#fff', border: 'none', borderRadius: '8px', 
-            padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, 
-            cursor: 'pointer', boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)' 
-          }} onClick={() => setShowModal(true)}>
+          <PrimaryButton onClick={() => setShowModal(true)}>
             <FaPlus /> <span>New Category</span>
-          </button>
+          </PrimaryButton>
         </div>
 
         {/* ── TOOLBAR ── */}
@@ -146,12 +166,9 @@ const SMSCategory = () => {
             <tbody>
               {categories.length === 0 ? (
                 <tr>
-                   <td colSpan="5" style={{ textAlign: 'center', padding: '60px', color: '#A0AEC0' }}>
+                   <td colSpan="5" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                       <FaDatabase style={{ fontSize: '2rem', opacity: 0.2 }} />
-                       <span style={{ fontSize: '0.85rem' }}>No categories configured yet</span>
-                     </div>
-                   </td>
+                       <span style={{ fontSize: '0.85rem' }}>No categories configured yet</span></div></td>
                 </tr>
               ) : (
                 categories.map((cat, idx) => (
@@ -165,17 +182,15 @@ const SMSCategory = () => {
                     </td>
                     <td>
                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span style={{ fontWeight: 700, color: '#1756AA', fontSize: '0.9rem' }}>{cat.name}</span>
-                       </div>
-                    </td>
+                          <span style={{ fontWeight: 700, color: '#1756AA', fontSize: '0.9rem' }}>{cat.name}</span></div></td>
                     <td style={{ textAlign: 'left' }}>
-                       <span className={`${styles.badge} ${cat.status === 'Active' ? styles.badge_green : styles.badge_red}`} style={{ fontSize: '0.65rem', padding: '3px 10px' }}>
-                         {cat.status}
+                       <span className={`${styles.badge} ${cat.isActive !== false ? styles.badge_green : styles.badge_red}`} style={{ fontSize: '0.65rem', padding: '3px 10px' }}>
+                         {cat.isActive !== false ? 'Active' : 'Deactive'}
                        </span>
                     </td>
                     <td style={{ textAlign: 'left' }}>
                       <div style={{ fontSize: '0.8rem', color: '#718096' }}>
-                        <FaCalendarAlt style={{ marginRight: '6px', opacity: 0.5 }} /> {cat.addDate}
+                        <FaCalendarAlt style={{ marginRight: '6px', opacity: 0.5 }} /> {cat.addDate || new Date().toLocaleDateString()}
                       </div>
                     </td>
                   </tr>
@@ -186,7 +201,7 @@ const SMSCategory = () => {
         </div>
 
         <div className={styles.paginationRow} style={{ marginTop: '20px', paddingTop: '12px' }}>
-          <span style={{ fontSize: '0.75rem', color: '#718096' }}>Showing {categories.length} records</span>
+          <span style={{ fontSize: '0.75rem', color: '#718096' }}>Showing {categories.length > 0 ? 1 : 0} to {categories.length} of {categories.length} records</span>
           <div className={styles.pagination} style={{ display: 'flex', gap: '6px' }}>
             <button className={styles.pageBtn} style={{ width: '32px', height: '32px' }} disabled><FaChevronLeft /></button>
             <button className={`${styles.pageBtn} ${styles.pageActive}`} style={{ width: '32px', height: '32px' }}>1</button>
@@ -293,9 +308,9 @@ const SMSCategory = () => {
               <div className={styles.modalFooter} style={{ padding: '15px 25px', background: '#FBFDFF', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px' }}>
                   <button type="button" className={styles.prevBtn} style={{ height: '38px', padding: '0 20px', fontSize: '0.8rem' }} onClick={resetForm}>Cancel</button>
                   <div style={{ flex: 1 }}></div>
-                  <button type="submit" className={styles.publishBtn} style={{ height: '38px', padding: '0 30px', fontSize: '0.85rem' }}>
+                  <PrimaryButton type="submit" style={{ height: '38px', padding: '0 30px', fontSize: '0.85rem' }}>
                     <FaCheck /> {editingCategory ? 'Update' : 'Save Category'}
-                  </button>
+                  </PrimaryButton>
               </div>
             </form>
           </div>

@@ -158,12 +158,10 @@ const AEPSWalletReport = () => {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan="19" style={{ padding: '60px 0' }}>
+                  <td colSpan="19" style={{ padding: '20px 0' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
                       <div className={styles.spinner} style={{ width: '30px', height: '30px', borderWidth: '3px' }}></div>
-                      <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>Loading records...</span>
-                    </div>
-                  </td>
+                      <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>Loading records...</span></div></td>
                 </tr>
               ) : sampleData.length === 0 ? (
                 <>

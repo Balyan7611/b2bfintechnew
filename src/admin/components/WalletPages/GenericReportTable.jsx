@@ -95,26 +95,21 @@ const GenericReportTable = ({ title, columns = [], data = [] }) => {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={columns.length} style={{ padding: '80px 0' }}>
+                  <td colSpan={columns.length} style={{ padding: '20px 0' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
                       <div className={styles.spinner} style={{ width: '35px', height: '35px', borderWidth: '3px' }}></div>
-                      <span style={{ fontSize: '0.9rem', color: '#718096', fontWeight: 600 }}>Loading report data...</span>
-                    </div>
-                  </td>
+                      <span style={{ fontSize: '0.9rem', color: '#718096', fontWeight: 600 }}>Loading report data...</span></div></td>
                 </tr>
               ) : data.length === 0 ? (
                 <tr>
                   <td colSpan={columns.length} style={{ padding: '0', background: '#fff' }}>
-                    <div style={{ position: 'sticky', left: 0, right: 0, width: '100%', minWidth: 'fit-content', margin: '0 auto', textAlign: 'center', padding: '100px 0', color: '#A0AEC0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-                      <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#F8FAFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <FiDatabase style={{ fontSize: '2.5rem', opacity: 0.2, color: '#1756AA' }} />
+                    <div style={{ position: 'sticky', left: 0, right: 0, width: '100%', minWidth: 'fit-content', margin: '0 auto', textAlign: 'center', padding: '20px 0', color: '#A0AEC0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+                      
                       </div>
                       <div style={{ textAlign: 'center' }}>
                         <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', display: 'block', marginBottom: '5px' }}>No data available in this report</span>
                         <p style={{ fontSize: '0.85rem', color: '#718096', margin: 0 }}>Try using different filter criteria to find information</p>
-                      </div>
-                    </div>
-                  </td>
+                      </div></td>
                 </tr>
               ) : (
                 data.map((row, rIdx) => (

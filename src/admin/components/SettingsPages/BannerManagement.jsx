@@ -6,6 +6,7 @@ import {
 import { 
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint 
 } from 'react-icons/fa';
+import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const BannerManagement = () => {
@@ -13,10 +14,7 @@ const BannerManagement = () => {
   const { banners = [] } = useSelector(state => state.settings || {});
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [localBanners, setLocalBanners] = useState([
-    { id: 1, title: 'Summer Offer', type: 'Main Slider', status: true, addDate: '27/03/2025', image: '/images/banner1.jpg' },
-    { id: 2, title: 'Cashback AEPS', type: 'Side Promotion', status: true, addDate: '27/03/2025', image: '/images/banner2.jpg' },
-  ]);
+  const [localBanners, setLocalBanners] = useState([]);
 
   const [formData, setFormData] = useState({
     id: '', title: '', type: '', status: true, image: ''
@@ -66,15 +64,9 @@ const BannerManagement = () => {
         {/* CARD INTERNAL HEADER */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0F172A' }}>Banner Management</h3>
-          <button style={{ 
-            display: 'flex', alignItems: 'center', gap: '8px', 
-            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', 
-            color: '#fff', border: 'none', borderRadius: '8px', 
-            padding: '10px 20px', fontSize: '0.85rem', fontWeight: 700, 
-            cursor: 'pointer', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)', transition: 'all 0.2s'
-          }} onClick={handleAddClick}>
+          <PrimaryButton onClick={handleAddClick}>
             <FiUpload size={16} /> <span>Upload New Banner</span>
-          </button>
+          </PrimaryButton>
         </div>
 
         {/* ── TOOLBAR ── */}
@@ -121,40 +113,46 @@ const BannerManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {localBanners.map((banner, idx) => (
-                <tr key={banner.id} className={styles.hoverRow}>
-                  <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{idx + 1}</td>
-                  <td style={{ textAlign: 'center' }}>
-                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                        <button className={styles.editBtn} style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#F8FAFC', color: '#3B82F6', border: '1px solid #E2E8F0', cursor: 'pointer' }} onClick={() => handleEdit(banner)} title="Edit Banner"><FiEdit /></button>
-                        <button className={styles.deleteBtn} style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#FFF5F5', color: '#E53E3E', border: '1px solid #FED7D7', cursor: 'pointer' }} title="Delete Banner" onClick={() => setShowConfirmModal({ isOpen: true, id: banner.id })}><FiTrash2 /></button>
-                     </div>
+              {localBanners.length === 0 ? (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
+                    No banners available.
                   </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                       <div style={{ width: '80px', height: '45px', background: '#F1F5F9', borderRadius: '8px', overflow: 'hidden', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <FiImage style={{ color: '#A0AEC0' }} />
-                       </div>
-                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ color: '#1756AA', fontSize: '0.95rem', fontWeight: 800 }}>{banner.title}</span>
-                          <small style={{ color: '#718096', fontWeight: 600 }}>Resolution: 1920x450</small>
-                       </div>
-                    </div>
-                  </td>
-                  <td style={{ textAlign: 'left' }}>
-                     <span style={{ background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', padding: '4px 12px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 800 }}>
-                       {banner.type}
-                     </span>
-                  </td>
-                  <td style={{ textAlign: 'left' }}>
-                     <label className={styles.switch} style={{ transform: 'scale(0.8)', margin: 0 }}>
-                        <input type="checkbox" checked={banner.status} readOnly />
-                        <span className={styles.slider}></span>
-                     </label>
-                  </td>
-                  <td style={{ textAlign: 'left', color: '#718096', fontWeight: 700, fontSize: '0.85rem' }}>{banner.addDate}</td>
                 </tr>
-              ))}
+              ) : (
+                localBanners.map((banner, idx) => (
+                  <tr key={banner.id} className={styles.hoverRow}>
+                    <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{idx + 1}</td>
+                    <td style={{ textAlign: 'center' }}>
+                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                          <button className={styles.editBtn} style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#F8FAFC', color: '#3B82F6', border: '1px solid #E2E8F0', cursor: 'pointer' }} onClick={() => handleEdit(banner)} title="Edit Banner"><FiEdit /></button>
+                          <button className={styles.deleteBtn} style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#FFF5F5', color: '#E53E3E', border: '1px solid #FED7D7', cursor: 'pointer' }} title="Delete Banner" onClick={() => setShowConfirmModal({ isOpen: true, id: banner.id })}><FiTrash2 /></button>
+                       </div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                         <div style={{ width: '80px', height: '45px', background: '#F1F5F9', borderRadius: '8px', overflow: 'hidden', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <FiImage style={{ color: '#A0AEC0' }} />
+                         </div>
+                         <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ color: '#1756AA', fontSize: '0.95rem', fontWeight: 800 }}>{banner.title}</span>
+                            <small style={{ color: '#718096', fontWeight: 600 }}>Resolution: 1920x450</small>
+                         </div></div></td>
+                    <td style={{ textAlign: 'left' }}>
+                       <span style={{ background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', padding: '4px 12px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 800 }}>
+                         {banner.type}
+                       </span>
+                    </td>
+                    <td style={{ textAlign: 'left' }}>
+                       <label className={styles.switch} style={{ transform: 'scale(0.8)', margin: 0 }}>
+                          <input type="checkbox" checked={banner.status} readOnly />
+                          <span className={styles.slider}></span>
+                       </label>
+                    </td>
+                    <td style={{ textAlign: 'left', color: '#718096', fontWeight: 700, fontSize: '0.85rem' }}>{banner.addDate}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -162,7 +160,7 @@ const BannerManagement = () => {
         {/* ── PAGINATION ── */}
         <div className="global-pagination" style={{ padding: '25px', borderTop: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
-            Showing 1 to 2 of 2 records
+            Showing {localBanners.length > 0 ? 1 : 0} to {localBanners.length} of {localBanners.length} records
           </div>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <button className="global-page-btn" disabled style={{ borderRadius: '8px' }}><FiChevronLeft /></button>
@@ -228,9 +226,9 @@ const BannerManagement = () => {
                   <button type="button" style={{ padding: '12px 20px', background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#475569', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s', flex: 1 }} onClick={() => setIsModalOpen(false)}>
                     Cancel
                   </button>
-                  <button type="submit" style={{ padding: '12px 20px', background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', border: 'none', color: '#fff', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flex: 1.5, boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)', transition: 'all 0.2s' }}>
+                  <PrimaryButton type="submit" style={{ flex: 1.5 }}>
                     Save Banner <FiCheck size={16} />
-                  </button>
+                  </PrimaryButton>
                 </div>
               </form>
             </div>

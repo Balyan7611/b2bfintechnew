@@ -330,7 +330,7 @@ const HoldAmount = () => {
               {currentData.length > 0 ? currentData.map((row, index) => (
                 <tr key={row.id} className={index % 2 === 0 ? styles.rowEven : styles.rowOdd}>
                   <td>{startIndex + index + 1}</td>
-                  <td>
+                  <td className={styles.memberCell}>
                     <div className={styles.memberCell}>
                       <span className={styles.fwBold}>{row.name}</span>
                       <span className={styles.subText}>{row.memberId}</span>
@@ -353,11 +353,8 @@ const HoldAmount = () => {
               )) : (
                 <tr>
                   <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                      <FiDatabase style={{ fontSize: '1.5rem', opacity: 0.3 }} />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span>
-                    </div>
-                  </td>
+                    
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span></td>
                 </tr>
               )}
             </tbody>

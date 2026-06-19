@@ -8,10 +8,7 @@ import styles from '../MemberPages/MemberPages.module.css';
 const SMSIntegration = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const integrations = [
-    { id: 1, provider: 'Fast2SMS', apiType: 'HTTP/JSON', endpoint: 'https://api.fast2sms.com/dev/bulkV2', status: true, addDate: '27/03/2025' },
-    { id: 2, provider: 'TextLocal', apiType: 'HTTP', endpoint: 'https://api.textlocal.in/send/', status: false, addDate: '27/03/2025' },
-  ];
+  const integrations = [];
 
   return (
     <div className={styles.container}>
@@ -70,7 +67,11 @@ const SMSIntegration = () => {
               </tr>
             </thead>
             <tbody>
-              {integrations.map((gtw, idx) => (
+              {integrations.length === 0 ? (
+                <tr>
+                  <td colSpan="100%" style={{ textAlign: 'center', padding: '20px', color: '#718096' }}>No data available</td>
+                </tr>
+              ) : integrations.map((gtw, idx) => (
                 <tr key={gtw.id} className={styles.hoverRow}>
                   <td style={{ fontWeight: 800, color: '#A0AEC0', paddingLeft: '25px' }}>0{idx + 1}</td>
                   <td style={{ textAlign: 'center' }}>
@@ -84,9 +85,7 @@ const SMSIntegration = () => {
                        <div style={{ width: '32px', height: '32px', background: 'rgba(23, 86, 170, 0.05)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA' }}>
                           <FiGlobe />
                        </div>
-                       <span style={{ color: '#1756AA', fontSize: '0.9rem', fontWeight: 800 }}>{gtw.provider}</span>
-                    </div>
-                  </td>
+                       <span style={{ color: '#1756AA', fontSize: '0.9rem', fontWeight: 800 }}>{gtw.provider}</span></div></td>
                   <td style={{ textAlign: 'center' }}>
                      <span style={{ background: '#F1F5F9', color: '#4E6080', padding: '6px 14px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 800 }}>
                        {gtw.apiType}

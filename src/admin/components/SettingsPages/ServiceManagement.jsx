@@ -5,6 +5,7 @@ import {
   FiDatabase, FiX, FiLayers, FiImage
 } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
+import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import styles from '../MemberPages/MemberPages.module.css';
 
 /* ─── input style helper ─── */
@@ -299,17 +300,9 @@ const ServiceManagement = () => {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '10px' }}>
           <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>Service Management</h3>
-          <button
-            style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              background: 'linear-gradient(135deg,#10B981,#059669)',
-              color: '#fff', border: 'none', borderRadius: '8px',
-              padding: '10px 20px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer'
-            }}
-            onClick={handleAddClick}
-          >
+          <PrimaryButton onClick={handleAddClick}>
             <FiPlus size={16} /> Add New Service
-          </button>
+          </PrimaryButton>
         </div>
 
         {errorMsg && (
@@ -375,11 +368,8 @@ const ServiceManagement = () => {
               ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                      <FiDatabase size={28} style={{ opacity: 0.3 }} />
-                      <span style={{ fontWeight: 600 }}>No services found</span>
-                    </div>
-                  </td>
+                    
+                      <span style={{ fontWeight: 600 }}>No services found</span></td>
                 </tr>
               ) : currentData.map((service, idx) => (
                 <tr key={service.id} className={styles.hoverRow}>
@@ -558,8 +548,7 @@ const ServiceManagement = () => {
         <div className={styles.modalOverlay} style={{ zIndex: 3600 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-              <div style={{ width: '52px', height: '52px', background: '#F0FDF4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10B981', marginBottom: '16px', fontSize: '1.3rem' }}>
-                <FiDatabase />
+              
               </div>
               <h3 style={{ margin: '0 0 8px', fontSize: '1.1rem', color: '#0D1B3E' }}>Confirm Status Change</h3>
               <p style={{ margin: '0 0 20px', fontSize: '0.85rem', color: '#718096', lineHeight: 1.5 }}>
@@ -579,7 +568,6 @@ const ServiceManagement = () => {
               </div>
             </div>
           </div>
-        </div>
       )}
 
       {/* ═══════════════════════════════════════
@@ -699,13 +687,12 @@ const ServiceManagement = () => {
 
                 {/* Footer Buttons */}
                 <div style={{ display: 'flex', gap: '12px', marginTop: '28px', paddingTop: '20px', borderTop: '1px solid #F1F5F9' }}>
-                  <button
+                  <PrimaryButton
                     type="submit"
                     disabled={formSaving}
-                    style={{ padding: '11px 28px', background: formSaving ? '#94A3B8' : 'linear-gradient(135deg,#3B82F6,#2563EB)', border: 'none', color: '#fff', borderRadius: '10px', fontWeight: 700, cursor: formSaving ? 'not-allowed' : 'pointer', fontSize: '0.9rem' }}
                   >
                     {formSaving ? 'Saving...' : (formData.id ? 'Update Service' : 'Create Service')}
-                  </button>
+                  </PrimaryButton>
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}

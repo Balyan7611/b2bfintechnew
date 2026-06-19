@@ -256,10 +256,8 @@ const KYCDocuments = () => {
                 <tr>
                   <td colSpan="5" style={{ padding: 0, background: '#fff' }}>
                     <div style={{ position: 'sticky', left: 0, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '50px 20px', color: '#A0AEC0' }}>
-                      <div style={{ fontSize: '1.5rem', opacity: 0.3 }}><FiDatabase /></div>
-                      <div style={{ fontSize: '0.85rem' }}>No documents configured</div>
-                    </div>
-                  </td>
+                      
+                      <div style={{ fontSize: '0.85rem' }}>No documents configured</div></div></td>
                 </tr>
               ) : (
                 paginatedData.map((item, index) => (
@@ -270,9 +268,7 @@ const KYCDocuments = () => {
                         <div style={{ width: '28px', height: '28px', background: '#F0F4FF', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA', fontSize: '0.8rem' }}>
                           <FiFileText />
                         </div>
-                        <span style={{ fontWeight: 600, color: '#0D1B3E', fontSize: '0.85rem' }}>{item.name}</span>
-                      </div>
-                    </td>
+                        <span style={{ fontWeight: 600, color: '#0D1B3E', fontSize: '0.85rem' }}>{item.name}</span></div></td>
                     <td style={{ textAlign: 'center' }}>
                       <span className={styles.roleTag} style={{ background: '#E6F4EA', color: '#1E7E34', fontWeight: 800, fontSize: '0.65rem', padding: '3px 10px' }}>
                         {item.side} {item.side === '1' ? 'SIDE' : 'SIDES'}

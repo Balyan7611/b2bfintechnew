@@ -8,10 +8,7 @@ import styles from '../MemberPages/MemberPages.module.css';
 const ManageSmsTemplate = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const managedTemplates = [
-    { id: 1, name: 'Login Success Alert', provider: 'Fast2SMS', status: true, addDate: '27/03/2025' },
-    { id: 2, name: 'Fund Rejection Notice', provider: 'Fast2SMS', status: true, addDate: '27/03/2025' },
-  ];
+  const managedTemplates = [];
 
   return (
     <div className={styles.container}>
@@ -69,7 +66,11 @@ const ManageSmsTemplate = () => {
               </tr>
             </thead>
             <tbody>
-              {managedTemplates.map((item, idx) => (
+              {managedTemplates.length === 0 ? (
+                <tr>
+                  <td colSpan="100%" style={{ textAlign: 'center', padding: '20px', color: '#718096' }}>No data available</td>
+                </tr>
+              ) : managedTemplates.map((item, idx) => (
                 <tr key={item.id} className={styles.hoverRow}>
                   <td style={{ fontWeight: 800, color: '#A0AEC0', paddingLeft: '25px' }}>0{idx + 1}</td>
                   <td style={{ textAlign: 'center' }}>
@@ -83,9 +84,7 @@ const ManageSmsTemplate = () => {
                        <div style={{ width: '32px', height: '32px', background: 'rgba(23, 86, 170, 0.05)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA', fontSize: '0.9rem' }}>
                           <FiSliders />
                        </div>
-                       <span style={{ color: '#1756AA', fontSize: '0.9rem', fontWeight: 800 }}>{item.name}</span>
-                    </div>
-                  </td>
+                       <span style={{ color: '#1756AA', fontSize: '0.9rem', fontWeight: 800 }}>{item.name}</span></div></td>
                   <td style={{ textAlign: 'center' }}>
                      <span style={{ background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', padding: '6px 14px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 800 }}>
                        {item.provider}

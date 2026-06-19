@@ -224,9 +224,7 @@ const SupportMain = () => {
                   <td colSpan="6">
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 20px', gap: '12px' }}>
                       <FaInfoCircle style={{ fontSize: '2rem', color: '#CBD5E0' }} />
-                      <span style={{ color: '#A0AEC0', fontWeight: 500, fontSize: '0.9rem' }}>No support entries found.</span>
-                    </div>
-                  </td>
+                      <span style={{ color: '#A0AEC0', fontWeight: 500, fontSize: '0.9rem' }}>No support entries found.</span></div></td>
                 </tr>
               )}
             </tbody>

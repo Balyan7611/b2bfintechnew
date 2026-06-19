@@ -516,7 +516,7 @@ const DashboardPage = () => {
   const [isSearchingMember, setIsSearchingMember] = useState(false);
 
   useEffect(() => {
-    if (memberSearchQuery.trim().length < 1) {
+    if (memberSearchQuery.trim().length < 3) {
       setSuggestions([]);
       return;
     }
@@ -827,6 +827,8 @@ const DashboardPage = () => {
             <FaSearch className={styles.searchIcon} />
             <input 
               type="text" 
+              name="admin_search_box"
+              autoComplete="off"
               placeholder="Search for services, reports..." 
               className={styles.searchInput} 
               value={adminSearchQuery}
@@ -1308,7 +1310,7 @@ const DashboardPage = () => {
                     />
                   </div>
 
-                  {showSearchDropdown && memberSearchQuery.trim().length >= 1 && (
+                  {showSearchDropdown && memberSearchQuery.trim().length >= 3 && (
                     <>
                       <div className={styles.dropdownBackdrop} onClick={() => setShowSearchDropdown(false)} />
                       <div className={styles.searchSuggestionsDropdown}>

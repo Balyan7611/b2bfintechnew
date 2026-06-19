@@ -17,11 +17,7 @@ const ManageSMSTemplate = () => {
     usageCount: '0'
   });
 
-  const [templates, setTemplates] = useState([
-    { id: 1, name: 'Registration OTP', approved: true, usageCount: '1,240', lastModified: '06/06/2025' },
-    { id: 2, name: 'Password Reset', approved: true, usageCount: '450', lastModified: '05/06/2025' },
-    { id: 3, name: 'Promo Blast', approved: false, usageCount: '0', lastModified: '04/06/2025' },
-  ]);
+  const [templates, setTemplates] = useState([]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -181,8 +177,7 @@ const ManageSMSTemplate = () => {
             <tbody>
               {templates.length === 0 ? (
                 <tr>
-                   <td colSpan="6" style={{ textAlign: 'center', padding: '60px', color: '#A0AEC0' }}>
-                     <FaDatabase style={{ fontSize: '2rem', opacity: 0.2, marginBottom: '10px' }} />
+                   <td colSpan="6" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
                      <div>No templates found</div>
                    </td>
                 </tr>
@@ -233,9 +228,7 @@ const ManageSMSTemplate = () => {
                     </td>
                     <td>
                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontWeight: 700, color: '#1756AA', fontSize: '0.9rem' }}>{tmp.name}</span>
-                       </div>
-                    </td>
+                          <span style={{ fontWeight: 700, color: '#1756AA', fontSize: '0.9rem' }}>{tmp.name}</span></div></td>
                     <td style={{ textAlign: 'left' }}>
                       {tmp.approved ? (
                         <span className={`${styles.badge} ${styles.badge_green}`} style={{ padding: '4px 12px', fontSize: '0.65rem', fontWeight: 700 }}>
@@ -250,9 +243,7 @@ const ManageSMSTemplate = () => {
                     <td style={{ textAlign: 'left' }}>
                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <FaChartBar style={{ color: '#1756AA', opacity: 0.5, fontSize: '0.8rem' }} />
-                          <span style={{ fontWeight: 800, color: '#4E6080', fontSize: '0.9rem' }}>{tmp.usageCount}</span>
-                       </div>
-                    </td>
+                          <span style={{ fontWeight: 800, color: '#4E6080', fontSize: '0.9rem' }}>{tmp.usageCount}</span></div></td>
                     <td style={{ textAlign: 'left', fontSize: '0.8rem', color: '#718096', fontWeight: 600 }}>{tmp.lastModified}</td>
                   </tr>
                 ))
@@ -273,7 +264,7 @@ const ManageSMSTemplate = () => {
           paddingRight: '20px',
           paddingBottom: '15px'
         }}>
-          <span style={{ fontSize: '0.75rem', color: '#718096', fontWeight: 600 }}>Showing {templates.length} entries</span>
+          <span style={{ fontSize: '0.75rem', color: '#718096', fontWeight: 600 }}>Showing {templates.length > 0 ? 1 : 0} to {templates.length} of {templates.length} entries</span>
           <div className={styles.pagination} style={{ display: 'flex', gap: '6px' }}>
             <button className={styles.pageBtn} style={{ 
               width: '32px', 

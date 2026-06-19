@@ -214,6 +214,8 @@ const MemberHeader = () => {
             <FiSearch className={styles.searchIcon} />
             <input 
               type="text" 
+              name="search_box"
+              autoComplete="off"
               placeholder="Search for services, reports..." 
               className={styles.searchInput} 
               value={searchQuery}

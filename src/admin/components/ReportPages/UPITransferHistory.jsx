@@ -419,12 +419,9 @@ const UPITransferHistory = () => {
             </thead>
             <tbody>
               <tr>
-                <td colSpan="20" style={{ padding: '60px 0', color: '#A0AEC0', position: 'relative' }}>
-                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', position: 'sticky', left: '50%', transform: 'translateX(-50%)', width: 'max-content' }}>
-                     <FiDatabase style={{ fontSize: '2rem', opacity: 0.3 }} />
-                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No UPI data found</span>
-                   </div>
-                </td>
+                <td colSpan="20" style={{ padding: '20px 0', color: '#A0AEC0', position: 'relative' }}>
+                   
+                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No UPI data found</span></td>
               </tr>
             </tbody>
           </table>

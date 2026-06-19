@@ -1098,7 +1098,7 @@ input:checked + .slider:before { transform: translateY(-50%) translateX(20px); }
   margin-top: 20px;
   border-radius: 12px;
   border: 1px solid #EEF3FC;
-  padding-bottom: 80px; /* Balanced space for action dropdowns */
+  padding-bottom: 0px;
 }
 
 .tableFull {
@@ -1544,7 +1544,7 @@ input:checked + .slider:before { transform: translateY(-50%) translateX(20px); }
 }
 
 .paginationRow { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; }
-.pagination { display: flex; gap: 6px; }
+.pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; gap: 6px; }
 
 @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fi';
 import { FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint } from 'react-icons/fa';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
+import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import styles from '../MemberPages/MemberPages.module.css';
 import { getImageUrl } from '../../../config/siteConfig';
 
@@ -293,9 +294,9 @@ const OperatorManagement = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0F172A' }}>Operator Management</h3>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button className={styles.addBtn} onClick={handleAddClick} style={{ height: '38px', padding: '0 18px', fontSize: '0.85rem', borderRadius: '8px', background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', color: '#fff', border: 'none', minWidth: 'auto', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}>
+            <PrimaryButton className={styles.addBtn} onClick={handleAddClick} style={{ height: '38px', minWidth: 'auto' }}>
               <FiPlus /> <span>Add Operator</span>
-            </button>
+            </PrimaryButton>
           </div>
         </div>
 
@@ -398,9 +399,7 @@ const OperatorManagement = () => {
                        >
                           {op.logo ? <img src={op.logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <FiImage size={18} />}
                        </div>
-                       <span style={{ color: '#1E293B', fontSize: '0.95rem', fontWeight: 800 }}>{op.name}</span>
-                    </div>
-                  </td>
+                       <span style={{ color: '#1E293B', fontSize: '0.95rem', fontWeight: 800 }}>{op.name}</span></div></td>
                   <td style={{ textAlign: 'center' }}>
                      <span style={{ background: '#F8FAFC', color: '#475569', border: '1px solid #E2E8F0', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 800 }}>
                        {op.code}
@@ -425,11 +424,8 @@ const OperatorManagement = () => {
               ) : localOperators.length === 0 ? (
                 <tr>
                   <td colSpan="7" style={{ textAlign: 'center', padding: '30px 0', color: '#64748B' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                      <FiDatabase style={{ fontSize: '1.5rem', opacity: 0.3 }} />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span>
-                    </div>
-                  </td>
+                    
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span></td>
                 </tr>
               ) : null}
             </tbody>
@@ -645,9 +641,9 @@ const OperatorManagement = () => {
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '30px' }}>
-                  <button type="submit" style={{ padding: '10px 30px', background: 'linear-gradient(135deg, #1756AA 0%, #0D1B5E 100%)', border: 'none', color: '#fff', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(23, 86, 170, 0.3)', transition: 'all 0.2s' }}>
+                  <PrimaryButton type="submit">
                     Submit
-                  </button>
+                  </PrimaryButton>
                 </div>
               </form>
             </div>
@@ -809,13 +805,10 @@ const OperatorManagement = () => {
                     />
                   </div>
                   <div>
-                    <button
-                      type="submit"
-                      style={{ height: '34px', padding: '0 20px', borderRadius: '8px', border: 'none', background: 'linear-gradient(135deg, #1756AA 0%, #0D1B5E 100%)', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: '0.8rem', boxShadow: '0 4px 10px rgba(23, 86, 170, 0.2)', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }}
-                    >
+                    <PrimaryButton type="submit" style={{ height: '34px', fontSize: '0.8rem' }}>
                       <FiCheck size={14} />
                       Save
-                    </button>
+                    </PrimaryButton>
                   </div>
                 </div>
 
@@ -868,11 +861,8 @@ const OperatorManagement = () => {
                       {bbpsFields.filter(f => f.operatorCode === addFieldModal.operator?.code).length === 0 ? (
                         <tr>
                           <td colSpan={6} style={{ padding: '30px 0', textAlign: 'center', color: '#94A3B8' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                              <FiDatabase style={{ fontSize: '1.5rem', opacity: 0.3 }} />
-                              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No fields available for this operator</span>
-                            </div>
-                          </td>
+                            
+                              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No fields available for this operator</span></td>
                         </tr>
                       ) : null}
                     </tbody>

@@ -18,6 +18,12 @@ import { PipeMasterService } from '../services/pipeMaster.service';
 import { PipeModuleSettingService } from '../services/pipeModuleSetting.service';
 import { CompanyBankDetailService } from '../services/companyBankDetail.service';
 import { MemberBankDetailService } from '../services/memberBankDetail.service';
+import { SmsCategoryService } from '../services/smsCategory.service';
+import { SmsSettingService } from '../services/smsSetting.service';
+import { SmsTemplateService } from '../services/smsTemplate.service';
+import { MemberSecurityService } from '../services/memberSecurity.service';
+import { ParentChangeInformationService } from '../services/parentChangeInformation.service';
+import { UserLoginHistoryService } from '../services/userLoginHistory.service';
 
 // Re-exporting everything exactly as before to maintain backward compatibility
 export const API = {
@@ -46,6 +52,12 @@ export const API = {
     pipeModuleSetting: PipeModuleSettingService,
     companyBankDetail: CompanyBankDetailService,
     memberBankDetail: MemberBankDetailService,
+    smsCategory: SmsCategoryService,
+    smsSetting: SmsSettingService,
+    smsTemplate: SmsTemplateService,
+    memberSecurity: MemberSecurityService,
+    parentChangeInformation: ParentChangeInformationService,
+    userLoginHistory: UserLoginHistoryService,
 };
 
 export const fetchCompanyData = CompanyService.fetchCompanyData;
@@ -65,5 +77,11 @@ export {
     PipeMasterService,
     PipeModuleSettingService,
     CompanyBankDetailService,
-    MemberBankDetailService
+    MemberBankDetailService,
+    SmsCategoryService,
+    SmsSettingService,
+    SmsTemplateService,
+    MemberSecurityService,
+    ParentChangeInformationService,
+    UserLoginHistoryService
 };

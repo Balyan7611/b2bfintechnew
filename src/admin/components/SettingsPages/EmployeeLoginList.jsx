@@ -6,15 +6,29 @@ import {
 import { 
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint 
 } from 'react-icons/fa';
+import { API } from '../../../api/endpoints';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const EmployeeLoginList = () => {
   const dispatch = useDispatch();
 
-  const sampleLogins = [
-    { id: 1, empName: 'Ramesh Verma', empId: 'EMP1002', ip: '152.168.4.21', device: 'Chrome / Windows', loginTime: '2026-05-01 10:30 AM', status: 'SUCCESS' },
-    { id: 2, empName: 'Sunita Sharma', empId: 'EMP1005', ip: '103.22.45.12', device: 'Safari / iPhone', loginTime: '2026-05-01 11:15 AM', status: 'SUCCESS' },
-  ];
+  const [loginList, setLoginList] = useState([]);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await API.userLoginHistory.getAll();
+        if (response && response.data) {
+          setLoginList(response.data);
+        } else if (Array.isArray(response)) {
+          setLoginList(response);
+        }
+      } catch (err) {
+        console.error("Failed to fetch login history", err);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <div className={styles.container} style={{ padding: '5px 2px 0px 2px', maxWidth: '100%' }}>
@@ -69,53 +83,62 @@ const EmployeeLoginList = () => {
               </tr>
             </thead>
             <tbody>
-              {sampleLogins.map((item, idx) => (
-                <tr key={item.id} className={styles.hoverRow}>
-                  <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{idx + 1}</td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                       <div style={{ width: '36px', height: '36px', background: 'rgba(23, 86, 170, 0.05)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA' }}>
-                          <FiUser />
-                       </div>
-                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ color: '#1756AA', fontSize: '0.95rem', fontWeight: 800 }}>{item.empName}</span>
-                          <small style={{ color: '#718096', fontWeight: 600 }}>ID: {item.empId}</small>
-                       </div>
-                    </div>
-                  </td>
-                  <td>
-                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#4E6080', fontSize: '0.85rem', fontWeight: 600 }}>
-                        <FiMonitor style={{ color: '#A0AEC0' }} />
-                        {item.device}
-                     </div>
-                  </td>
-                  <td style={{ textAlign: 'center' }}>
-                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#1756AA', fontWeight: 800, fontSize: '0.8rem' }}>
-                        <FiMapPin style={{ fontSize: '0.9rem' }} />
-                        {item.ip}
-                     </div>
-                  </td>
-                  <td style={{ textAlign: 'center' }}>
-                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#718096', fontSize: '0.85rem', fontWeight: 600 }}>
-                        <FiClock style={{ color: '#A0AEC0' }} />
-                        {item.loginTime}
-                     </div>
-                  </td>
-                  <td style={{ textAlign: 'center' }}>
-                     <span style={{ background: 'rgba(39, 174, 96, 0.1)', color: '#27AE60', padding: '5px 15px', borderRadius: '50px', fontSize: '0.7rem', fontWeight: 800 }}>
-                       ● {item.status}
-                     </span>
+              {loginList.length === 0 ? (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
+                    No login activity found.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                loginList.map((item, idx) => (
+                  <tr key={item.id} className={styles.hoverRow}>
+                    <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{idx + 1}</td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                         <div style={{ width: '36px', height: '36px', background: 'rgba(23, 86, 170, 0.05)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA' }}>
+                            <FiUser />
+                         </div>
+                         <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ color: '#1756AA', fontSize: '0.95rem', fontWeight: 800 }}>{item.loginType || 'Employee'}</span>
+                            <small style={{ color: '#718096', fontWeight: 600 }}>MSRNO: {item.msrno || '-'}</small>
+                         </div></div></td>
+                    <td>
+                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#4E6080', fontSize: '0.85rem', fontWeight: 600 }}>
+                          <FiMonitor style={{ color: '#A0AEC0' }} />
+                          {item.deviceName || '-'} / {item.browser || '-'}
+                       </div>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#1756AA', fontWeight: 800, fontSize: '0.8rem' }}>
+                          <FiMapPin style={{ fontSize: '0.9rem' }} />
+                          {item.loginIpaddress || '-'}
+                       </div>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                       <div style={{ color: '#4E6080', fontSize: '0.85rem', fontWeight: 700 }}>
+                          {item.loginTime ? new Date(item.loginTime).toLocaleString() : '-'}
+                       </div>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span style={{ 
+                        background: item.loginStatus?.toLowerCase() === 'success' ? '#DCFCE7' : '#FEE2E2', 
+                        color: item.loginStatus?.toLowerCase() === 'success' ? '#16A34A' : '#EF4444', 
+                        padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 800 
+                      }}>
+                        {item.loginStatus || 'Unknown'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
         {/* ── PAGINATION ── */}
-        <div className="global-pagination" style={{ padding: '25px', borderTop: '1px solid #F1F5F9' }}>
+        <div className="global-pagination" style={{ padding: '15px 25px', borderTop: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
-            Showing 1 to 2 of 2 records
+            Showing {loginList.length > 0 ? 1 : 0} to {loginList.length} of {loginList.length} records
           </div>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <button className="global-page-btn" disabled style={{ borderRadius: '8px' }}><FiChevronLeft /></button>

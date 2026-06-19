@@ -3,6 +3,8 @@ import {
   FaSms, FaLink, FaSearch, FaEdit, FaTrash, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, 
   FaPrint, FaChevronLeft, FaChevronRight, FaPlug, FaCheck, FaCalendarAlt, FaGlobe, FaRoute, FaSlidersH, FaPlus, FaTimes, FaArrowRight, FaArrowLeft, FaDatabase
 } from 'react-icons/fa';
+import PrimaryButton from '../../../shared/components/common/PrimaryButton';
+import { API } from '../../../api/endpoints';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const SMSIntegration = () => {
@@ -26,30 +28,32 @@ const SMSIntegration = () => {
     mobile: '',
     message: '',
     dltText: '',
-    integrationType: 'SMS'
+    integrationType: ''
   });
 
-  const [integrations, setIntegrations] = useState([
-    { 
-      id: 1, 
-      url: 'http://mobile.mediatestexample.com/submissions.jsp?accountid=1701162329402522535&',
-      senderText: 'smworld',
-      sender: 'SNTCH1',
-      countryText: '91',
-      country: 'India',
-      routeText: 'transaction',
-      route: 'otp',
-      param1Text: 'user',
-      param1Val: 'sontechno',
-      param2Text: 'key',
-      param2Val: 'id8571480XX',
-      mobile: 'mobile',
-      message: 'tempid',
-      dltText: 'message',
-      integrationType: 'SMS',
-      addDate: '02/09/2022 12:52:15'
+  const [integrations, setIntegrations] = useState([]);
+  const [categories, setCategories] = useState([]);
+
+  const fetchData = async () => {
+    try {
+      const [integrationRes, categoryRes] = await Promise.all([
+        API.smsSetting.getAll().catch(() => []),
+        API.smsCategory.getAll().catch(() => [])
+      ]);
+      
+      if (integrationRes && integrationRes.data) setIntegrations(integrationRes.data);
+      else if (Array.isArray(integrationRes)) setIntegrations(integrationRes);
+
+      if (categoryRes && categoryRes.data) setCategories(categoryRes.data);
+      else if (Array.isArray(categoryRes)) setCategories(categoryRes);
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
     }
-  ]);
+  };
+
+  React.useEffect(() => {
+    fetchData();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -67,33 +71,72 @@ const SMSIntegration = () => {
     setFormData({
       url: '', senderText: '', sender: '', countryText: '', country: '',
       routeText: '', route: '', param1Text: '', param1Val: '', param2Text: '',
-      param2Val: '', mobile: '', message: '', dltText: '', integrationType: 'SMS'
+      param2Val: '', mobile: '', message: '', dltText: '', integrationType: ''
     });
     setEditingItem(null);
     setCurrentStep(1);
     setShowModal(false);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingItem) {
-      setIntegrations(integrations.map(item => item.id === editingItem.id ? { ...item, ...formData } : item));
-    } else {
-      setIntegrations([{ ...formData, id: Date.now(), addDate: new Date().toLocaleString() }, ...integrations]);
+    const payload = {
+      id: editingItem ? editingItem.id : 0,
+      url: formData.url,
+      sender: formData.sender,
+      country: formData.country,
+      route: formData.route,
+      param1Text: formData.param1Text,
+      param1Val: formData.param1Val,
+      param2Text: formData.param2Text,
+      param2Val: formData.param2Val,
+      param3Text: formData.mobile,
+      param3Val: formData.message || '',
+      routeText: formData.routeText,
+      countryText: formData.countryText,
+      dltText: formData.dltText,
+      senderText: formData.senderText,
+      isActive: true,
+      msrno: 7198,
+      companyMemberId: 4778,
+      integrationtype: formData.integrationType ? parseInt(formData.integrationType) : 0
+    };
+
+    try {
+      if (editingItem) {
+        await API.smsSetting.update(payload);
+      } else {
+        await API.smsSetting.create(payload);
+      }
+      fetchData();
+      resetForm();
+    } catch (error) {
+      console.error("Error saving integration:", error);
+      alert("Failed to save. Please try again.");
     }
-    resetForm();
   };
 
   const handleEdit = (item) => {
     setEditingItem(item);
-    setFormData({ ...item });
+    setFormData({ 
+      ...item, 
+      mobile: item.param3Text || '', 
+      message: item.param3Val || '',
+      integrationType: item.integrationtype || ''
+    });
     setCurrentStep(1);
     setShowModal(true);
   };
 
-  const handleDelete = () => {
-    setIntegrations(integrations.filter(item => item.id !== showConfirmModal.id));
-    setShowConfirmModal({ isOpen: false, id: null });
+  const handleDelete = async () => {
+    try {
+      await API.smsSetting.delete(showConfirmModal.id);
+      fetchData();
+      setShowConfirmModal({ isOpen: false, id: null });
+    } catch (error) {
+      console.error("Error deleting integration:", error);
+      alert("Failed to delete integration.");
+    }
   };
 
   return (
@@ -103,15 +146,9 @@ const SMSIntegration = () => {
         {/* CARD INTERNAL HEADER */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap' }}>SMS Integration</h2>
-          <button style={{ 
-            display: 'flex', alignItems: 'center', gap: '8px', 
-            background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', 
-            color: '#fff', border: 'none', borderRadius: '8px', 
-            padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, 
-            cursor: 'pointer', boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)' 
-          }} onClick={() => setShowModal(true)}>
+          <PrimaryButton onClick={() => setShowModal(true)}>
             <FaPlus /> <span>New Integration</span>
-          </button>
+          </PrimaryButton>
         </div>
 
         {/* ── TOOLBAR ── */}
@@ -161,8 +198,7 @@ const SMSIntegration = () => {
             <tbody>
               {integrations.length === 0 ? (
                 <tr>
-                   <td colSpan="8" style={{ textAlign: 'center', padding: '80px', color: '#A0AEC0' }}>
-                      <FaDatabase style={{ fontSize: '2.5rem', opacity: 0.2, marginBottom: '10px' }} />
+                   <td colSpan="8" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
                       <div>No active integrations found</div>
                    </td>
                 </tr>
@@ -210,10 +246,16 @@ const SMSIntegration = () => {
                           <small style={{ color: '#718096', fontSize: '0.7rem' }}>DLT: {item.dltText}</small>
                        </div>
                     </td>
-                    <td><span className={styles.badge} style={{ background: '#EBF8FF', color: '#3182CE', fontSize: '0.65rem' }}>{item.integrationType}</span></td>
+                    <td>
+                      <span className={styles.badge} style={{ background: '#EBF8FF', color: '#3182CE', fontSize: '0.65rem' }}>
+                        {item.integrationtype === 1 ? 'SMS' : 
+                         item.integrationtype === 2 ? 'WhatsApp' : 
+                         item.integrationtype === 3 ? 'Email' : 'N/A'}
+                      </span>
+                    </td>
                     <td>
                       <div style={{ fontSize: '0.75rem', color: '#718096' }}>
-                        <FaCalendarAlt style={{ marginRight: '5px', opacity: 0.5 }} /> {item.addDate}
+                        <FaCalendarAlt style={{ marginRight: '5px', opacity: 0.5 }} /> {item.addDate || new Date().toLocaleDateString()}
                       </div>
                     </td>
                   </tr>
@@ -235,7 +277,7 @@ const SMSIntegration = () => {
           paddingRight: '20px',
           paddingBottom: '15px'
         }}>
-          <span style={{ fontSize: '0.75rem', color: '#718096', fontWeight: 600 }}>Showing {integrations.length} entries</span>
+          <span style={{ fontSize: '0.75rem', color: '#718096', fontWeight: 600 }}>Showing {integrations.length > 0 ? 1 : 0} to {integrations.length} of {integrations.length} entries</span>
           <div className={styles.pagination} style={{ display: 'flex', gap: '6px' }}>
             <button className={styles.pageBtn} style={{ 
               width: '32px', 
@@ -417,8 +459,10 @@ const SMSIntegration = () => {
                       <div className={styles.formGroup}>
                          <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4E6080', marginBottom: '6px', display: 'block' }}>API SERVICE TYPE</label>
                          <select name="integrationType" className={styles.selectControl} style={{ height: '40px', fontSize: '0.85rem' }} value={formData.integrationType} onChange={handleInputChange}>
-                            <option value="SMS">Standard SMS Gateway</option>
-                            <option value="WhatsApp">WhatsApp Business API</option>
+                           <option value="">Select Service Type</option>
+                           <option value="1">SMS / Text</option>
+                           <option value="2">WhatsApp</option>
+                           <option value="3">Email</option>
                          </select>
                       </div>
                    </div>
@@ -475,13 +519,13 @@ const SMSIntegration = () => {
                   
                   <div>
                     {currentStep === 1 ? (
-                      <button type="button" className={styles.publishBtn} style={{ height: '40px', padding: '0 30px', fontSize: '0.9rem', gap: '8px' }} onClick={nextStep}>
+                      <PrimaryButton type="button" style={{ height: '40px', padding: '0 30px', fontSize: '0.9rem' }} onClick={nextStep}>
                         Next Step <FaArrowRight />
-                      </button>
+                      </PrimaryButton>
                     ) : (
-                      <button type="submit" className={styles.saveBtn} style={{ height: '40px', padding: '0 35px', fontSize: '0.95rem' }}>
+                      <PrimaryButton type="submit" style={{ height: '40px', padding: '0 35px', fontSize: '0.95rem' }}>
                         <FaCheck /> Save Gateway
-                      </button>
+                      </PrimaryButton>
                     )}
                   </div>
               </div>

@@ -216,12 +216,10 @@ const AEPSReport = () => {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan="12" style={{ padding: '60px 0' }}>
+                  <td colSpan="12" style={{ padding: '20px 0' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
                       <div className={styles.spinner} style={{ width: '30px', height: '30px', borderWidth: '3px' }}></div>
-                      <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>Loading report data...</span>
-                    </div>
-                  </td>
+                      <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>Loading report data...</span></div></td>
                 </tr>
               ) : sampleData.length === 0 ? (
                 <>
@@ -238,9 +236,7 @@ const AEPSReport = () => {
                     <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{index + 1}</td>
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ color: '#1756AA', fontSize: '0.85rem', fontWeight: 800 }}>{item.member || 'N/A'}</span>
-                      </div>
-                    </td>
+                        <span style={{ color: '#1756AA', fontSize: '0.85rem', fontWeight: 800 }}>{item.member || 'N/A'}</span></div></td>
                     <td style={{ textAlign: 'center', fontWeight: 600, color: '#4E6080' }}>{item.opening || '0.00'}</td>
                     <td style={{ textAlign: 'center' }}>
                       <span style={{ fontWeight: 800, color: item.amount > 0 ? '#27AE60' : '#E53E3E' }}>

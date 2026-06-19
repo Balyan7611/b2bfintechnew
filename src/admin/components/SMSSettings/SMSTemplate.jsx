@@ -6,10 +6,7 @@ import { FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint, FaRegMessage } from
 import styles from '../MemberPages/MemberPages.module.css';
 
 const SMSTemplate = () => {
-  const templates = [
-    { id: 1, category: 'Admin Login OTP', content: 'Dear Sir, your Admin Login OTP is {#var#} SonTechno', templateId: '1707171281', date: '27/03/2025' },
-    { id: 2, category: 'Admin Fund Add OTP', content: 'Your {#var#} OTP of Add Fund is do not share this OTP with anyone else. SonTechno', templateId: '1707155979', date: '27/03/2025' },
-  ];
+  const templates = [];
 
   return (
     <div className={styles.container}>
@@ -56,7 +53,11 @@ const SMSTemplate = () => {
               </tr>
             </thead>
             <tbody>
-              {templates.map((tpl, idx) => (
+              {templates.length === 0 ? (
+                <tr>
+                  <td colSpan="100%" style={{ textAlign: 'center', padding: '20px', color: '#718096' }}>No data available</td>
+                </tr>
+              ) : templates.map((tpl, idx) => (
                 <tr key={tpl.id} className={styles.hoverRow}>
                   <td style={{ paddingLeft: '30px', fontWeight: 700, color: '#A0AEC0' }}>0{idx + 1}</td>
                   <td style={{ textAlign: 'center' }}>
@@ -68,9 +69,7 @@ const SMSTemplate = () => {
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <FaRegMessage style={{ color: '#1756AA' }} />
-                      <span style={{ color: '#1756AA', fontSize: '0.95rem', fontWeight: 800 }}>{tpl.category}</span>
-                    </div>
-                  </td>
+                      <span style={{ color: '#1756AA', fontSize: '0.95rem', fontWeight: 800 }}>{tpl.category}</span></div></td>
                   <td>
                     <div style={{ padding: '10px 15px', background: '#F8FAFF', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '0.85rem', color: '#4E6080', fontWeight: 600, lineHeight: 1.6 }}>
                       {tpl.content}

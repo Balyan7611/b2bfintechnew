@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { FiDatabase } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { useDispatch } from 'react-redux';
@@ -13,12 +13,19 @@ import {
 import { updateMemberDirect } from '../../../store/slices/memberSlice';
 import styles from './MemberControlPage.module.css';
 import QuickActionGrid from '../../../shared/components/common/QuickActionGrid';
+import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 
 const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, backLabel = 'to Dashboard' }) => {
   const dispatch = useDispatch();
 
   // ── STATE DECLARATIONS ──
   const [isEditingProfile, setIsEditingProfile] = useState(initialEdit);
+  const [showTpinModal, setShowTpinModal] = useState(false);
+  const [adminTpin, setAdminTpin] = useState(['', '', '', '']);
+  const [adminTpinError, setAdminTpinError] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [pendingProfilePayload, setPendingProfilePayload] = useState(null);
+  const adminTpinRefs = useRef([]);
   const [profileForm, setProfileForm] = useState({
     name: '', mobile: '', shop: '', aadhar: '', pan: '',
     title: 'Mr.', role: 'Retailer', packageId: 'Retailer',
@@ -212,44 +219,47 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
       businessPostOffice: profileForm.businessPostOffice
     };
 
+    setPendingProfilePayload(payload);
+    setAdminTpin(['', '', '', '']);
+    setAdminTpinError('');
+    setShowTpinModal(true);
+  };
+
+  const handleTpinSubmit = async () => {
+    const enteredAdminTpin = adminTpin.join('');
+    if (!enteredAdminTpin || enteredAdminTpin.length < 4) {
+      setAdminTpinError('Please enter full 4-digit Admin TPIN');
+      return;
+    }
+    if (enteredAdminTpin !== '1234') {
+      setAdminTpinError('Incorrect Admin TPIN! (Hint: 1234)');
+      return;
+    }
+
+    setShowTpinModal(false);
+
     try {
-      const res = await API.member.updateMember(activeMemberData.id, payload);
+      const res = await API.member.updateMember(activeMemberData.id, pendingProfilePayload);
       if (res && (res.status === true || res.code === 'TXN')) {
         dispatch(updateMemberDirect({
           id: activeMemberData.id,
-          updates: {
-            name: profileForm.name,
-            mobile: profileForm.mobile,
-            email: profileForm.shop,
-            shopName: profileForm.businessName,
-            aadhar: profileForm.aadhar,
-            pan: profileForm.pan,
-            title: profileForm.title,
-            altMobile: profileForm.altMobile,
-            gender: profileForm.gender,
-            address: profileForm.address,
-            state: profileForm.state,
-            city: profileForm.city,
-            pincode: profileForm.pincode,
-            postOffice: profileForm.postOffice,
-            dob: profileForm.dob,
-            active: profileForm.active,
-            businessName: profileForm.businessName,
-            businessAddress: profileForm.businessAddress,
-            businessCity: profileForm.businessCity,
-            businessState: profileForm.businessState,
-            businessPincode: profileForm.businessPincode,
-            businessPostOffice: profileForm.businessPostOffice
-          }
+          updates: { ...pendingProfilePayload, memberType: pendingProfilePayload.role }
         }));
-        if (backLabel === '') {
-          onClose();
-        } else {
+        
+        setShowSuccessModal(true);
+        setTimeout(() => {
+          setShowSuccessModal(false);
           setIsEditingProfile(false);
-        }
+          if (backLabel === '') {
+            onClose();
+          }
+        }, 2000);
+      } else {
+        setValidationError(res.message || "Failed to update profile.");
       }
-    } catch (err) {
-      console.error("Error updating member profile:", err);
+    } catch (error) {
+      console.error("Profile update error:", error);
+      setValidationError("An error occurred while updating the profile.");
     }
   };
 
@@ -597,15 +607,23 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 }
               }}
               className={styles.editCancelBtn}
+              style={{
+                padding: '10px 24px',
+                background: '#F1F5F9',
+                border: 'none',
+                color: '#475569',
+                borderRadius: '8px',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
             >
               Cancel
             </button>
-            <button 
+            <PrimaryButton 
               type="submit" 
-              className={styles.editSaveBtn}
             >
               Proceed & Save
-            </button>
+            </PrimaryButton>
           </div>
 
         </form>
@@ -1077,6 +1095,84 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 Okay, Got It
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* TPIN Modal */}
+      {showTpinModal && (
+        <div className={styles.errorModalOverlay} onClick={() => setShowTpinModal(false)}>
+          <div className={styles.errorModalCard} onClick={e => e.stopPropagation()} style={{ padding: '30px' }}>
+            <div className={styles.errorModalIconCircle} style={{ background: '#EBF3FC', color: '#1756AA' }}>
+              <FaLock />
+            </div>
+            <h3 style={{ marginTop: '15px', color: '#0D1B3E' }}>Enter Admin TPIN</h3>
+            <p style={{ color: '#4E6080', fontSize: '0.9rem', marginBottom: '20px' }}>Please enter your 4-digit Admin TPIN to proceed.</p>
+            
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '20px' }}>
+              {adminTpin.map((digit, i) => (
+                <input
+                  key={i}
+                  ref={el => adminTpinRefs.current[i] = el}
+                  type="password"
+                  maxLength={1}
+                  value={digit}
+                  onChange={e => {
+                    setAdminTpinError('');
+                    const val = e.target.value.replace(/\D/g, '');
+                    const currentArray = [...adminTpin];
+                    currentArray[i] = val;
+                    setAdminTpin(currentArray);
+                    
+                    if (val && i < 3) {
+                      adminTpinRefs.current[i + 1]?.focus();
+                    }
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Backspace' && !adminTpin[i] && i > 0) {
+                      adminTpinRefs.current[i - 1]?.focus();
+                    } else if (e.key === 'Enter') {
+                      handleTpinSubmit();
+                    }
+                  }}
+                  style={{
+                    width: '45px', height: '45px', textAlign: 'center', fontSize: '1.2rem',
+                    border: adminTpinError ? '1.5px solid #E53E3E' : '1.5px solid #CBD5E1',
+                    borderRadius: '8px', outline: 'none', background: '#F8FAFC'
+                  }}
+                />
+              ))}
+            </div>
+
+            {adminTpinError && <p style={{ color: '#E53E3E', fontSize: '0.8rem', marginTop: '-10px', marginBottom: '15px', textAlign: 'center' }}>{adminTpinError}</p>}
+
+            <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
+              <button 
+                onClick={() => setShowTpinModal(false)}
+                style={{ flex: 1, padding: '10px', background: '#F1F5F9', border: 'none', borderRadius: '8px', color: '#475569', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleTpinSubmit}
+                style={{ flex: 1, padding: '10px', background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                Verify & Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className={styles.errorModalOverlay}>
+          <div className={styles.errorModalCard} style={{ padding: '30px' }}>
+            <div className={styles.errorModalIconCircle} style={{ background: '#E8F5E9', color: '#27AE60' }}>
+              <FaCheckCircle />
+            </div>
+            <h3 style={{ marginTop: '15px', color: '#0D1B3E' }}>Success!</h3>
+            <p style={{ color: '#4E6080', fontSize: '0.95rem' }}>Profile details have been updated successfully.</p>
           </div>
         </div>
       )}

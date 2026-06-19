@@ -24,17 +24,25 @@ const ParentChange = () => {
   const [changesList, setChangesList] = useState([]);
 
   // Load Roles on Mount (for name mapping in handleSave)
-  useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const rolesRes = await API.getRoles();
-        if (rolesRes && Array.isArray(rolesRes)) setRoles(rolesRes);
-        else if (rolesRes && rolesRes.data) setRoles(rolesRes.data);
-      } catch (err) {
-        console.error("Error fetching roles in ParentChange", err);
+  const fetchData = async () => {
+    try {
+      const rolesRes = await API.getRoles();
+      if (rolesRes && Array.isArray(rolesRes)) setRoles(rolesRes);
+      else if (rolesRes && rolesRes.data) setRoles(rolesRes.data);
+
+      const parentChangesRes = await API.parentChangeInformation.getAll();
+      if (parentChangesRes && parentChangesRes.data) {
+        setChangesList(parentChangesRes.data);
+      } else if (Array.isArray(parentChangesRes)) {
+        setChangesList(parentChangesRes);
       }
-    };
-    fetchRoles();
+    } catch (err) {
+      console.error("Error fetching data in ParentChange", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const handleSelectMember = (m) => {
@@ -62,28 +70,25 @@ const ParentChange = () => {
     setFetchedParent(p);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!fetchedMember) return;
     setIsSaving(true);
     
-    setTimeout(() => {
-      const selectedRoleName = roles.find(r => r.id.toString() === selectedRoleId)?.name || fetchedMember.role || "Retailer";
-      const currentParent = fetchedMember.parent || "N/A";
-      const newParentVal = fetchedParent ? `${fetchedParent.memberId} (${fetchedParent.name})` : "N/A";
-      
-      const newChange = {
-        id: Date.now(),
-        member: `${fetchedMember.memberId || fetchedMember.id} (${fetchedMember.name})`,
-        role: fetchedMember.role || "Retailer",
-        roleAfter: selectedRoleName,
-        parent: currentParent,
-        parentAfter: newParentVal,
-        addDate: new Date().toLocaleString()
+    try {
+      const payload = {
+        id: 0,
+        msrno: parseInt(fetchedMember.id || 0),
+        previousRoleId: parseInt(fetchedMember.roleId || 0),
+        currentRoleId: parseInt(selectedRoleId || 0),
+        previousParentId: parseInt(fetchedMember.parentId || 0),
+        currentParentId: fetchedParent ? parseInt(fetchedParent.id || 0) : 0,
+        isDelete: false
       };
 
-      setChangesList(prev => [newChange, ...prev]);
-      setIsSaving(false);
+      await API.parentChangeInformation.create(payload);
+      
       setSuccessMsg("Parent change updated successfully!");
+      fetchData(); // Refresh list from backend
       
       setTimeout(() => setSuccessMsg(""), 3000);
       
@@ -91,7 +96,12 @@ const ParentChange = () => {
       setFetchedMember(null);
       setFetchedParent(null);
       setSelectedRoleId("");
-    }, 1200);
+    } catch (error) {
+      console.error("Error saving parent change:", error);
+      alert("Failed to save parent change. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (

@@ -29,7 +29,7 @@ const CustomSearchSelect = ({ options, placeholder, value, onChange }) => {
   }, []);
 
   return (
-    <div ref={dropdownRef} style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
+      <div ref={dropdownRef} style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
       <div 
         onClick={() => setIsOpen(!isOpen)}
         style={{ 
@@ -268,15 +268,15 @@ const ListOperator = () => {
   };
 
   return (
-    <div className={styles.container} style={{ padding: '15px 12px', maxWidth: '100%' }}>
+    <>
+      <div className={styles.container} style={{ padding: '15px 12px', maxWidth: '100%' }}>
       {/* ── MAIN CARD ── */}
       <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', overflow: 'hidden', background: '#fff' }}>
         
         {/* CARD INTERNAL HEADER (Polished & height decreased) */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', borderRadius: '8px' }}>
-              <FiDatabase style={{ fontSize: '1.1rem' }} />
+            
             </div>
             <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0D1B3E' }}>Operator Registry</h3>
           </div>
@@ -397,9 +397,7 @@ const ListOperator = () => {
                               transition: 'left 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                               boxShadow: '0 1px 3px rgba(0,0,0,0.15)'
                             }} />
-                          </div>
-                        </div>
-                     </td>
+                          </div></div></td>
                      <td>
                        <span style={{ color: '#1756AA', fontSize: '0.95rem', fontWeight: 800 }}>{item.name}</span>
                      </td>
@@ -453,7 +451,6 @@ const ListOperator = () => {
              </div>
            )}
         </div>
-      </div>
 
       {/* ── ADD/EDIT OPERATOR FORM OVERLAY MODAL ── */}
       {formModal.show && (
@@ -630,7 +627,8 @@ const ListOperator = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

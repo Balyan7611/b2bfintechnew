@@ -6,6 +6,7 @@ import {
 import { FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint, FaRupeeSign } from 'react-icons/fa';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import RoleSelect from '../../../shared/components/common/RoleSelect';
+import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const PackageManagement = () => {
@@ -144,15 +145,9 @@ const PackageManagement = () => {
         {/* CARD INTERNAL HEADER */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '10px' }}>
           <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0F172A' }}>Package List</h3>
-          <button style={{ 
-            display: 'flex', alignItems: 'center', gap: '8px', 
-            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', 
-            color: '#fff', border: 'none', borderRadius: '8px', 
-            padding: '10px 20px', fontSize: '0.85rem', fontWeight: 700, 
-            cursor: 'pointer', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)', transition: 'all 0.2s' 
-          }} onClick={handleAddClick}>
+          <PrimaryButton onClick={handleAddClick}>
             <FiPlus size={16} /> <span>Add New Package</span>
-          </button>
+          </PrimaryButton>
         </div>
 
         {errorMsg && (
@@ -232,9 +227,7 @@ const PackageManagement = () => {
                       <td colSpan="8" style={{ textAlign: 'center', padding: '30px 0', color: '#64748B' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                           <FiPackage style={{ fontSize: '1.5rem', opacity: 0.3 }} />
-                          <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span>
-                        </div>
-                      </td>
+                          <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span></div></td>
                     </tr>
                   );
                 }
@@ -474,9 +467,9 @@ const PackageManagement = () => {
                   <button type="button" style={{ padding: '12px 20px', background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#475569', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s', flex: 1 }} onClick={() => setIsModalOpen(false)}>
                     Cancel
                   </button>
-                  <button type="submit" style={{ padding: '12px 20px', background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', border: 'none', color: '#fff', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flex: 1.5, boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)', transition: 'all 0.2s' }} disabled={isLoading}>
+                  <PrimaryButton type="submit" style={{ flex: 1.5 }} disabled={isLoading}>
                     {isLoading ? <div className={styles.spinner} style={{ width: '18px', height: '18px', borderTopColor: '#fff' }}></div> : <>Save Package <FiCheck size={16} /></>}
-                  </button>
+                  </PrimaryButton>
                 </div>
               </form>
             </div>

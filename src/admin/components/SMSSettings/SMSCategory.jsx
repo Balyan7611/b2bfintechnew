@@ -8,13 +8,7 @@ import styles from '../MemberPages/MemberPages.module.css';
 const SMSCategory = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const categories = [
-    { id: 1, name: 'Admin Login OTP', status: 'Active', date: '07/07/2021 17:10:35' },
-    { id: 2, name: 'Admin Fund Add OTP', status: 'Active', date: '07/07/2021 17:10:40' },
-    { id: 3, name: 'Admin Deduct Fund OTP', status: 'Active', date: '07/07/2021 17:10:50' },
-    { id: 4, name: 'Redemption', status: 'Active', date: '09/07/2021 14:00:10' },
-    { id: 5, name: 'Login OTP', status: 'Active', date: '09/07/2021 14:00:25' },
-  ];
+  const categories = [];
 
   return (
     <div className={styles.container}>
@@ -70,7 +64,11 @@ const SMSCategory = () => {
               </tr>
             </thead>
             <tbody>
-              {categories.map((cat, idx) => (
+              {categories.length === 0 ? (
+                <tr>
+                  <td colSpan="100%" style={{ textAlign: 'center', padding: '20px', color: '#718096' }}>No data available</td>
+                </tr>
+              ) : categories.map((cat, idx) => (
                 <tr key={cat.id} className={styles.hoverRow}>
                   <td style={{ paddingLeft: '20px', fontWeight: 700, color: '#A0AEC0' }}>0{idx + 1}</td>
                   <td style={{ textAlign: 'center' }}>
@@ -82,9 +80,7 @@ const SMSCategory = () => {
                   <td style={{ paddingLeft: '15px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                        <FaRegFileAlt style={{ color: '#1756AA' }} />
-                       <span style={{ color: '#1756AA', fontSize: '0.9rem', fontWeight: 800 }}>{cat.name}</span>
-                    </div>
-                  </td>
+                       <span style={{ color: '#1756AA', fontSize: '0.9rem', fontWeight: 800 }}>{cat.name}</span></div></td>
                   <td style={{ textAlign: 'center' }}>
                     <span style={{ background: '#E6F4EA', color: '#1E7E34', padding: '5px 15px', borderRadius: '50px', fontSize: '0.7rem', fontWeight: 800 }}>
                       {cat.status}

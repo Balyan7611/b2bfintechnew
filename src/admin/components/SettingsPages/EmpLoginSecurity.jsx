@@ -26,9 +26,7 @@ const EmpLoginSecurity = () => {
     }, 1500);
   };
 
-  const sampleSecurity = [
-    { id: 1, empName: 'Admin', email: 'admin@gmail.com', ip: '122.176.125.90', addDate: '06/06/2025 12:46:10' }
-  ];
+  const sampleSecurity = [];
 
   return (
     <div className={styles.container} style={{ padding: '20px 25px', maxWidth: '100%' }}>
@@ -107,26 +105,32 @@ const EmpLoginSecurity = () => {
               </tr>
             </thead>
             <tbody>
-              {sampleSecurity.map((item, idx) => (
-                <tr key={item.id} className={styles.hoverRow}>
-                  <td style={{ fontWeight: 700, color: '#64748B', padding: '15px' }}>{idx + 1}</td>
-                  <td style={{ padding: '15px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                       <span style={{ color: '#1E293B', fontSize: '0.95rem', fontWeight: 800 }}>{item.empName}</span>
-                       <span style={{ color: '#64748B', fontSize: '0.85rem', fontWeight: 600 }}>{item.email}</span>
-                    </div>
-                  </td>
-                  <td style={{ color: '#1E293B', fontWeight: 700, padding: '15px' }}>{item.ip}</td>
-                  <td style={{ color: '#64748B', fontWeight: 600, fontSize: '0.85rem', padding: '15px' }}>{item.addDate}</td>
-                  <td style={{ padding: '15px' }}>
-                    <button 
-                       onClick={() => setShowDeleteModal(true)}
-                       style={{ background: '#F43F5E', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 10px rgba(244, 63, 94, 0.2)' }}>
-                       Remove
-                    </button>
+              {sampleSecurity.length === 0 ? (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
+                    No security logs found.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                sampleSecurity.map((item, idx) => (
+                  <tr key={item.id} className={styles.hoverRow}>
+                    <td style={{ fontWeight: 700, color: '#64748B', padding: '15px' }}>{idx + 1}</td>
+                    <td style={{ padding: '15px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                         <span style={{ color: '#1E293B', fontSize: '0.95rem', fontWeight: 800 }}>{item.empName}</span>
+                         <span style={{ color: '#64748B', fontSize: '0.85rem', fontWeight: 600 }}>{item.email}</span></div></td>
+                    <td style={{ color: '#1E293B', fontWeight: 700, padding: '15px' }}>{item.ip}</td>
+                    <td style={{ color: '#64748B', fontWeight: 600, fontSize: '0.85rem', padding: '15px' }}>{item.addDate}</td>
+                    <td style={{ padding: '15px' }}>
+                      <button 
+                         onClick={() => setShowDeleteModal(true)}
+                         style={{ background: '#F43F5E', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 10px rgba(244, 63, 94, 0.2)' }}>
+                         Remove
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -134,7 +138,7 @@ const EmpLoginSecurity = () => {
         {/* ── PAGINATION ── */}
         <div className="global-pagination" style={{ padding: '15px 25px', borderTop: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
-            Showing 1 to 2 of 2 records
+            Showing {sampleSecurity.length > 0 ? 1 : 0} to {sampleSecurity.length} of {sampleSecurity.length} records
           </div>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <button className="global-page-btn" disabled style={{ borderRadius: '8px' }}><FiChevronLeft /></button>

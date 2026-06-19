@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fi';
 import { FaCopy } from 'react-icons/fa';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
+import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import styles from '../MemberPages/MemberPages.module.css';
 import { getLogoUrl, getSignatureUrl, getFaviconUrl } from '../../../config/siteConfig';
 
@@ -348,18 +349,9 @@ const ManageCompany = () => {
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '10px' }}>
             <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>Manage Companies</h3>
-            <button
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                background: 'linear-gradient(135deg,#1756AA,#0D3F85)',
-                color: '#fff', border: 'none', borderRadius: '8px',
-                padding: '9px 18px', fontSize: '0.85rem', fontWeight: 700,
-                cursor: 'pointer', boxShadow: '0 4px 12px rgba(23,86,170,0.25)'
-              }}
-              onClick={() => { setFormData(INIT_FORM); setErrorMsg(''); setViewState('add'); }}
-            >
+            <PrimaryButton onClick={() => { setFormData(INIT_FORM); setErrorMsg(''); setViewState('add'); }}>
               <FiPlus /> Add New Company
-            </button>
+            </PrimaryButton>
           </div>
 
           {/* Error */}
@@ -418,11 +410,8 @@ const ManageCompany = () => {
                 ) : currentEntries.length === 0 ? (
                   <tr>
                     <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                        <FiDatabase style={{ fontSize: '1.8rem', opacity: 0.3 }} />
-                        <span style={{ fontWeight: 600 }}>No companies found</span>
-                      </div>
-                    </td>
+                      
+                        <span style={{ fontWeight: 600 }}>No companies found</span></td>
                   </tr>
                 ) : currentEntries.map((comp, idx) => (
                   <tr key={comp.id} className={styles.hoverRow}>
@@ -463,9 +452,7 @@ const ManageCompany = () => {
                           <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><FiUser size={11} /> {comp.owner || 'N/A'}</span>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><FiMail size={11} /> {comp.email || 'N/A'}</span>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><FiPhone size={11} /> {comp.phone || 'N/A'}</span>
-                        </div>
-                      </div>
-                    </td>
+                        </div></div></td>
                     <td style={{ textAlign: 'left' }}>
                       <span
                         onClick={() => handleToggleStatus(comp.id)}
@@ -818,13 +805,12 @@ const ManageCompany = () => {
                 onClick={() => { setViewState('table'); setFormData(INIT_FORM); setErrorMsg(''); }}
                 style={{ padding: '11px 24px', background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#475569', borderRadius: '10px', fontWeight: 600, cursor: 'pointer' }}
               >Cancel</button>
-              <button
+              <PrimaryButton
                 type="submit"
                 disabled={isSaving}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '11px 28px', background: isSaving ? '#94A3B8' : 'linear-gradient(135deg,#10B981,#059669)', border: 'none', color: '#fff', borderRadius: '10px', fontWeight: 700, cursor: isSaving ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}
               >
                 {isSaving ? <><span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⟳</span> Saving...</> : <><FiCheck /> {formData.id ? 'Update Company' : 'Save Company'}</>}
-              </button>
+              </PrimaryButton>
             </div>
           </form>
         </div>

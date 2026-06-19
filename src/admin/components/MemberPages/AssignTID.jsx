@@ -152,15 +152,13 @@ const AssignTID = () => {
                   <td style={{ fontSize: '0.8rem', color: '#718096', fontWeight: 500 }}>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                        <span><b style={{ opacity: 0.5 }}>LAT:</b> {item.lat}</span>
-                       <span><b style={{ opacity: 0.5 }}>LNG:</b> {item.lng}</span>
-                    </div>
-                  </td>
+                       <span><b style={{ opacity: 0.5 }}>LNG:</b> {item.lng}</span></div></td>
                 </tr>
               )) : (
                 <tr>
                   <td colSpan="9" style={{ padding: 0, background: '#fff' }}>
                     <div style={{ position: 'sticky', left: 0, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px', color: '#A0AEC0' }}>
-                      <div style={{ fontSize: '2.5rem', marginBottom: '10px', opacity: 0.3 }}><FaDatabase /></div>
+                      
                       No terminal assignments found
                     </div>
                   </td>

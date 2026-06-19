@@ -114,12 +114,9 @@ const MoneyWalletLoadHistory = () => {
             </thead>
             <tbody>
               <tr>
-                <td colSpan="17" style={{ textAlign: 'center', padding: '60px 0', color: '#A0AEC0' }}>
-                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                     <FiDatabase style={{ fontSize: '2rem', opacity: 0.3 }} />
-                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No wallet load history found</span>
-                   </div>
-                </td>
+                <td colSpan="17" style={{ textAlign: 'center', padding: '20px 0', color: '#A0AEC0' }}>
+                   
+                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No wallet load history found</span></td>
               </tr>
             </tbody>
           </table>

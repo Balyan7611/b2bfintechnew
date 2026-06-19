@@ -29,10 +29,7 @@ const ManageNews = () => {
   const [deleteTargetId, setDeleteTargetId] = useState(null);
 
   // List State
-  const [newsList, setNewsList] = useState([
-    { id: 1, title: 'Server Maintenance Notice', type: 'Global', status: true, addDate: '27/03/2025', expiryDate: '', content: 'Our servers will be down for maintenance...' },
-    { id: 2, title: 'Diwali Cashback Offer', type: 'Retailer', status: true, addDate: '27/03/2025', expiryDate: '', content: 'Enjoy 5% extra cashback on all recharges...' },
-  ]);
+  const [newsList, setNewsList] = useState([]);
 
   const executeCommand = (command, value = null) => {
     document.execCommand(command, false, value);
@@ -200,43 +197,49 @@ const ManageNews = () => {
               </tr>
             </thead>
             <tbody>
-              {newsList.map((item, idx) => (
-                <tr key={item.id} className={styles.hoverRow}>
-                  <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{idx + 1}</td>
-                  <td style={{ textAlign: 'center' }}>
-                     <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                        <button onClick={() => handleEdit(item)} className={styles.editBtn} style={{ background: 'transparent', border: 'none', color: '#1756AA', fontSize: '1.1rem', padding: 0, cursor: 'pointer' }} title="Edit News"><FiEdit /></button>
-                        <button onClick={() => handleDelete(item.id)} className={styles.deleteBtn} style={{ background: 'transparent', border: 'none', color: '#E53E3E', fontSize: '1.1rem', padding: 0, cursor: 'pointer' }} title="Remove News"><FiTrash2 /></button>
-                     </div>
+              {newsList.length === 0 ? (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
+                    No news items available.
                   </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px' }}>
-                       <div style={{ width: '36px', height: '36px', background: 'rgba(23, 86, 170, 0.05)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA', marginTop: '3px' }}>
-                          <FiBell />
-                       </div>
-                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <span style={{ color: '#1756AA', fontSize: '0.95rem', fontWeight: 800 }}>{item.title}</span>
-                          <p 
-                            style={{ color: '#718096', fontSize: '0.75rem', margin: 0, fontWeight: 500, lineHeight: 1.5 }}
-                            dangerouslySetInnerHTML={{ __html: sanitizeHTML(item.content.length > 80 ? item.content.substring(0, 80) + '...' : item.content) }}
-                          />
-                       </div>
-                    </div>
-                  </td>
-                  <td style={{ textAlign: 'left' }}>
-                     <span style={{ background: '#F1F5F9', color: '#4E6080', padding: '4px 12px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                       <FiGlobe style={{ fontSize: '0.8rem' }} /> {item.type}
-                     </span>
-                  </td>
-                  <td style={{ textAlign: 'left' }}>
-                     <label className={styles.switch} style={{ transform: 'scale(0.8)', margin: 0 }}>
-                        <input type="checkbox" checked={item.status} onChange={() => handleToggleStatus(item.id)} />
-                        <span className={styles.slider}></span>
-                      </label>
-                  </td>
-                  <td style={{ textAlign: 'left', color: '#718096', fontWeight: 700, fontSize: '0.85rem' }}>{item.addDate}</td>
                 </tr>
-              ))}
+              ) : (
+                newsList.map((item, idx) => (
+                  <tr key={item.id} className={styles.hoverRow}>
+                    <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{idx + 1}</td>
+                    <td style={{ textAlign: 'center' }}>
+                       <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                          <button onClick={() => handleEdit(item)} className={styles.editBtn} style={{ background: 'transparent', border: 'none', color: '#1756AA', fontSize: '1.1rem', padding: 0, cursor: 'pointer' }} title="Edit News"><FiEdit /></button>
+                          <button onClick={() => handleDelete(item.id)} className={styles.deleteBtn} style={{ background: 'transparent', border: 'none', color: '#E53E3E', fontSize: '1.1rem', padding: 0, cursor: 'pointer' }} title="Remove News"><FiTrash2 /></button>
+                       </div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px' }}>
+                         <div style={{ width: '36px', height: '36px', background: 'rgba(23, 86, 170, 0.05)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA', marginTop: '3px' }}>
+                            <FiBell />
+                         </div>
+                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <span style={{ color: '#1756AA', fontSize: '0.95rem', fontWeight: 800 }}>{item.title}</span>
+                            <p 
+                              style={{ color: '#718096', fontSize: '0.75rem', margin: 0, fontWeight: 500, lineHeight: 1.5 }}
+                              dangerouslySetInnerHTML={{ __html: sanitizeHTML(item.content.length > 80 ? item.content.substring(0, 80) + '...' : item.content) }}
+                            />
+                         </div></div></td>
+                    <td style={{ textAlign: 'left' }}>
+                       <span style={{ background: '#F1F5F9', color: '#4E6080', padding: '4px 12px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                         <FiGlobe style={{ fontSize: '0.8rem' }} /> {item.type}
+                       </span>
+                    </td>
+                    <td style={{ textAlign: 'left' }}>
+                       <label className={styles.switch} style={{ transform: 'scale(0.8)', margin: 0 }}>
+                          <input type="checkbox" checked={item.status} onChange={() => handleToggleStatus(item.id)} />
+                          <span className={styles.slider}></span>
+                        </label>
+                    </td>
+                    <td style={{ textAlign: 'left', color: '#718096', fontWeight: 700, fontSize: '0.85rem' }}>{item.addDate}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -244,7 +247,7 @@ const ManageNews = () => {
         {/* ── PAGINATION ── */}
         <div className="global-pagination" style={{ padding: '20px 25px', borderTop: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
-            Showing 1 to {newsList.length} of {newsList.length} records
+            Showing {newsList.length > 0 ? 1 : 0} to {newsList.length} of {newsList.length} records
           </div>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <button className="global-page-btn" disabled style={{ borderRadius: '8px' }}><FiChevronLeft /></button>

@@ -445,89 +445,108 @@
 
 /* Edit Profile Form Page */
 .editProfileFormPage {
-  padding: 24px 28px;
-  background: #ffffff;
+  padding: 30px;
+  background: #F8FAFC; /* Softer background */
   display: flex;
   flex-direction: column;
-  animation: fadeIn 0.25s ease-out;
+  animation: fadeIn 0.3s ease-out;
+  gap: 24px;
 }
 
 .formSection {
   background: #ffffff;
-  border-radius: 12px;
-  border: 1px solid #F1F5F9;
-  padding: 20px;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 12px rgba(13, 27, 62, 0.01);
+  border-radius: 16px; /* Rounder corners */
+  border: 1px solid #E2E8F0;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Premium soft shadow */
+  transition: all 0.3s ease;
+}
+
+.formSection:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); /* Hover effect */
+  transform: translateY(-2px);
 }
 
 .formSectionHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1.5px solid #F1F5F9;
-  padding-bottom: 12px;
-  margin-bottom: 20px;
+  border-bottom: 2px solid #F1F5F9;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .formSectionTitle {
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   font-weight: 800;
-  color: #1756AA;
+  color: #0F172A; /* Darker title */
   margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.formSectionTitle::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+  border-radius: 4px;
 }
 
 .roleBadge {
-  background: rgba(39, 174, 96, 0.08);
-  color: #27AE60;
-  border: 1px solid rgba(39, 174, 96, 0.2);
-  border-radius: 4px;
-  padding: 3px 8px;
-  font-size: 0.68rem;
+  background: rgba(59, 130, 246, 0.1);
+  color: #3B82F6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .formGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px 24px;
+  gap: 24px; /* More spacing */
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .formGroup label {
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: #4E6080;
+  color: #334155;
 }
 
 .formInput {
-  padding: 8px 12px;
-  border: 1px solid #CBD5E1;
-  border-radius: 8px;
-  font-size: 0.82rem;
+  padding: 10px 14px;
+  border: 1.5px solid #E2E8F0; /* Slightly thicker border */
+  border-radius: 10px; /* Rounder inputs */
+  font-size: 0.85rem;
   font-family: inherit;
-  color: #0D1B3E;
-  background: #ffffff;
+  color: #0F172A;
+  background: #F8FAFC; /* Greyish background */
   outline: none;
   transition: all 0.2s ease;
 }
 
 .formInput:focus {
-  border-color: #1756AA;
-  box-shadow: 0 0 0 3px rgba(23, 86, 170, 0.08);
+  background: #ffffff;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
 .formInput[readonly] {
-  background: #F8FAFF;
+  background: #F1F5F9;
   border-color: #E2E8F0;
-  color: #718096;
+  color: #94A3B8;
   cursor: not-allowed;
 }
 

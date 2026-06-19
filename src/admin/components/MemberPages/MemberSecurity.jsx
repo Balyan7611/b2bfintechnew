@@ -7,47 +7,153 @@ import {
   FaCopy, FaFileExcel, FaFileCsv, FaFilePdf, FaPrint
 } from 'react-icons/fa';
 import { updateSecurityToggle } from '../../../store/slices/memberSlice';
+import { API } from '../../../api/endpoints';
 import styles from './MemberPages.module.css';
 
 const MemberSecurity = () => {
   const dispatch = useDispatch();
   const { securityState } = useSelector((s) => s.member);
-  const { globalToggles, memberList } = securityState;
+  const { memberList } = securityState;
   const [searchQuery, setSearchQuery] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Sample data integration if memberList is empty (for demo/UI check)
-  const displayList = memberList && memberList.length > 0 ? memberList : [
-    { id: '1', name: 'Pay99RT4190', memberId: '', twoWay: true, otp: true, tpin: false },
-    { id: '2', name: 'Pay99RT4193', memberId: '', twoWay: true, otp: true, tpin: false },
-    { id: '3', name: 'Pay99RT4200', memberId: '', twoWay: true, otp: false, tpin: false },
-    { id: '4', name: 'Pay99RT4254', memberId: '', twoWay: true, otp: false, tpin: false },
-    { id: '5', name: 'Pay99RT4521', memberId: '', twoWay: true, otp: false, tpin: false },
-    { id: '6', name: 'Aabid Hussain', memberId: 'Pay99RT4412', twoWay: true, otp: false, tpin: false },
-    { id: '7', name: 'Aakash', memberId: 'Pay99RT4477', twoWay: true, otp: false, tpin: false },
-    { id: '8', name: 'Aakash Gautam', memberId: 'Pay99RT4489', twoWay: true, otp: false, tpin: false },
-    { id: '9', name: 'Aakash Tyagi', memberId: 'Pay99RT4547', twoWay: true, otp: false, tpin: false },
-    { id: '10', name: 'Askib', memberId: 'Pay99RT4528', twoWay: true, otp: false, tpin: false },
-  ];
+  // Local state for UI functionality
+  const [members, setMembers] = useState([]);
 
-  const handleToggle = (id, field) => {
-    dispatch(updateSecurityToggle({ id, field }));
+  const fetchMembers = async () => {
+    try {
+      const response = await API.memberSecurity.getAll();
+      if (response && response.data) {
+        setMembers(response.data);
+      } else if (Array.isArray(response)) {
+        setMembers(response);
+      }
+    } catch (error) {
+      console.error("Failed to fetch member security settings:", error);
+    }
   };
 
-  const filteredMembers = displayList.filter(m =>
+  useEffect(() => {
+    fetchMembers();
+  }, []);
+
+  const [globalToggles, setGlobalToggles] = useState(
+    securityState.globalToggles || { twoWay: true, otp: false, tpin: false }
+  );
+
+  const handleGlobalToggle = (field) => {
+    setGlobalToggles(prev => {
+      const newValue = !prev[field];
+      const newGlobal = { ...prev, [field]: newValue };
+      
+      // If turning off Two Way Auth, turn off OTP and TPIN globally too
+      if (field === 'twoWay' && !newValue) {
+         newGlobal.otp = false;
+         newGlobal.tpin = false;
+      }
+
+      // OTP and TPIN are mutually exclusive
+      if (field === 'otp' && newValue) {
+         newGlobal.tpin = false;
+      }
+      if (field === 'tpin' && newValue) {
+         newGlobal.otp = false;
+      }
+      
+      // Update all members to match the global toggle
+      setMembers(membersList => membersList.map(m => {
+        let updatedMember = { ...m, [field]: newValue };
+        if (field === 'twoWay' && !newValue) {
+           updatedMember.otp = false;
+           updatedMember.tpin = false;
+        }
+        if (field === 'otp' && newValue) {
+           updatedMember.tpin = false;
+        }
+        if (field === 'tpin' && newValue) {
+           updatedMember.otp = false;
+        }
+        return updatedMember;
+      }));
+      
+      return newGlobal;
+    });
+  };
+
+  const handleToggle = async (id, field) => {
+    const memberIndex = members.findIndex(m => m.id === id);
+    if (memberIndex === -1) return;
+
+    const m = members[memberIndex];
+    let updatedMember = { ...m, [field]: !m[field] };
+    
+    // UI logic mapping
+    const fieldMapping = {
+      'twoWay': 'twoWay',
+      'otp': 'isOtp',
+      'tpin': 'isTpin'
+    };
+
+    const isOtp = field === 'otp' ? updatedMember.otp : m.isOtp;
+    const isTpin = field === 'tpin' ? updatedMember.tpin : m.isTpin;
+
+    if (field === 'twoWay' && !updatedMember.twoWay) {
+       updatedMember.otp = false;
+       updatedMember.tpin = false;
+       updatedMember.isOtp = false;
+       updatedMember.isTpin = false;
+    }
+    
+    if (field === 'otp' && updatedMember.otp) {
+       updatedMember.tpin = false;
+       updatedMember.isTpin = false;
+       updatedMember.isOtp = true;
+    }
+    if (field === 'tpin' && updatedMember.tpin) {
+       updatedMember.otp = false;
+       updatedMember.isOtp = false;
+       updatedMember.isTpin = true;
+    }
+
+    // Set optimistic UI update
+    setMembers(membersList => membersList.map(member => member.id === id ? updatedMember : member));
+
+    try {
+      const payload = {
+        id: updatedMember.id,
+        msrno: updatedMember.msrno || 0,
+        twoWay: updatedMember.twoWay || false,
+        isOtp: updatedMember.isOtp || updatedMember.otp || false,
+        isTpin: updatedMember.isTpin || updatedMember.tpin || false,
+        isPattern: updatedMember.isPattern || false,
+        isGoogleAuth: updatedMember.isGoogleAuth || false,
+        authKey: updatedMember.authKey || "string",
+        isSeparateProfitWallet: updatedMember.isSeparateProfitWallet || false
+      };
+      await API.memberSecurity.update(payload);
+    } catch (error) {
+      console.error("Failed to update security:", error);
+      alert("Failed to update security setting.");
+      // Revert on error
+      setMembers(membersList => membersList.map(member => member.id === id ? m : member));
+    }
+  };
+
+  const filteredMembers = members.filter(m =>
     m.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     m.memberId?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const GlobalToggleCard = ({ label, field, active, disabled }) => (
-    <div className={styles.premiumToggleCard} style={disabled ? { opacity: 0.5, cursor: 'not-allowed', pointerEvents: 'none' } : {}}>
-      <span className={styles.premiumToggleLabel}>{label}</span>
-      <label className={`${styles.switch} ${styles.switchSmall}`}>
+    <div className={styles.premiumToggleCard} style={{ ...(disabled ? { opacity: 0.5, cursor: 'not-allowed', pointerEvents: 'none' } : {}), padding: '8px 12px', minWidth: 'auto', display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', borderRadius: '50px', border: '1px solid #E2E8F0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+      <span className={styles.premiumToggleLabel} style={{ margin: 0, fontSize: '0.85rem', fontWeight: 600, color: '#1E293B' }}>{label}</span>
+      <label className={`${styles.switch} ${styles.switchSmall}`} style={{ margin: 0 }}>
         <input 
           type="checkbox" 
           checked={active} 
           disabled={disabled}
-          onChange={() => handleToggle('global', field)} 
+          onChange={() => handleGlobalToggle(field)} 
         />
         <span className={styles.slider}></span>
       </label>
@@ -112,9 +218,9 @@ const MemberSecurity = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredMembers.length > 0 ? filteredMembers.slice(0, rowsPerPage).map((m, idx) => (
+              {filteredMembers.length > 0 ? filteredMembers.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage).map((m, idx) => (
                 <tr key={m.id}>
-                  <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{idx + 1}</td>
+                  <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{(currentPage - 1) * rowsPerPage + idx + 1}</td>
                   <td className={styles.fwBold}>{m.name}</td>
                   <td style={{ color: '#1756AA', fontWeight: 700 }}>{m.memberId || '—'}</td>
                   <td style={{ textAlign: 'center' }}>
@@ -129,9 +235,7 @@ const MemberSecurity = () => {
                       </label>
                       <span style={{ fontSize: '0.6rem', fontWeight: 800, color: m.twoWay ? '#27AE60' : '#A0AEC0' }}>
                         {m.twoWay ? 'ON' : 'OFF'}
-                      </span>
-                    </div>
-                  </td>
+                      </span></div></td>
                   <td style={{ textAlign: 'center' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                       <label className={`${styles.switch} ${styles.switchSmall}`} style={!m.twoWay ? { opacity: 0.5, cursor: 'not-allowed', pointerEvents: 'none' } : {}}>
@@ -145,9 +249,7 @@ const MemberSecurity = () => {
                       </label>
                       <span style={{ fontSize: '0.6rem', fontWeight: 800, color: m.twoWay && m.otp ? '#27AE60' : '#A0AEC0' }}>
                         {m.otp ? 'ON' : 'OFF'}
-                      </span>
-                    </div>
-                  </td>
+                      </span></div></td>
                   <td style={{ textAlign: 'center' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                       <label className={`${styles.switch} ${styles.switchSmall}`} style={!m.twoWay ? { opacity: 0.5, cursor: 'not-allowed', pointerEvents: 'none' } : {}}>
@@ -161,9 +263,7 @@ const MemberSecurity = () => {
                       </label>
                       <span style={{ fontSize: '0.6rem', fontWeight: 800, color: m.twoWay && m.tpin ? '#27AE60' : '#A0AEC0' }}>
                         {m.tpin ? 'ON' : 'OFF'}
-                      </span>
-                    </div>
-                  </td>
+                      </span></div></td>
                 </tr>
               )) : (
                 <tr>
@@ -181,14 +281,25 @@ const MemberSecurity = () => {
         {/* ── PAGINATION ── */}
         <div className={styles.paginationRow}>
           <span className={styles.paginationInfo}>
-            Showing 1 to {Math.min(rowsPerPage, filteredMembers.length)} of {filteredMembers.length} entries
+            Showing {filteredMembers.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1} to {Math.min(currentPage * rowsPerPage, filteredMembers.length)} of {filteredMembers.length} entries
           </span>
           
           <div className={styles.paginationControls}>
-            <button className={styles.pageBtn} disabled>
+            <button 
+              className={styles.pageBtn} 
+              onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+            >
               <FaChevronLeft />
             </button>
-            <button className={styles.pageBtn}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '35px', height: '35px', background: '#1756AA', color: 'white', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem' }}>
+              {currentPage}
+            </div>
+            <button 
+              className={styles.pageBtn} 
+              onClick={() => setCurrentPage(p => Math.min(p + 1, Math.ceil(filteredMembers.length / rowsPerPage) || 1))}
+              disabled={currentPage === (Math.ceil(filteredMembers.length / rowsPerPage) || 1)}
+            >
               <FaChevronRight />
             </button>
           </div>

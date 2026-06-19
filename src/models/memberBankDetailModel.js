@@ -1,30 +1,21 @@
-// src/models/memberBankDetailModel.js
-
-const mapBoolean = (val) => val === true || val === 'true' || val === 1 || val === '1';
-
 export const MemberBankDetailResponseModel = (res) => {
     if (!res || !res.status) return [];
     const items = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);
     return items.map(item => ({
         id: item.id || 0,
         msrno: item.msrno || 0,
-        bankId: item.bankId || item.bankid || 0,
+        bankId: item.bankId || 0,
         name: item.name || "",
-        ifsccode: item.ifsccode || item.ifscCode || item.ifsc || "",
+        ifsccode: item.ifsccode || "",
         accountNumber: item.accountNumber || "",
         accountHolderName: item.accountHolderName || "",
         branchName: item.branchName || "",
-        isActive: mapBoolean(item.isActive),
-        isDelete: mapBoolean(item.isDelete),
-        documentVerify: mapBoolean(item.documentVerify),
+        isActive: item.isActive === true || item.isActive === 1,
+        isDelete: item.isDelete === true || item.isDelete === 1,
+        documentVerify: item.documentVerify === true || item.documentVerify === 1,
         beneId: item.beneId || 0,
         result: item.result || "",
-        document: item.document || "",
-        createdBy: item.createdBy || null,
-        createdDate: item.createdDate || "",
-        modifiedBy: item.modifiedBy || null,
-        modifiedDate: item.modifiedDate || "",
-        rowVersion: item.rowVersion || ""
+        document: item.document || ""
     }));
 };
 
@@ -32,22 +23,17 @@ export const MemberBankDetailRequestModel = (data) => {
     return {
         id: parseInt(data.id) || 0,
         msrno: parseInt(data.msrno) || 0,
-        bankId: parseInt(data.bankId || data.bankid) || 0,
+        bankId: parseInt(data.bankId) || 0,
         name: data.name || "",
-        ifsccode: data.ifsccode || data.ifscCode || data.ifsc || "",
+        ifsccode: data.ifsccode || "",
         accountNumber: data.accountNumber || "",
         accountHolderName: data.accountHolderName || "",
         branchName: data.branchName || "",
-        isActive: mapBoolean(data.isActive),
-        isDelete: mapBoolean(data.isDelete),
-        documentVerify: mapBoolean(data.documentVerify),
+        isActive: data.isActive === true || data.isActive === 1,
+        isDelete: data.isDelete === true || data.isDelete === 1,
+        documentVerify: data.documentVerify === true || data.documentVerify === 1,
         beneId: parseInt(data.beneId) || 0,
         result: data.result || "",
-        document: data.document || "",
-        createdBy: data.createdBy || null,
-        createdDate: data.createdDate || new Date().toISOString(),
-        modifiedBy: data.modifiedBy || null,
-        modifiedDate: data.modifiedDate || new Date().toISOString(),
-        rowVersion: data.rowVersion || ""
+        document: data.document || ""
     };
 };

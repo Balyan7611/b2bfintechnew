@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { 
   FiShield, FiLock, FiCheckCircle, FiInfo, FiSmartphone, FiCreditCard, FiUserPlus, FiUsers, FiDollarSign, FiActivity
 } from 'react-icons/fi';
+import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const ToggleItem = ({ label, stateKey, permissions, handleToggle, disabled = false }) => (
@@ -129,22 +130,13 @@ const PermissionSetting = () => {
   };
 
   const saveButton = (
-    <button onClick={handleSave} disabled={isSaving} style={{ 
-      display: 'flex', alignItems: 'center', gap: '8px', 
-      background: isSaving ? '#64748B' : 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', 
-      color: '#fff', border: 'none', borderRadius: '10px', 
-      padding: '8px 20px', fontSize: '0.85rem', fontWeight: 700, 
-      cursor: isSaving ? 'not-allowed' : 'pointer',
-      boxShadow: isSaving ? 'none' : '0 4px 12px rgba(59, 130, 246, 0.3)',
-      transition: 'all 0.3s ease'
-    }}>
+    <PrimaryButton onClick={handleSave} disabled={isSaving}>
       {isSaving ? (
         <FiActivity className="spinner" size={16} style={{ animation: 'spin 1s linear infinite' }} />
       ) : (
-        <FiCheckCircle size={16} /> 
+        <><FiCheckCircle size={16} /> Save Permissions</>
       )}
-      <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
-    </button>
+    </PrimaryButton>
   );
 
   return (

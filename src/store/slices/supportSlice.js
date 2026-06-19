@@ -1,28 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { SITE_CONFIG } from '../../config/siteConfig';
 
-const SAMPLE_DATA = [
-  { id: 1, ticketId: 'Ticket 17', loginId: 'Pay99RT4003', name: 'Vivek Varshney', service: 'Recharge', message: 'recharge not work', date: '19/04/2025', status: 'Pending', approveDate: '-' },
-  { id: 2, ticketId: 'Ticket 18', loginId: 'Pay99RT4003', name: 'Vivek Varshney', service: 'DL Verification', message: 'it', date: '19/04/2025', status: 'Approved', approveDate: '20/04/2025' },
-  { id: 3, ticketId: 'Ticket 22', loginId: 'Pay99RT4003', name: 'Vivek Varshney', service: 'Recharge', message: 'gg', date: '29/04/2025', status: 'Pending', approveDate: '-' },
-  { id: 4, ticketId: 'Ticket 23', loginId: 'Pay99RT4003', name: 'Vivek Varshney', service: 'Internet', message: 'poopvrtqrqvcc', date: '29/04/2025', status: 'Pending', approveDate: '-' },
-  { id: 5, ticketId: 'Ticket 24', loginId: 'Pay99RT4003', name: 'Vivek Varshney', service: 'Recharge', message: 'good recharge service', date: '29/04/2025', status: 'Pending', approveDate: '-' },
-  { id: 6, ticketId: 'Ticket 25', loginId: 'Pay99RT4008', name: 'Rohit', service: 'Recharge', message: 'very good', date: '30/04/2025', status: 'Pending', approveDate: '-' },
-  { id: 7, ticketId: 'Ticket 1', loginId: 'Pay99RT4015', name: 'Vikram', service: 'AEPS', message: 'active my id', date: '18/03/2025', status: 'Pending', approveDate: '-' },
-  { id: 8, ticketId: 'Ticket 2', loginId: 'Pay99RT4015', name: 'Vikram', service: 'Aadhar Pay', message: 'not working', date: '25/03/2025', status: 'Pending', approveDate: '-' },
-  { id: 9, ticketId: 'Ticket 4', loginId: 'Pay99RT4015', name: 'Vikram', service: 'AEPS', message: 'not working', date: '01/04/2025', status: 'Pending', approveDate: '-' },
-  { id: 10, ticketId: 'Ticket 13', loginId: 'Pay99RT4049', name: 'Satyendra Kumar Ravi', service: 'Recharge', message: '', date: '19/04/2025', status: 'Pending', approveDate: '-' },
-];
+const SAMPLE_DATA = [];
 
-const MANAGE_SUPPORT_SAMPLE = [
-  {
-    id: 1,
-    name: 'Support',
-    description: `<p><strong>WELCOME TO ${SITE_CONFIG.brandName}</strong></p><p>Support available 10 to 7 PM</p><p>Call no. = ${SITE_CONFIG.phone}</p><p>WhatsApp no. = ${SITE_CONFIG.phone}</p>`,
-    status: 'Active',
-    addDate: '27/03/2025 15:03',
-  },
-];
+const MANAGE_SUPPORT_SAMPLE = [];
 
 const getFormattedDate = () => {
   const d = new Date();
@@ -111,11 +92,7 @@ const supportSlice = createSlice({
       state.chatInput = '';
       // Seed default messages if none exist for this ticket
       if (!state.chatMessages[ticket.id]) {
-        state.chatMessages[ticket.id] = [
-          { sender: 'user', text: ticket.message || 'Hello, I need help.', time: '10:30 AM' },
-          { sender: 'admin', text: 'Please share your mobile number.', time: '10:32 AM' },
-          { sender: 'user', text: '9876543210', time: '10:33 AM' },
-        ];
+        state.chatMessages[ticket.id] = [];
       }
     },
     closeChat: (state) => {

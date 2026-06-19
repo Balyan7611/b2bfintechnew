@@ -1,12 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  apiList: [
-    { id: 1, apiId: '1', name: 'SoniTechno', createDate: '09/08/2022 22:33:10', lastUpdate: '16/05/2025 17:49:57', status: true }
-  ],
-  apiBalances: [
-    { id: 1, name: 'SoniTechno', balance: 'Rs. Invalid IP and Token' }
-  ],
+  apiList: [],
+  apiBalances: [],
   isLoading: false
 };
 

@@ -1,10 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  staffList: [
-    { id: 1, memberId: 'admin@gmail.com', name: 'Admin', email: 'sales@betasourcesoftware.com', mobile: '7611887834', doj: '09/08/2022', password: '•••••', tpin: '1234', active: true },
-    { id: 2, memberId: 'honey123', name: 'honey', email: 'honey123123@gmail.com', mobile: '9782477712', doj: '04/06/2025', password: '•••••', tpin: '1234', active: true },
-  ],
+  staffList: [],
   staffForm: {
     role: '', name: '', age: '', email: '', mobile: '', loginId: '',
     loginPin: '', password: '', pan: '', aadhar: '', address: '', pincode: '', active: true
@@ -23,24 +20,11 @@ const initialState = {
   },
   securityState: {
     globalToggles: { twoWay: true, otp: true, tpin: false },
-    memberList: [
-      { id: 1, name: 'Pay99RT4190', memberId: '—', twoWay: true, otp: true, tpin: false },
-      { id: 2, name: 'Pay99RT4193', memberId: '—', twoWay: true, otp: true, tpin: false },
-      { id: 3, name: 'Pay99RT4200', memberId: '—', twoWay: true, otp: true, tpin: false },
-      { id: 4, name: 'Pay99RT4254', memberId: '—', twoWay: true, otp: true, tpin: false },
-      { id: 5, name: 'Pay99RT4521', memberId: '—', twoWay: true, otp: true, tpin: false },
-      { id: 6, name: 'Aabid Hussain', memberId: 'Pay99RT4412', twoWay: true, otp: true, tpin: false },
-      { id: 7, name: 'Aakash', memberId: 'Pay99RT4477', twoWay: true, otp: true, tpin: false },
-      { id: 8, name: 'Aakash Gautam', memberId: 'Pay99RT4489', twoWay: true, otp: true, tpin: false },
-      { id: 9, name: 'Aakash Tyagi', memberId: 'Pay99RT4547', twoWay: true, otp: true, tpin: false },
-      { id: 10, name: 'Askib', memberId: 'Pay99RT4528', twoWay: true, otp: true, tpin: false },
-    ]
+    memberList: []
   },
   creditLimitState: {
     form: { memberId: '', amount: '0', narration: '', mode: '' },
-    list: [
-      { id: 1, member: 'VIVEK VARSHNEY (MDT8597)', amount: '5000', narration: 'Opening credit', factor: 'Add', date: '25/09/2025' },
-    ]
+    list: []
   },
   manageMemberState: {
     filters: { fromDate: '', toDate: '', role: '', search: '', memberType: 'All', kycStatus: 'All' },
@@ -57,17 +41,7 @@ const initialState = {
   },
   tidState: {
     form: { member: '', status: '', aepsid: '', mobile: '0', pin: '0', lat: '0.00', lng: '0.00' },
-    list: [
-      { id: 1, member: 'RT1236 Sachin Balyan [6377487868]', aepsid: 'd', bank: 'bank6', status: 'Accepted', mobile: '6377487868', pin: '0', lat: '0.00', lng: '0.00' },
-      { id: 2, member: 'Pay99DT5001 vivek varshney [9355196019]', aepsid: '129253', bank: 'bank6', status: 'Accepted', mobile: '9355196019', pin: '0', lat: '0.00', lng: '0.00' },
-      { id: 3, member: 'Pay99RT4003 vivek varshney [8700683809]', aepsid: '129252', bank: 'bank6', status: 'Accepted', mobile: '9716800202', pin: '0', lat: '28.37', lng: '77.28' },
-      { id: 4, member: 'Pay99RT4005 Satish Kumar [8700294647]', aepsid: '490871', bank: 'bank6', status: 'Accepted', mobile: '8700294647', pin: '0', lat: '0.00', lng: '0.00' },
-      { id: 5, member: 'Pay99RT4006 Rohit [9560931035]', aepsid: '137741', bank: 'bank6', status: 'Accepted', mobile: '0', pin: '0', lat: '28.37', lng: '77.27' },
-      { id: 6, member: 'Pay99RT4008 Chaman Lal [9899729232]', aepsid: '130077', bank: 'bank6', status: 'Accepted', mobile: '9899729232', pin: '0', lat: '0.00', lng: '0.00' },
-      { id: 7, member: 'Pay99RT4011 Gaurav Kumar [7017250455]', aepsid: '279211', bank: 'bank6', status: 'Accepted', mobile: '7017250455', pin: '0', lat: '0.00', lng: '0.00' },
-      { id: 8, member: 'Pay99RT4013 Prakash Singh Singwal [8881550888]', aepsid: '475607', bank: 'bank6', status: 'Accepted', mobile: '8881550888', pin: '0', lat: '0.00', lng: '0.00' },
-      { id: 9, member: 'Pay99RT4014 Pooja Tomar [8826396131]', aepsid: '455252', bank: 'bank6', status: 'Accepted', mobile: '8826396131', pin: '0', lat: '0.00', lng: '0.00' },
-    ],
+    list: [],
     isDrawerOpen: false,
     selectedTid: null
   }
