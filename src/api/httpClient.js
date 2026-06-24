@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { store } from '../store';
 import { showLoader, hideLoader, setNotification } from '../store/slices/uiSlice';
+import { checkMaliciousInput } from '../utils/securityUtils';
 
 const httpClient = axios.create({
     baseURL: 'https://api.sahayatamoney.in/api',
@@ -25,7 +26,42 @@ const stopLoading = () => {
     }
 };
 
+const scanObjectForMaliciousData = (obj) => {
+    if (!obj) return null;
+    if (typeof obj === 'string') {
+        const check = checkMaliciousInput(obj, 'Request Parameter', true);
+        if (!check.isValid) return check.reason;
+    } else if (typeof obj === 'object') {
+        for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                const isPwdField = key.toLowerCase().includes('password') || key.toLowerCase().includes('pwd') || key.toLowerCase().includes('tpin') || key.toLowerCase().includes('pin');
+                const isSystemField = ['browser', 'os', 'useragent', 'device', 'ip', 'token', 'sessionid'].includes(key.toLowerCase());
+                const isLooseCheck = isPwdField || isSystemField;
+                
+                const val = obj[key];
+                if (typeof val === 'string') {
+                    const check = checkMaliciousInput(val, key, isLooseCheck);
+                    if (!check.isValid) return check.reason;
+                } else if (typeof val === 'object' && val !== null) {
+                    const error = scanObjectForMaliciousData(val);
+                    if (error) return error;
+                }
+            }
+        }
+    }
+    return null;
+};
+
 httpClient.interceptors.request.use((config) => {
+    // 1. Scan request body for potential SQLi/XSS/Malicious payloads
+    if (config.data && !(config.data instanceof FormData)) {
+        const securityAlert = scanObjectForMaliciousData(config.data);
+        if (securityAlert) {
+            const error = new Error(`Security Exception: ${securityAlert}`);
+            return Promise.reject(error);
+        }
+    }
+
     // Check if system is frozen
     const isFrozen = localStorage.getItem('bss_system_frozen') === 'true';
     const method = (config.method || 'get').toLowerCase();

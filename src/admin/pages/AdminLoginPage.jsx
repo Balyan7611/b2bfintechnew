@@ -17,6 +17,8 @@ import { API } from '../../api/endpoints';
 import { SITE_CONFIG } from '../../config/siteConfig';
 import styles from '../../pages/LoginPage.module.css';
 import { decodeToken, saveSession, getSession } from '../../utils/authUtils';
+import { checkMaliciousInput } from '../../utils/securityUtils';
+
 
 const AdminLoginPage = () => {
   const navigate = useNavigate();
@@ -109,26 +111,44 @@ const AdminLoginPage = () => {
           });
           reject(new Error(errorMsg));
         },
-        { timeout: 10000, enableHighAccuracy: true }
+        { timeout: 5000, enableHighAccuracy: true }
       );
     });
   };
 
   const handleNext = (e) => {
     e.preventDefault();
+    setError('');
+    const validation = checkMaliciousInput(adminId, 'Administrator ID');
+    if (!validation.isValid) {
+      setError(validation.reason);
+      return;
+    }
     if (adminId.trim().length >= 3) setStep(2);
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError('');
     
     if (remainingTime > 0) {
       setError(`Too many failed attempts. Try again in ${remainingTime} seconds.`);
       return;
     }
 
+    const validation = checkMaliciousInput(adminId, 'Administrator ID');
+    if (!validation.isValid) {
+      setError(validation.reason);
+      return;
+    }
+
+    const pwdValidation = checkMaliciousInput(password, 'Password', true);
+    if (!pwdValidation.isValid) {
+      setError(pwdValidation.reason);
+      return;
+    }
+
     setLoading(true);
-    setError('');
 
     try {
       await checkLocationBeforeLogin();
@@ -169,14 +189,23 @@ const AdminLoginPage = () => {
       setFailedAttempts(newAttempts);
       localStorage.setItem('admin_login_attempts', newAttempts);
       
-      let errorMsg = err.message || "Admin Authentication Failed";
+      // Generic auth error to prevent credential enumeration
+      let errorMsg = "Invalid Login Credentials.";
+      
+      if (err.message && (err.message.toLowerCase().includes('location') || err.message.toLowerCase().includes('unauthorized'))) {
+        errorMsg = err.message;
+      }
+
       if (newAttempts >= 5) {
         const lockoutTime = Date.now() + 5 * 60 * 1000; // 5 minutes lockout
         setLockoutUntil(lockoutTime);
         localStorage.setItem('admin_lockout_until', lockoutTime);
         errorMsg = "Too many failed attempts. Account locked out for 5 minutes.";
       } else {
-        errorMsg = `${errorMsg} (Attempt ${newAttempts}/5)`;
+        // Only append attempt count if it's a login failure, not a location failure
+        if (!errorMsg.toLowerCase().includes('location')) {
+          errorMsg = `${errorMsg} (Attempt ${newAttempts}/5)`;
+        }
       }
       setError(errorMsg);
     } finally {
@@ -275,8 +304,13 @@ const AdminLoginPage = () => {
                 </button>
               </div>
             )}
-
              <div className={styles.formContent}>
+                {error && (
+                  <div className={styles.errorAlert}>
+                    <FaExclamationTriangle />
+                    <span>{error}</span>
+                  </div>
+                )}
                 {step === 1 ? (
                   <form onSubmit={handleNext} className={styles.animatedStep}>
                     <div className={styles.fieldGroup}>
@@ -288,6 +322,7 @@ const AdminLoginPage = () => {
                           placeholder="e.g. ADMIN_001"
                           value={adminId}
                           onChange={(e) => setAdminId(e.target.value)}
+                          maxLength={20}
                           autoFocus
                           required
                         />
@@ -304,13 +339,6 @@ const AdminLoginPage = () => {
                   </form>
                 ) : (
                   <form onSubmit={handleLogin} className={styles.animatedStep}>
-                    {error && (
-                      <div className={styles.errorAlert}>
-                        <FaExclamationTriangle />
-                        <span>{error}</span>
-                      </div>
-                    )}
-
                     <div className={styles.fieldGroup}>
                       <label className={styles.fieldLabel}>PRIVATE SECURITY KEY</label>
                       <div className={styles.inputWrap}>
@@ -321,6 +349,7 @@ const AdminLoginPage = () => {
                           placeholder="••••••••"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
+                          maxLength={20}
                           autoFocus
                           required
                         />

@@ -20,6 +20,8 @@ import { SITE_CONFIG } from '../../config/siteConfig';
 import styles from '../../pages/LoginPage.module.css';
 import { backToStep1, proceedToStep2, setPassword, setUserId } from '../../store/slices/loginSlice';
 import { decodeToken, saveSession, getSession } from '../../utils/authUtils';
+import { checkMaliciousInput } from '../../utils/securityUtils';
+
 
 const FEATURES = [
   { icon: FaShieldAlt,  label: 'Bank-Grade Security' },
@@ -126,7 +128,7 @@ const LoginPage = () => {
           });
           reject(new Error(errorMsg));
         },
-        { timeout: 10000, enableHighAccuracy: true }
+        { timeout: 5000, enableHighAccuracy: true }
       );
     });
   };
@@ -181,18 +183,33 @@ const LoginPage = () => {
 
   const handleContinue = (e) => {
     if (e) e.preventDefault();
+    setErrorMessage('');
+    setLoginError(false);
+    const validation = checkMaliciousInput(userId, 'User ID / Mobile');
+    if (!validation.isValid) {
+      setErrorMessage(validation.reason);
+      setLoginError(true);
+      return;
+    }
     if (userId.trim().length < 3) return;
     dispatch(proceedToStep2());
     setLocationStatus(null);
-    setLoginError(false);
-    setErrorMessage('');
   };
 
   const handleLogin = async (e) => {
     if (e) e.preventDefault();
+    setErrorMessage('');
+    setLoginError(false);
 
     if (remainingTime > 0) {
       setErrorMessage(`Too many failed attempts. Try again in ${remainingTime} seconds.`);
+      setLoginError(true);
+      return;
+    }
+
+    const validation = checkMaliciousInput(userId, 'User ID / Mobile');
+    if (!validation.isValid) {
+      setErrorMessage(validation.reason);
       setLoginError(true);
       return;
     }
@@ -203,10 +220,15 @@ const LoginPage = () => {
       setTimeout(() => setLoginError(false), 2000);
       return;
     }
+
+    const pwdValidation = checkMaliciousInput(password, 'Password', true);
+    if (!pwdValidation.isValid) {
+      setErrorMessage(pwdValidation.reason);
+      setLoginError(true);
+      return;
+    }
     
     setLoading(true);
-    setLoginError(false);
-    setErrorMessage('');
 
     try {
       await checkLocationBeforeLogin();
@@ -247,14 +269,23 @@ const LoginPage = () => {
       setFailedAttempts(newAttempts);
       localStorage.setItem('member_login_attempts', newAttempts);
 
-      let errorMsg = err.message || "Login Failed";
+      // Generic auth error to prevent credential enumeration
+      let errorMsg = "Invalid Login Credentials.";
+      
+      if (err.message && (err.message.toLowerCase().includes('location') || err.message.toLowerCase().includes('unauthorized'))) {
+        errorMsg = err.message;
+      }
+
       if (newAttempts >= 5) {
         const lockoutTime = Date.now() + 5 * 60 * 1000; // 5 minutes lockout
         setLockoutUntil(lockoutTime);
         localStorage.setItem('member_lockout_until', lockoutTime);
         errorMsg = "Too many failed attempts. Account locked out for 5 minutes.";
       } else {
-        errorMsg = `${errorMsg} (Attempt ${newAttempts}/5)`;
+        // Only append attempt count if it's a login failure, not a location failure
+        if (!errorMsg.toLowerCase().includes('location')) {
+          errorMsg = `${errorMsg} (Attempt ${newAttempts}/5)`;
+        }
       }
 
       setErrorMessage(errorMsg);
@@ -361,6 +392,12 @@ const LoginPage = () => {
             )}
 
              <div className={styles.formContent}>
+                {loginError && (
+                  <div className={styles.errorAlert}>
+                     <FaExclamationTriangle />
+                     <span>{errorMessage || "Invalid password. Please try again."}</span>
+                  </div>
+                )}
                 {!isStep1Done ? (
                   <form onSubmit={handleContinue} className={styles.animatedStep}>
                     <div className={styles.fieldGroup}>
@@ -372,6 +409,7 @@ const LoginPage = () => {
                           placeholder="e.g. RT123456"
                           value={userId}
                           onChange={(e) => dispatch(setUserId(e.target.value))}
+                          maxLength={20}
                           autoFocus
                           required
                         />
@@ -397,12 +435,6 @@ const LoginPage = () => {
                   </form>
                 ) : (
                   <form onSubmit={handleLogin} className={styles.animatedStep}>
-                    {loginError && (
-                      <div className={styles.errorAlert}>
-                         <FaExclamationTriangle />
-                         <span>{errorMessage || "Invalid password. Please try again."}</span>
-                      </div>
-                    )}
 
                     <div className={styles.fieldGroup}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -421,6 +453,7 @@ const LoginPage = () => {
                           placeholder="••••••••"
                           value={password}
                           onChange={(e) => { setPasswordLocal(e.target.value); dispatch(setPassword(e.target.value)); }}
+                          maxLength={20}
                           autoFocus
                           required
                         />

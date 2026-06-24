@@ -1,0 +1,206 @@
+.tableCard {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  border: 1px solid #E2E8F0;
+  margin-bottom: 20px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.cardActions {
+  display: flex;
+  gap: 10px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #F8FAFC;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.entriesControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.selectInput {
+  padding: 6px 12px;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  outline: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.exportButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.btnExport {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  font-size: 0.85rem;
+}
+
+.btnExport:hover {
+  opacity: 0.8;
+}
+
+.btnCopy { background: #64748B; }
+.btnExcel { background: #22C55E; }
+.btnPdf { background: #EF4444; }
+.btnCsv { background: #EAB308; }
+.btnPrint { background: #F97316; }
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 38px;
+}
+
+.searchIcon {
+  color: #94A3B8;
+  margin-right: 8px;
+}
+
+.searchInput {
+  border: none;
+  outline: none;
+  font-size: 0.85rem;
+  color: #0F172A;
+  background: transparent;
+  width: 200px;
+}
+
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th {
+  background: linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%);
+  color: white;
+  padding: 14px 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 14px 20px;
+  font-size: 0.85rem;
+  color: #334155;
+  border-bottom: 1px solid #F1F5F9;
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 40px !important;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.paginationFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #ffffff;
+}
+
+.paginationInfo {
+  font-size: 0.85rem;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pageBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pageBtn:not(:disabled):hover {
+  background: #F1F5F9;
+  color: #0D1B5E;
+  border-color: #CBD5E1;
+}
+
+.pageBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageNumber {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0D1B5E;
+  background: #EEF2FF;
+  padding: 6px 14px;
+  border-radius: 6px;
+}

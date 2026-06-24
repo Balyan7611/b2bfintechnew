@@ -28,9 +28,23 @@ export const DeviceListResponseModel = (res) => { if (!res || !res.status) retur
 
 export const DeviceListRequestModel = (data) => ({ id: parseInt(data.id) || 0, isActive: mapBoolean(data.isActive) });
 
-export const KycdocumentsMasterResponseModel = (res) => { if (!res || !res.status) return []; const items = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []); return items.map(item => ({ id: item.id || 0, name: item.name || item.title || item.bankName || item.deviceName || item.providerName || item.templateName || String(), isActive: mapBoolean(item.isActive) })); };
+export const KycdocumentsMasterResponseModel = (res) => { 
+  if (!res || !res.status) return []; 
+  const items = Array.isArray(res.data) ? res.data : (res.data && res.data.items ? res.data.items : (res.data ? [res.data] : [])); 
+  return items.map(item => ({ 
+    id: item.id || 0, 
+    name: item.name || '', 
+    side: item.side !== undefined && item.side !== null ? parseInt(item.side) : null,
+    isActive: mapBoolean(item.isActive) 
+  })); 
+};
 
-export const KycdocumentsMasterRequestModel = (data) => ({ id: parseInt(data.id) || 0, isActive: mapBoolean(data.isActive) });
+export const KycdocumentsMasterRequestModel = (data) => ({ 
+  id: parseInt(data.id) || 0, 
+  name: data.name || '',
+  side: data.side !== undefined && data.side !== null && data.side !== 'null' ? parseInt(data.side) : null,
+  isActive: mapBoolean(data.isActive) 
+});
 
 export const MemberBankDetailResponseModel = (res) => { if (!res || !res.status) return []; const items = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []); return items.map(item => ({ id: item.id || 0, name: item.name || item.title || item.bankName || item.deviceName || item.providerName || item.templateName || String(), isActive: mapBoolean(item.isActive) })); };
 
