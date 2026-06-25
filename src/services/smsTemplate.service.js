@@ -2,7 +2,7 @@ import { apiService } from '../api/httpClient';
 
 export const SmsTemplateService = {
     getAll: async () => {
-        return await apiService.get('/Smstemplate/GetSmstemplate');
+        return await apiService.get('/Smstemplate/GetSmstemplate?PageNumber=1&PageSize=10000');
     },
     
     getById: async (id) => {

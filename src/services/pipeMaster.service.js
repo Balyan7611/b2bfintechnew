@@ -3,7 +3,7 @@ import { PipeMasterRequestModel, PipeMasterResponseModel } from '../models/pipeM
 
 export const PipeMasterService = {
     getAll: async () => {
-        const res = await apiService.get('/PipeMaster/GetPipeMaster');
+        const res = await apiService.get('/PipeMaster/GetPipeMaster?PageNumber=1&PageSize=10000');
         return PipeMasterResponseModel(res);
     },
 

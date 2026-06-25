@@ -16,7 +16,7 @@ export const CompanyService = {
                 const items = Array.isArray(res.data) ? res.data : [res.data];
                 if (items.length > 0) return items[0];
             }
-            const allRes = await apiService.get('/Company/get-all');
+            const allRes = await apiService.get('/Company/get-all?PageNumber=1&PageSize=10000');
             if (allRes && allRes.status === true && Array.isArray(allRes.data) && allRes.data.length > 0) {
                 return allRes.data[0];
             }
@@ -24,7 +24,7 @@ export const CompanyService = {
         } catch (err) {
             console.error('Company fetch error:', err);
             try {
-                const allRes = await apiService.get('/Company/get-all');
+                const allRes = await apiService.get('/Company/get-all?PageNumber=1&PageSize=10000');
                 if (allRes && allRes.status === true && Array.isArray(allRes.data) && allRes.data.length > 0) {
                     return allRes.data[0];
                 }
@@ -34,7 +34,7 @@ export const CompanyService = {
     },
 
     getAll: async () => {
-        return await apiService.get('/Company/get-all');
+        return await apiService.get('/Company/get-all?PageNumber=1&PageSize=10000');
     },
 
     getById: async (id) => {

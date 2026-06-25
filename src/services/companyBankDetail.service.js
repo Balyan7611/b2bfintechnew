@@ -3,7 +3,7 @@ import { CompanyBankDetailRequestModel, CompanyBankDetailResponseModel } from '.
 
 export const CompanyBankDetailService = {
     getAll: async () => {
-        const res = await apiService.get('/CompanyBankDetail/GetCompanyBankDetail');
+        const res = await apiService.get('/CompanyBankDetail/GetCompanyBankDetail?PageNumber=1&PageSize=10000');
         return CompanyBankDetailResponseModel(res);
     },
 

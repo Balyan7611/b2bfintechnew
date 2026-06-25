@@ -3,7 +3,7 @@ import { RefundPolicyRequestModel, RefundPolicyResponseModel } from '../models/r
 
 export const RefundPolicyService = {
     getAll: async () => {
-        const res = await apiService.get('/RefundPolicy/GetRefundPolicy');
+        const res = await apiService.get('/RefundPolicy/GetRefundPolicy?PageNumber=1&PageSize=10000');
         return RefundPolicyResponseModel(res);
     },
 

@@ -3,7 +3,7 @@ import { apiService } from '../api/httpClient';
 
 export const RoleService = {
     getRoles: async () => {
-        const res = await apiService.get('/Role');
+        const res = await apiService.get('/Role?PageNumber=1&PageSize=10000');
         return RoleResponseModel(res);
     },
     

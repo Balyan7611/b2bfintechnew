@@ -3,7 +3,7 @@ import { PipeModuleSettingRequestModel, PipeModuleSettingResponseModel } from '.
 
 export const PipeModuleSettingService = {
     getAll: async () => {
-        const res = await apiService.get('/PipeModuleSetting/GetPipeModuleSetting');
+        const res = await apiService.get('/PipeModuleSetting/GetPipeModuleSetting?PageNumber=1&PageSize=10000');
         return PipeModuleSettingResponseModel(res);
     },
 

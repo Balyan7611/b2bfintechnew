@@ -49,7 +49,6 @@ import ManageMember from '../components/MemberPages/ManageMember';
 import AssignTID from '../components/MemberPages/AssignTID';
 import SetCommission from '../components/CommissionPages/SetCommission';
 import SetApiCommissionRange from '../components/CommissionPages/SetApiCommissionRange';
-import KYCList from '../components/KYCPages/KYCList';
 import KYCDocuments from '../components/KYCPages/KYCDocuments';
 import UploadKYC from '../components/KYCPages/UploadKYC';
 import KYCDetails from '../components/KYCPages/KYCDetails';
@@ -184,7 +183,6 @@ const SIDEBAR_LINKS = [
     label: 'KYC', 
     icon: FaIdCard,
     subLinks: [
-      { id: 'kyc_list', label: 'KYC List' },
       { id: 'kyc_master', label: 'KYC Master' },
       { id: 'upload_kyc', label: 'Upload Member KYC' },
       { id: 'kyc_details', label: 'Kyc Details' }
@@ -1113,8 +1111,6 @@ const DashboardPage = () => {
             <ManageMember />
           ) : activeTab === 'assign_tid' ? (
             <AssignTID />
-          ) : activeTab === 'kyc_list' ? (
-            <KYCList />
           ) : activeTab === 'kyc_master' ? (
             <KYCDocuments />
           ) : activeTab === 'upload_kyc' ? (

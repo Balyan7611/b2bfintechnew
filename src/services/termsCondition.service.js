@@ -3,7 +3,7 @@ import { TermsConditionRequestModel, TermsConditionResponseModel } from '../mode
 
 export const TermsConditionService = {
     getAll: async () => {
-        const res = await apiService.get('/TermsCondition/GetTermsCondition');
+        const res = await apiService.get('/TermsCondition/GetTermsCondition?PageNumber=1&PageSize=10000');
         return TermsConditionResponseModel(res);
     },
 

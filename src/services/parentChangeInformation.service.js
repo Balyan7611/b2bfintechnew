@@ -2,7 +2,7 @@ import { apiService } from '../api/httpClient';
 
 export const ParentChangeInformationService = {
     getAll: async () => {
-        return await apiService.get('/ParentChangeInformation/GetParentChangeInformation');
+        return await apiService.get('/ParentChangeInformation/GetParentChangeInformation?PageNumber=1&PageSize=10000');
     },
     
     getById: async (id) => {

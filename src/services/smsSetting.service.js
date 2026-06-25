@@ -2,7 +2,7 @@ import { apiService } from '../api/httpClient';
 
 export const SmsSettingService = {
     getAll: async () => {
-        return await apiService.get('/Smssetting/GetSmssetting');
+        return await apiService.get('/Smssetting/GetSmssetting?PageNumber=1&PageSize=10000');
     },
     
     getById: async (id) => {

@@ -2,7 +2,7 @@ import { apiService } from '../api/httpClient';
 
 export const SmsCategoryService = {
     getAll: async () => {
-        return await apiService.get('/Smscategory/GetSmscategory');
+        return await apiService.get('/Smscategory/GetSmscategory?PageNumber=1&PageSize=10000');
     },
     
     getById: async (id) => {

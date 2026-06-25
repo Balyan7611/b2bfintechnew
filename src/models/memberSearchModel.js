@@ -6,18 +6,20 @@ export const MemberSearchResponseModel = (res) => {
         console.warn("MemberSearchResponseModel: response is falsy");
         return [];
     }
-    if (!res.status) {
-        console.warn("MemberSearchResponseModel: res.status is falsy", res.status);
-        // Fallback: if data is an array, we can still parse it
-        if (!Array.isArray(res.data)) return [];
-    }
-    if (!Array.isArray(res.data)) {
-        console.warn("MemberSearchResponseModel: res.data is not an array", res.data);
-        return [];
+
+    let arr = [];
+    if (Array.isArray(res)) {
+        arr = res;
+    } else if (res.data && Array.isArray(res.data)) {
+        arr = res.data;
+    } else if (res.data && Array.isArray(res.data.items)) {
+        arr = res.data.items;
+    } else if (Array.isArray(res.items)) {
+        arr = res.items;
     }
 
-    console.log("MemberSearchResponseModel: parsing data array of length", res.data.length);
-    return res.data.map(item => ({
+    console.log("MemberSearchResponseModel: parsing data array of length", arr.length);
+    return arr.map(item => ({
         id: item.uniqueID || '',
         name: item.name || '',
         mobile: item.mobile || '',

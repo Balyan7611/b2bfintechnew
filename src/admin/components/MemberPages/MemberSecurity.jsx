@@ -24,13 +24,28 @@ const MemberSecurity = () => {
   const fetchMembers = async () => {
     try {
       const response = await API.memberSecurity.getAll();
-      if (response && response.data) {
-        setMembers(response.data);
-      } else if (Array.isArray(response)) {
-        setMembers(response);
+      console.log("MemberSecurity: API Response:", response);
+      if (response) {
+        const dataPayload = response.data;
+        if (dataPayload) {
+          if (Array.isArray(dataPayload.items)) {
+            setMembers(dataPayload.items);
+          } else if (Array.isArray(dataPayload)) {
+            setMembers(dataPayload);
+          } else {
+            setMembers([]);
+          }
+        } else if (Array.isArray(response)) {
+          setMembers(response);
+        } else {
+          setMembers([]);
+        }
+      } else {
+        setMembers([]);
       }
     } catch (error) {
       console.error("Failed to fetch member security settings:", error);
+      setMembers([]);
     }
   };
 

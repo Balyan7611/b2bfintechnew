@@ -3,7 +3,7 @@ import { PrivacyPolicyRequestModel, PrivacyPolicyResponseModel } from '../models
 
 export const PrivacyPolicyService = {
     getAll: async () => {
-        const res = await apiService.get('/PrivacyPolicy/GetPrivacyPolicy');
+        const res = await apiService.get('/PrivacyPolicy/GetPrivacyPolicy?PageNumber=1&PageSize=10000');
         return PrivacyPolicyResponseModel(res);
     },
 

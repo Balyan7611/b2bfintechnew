@@ -53,7 +53,7 @@ const KYCDocuments = () => {
       }
     } catch (err) {
       console.error(err);
-      dispatch(setNotification({ type: 'error', message: 'Failed to fetch KYC documents.' }));
+      dispatch(setNotification({ type: 'error', message: err.response?.data?.mess || err.response?.data?.message || err.message || 'Failed to fetch KYC documents.' }));
     } finally {
       setIsLoading(false);
     }
@@ -89,15 +89,15 @@ const KYCDocuments = () => {
       };
       const res = await KycDocumentService.create(payload);
       if (res && res.status) {
-        dispatch(setNotification({ type: 'success', message: 'Document added successfully!' }));
+        dispatch(setNotification({ type: 'success', message: res.mess || res.message || 'Document added successfully!' }));
         setForm({ name: '', side: '1', isActive: true });
         fetchDocuments();
       } else {
-        dispatch(setNotification({ type: 'error', message: res.mess || 'Failed to create document.' }));
+        dispatch(setNotification({ type: 'error', message: res.mess || res.message || 'Failed to create document.' }));
       }
     } catch (err) {
       console.error(err);
-      dispatch(setNotification({ type: 'error', message: err.message || 'Error creating document.' }));
+      dispatch(setNotification({ type: 'error', message: err.response?.data?.mess || err.response?.data?.message || err.message || 'Error creating document.' }));
     } finally {
       setIsSubmitting(false);
     }
@@ -131,15 +131,15 @@ const KYCDocuments = () => {
       };
       const res = await KycDocumentService.update(payload);
       if (res && res.status) {
-        dispatch(setNotification({ type: 'success', message: 'Document updated successfully!' }));
+        dispatch(setNotification({ type: 'success', message: res.mess || res.message || 'Document updated successfully!' }));
         setEditModal({ isOpen: false, data: null });
         fetchDocuments();
       } else {
-        dispatch(setNotification({ type: 'error', message: res.mess || 'Failed to update document.' }));
+        dispatch(setNotification({ type: 'error', message: res.mess || res.message || 'Failed to update document.' }));
       }
     } catch (err) {
       console.error(err);
-      dispatch(setNotification({ type: 'error', message: err.message || 'Error updating document.' }));
+      dispatch(setNotification({ type: 'error', message: err.response?.data?.mess || err.response?.data?.message || err.message || 'Error updating document.' }));
     } finally {
       setIsSubmitting(false);
     }
@@ -157,15 +157,15 @@ const KYCDocuments = () => {
       if (res && res.status) {
         dispatch(setNotification({ 
           type: 'success', 
-          message: `Document status changed to ${!item.isActive ? 'Active' : 'Inactive'}` 
+          message: res.mess || res.message || `Document status changed to ${!item.isActive ? 'Active' : 'Inactive'}` 
         }));
         fetchDocuments();
       } else {
-        dispatch(setNotification({ type: 'error', message: res.mess || 'Failed to update status.' }));
+        dispatch(setNotification({ type: 'error', message: res.mess || res.message || 'Failed to update status.' }));
       }
     } catch (err) {
       console.error(err);
-      dispatch(setNotification({ type: 'error', message: 'Error updating status.' }));
+      dispatch(setNotification({ type: 'error', message: err.response?.data?.mess || err.response?.data?.message || err.message || 'Error updating status.' }));
     }
   };
 
@@ -174,15 +174,15 @@ const KYCDocuments = () => {
     try {
       const res = await KycDocumentService.delete(deleteModal.id);
       if (res && res.status) {
-        dispatch(setNotification({ type: 'success', message: 'Document deleted successfully!' }));
+        dispatch(setNotification({ type: 'success', message: res.mess || res.message || 'Document deleted successfully!' }));
         setDeleteModal({ isOpen: false, id: null });
         fetchDocuments();
       } else {
-        dispatch(setNotification({ type: 'error', message: res.mess || 'Failed to delete document.' }));
+        dispatch(setNotification({ type: 'error', message: res.mess || res.message || 'Failed to delete document.' }));
       }
     } catch (err) {
       console.error(err);
-      dispatch(setNotification({ type: 'error', message: 'Error deleting document.' }));
+      dispatch(setNotification({ type: 'error', message: err.response?.data?.mess || err.response?.data?.message || err.message || 'Error deleting document.' }));
     }
   };
 

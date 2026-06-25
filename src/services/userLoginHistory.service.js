@@ -2,7 +2,7 @@ import { apiService } from '../api/httpClient';
 
 export const UserLoginHistoryService = {
     getAll: async () => {
-        return await apiService.get('/UserLoginHistory/GetUserLoginHistory');
+        return await apiService.get('/UserLoginHistory/GetUserLoginHistory?PageNumber=1&PageSize=10000');
     },
     
     getById: async (id) => {

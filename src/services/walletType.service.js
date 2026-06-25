@@ -3,7 +3,7 @@ import { WalletTypeRequestModel, WalletTypeResponseModel } from '../models/walle
 
 export const WalletTypeService = {
     getAll: async () => {
-        const res = await apiService.get('/WalletType');
+        const res = await apiService.get('/WalletType?PageNumber=1&PageSize=10000');
         return WalletTypeResponseModel(res);
     },
     

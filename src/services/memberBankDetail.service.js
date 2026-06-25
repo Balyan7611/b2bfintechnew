@@ -3,7 +3,7 @@ import { MemberBankDetailRequestModel, MemberBankDetailResponseModel } from '../
 
 export const MemberBankDetailService = {
     getAll: async () => {
-        const res = await apiService.get('/MemberBankDetail/GetMemberBankDetail');
+        const res = await apiService.get('/MemberBankDetail/GetMemberBankDetail?PageNumber=1&PageSize=10000');
         return MemberBankDetailResponseModel(res);
     },
 

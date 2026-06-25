@@ -2,7 +2,7 @@ import { apiService } from '../api/httpClient';
 
 export const PackageService = {
     getAll: async () => {
-        return await apiService.get('/Package');
+        return await apiService.get('/Package?PageNumber=1&PageSize=10000');
     },
     
     getById: async (id) => {

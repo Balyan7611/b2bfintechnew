@@ -1,50 +1,42 @@
 // src/models/roleModel.js
 export const RoleResponseModel = (res) => {
-    if (!res || !res.status) {
+    console.log("RoleResponseModel raw response:", res);
+    if (!res) {
         return [];
     }
 
-    if (Array.isArray(res.data)) {
-        return res.data.map(item => ({
-            id: item.id,
-            name: item.name,
-            prefix: item.prefix,
-            roleCode: item.roleCode,
-            startId: item.startVal,
-            price: item.price,
-            status: item.isActive === true || item.isActive === 1,
-            addDate: item.createdDate ? item.createdDate.split('T')[0] : '',
-            regCount: item.startVal,
-            menuStr: item.menustr,
-            service: item.service,
-            packageId: item.packageID,
-            outside: item.outSide !== undefined ? item.outSide : item.outRole,
-            typeRole: item.typeRole,
-            packageList: item.packageList || [],
-            serviceList: item.serviceList || []
-        }));
+    let arr = [];
+    if (Array.isArray(res)) {
+        arr = res;
+    } else if (res.data && Array.isArray(res.data)) {
+        arr = res.data;
+    } else if (res.data && Array.isArray(res.data.items)) {
+        arr = res.data.items;
+    } else if (res.data && typeof res.data === 'object') {
+        arr = [res.data];
+    } else if (typeof res === 'object' && !res.status && !res.data) {
+        // Fallback for object wrapper without data property
+        arr = [res];
     }
-    
-    if (res.data && typeof res.data === 'object') {
-        return [{
-            id: res.data.id,
-            name: res.data.name,
-            prefix: res.data.prefix,
-            roleCode: res.data.roleCode,
-            startId: res.data.startVal,
-            price: res.data.price,
-            status: res.data.isActive === true || res.data.isActive === 1,
-            menuStr: res.data.menustr,
-            service: res.data.service,
-            packageId: res.data.packageID,
-            outside: res.data.outSide !== undefined ? res.data.outSide : res.data.outRole,
-            typeRole: res.data.typeRole,
-            packageList: res.data.packageList || [],
-            serviceList: res.data.serviceList || []
-        }];
-    }
-    
-    return [];
+
+    return arr.map(item => ({
+        id: item.id,
+        name: item.name,
+        prefix: item.prefix,
+        roleCode: item.roleCode,
+        startId: item.startVal,
+        price: item.price,
+        status: item.isActive === true || item.isActive === 1,
+        addDate: item.createdDate ? item.createdDate.split('T')[0] : '',
+        regCount: item.startVal,
+        menuStr: item.menustr,
+        service: item.service,
+        packageId: item.packageID,
+        outside: item.outSide !== undefined ? item.outSide : item.outRole,
+        typeRole: item.typeRole,
+        packageList: item.packageList || [],
+        serviceList: item.serviceList || []
+    }));
 };
 
 export const RoleRequestModel = (data, security = null) => {
