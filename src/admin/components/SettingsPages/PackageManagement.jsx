@@ -50,8 +50,12 @@ const PackageManagement = () => {
     setIsLoading(true);
     try {
       const res = await API.package.getAll();
-      if (res && res.status === true && Array.isArray(res.data)) {
-        setLocalPackages(res.data.map(item => ({
+      if (res && res.status === true && res.data) {
+        const items = Array.isArray(res.data.items)
+          ? res.data.items
+          : (Array.isArray(res.data) ? res.data : []);
+          
+        setLocalPackages(items.map(item => ({
           id: item.id,
           name: item.name,
           role: item.roleName || (item.roleId === 1 ? 'Admin' : item.roleId === 2 ? 'Retailer' : 'Distributor'),

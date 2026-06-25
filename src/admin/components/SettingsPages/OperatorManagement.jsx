@@ -16,6 +16,7 @@ const OperatorManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [localOperators, setLocalOperators] = useState([]);
+  const [allOperators, setAllOperators] = useState([]);
   const [services, setServices] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -62,6 +63,24 @@ const OperatorManagement = () => {
     } catch (err) { console.error("Error fetching services", err); }
   };
 
+  const fetchAllOperators = async () => {
+    try {
+      const res = await API.operator.getAll({ pageNumber: 1, pageSize: 10000 });
+      if (res && res.status === true && res.data && res.data.items) {
+        setAllOperators(res.data.items);
+      }
+    } catch (err) { console.error("Error fetching all operators", err); }
+  };
+
+  const fetchBbpsFields = async () => {
+    try {
+      const res = await API.bbpsDataDown.getAll();
+      if (res && res.status === true && res.data && res.data.items) {
+        setBbpsFields(res.data.items);
+      }
+    } catch (err) { console.error("Error fetching BBPS fields", err); }
+  };
+
   const fetchOperators = async () => {
     setIsLoading(true);
     try {
@@ -99,6 +118,8 @@ const OperatorManagement = () => {
 
   useEffect(() => {
     fetchServices();
+    fetchAllOperators();
+    fetchBbpsFields();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -134,33 +155,81 @@ const OperatorManagement = () => {
 
   // ── ADD FIELD BBPS MODAL ──
   const [addFieldModal, setAddFieldModal] = useState({ isOpen: false, operator: null });
-  const [fieldForm, setFieldForm] = useState({ service: '', operatorCode: '', operatorCodeText: '', index: '0', label: '', minLength: '0', maxLength: '0' });
+  const [fieldForm, setFieldForm] = useState({ id: 0, spKey: '', index: '0', labels: '', fieldMinLen: 0, fieldMaxLen: 0, isOptional: false, values: '' });
   const [bbpsFields, setBbpsFields] = useState([]);
   const [editingFieldId, setEditingFieldId] = useState(null);
 
   const handleOpenAddField = (op) => {
-    setFieldForm({ service: op.service || '', operatorCode: op.code, operatorCodeText: op.code, index: '0', label: '', minLength: '0', maxLength: '0' });
+    setFieldForm({ 
+      id: 0, 
+      spKey: op.code || '', 
+      index: '0', 
+      labels: '', 
+      fieldMinLen: 0, 
+      fieldMaxLen: 0, 
+      isOptional: false, 
+      values: op.service || '' 
+    });
     setEditingFieldId(null);
     setAddFieldModal({ isOpen: true, operator: op });
   };
 
   const handleFieldFormChange = (e) => {
-    const { name, value } = e.target;
-    setFieldForm(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFieldForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const handleFieldSubmit = (e) => {
+  const handleFieldSubmit = async (e) => {
     e.preventDefault();
-    if (!fieldForm.label) return;
+    if (!fieldForm.labels) return;
     
-    if (editingFieldId) {
-      setBbpsFields(bbpsFields.map(f => f.id === editingFieldId ? { ...fieldForm, id: editingFieldId } : f));
-      setEditingFieldId(null);
-    } else {
-      const newField = { ...fieldForm, id: Date.now() };
-      setBbpsFields([...bbpsFields, newField]);
+    try {
+      const payload = {
+        id: fieldForm.id ? Number(fieldForm.id) : 0,
+        spKey: fieldForm.spKey || '',
+        index: fieldForm.index || '0',
+        labels: fieldForm.labels || '',
+        fieldMinLen: Number(fieldForm.fieldMinLen) || 0,
+        fieldMaxLen: Number(fieldForm.fieldMaxLen) || 0,
+        isOptional: fieldForm.isOptional || false,
+        values: fieldForm.values || ''
+      };
+      
+      let res;
+      if (payload.id && payload.id !== 0) {
+        res = await API.bbpsDataDown.update(payload);
+      } else {
+        res = await API.bbpsDataDown.create(payload);
+      }
+      
+      if (res && res.status === true) {
+        fetchBbpsFields();
+        setFieldForm(prev => ({
+          id: 0,
+          spKey: prev.spKey,
+          index: (Number(prev.index) + 1).toString(),
+          labels: '',
+          fieldMinLen: 0,
+          fieldMaxLen: 0,
+          isOptional: false,
+          values: prev.values
+        }));
+        setEditingFieldId(null);
+      }
+    } catch (err) {
+      console.error("Error submitting BBPS field:", err);
     }
-    setFieldForm({ ...fieldForm, index: (Number(fieldForm.index) + 1).toString(), label: '', minLength: '0', maxLength: '0' });
+  };
+
+  const handleFieldDelete = async (id) => {
+    try {
+      const res = await API.bbpsDataDown.delete(id);
+      if (res && res.status === true) {
+        fetchBbpsFields();
+      }
+    } catch (err) {
+      console.error("Error deleting BBPS field:", err);
+    }
   };
 
   const handleDelete = () => {
@@ -716,35 +785,32 @@ const OperatorManagement = () => {
                   <div>
                     <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>Service :</label>
                     <select
-                      name="service"
-                      value={fieldForm.service}
+                      name="values"
+                      value={fieldForm.values}
                       onChange={handleFieldFormChange}
                       style={{ width: '100%', height: '36px', borderRadius: '8px', border: '1.5px solid #CBD5E1', padding: '0 10px', fontSize: '0.8rem', background: '#FCFDFE', color: '#334155', fontWeight: 500, outline: 'none', transition: 'border 0.2s' }}
                       onFocus={(e) => e.target.style.borderColor = '#1756AA'}
                       onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}
                     >
                       <option value="">Select Service</option>
-                      <option value="Prepaid">Prepaid</option>
-                      <option value="Postpaid">Postpaid</option>
-                      <option value="DTH">DTH</option>
-                      <option value="BBPS">BBPS</option>
-                      <option value="Electricity">Electricity</option>
-                      <option value="Water">Water</option>
-                      <option value="Gas">Gas</option>
+                      {services.map(ser => (
+                        <option key={ser.id} value={ser.name}>{ser.name}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
                     <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>Operator Code :</label>
                     <select
-                      name="operatorCode"
-                      value={fieldForm.operatorCode}
+                      name="spKey"
+                      value={fieldForm.spKey}
                       onChange={handleFieldFormChange}
                       style={{ width: '100%', height: '36px', borderRadius: '8px', border: '1.5px solid #CBD5E1', padding: '0 10px', fontSize: '0.8rem', background: '#FCFDFE', color: '#334155', fontWeight: 500, outline: 'none', transition: 'border 0.2s' }}
                       onFocus={(e) => e.target.style.borderColor = '#1756AA'}
                       onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}
                     >
-                      {localOperators.map(op => (
-                        <option key={op.id} value={op.code}>{op.name} ({op.code})</option>
+                      <option value="">Select Operator</option>
+                      {allOperators.map(op => (
+                        <option key={op.id} value={op.operatorCode}>{op.name} ({op.operatorCode})</option>
                       ))}
                     </select>
                   </div>
@@ -752,8 +818,8 @@ const OperatorManagement = () => {
                     <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>Label :</label>
                     <input
                       type="text"
-                      name="label"
-                      value={fieldForm.label}
+                      name="labels"
+                      value={fieldForm.labels}
                       onChange={handleFieldFormChange}
                       style={{ width: '100%', height: '36px', borderRadius: '8px', border: '1.5px solid #CBD5E1', padding: '0 12px', fontSize: '0.8rem', background: '#FCFDFE', color: '#334155', fontWeight: 500, outline: 'none', transition: 'border 0.2s', boxSizing: 'border-box' }}
                       onFocus={(e) => e.target.style.borderColor = '#1756AA'}
@@ -762,18 +828,8 @@ const OperatorManagement = () => {
                   </div>
                 </div>
 
-                {/* Row 3: OperatorCode + Index + Min Length + Max Length + Save Button (5 Columns) */}
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: '10px', marginBottom: '12px', alignItems: 'end' }}>
-                  <div>
-                    <label style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>OperatorCode :</label>
-                    <input
-                      type="text"
-                      name="operatorCodeText"
-                      value={fieldForm.operatorCodeText}
-                      onChange={handleFieldFormChange}
-                      style={{ width: '100%', height: '34px', borderRadius: '8px', border: '1.5px solid #CBD5E1', padding: '0 10px', fontSize: '0.8rem', background: '#FCFDFE', color: '#334155', fontWeight: 500, outline: 'none' }}
-                    />
-                  </div>
+                {/* Row 3: Index + Min Length + Max Length + Save Button (4 Columns) */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '10px', marginBottom: '12px', alignItems: 'end' }}>
                   <div>
                     <label style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>Index :</label>
                     <input
@@ -788,8 +844,8 @@ const OperatorManagement = () => {
                     <label style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>Min Length :</label>
                     <input
                       type="number"
-                      name="minLength"
-                      value={fieldForm.minLength}
+                      name="fieldMinLen"
+                      value={fieldForm.fieldMinLen}
                       onChange={handleFieldFormChange}
                       style={{ width: '100%', height: '34px', borderRadius: '8px', border: '1.5px solid #CBD5E1', padding: '0 10px', fontSize: '0.8rem', background: '#FCFDFE', color: '#334155', fontWeight: 500, outline: 'none' }}
                     />
@@ -798,8 +854,8 @@ const OperatorManagement = () => {
                     <label style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>Max Length :</label>
                     <input
                       type="number"
-                      name="maxLength"
-                      value={fieldForm.maxLength}
+                      name="fieldMaxLen"
+                      value={fieldForm.fieldMaxLen}
                       onChange={handleFieldFormChange}
                       style={{ width: '100%', height: '34px', borderRadius: '8px', border: '1.5px solid #CBD5E1', padding: '0 10px', fontSize: '0.8rem', background: '#FCFDFE', color: '#334155', fontWeight: 500, outline: 'none' }}
                     />
@@ -826,13 +882,13 @@ const OperatorManagement = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {bbpsFields.filter(f => f.operatorCode === addFieldModal.operator?.code).map((f) => (
+                      {bbpsFields.filter(f => f.spKey === addFieldModal.operator?.code).map((f) => (
                         <tr key={f.id}>
                           <td style={{ padding: '8px 10px', fontSize: '0.8rem' }}>{addFieldModal.operator?.name}</td>
-                          <td style={{ padding: '8px 10px', fontSize: '0.8rem' }}>{f.service}</td>
-                          <td style={{ padding: '8px 10px', fontSize: '0.8rem', fontWeight: 700 }}>{f.label}</td>
-                          <td style={{ padding: '8px 10px', fontSize: '0.8rem' }}>{f.minLength}</td>
-                          <td style={{ padding: '8px 10px', fontSize: '0.8rem' }}>{f.maxLength}</td>
+                          <td style={{ padding: '8px 10px', fontSize: '0.8rem' }}>{f.values}</td>
+                          <td style={{ padding: '8px 10px', fontSize: '0.8rem', fontWeight: 700 }}>{f.labels}</td>
+                          <td style={{ padding: '8px 10px', fontSize: '0.8rem' }}>{f.fieldMinLen}</td>
+                          <td style={{ padding: '8px 10px', fontSize: '0.8rem' }}>{f.fieldMaxLen}</td>
                           <td style={{ padding: '8px 10px', textAlign: 'center' }}>
                             <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                               <button 
@@ -848,7 +904,7 @@ const OperatorManagement = () => {
                               </button>
                               <button 
                                 type="button"
-                                onClick={() => setBbpsFields(bbpsFields.filter(item => item.id !== f.id))}
+                                onClick={() => handleFieldDelete(f.id)}
                                 style={{ border: 'none', background: 'transparent', color: '#E53E3E', cursor: 'pointer', padding: '4px' }}
                                 title="Delete Field"
                               >
@@ -858,11 +914,11 @@ const OperatorManagement = () => {
                           </td>
                         </tr>
                       ))}
-                      {bbpsFields.filter(f => f.operatorCode === addFieldModal.operator?.code).length === 0 ? (
+                      {bbpsFields.filter(f => f.spKey === addFieldModal.operator?.code).length === 0 ? (
                         <tr>
                           <td colSpan={6} style={{ padding: '30px 0', textAlign: 'center', color: '#94A3B8' }}>
-                            
-                              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No fields available for this operator</span></td>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No fields available for this operator</span>
+                          </td>
                         </tr>
                       ) : null}
                     </tbody>

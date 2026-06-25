@@ -23,26 +23,47 @@ const MemberSecurity = () => {
 
   const fetchMembers = async () => {
     try {
-      const response = await API.memberSecurity.getAll();
-      console.log("MemberSecurity: API Response:", response);
-      if (response) {
-        const dataPayload = response.data;
-        if (dataPayload) {
-          if (Array.isArray(dataPayload.items)) {
-            setMembers(dataPayload.items);
-          } else if (Array.isArray(dataPayload)) {
-            setMembers(dataPayload);
-          } else {
-            setMembers([]);
-          }
-        } else if (Array.isArray(response)) {
-          setMembers(response);
-        } else {
-          setMembers([]);
-        }
-      } else {
-        setMembers([]);
+      const [membersRes, securityRes] = await Promise.all([
+        API.member.getAll({ pageNumber: 1, pageSize: 10000 }),
+        API.memberSecurity.getAll()
+      ]);
+      
+      console.log("Member List Res:", membersRes);
+      console.log("Security List Res:", securityRes);
+
+      let rawMembers = [];
+      if (membersRes && membersRes.status === true && membersRes.data) {
+        rawMembers = membersRes.data.items || [];
       }
+
+      let rawSecurities = [];
+      if (securityRes) {
+        const secPayload = securityRes.data;
+        rawSecurities = secPayload && Array.isArray(secPayload.items)
+          ? secPayload.items
+          : (secPayload && Array.isArray(secPayload) ? secPayload : (Array.isArray(securityRes) ? securityRes : []));
+      }
+
+      const securityMap = new Map(rawSecurities.map(s => [s.msrno, s]));
+
+      const merged = rawMembers.map(m => {
+        const sec = securityMap.get(m.msrno) || {};
+        return {
+          id: sec.id || 0,
+          msrno: m.msrno,
+          name: m.name || m.memberName || `Member ${m.msrno}`,
+          memberId: m.memberID || m.memberId || '',
+          twoWay: sec.twoWay ?? false,
+          otp: sec.isOtp ?? sec.otp ?? false,
+          tpin: sec.isTpin ?? sec.tpin ?? false,
+          isPattern: sec.isPattern ?? false,
+          isGoogleAuth: sec.isGoogleAuth ?? false,
+          authKey: sec.authKey ?? "string",
+          isSeparateProfitWallet: sec.isSeparateProfitWallet ?? false
+        };
+      });
+
+      setMembers(merged);
     } catch (error) {
       console.error("Failed to fetch member security settings:", error);
       setMembers([]);
@@ -57,18 +78,15 @@ const MemberSecurity = () => {
     securityState.globalToggles || { twoWay: true, otp: false, tpin: false }
   );
 
-  const handleGlobalToggle = (field) => {
+  const handleGlobalToggle = async (field) => {
     setGlobalToggles(prev => {
       const newValue = !prev[field];
       const newGlobal = { ...prev, [field]: newValue };
       
-      // If turning off Two Way Auth, turn off OTP and TPIN globally too
       if (field === 'twoWay' && !newValue) {
          newGlobal.otp = false;
          newGlobal.tpin = false;
       }
-
-      // OTP and TPIN are mutually exclusive
       if (field === 'otp' && newValue) {
          newGlobal.tpin = false;
       }
@@ -76,8 +94,54 @@ const MemberSecurity = () => {
          newGlobal.otp = false;
       }
       
-      // Update all members to match the global toggle
-      setMembers(membersList => membersList.map(m => {
+      const promises = members.map(m => {
+        let updatedMember = { ...m, [field]: newValue };
+        if (field === 'twoWay' && !newValue) {
+           updatedMember.otp = false;
+           updatedMember.tpin = false;
+           updatedMember.isOtp = false;
+           updatedMember.isTpin = false;
+        }
+        if (field === 'otp' && newValue) {
+           updatedMember.tpin = false;
+           updatedMember.isTpin = false;
+           updatedMember.isOtp = true;
+        }
+        if (field === 'tpin' && newValue) {
+           updatedMember.otp = false;
+           updatedMember.isOtp = false;
+           updatedMember.isTpin = true;
+        }
+        
+        const payload = {
+          id: updatedMember.id || 0,
+          msrno: updatedMember.msrno || 0,
+          twoWay: updatedMember.twoWay || false,
+          isOtp: updatedMember.isOtp || updatedMember.otp || false,
+          isTpin: updatedMember.isTpin || updatedMember.tpin || false,
+          isPattern: updatedMember.isPattern || false,
+          isGoogleAuth: updatedMember.isGoogleAuth || false,
+          authKey: updatedMember.authKey || "string",
+          isSeparateProfitWallet: updatedMember.isSeparateProfitWallet || false
+        };
+        
+        if (payload.id && payload.id !== 0) {
+          return API.memberSecurity.update(payload);
+        } else {
+          return API.memberSecurity.create(payload);
+        }
+      });
+
+      Promise.all(promises)
+        .then(() => {
+          fetchMembers();
+        })
+        .catch(err => {
+          console.error("Global toggle error:", err);
+          fetchMembers();
+        });
+      
+      const updatedMembers = members.map(m => {
         let updatedMember = { ...m, [field]: newValue };
         if (field === 'twoWay' && !newValue) {
            updatedMember.otp = false;
@@ -90,28 +154,19 @@ const MemberSecurity = () => {
            updatedMember.otp = false;
         }
         return updatedMember;
-      }));
+      });
+      setMembers(updatedMembers);
       
       return newGlobal;
     });
   };
 
-  const handleToggle = async (id, field) => {
-    const memberIndex = members.findIndex(m => m.id === id);
+  const handleToggle = async (msrno, field) => {
+    const memberIndex = members.findIndex(m => m.msrno === msrno);
     if (memberIndex === -1) return;
 
     const m = members[memberIndex];
     let updatedMember = { ...m, [field]: !m[field] };
-    
-    // UI logic mapping
-    const fieldMapping = {
-      'twoWay': 'twoWay',
-      'otp': 'isOtp',
-      'tpin': 'isTpin'
-    };
-
-    const isOtp = field === 'otp' ? updatedMember.otp : m.isOtp;
-    const isTpin = field === 'tpin' ? updatedMember.tpin : m.isTpin;
 
     if (field === 'twoWay' && !updatedMember.twoWay) {
        updatedMember.otp = false;
@@ -131,12 +186,11 @@ const MemberSecurity = () => {
        updatedMember.isTpin = true;
     }
 
-    // Set optimistic UI update
-    setMembers(membersList => membersList.map(member => member.id === id ? updatedMember : member));
+    setMembers(membersList => membersList.map(member => member.msrno === msrno ? updatedMember : member));
 
     try {
       const payload = {
-        id: updatedMember.id,
+        id: updatedMember.id || 0,
         msrno: updatedMember.msrno || 0,
         twoWay: updatedMember.twoWay || false,
         isOtp: updatedMember.isOtp || updatedMember.otp || false,
@@ -146,12 +200,20 @@ const MemberSecurity = () => {
         authKey: updatedMember.authKey || "string",
         isSeparateProfitWallet: updatedMember.isSeparateProfitWallet || false
       };
-      await API.memberSecurity.update(payload);
+      
+      let res;
+      if (payload.id && payload.id !== 0) {
+        res = await API.memberSecurity.update(payload);
+      } else {
+        res = await API.memberSecurity.create(payload);
+      }
+      
+      if (res && res.status === true) {
+        fetchMembers();
+      }
     } catch (error) {
       console.error("Failed to update security:", error);
-      alert("Failed to update security setting.");
-      // Revert on error
-      setMembers(membersList => membersList.map(member => member.id === id ? m : member));
+      setMembers(membersList => membersList.map(member => member.msrno === msrno ? m : member));
     }
   };
 
@@ -234,7 +296,7 @@ const MemberSecurity = () => {
             </thead>
             <tbody>
               {filteredMembers.length > 0 ? filteredMembers.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage).map((m, idx) => (
-                <tr key={m.id}>
+                <tr key={m.msrno || m.id}>
                   <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{(currentPage - 1) * rowsPerPage + idx + 1}</td>
                   <td className={styles.fwBold}>{m.name}</td>
                   <td style={{ color: '#1756AA', fontWeight: 700 }}>{m.memberId || '—'}</td>
@@ -244,7 +306,7 @@ const MemberSecurity = () => {
                         <input 
                           type="checkbox" 
                           checked={m.twoWay} 
-                          onChange={() => handleToggle(m.id, 'twoWay')} 
+                          onChange={() => handleToggle(m.msrno, 'twoWay')} 
                         />
                         <span className={styles.slider}></span>
                       </label>
@@ -258,7 +320,7 @@ const MemberSecurity = () => {
                           type="checkbox" 
                           checked={m.otp} 
                           disabled={!m.twoWay}
-                          onChange={() => handleToggle(m.id, 'otp')} 
+                          onChange={() => handleToggle(m.msrno, 'otp')} 
                         />
                         <span className={styles.slider}></span>
                       </label>
@@ -272,7 +334,7 @@ const MemberSecurity = () => {
                           type="checkbox" 
                           checked={m.tpin} 
                           disabled={!m.twoWay}
-                          onChange={() => handleToggle(m.id, 'tpin')} 
+                          onChange={() => handleToggle(m.msrno, 'tpin')} 
                         />
                         <span className={styles.slider}></span>
                       </label>

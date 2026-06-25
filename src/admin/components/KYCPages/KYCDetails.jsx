@@ -87,14 +87,29 @@ const KYCDetails = () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/get-all`, {
         params: {
-          PageNumber: 1,
-          PageSize: 10000
+          PageNumber: currentPage,
+          PageSize: rowsPerPage
         }
       });
       if (res.data && res.data.status && res.data.data) {
-        setKycDetails(res.data.data.items || []);
+        const rawItems = res.data.data.items || [];
+        const mappedItems = rawItems.map(item => {
+          const docs = (item.documents || []).filter(d => !d.isDelete);
+          return {
+            msrno: item.msrno,
+            empid: item.empid,
+            documents: docs,
+            id: docs.length > 0 ? docs[0].id : null,
+            status: docs.some(d => d.status === 'Pending') ? 'Pending' : (docs.some(d => d.status === 'Rejected') ? 'Rejected' : 'Approved'),
+            isApproved: docs.length > 0 && docs.every(d => d.isApproved),
+            reason: docs.map(d => `${d.docName}: ${d.reason || '-'}`).join(' | ')
+          };
+        }).filter(item => item.documents.length > 0);
+        setKycDetails(mappedItems);
+        setTotalItems(res.data.data.totalItems || 0);
       } else {
         setKycDetails([]);
+        setTotalItems(0);
       }
     } catch (err) {
       console.error('Error fetching KYC details:', err);
@@ -114,7 +129,7 @@ const KYCDetails = () => {
   useEffect(() => {
     fetchDocuments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentPage, rowsPerPage]);
 
   const handleView = (item) => {
     setViewingItem(item);
@@ -201,39 +216,17 @@ const KYCDetails = () => {
   };
 
   const filteredData = kycDetails.filter(item => {
-    if (item.isDelete === true) return false;
-    const matchesSearch = (item.docName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (item.docNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (String(item.msrno || '')).toLowerCase().includes(searchTerm.toLowerCase());
     const matchesMember = selectedMember ? (String(item.msrno) === selectedMember || String(item.empid) === selectedMember) : true;
-    return matchesSearch && matchesMember;
+    
+    const docMatches = (item.documents || []).some(d => 
+      (d.docName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (d.docNumber || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    const memberMatches = String(item.msrno || '').toLowerCase().includes(searchTerm.toLowerCase());
+    
+    return (docMatches || memberMatches) && matchesMember;
   });
-
-  const groupedData = [];
-  const groupMap = new Map();
-  filteredData.forEach(item => {
-    const key = item.msrno;
-    if (!groupMap.has(key)) {
-      groupMap.set(key, []);
-    }
-    groupMap.get(key).push(item);
-  });
-  groupMap.forEach((docs, msrno) => {
-    groupedData.push({
-      msrno,
-      documents: docs,
-      id: docs[0].id,
-      empid: docs[0].empid,
-      status: docs.some(d => d.status === 'Pending') ? 'Pending' : (docs.some(d => d.status === 'Rejected') ? 'Rejected' : 'Approved'),
-      isApproved: docs.every(d => d.isApproved),
-      reason: docs.map(d => `${d.docName}: ${d.reason || '-'}`).join(' | ')
-    });
-  });
-
-  const totalGroupedItems = groupedData.length;
-  const totalPages = Math.max(1, Math.ceil(totalGroupedItems / rowsPerPage));
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const currentGroupedData = groupedData.slice(startIndex, startIndex + rowsPerPage);
 
   return (
     <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
@@ -312,7 +305,7 @@ const KYCDetails = () => {
               </tr>
             </thead>
             <tbody>
-              {currentGroupedData.length === 0 ? (
+              {filteredData.length === 0 ? (
                 <tr>
                    <td colSpan="7" style={{ padding: 0, background: '#fff' }}>
                      <div style={{ position: 'sticky', left: 0, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '50px 20px', color: '#A0AEC0' }}>
@@ -320,7 +313,7 @@ const KYCDetails = () => {
                        <div style={{ fontSize: '0.85rem' }}>No records match selection</div></div></td>
                 </tr>
               ) : (
-                currentGroupedData.map((item, index) => (
+                filteredData.map((item, index) => (
                   <tr key={item.msrno} className={index % 2 === 0 ? styles.rowEven : styles.rowOdd}>
                     <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
                     <td style={{ textAlign: 'center' }}>
@@ -405,12 +398,12 @@ const KYCDetails = () => {
         {/* FOOTER */}
         <div className="global-pagination">
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
-            Showing {totalGroupedItems === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, totalGroupedItems)} of {totalGroupedItems} records
+            Showing {totalItems} records
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button className="global-page-btn" onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} disabled={currentPage === 1}><FiChevronLeft /></button>
             <button className="global-page-btn global-page-active">{currentPage}</button>
-            <button className="global-page-btn" onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage >= totalPages}><FiChevronRight /></button>
+            <button className="global-page-btn" onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage * rowsPerPage >= totalItems}><FiChevronRight /></button>
           </div>
         </div>
       </div>

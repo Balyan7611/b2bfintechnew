@@ -25,6 +25,7 @@ import { MemberSecurityService } from '../services/memberSecurity.service';
 import { ParentChangeInformationService } from '../services/parentChangeInformation.service';
 import { UserLoginHistoryService } from '../services/userLoginHistory.service';
 import { KycDocumentService } from '../services/kycDocument.service';
+import { BbpsDataDownService } from '../services/bbpsDataDown.service';
 
 // Re-exporting everything exactly as before to maintain backward compatibility
 export const API = {
@@ -60,6 +61,7 @@ export const API = {
     parentChangeInformation: ParentChangeInformationService,
     userLoginHistory: UserLoginHistoryService,
     kycDocument: KycDocumentService,
+    bbpsDataDown: BbpsDataDownService,
 };
 
 export const fetchCompanyData = CompanyService.fetchCompanyData;
@@ -86,5 +88,6 @@ export {
     MemberSecurityService,
     ParentChangeInformationService,
     UserLoginHistoryService,
-    KycDocumentService
+    KycDocumentService,
+    BbpsDataDownService
 };

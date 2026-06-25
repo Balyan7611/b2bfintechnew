@@ -124,8 +124,8 @@ const UploadKYC = () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/get-all`, {
         params: {
-          PageNumber: 1,
-          PageSize: 10000,
+          PageNumber: currentPage,
+          PageSize: rowsPerPage,
           FromDate: '',
           ToDate: '',
           Status: '',
@@ -133,7 +133,20 @@ const UploadKYC = () => {
         }
       });
       if (res.data && res.data.status) {
-        setDocuments(res.data.data.items || []);
+        const rawItems = res.data.data.items || [];
+        const mappedItems = rawItems.map(item => {
+          const docs = (item.documents || []).filter(d => !d.isDelete);
+          return {
+            msrno: item.msrno,
+            empid: item.empid,
+            documents: docs,
+            id: docs.length > 0 ? docs[0].id : null,
+            status: docs.some(d => d.status === 'Pending') ? 'Pending' : (docs.some(d => d.status === 'Rejected') ? 'Rejected' : 'Approved'),
+            isApproved: docs.length > 0 && docs.every(d => d.isApproved),
+            reason: docs.map(d => `${d.docName}: ${d.reason || '-'}`).join(' | ')
+          };
+        }).filter(item => item.documents.length > 0);
+        setDocuments(mappedItems);
         setTotalItems(res.data.data.totalItems || 0);
       } else {
         setDocuments([]);
@@ -154,7 +167,7 @@ const UploadKYC = () => {
   useEffect(() => {
     fetchDocuments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentPage, rowsPerPage]);
 
   const handleAddInputChange = (e) => {
     const { name, value, files } = e.target;
@@ -300,41 +313,20 @@ const UploadKYC = () => {
     }
   };
 
-  const filteredDocs = documents.filter(doc => {
-    if (doc.isDelete === true) return false;
-    const member = memberList.find(m => String(m.id) === String(doc.msrno));
+  const filteredDocs = documents.filter(item => {
+    const member = memberList.find(m => String(m.id) === String(item.msrno));
     const memberName = member ? member.name : '';
     const memberId = member ? member.memberId : '';
-    return (doc.docName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (doc.docNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    
+    const docMatches = (item.documents || []).some(d => 
+      (d.docName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (d.docNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    
+    return docMatches ||
       memberName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       memberId.toLowerCase().includes(searchQuery.toLowerCase());
   });
-
-  const groupedDocs = [];
-  const groupMap = new Map();
-  filteredDocs.forEach(item => {
-    const key = item.msrno;
-    if (!groupMap.has(key)) {
-      groupMap.set(key, []);
-    }
-    groupMap.get(key).push(item);
-  });
-  groupMap.forEach((docs, msrno) => {
-    groupedDocs.push({
-      msrno,
-      documents: docs,
-      id: docs[0].id,
-      empid: docs[0].empid,
-      status: docs.some(d => d.status === 'Pending') ? 'Pending' : (docs.some(d => d.status === 'Rejected') ? 'Rejected' : 'Approved'),
-      isApproved: docs.every(d => d.isApproved),
-      reason: docs.map(d => `${d.docName}: ${d.reason || '-'}`).join(' | ')
-    });
-  });
-
-  const totalGroupedItems = groupedDocs.length;
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const currentGroupedDocs = groupedDocs.slice(startIndex, startIndex + rowsPerPage);
 
   return (
     <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
@@ -366,7 +358,7 @@ const UploadKYC = () => {
           </button>
         }
         columns={['SNO', 'MEMBER IDENTITY', 'DOCUMENT NAME', 'DOC NUMBER', 'STATUS', 'REASON', 'ACTIONS']}
-        data={currentGroupedDocs}
+        data={filteredDocs}
         renderRow={(item, index) => {
           const firstDoc = item.documents[0] || item;
           return (
@@ -463,8 +455,8 @@ const UploadKYC = () => {
         onRowsPerPageChange={(val) => { setRowsPerPage(val); setCurrentPage(1); }}
         currentPage={currentPage}
         onPageChange={setCurrentPage}
-        totalEntries={totalGroupedItems}
-        totalPages={Math.max(1, Math.ceil(totalGroupedItems / rowsPerPage))}
+        totalEntries={totalItems}
+        totalPages={Math.ceil(totalItems / rowsPerPage)}
       />
 
       {/* --- ADD MODAL --- */}
