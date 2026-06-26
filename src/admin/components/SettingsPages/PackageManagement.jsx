@@ -16,7 +16,7 @@ const PackageManagement = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const [formData, setFormData] = useState({
-    role: '', name: '', price: '0', capping: '0', copySlab: '', status: true
+    role: '', name: '', price: '', capping: '', copySlab: '', status: true
   });
 
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
@@ -94,7 +94,7 @@ const PackageManagement = () => {
   };
 
   const handleAddClick = () => {
-    setFormData({ role: '', name: '', price: '0', capping: '0', copySlab: '', status: true });
+    setFormData({ role: '', name: '', price: '', capping: '', copySlab: '', status: true });
     setIsModalOpen(true);
   };
 
@@ -173,9 +173,9 @@ const PackageManagement = () => {
           </div>
 
           <ExportButtons 
-            headers={['S.NO', 'PACKAGE NAME', 'ROLE', 'PRICE (₹)', 'CAPPING', 'STATUS', 'ADD DATE']}
+            headers={['S.NO', 'PACKAGE NAME', 'ROLE', 'PRICE (₹)', 'STATUS', 'ADD DATE']}
             rows={localPackages.map((pkg, idx) => [
-              idx + 1, pkg.name, pkg.role, pkg.price, pkg.capping, pkg.status ? 'ACTIVE' : 'INACTIVE', pkg.addDate
+              idx + 1, pkg.name, pkg.role, pkg.price, pkg.status ? 'ACTIVE' : 'INACTIVE', pkg.addDate
             ])}
             fileNamePrefix="package_report"
             sheetName="Packages"
@@ -195,17 +195,16 @@ const PackageManagement = () => {
 
         {/* ── TABLE ── */}
         <div className={styles.tableWrapper}>
-          <table className={styles.table} style={{ width: '100%', minWidth: '950px', tableLayout: 'auto' }}>
+          <table className={styles.table} style={{ width: '100%', minWidth: '850px', tableLayout: 'auto' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
                 <th style={{ width: '50px' }}>S.NO</th>
                 <th style={{ width: '90px', textAlign: 'center' }}>ACTION</th>
-                <th style={{ width: '250px' }}>PACKAGE DETAILS</th>
-                <th style={{ width: '120px' }}>ROLE</th>
+                <th style={{ width: '240px' }}>PACKAGE DETAILS</th>
+                <th style={{ width: '100px' }}>ROLE</th>
                 <th style={{ textAlign: 'left', width: '120px' }}>PRICE (₹)</th>
-                <th style={{ textAlign: 'left', width: '100px' }}>CAPPING</th>
                 <th style={{ textAlign: 'left', width: '120px' }}>STATUS</th>
-                <th style={{ textAlign: 'left', width: '120px' }}>ADD DATE</th>
+                <th style={{ textAlign: 'left', width: 'auto' }}>ADD DATE</th>
               </tr>
             </thead>
             <tbody>
@@ -282,7 +281,6 @@ const PackageManagement = () => {
                     </span>
                   </td>
                   <td style={{ textAlign: 'left', fontWeight: 800, color: '#27AE60' }}>₹{pkg.price}</td>
-                  <td style={{ textAlign: 'left', fontWeight: 700, color: '#4E6080' }}>{pkg.capping}</td>
                   <td style={{ textAlign: 'left' }}>
                     <span style={{ background: pkg.status ? 'rgba(39, 174, 96, 0.1)' : 'rgba(229, 62, 62, 0.1)', color: pkg.status ? '#27AE60' : '#E53E3E', padding: '5px 12px', borderRadius: '50px', fontSize: '0.7rem', fontWeight: 800 }}>
                       ● {pkg.status ? 'ACTIVE' : 'INACTIVE'}
@@ -403,7 +401,7 @@ const PackageManagement = () => {
       {/* ── ADD/EDIT MODAL (DRAWER STYLE) ── */}
       {isModalOpen && (
         <div className={styles.drawerOverlay} onClick={() => setIsModalOpen(false)}>
-          <div className={styles.drawer} onClick={(e) => e.stopPropagation()} style={{ width: '450px', maxWidth: '95%', background: '#fff' }}>
+          <div className={styles.drawer} onClick={(e) => e.stopPropagation()} style={{ width: '520px', maxWidth: '95%', background: '#fff' }}>
             <div className={styles.drawerHeader} style={{ padding: '20px 25px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6' }}>
@@ -431,23 +429,23 @@ const PackageManagement = () => {
                   
                   <div className={styles.formGroup}>
                     <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}><FiPackage size={14}/> Package Name</label>
-                    <input type="text" name="name" className={styles.inputControl} placeholder="e.g. Silver Pack" value={formData.name} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '12px 16px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} required />
+                    <input type="text" name="name" className={styles.inputControl} placeholder="e.g. Silver Pack" value={formData.name} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '12px 16px', border: '1px solid #E2E8F0', background: '#FCFDFE', color: '#1E293B', fontSize: '0.9rem', outline: 'none', transition: 'border 0.2s, box-shadow 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }} onFocus={(e) => { e.target.style.borderColor = '#1756AA'; e.target.style.boxShadow = '0 0 0 3px rgba(23,86,170,0.1)'; }} onBlur={(e) => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)'; }} required />
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                     <div className={styles.formGroup}>
                       <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}><FaRupeeSign size={12}/> Price</label>
-                      <input type="number" name="price" className={styles.inputControl} value={formData.price} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '12px 16px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} required />
+                      <input type="number" name="price" className={styles.inputControl} value={formData.price} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '12px 16px', border: '1px solid #E2E8F0', background: '#FCFDFE', color: '#1E293B', fontSize: '0.9rem', outline: 'none', transition: 'border 0.2s, box-shadow 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }} onFocus={(e) => { e.target.style.borderColor = '#1756AA'; e.target.style.boxShadow = '0 0 0 3px rgba(23,86,170,0.1)'; e.target.select(); }} onBlur={(e) => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)'; }} required />
                     </div>
                     <div className={styles.formGroup}>
                       <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}><FiShield size={14}/> Capping</label>
-                      <input type="number" name="capping" className={styles.inputControl} value={formData.capping} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '12px 16px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} required />
+                      <input type="number" name="capping" className={styles.inputControl} value={formData.capping} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '12px 16px', border: '1px solid #E2E8F0', background: '#FCFDFE', color: '#1E293B', fontSize: '0.9rem', outline: 'none', transition: 'border 0.2s, box-shadow 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }} onFocus={(e) => { e.target.style.borderColor = '#1756AA'; e.target.style.boxShadow = '0 0 0 3px rgba(23,86,170,0.1)'; e.target.select(); }} onBlur={(e) => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)'; }} required />
                     </div>
                   </div>
 
                   <div className={styles.formGroup}>
                     <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}><FiCopy size={14}/> Copy Slab From</label>
-                    <select name="copySlab" className={styles.inputControl} value={formData.copySlab} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '12px 16px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }}>
+                    <select name="copySlab" className={styles.inputControl} value={formData.copySlab} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '12px 16px', border: '1px solid #E2E8F0', background: '#FCFDFE', color: '#1E293B', fontSize: '0.9rem', outline: 'none', transition: 'border 0.2s, box-shadow 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }} onFocus={(e) => { e.target.style.borderColor = '#1756AA'; e.target.style.boxShadow = '0 0 0 3px rgba(23,86,170,0.1)'; }} onBlur={(e) => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)'; }}>
                       <option value="">No Slab</option>
                       {localPackages.filter(p => p.id !== formData.id).map(p => (
                         <option key={p.id} value={p.id}>{p.name}</option>

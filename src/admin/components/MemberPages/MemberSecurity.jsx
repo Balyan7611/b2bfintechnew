@@ -23,36 +23,60 @@ const MemberSecurity = () => {
 
   const fetchMembers = async () => {
     try {
-      const [membersRes, securityRes] = await Promise.all([
-        API.member.getAll({ pageNumber: 1, pageSize: 10000 }),
-        API.memberSecurity.getAll()
-      ]);
+      let membersRes = null;
+      let securityRes = null;
+
+      try {
+        // Use member search API which is fully working and returns all bound members
+        membersRes = await API.member.search("");
+      } catch (err) {
+        console.error("Failed to fetch member list via search:", err);
+      }
+
+      try {
+        securityRes = await API.memberSecurity.getAll();
+      } catch (err) {
+        console.error("Failed to fetch security list:", err);
+      }
       
-      console.log("Member List Res:", membersRes);
+      console.log("Member List Res (Search):", membersRes);
       console.log("Security List Res:", securityRes);
 
       let rawMembers = [];
-      if (membersRes && membersRes.status === true && membersRes.data) {
-        rawMembers = membersRes.data.items || [];
+      if (membersRes) {
+        if (Array.isArray(membersRes)) {
+          rawMembers = membersRes;
+        } else if (Array.isArray(membersRes.data)) {
+          rawMembers = membersRes.data;
+        } else if (membersRes.data && Array.isArray(membersRes.data.items)) {
+          rawMembers = membersRes.data.items;
+        } else if (Array.isArray(membersRes.items)) {
+          rawMembers = membersRes.items;
+        }
       }
 
       let rawSecurities = [];
       if (securityRes) {
-        const secPayload = securityRes.data;
-        rawSecurities = secPayload && Array.isArray(secPayload.items)
-          ? secPayload.items
-          : (secPayload && Array.isArray(secPayload) ? secPayload : (Array.isArray(securityRes) ? securityRes : []));
+        const secPayload = securityRes.data || securityRes;
+        if (Array.isArray(secPayload)) {
+          rawSecurities = secPayload;
+        } else if (secPayload && Array.isArray(secPayload.items)) {
+          rawSecurities = secPayload.items;
+        }
       }
 
-      const securityMap = new Map(rawSecurities.map(s => [s.msrno, s]));
+      // Map security records by msrno (convert key to string for strict map lookup)
+      const securityMap = new Map(rawSecurities.map(s => [String(s.msrno), s]));
 
       const merged = rawMembers.map(m => {
-        const sec = securityMap.get(m.msrno) || {};
+        // Fallback: m.id corresponds to m.uniqueID (the serial number msrno)
+        const msrnoVal = m.msrno || m.id;
+        const sec = securityMap.get(String(msrnoVal)) || {};
         return {
           id: sec.id || 0,
-          msrno: m.msrno,
-          name: m.name || m.memberName || `Member ${m.msrno}`,
-          memberId: m.memberID || m.memberId || '',
+          msrno: msrnoVal,
+          name: m.name || `Member ${msrnoVal}`,
+          memberId: m.memberId || m.loginID || '',
           twoWay: sec.twoWay ?? false,
           otp: sec.isOtp ?? sec.otp ?? false,
           tpin: sec.isTpin ?? sec.tpin ?? false,
@@ -63,9 +87,10 @@ const MemberSecurity = () => {
         };
       });
 
+      console.log("Merged Member Security List:", merged);
       setMembers(merged);
     } catch (error) {
-      console.error("Failed to fetch member security settings:", error);
+      console.error("Failed to merge member security settings:", error);
       setMembers([]);
     }
   };
@@ -97,25 +122,25 @@ const MemberSecurity = () => {
       const promises = members.map(m => {
         let updatedMember = { ...m, [field]: newValue };
         if (field === 'twoWay' && !newValue) {
-           updatedMember.otp = false;
-           updatedMember.tpin = false;
-           updatedMember.isOtp = false;
-           updatedMember.isTpin = false;
+            updatedMember.otp = false;
+            updatedMember.tpin = false;
+            updatedMember.isOtp = false;
+            updatedMember.isTpin = false;
         }
         if (field === 'otp' && newValue) {
-           updatedMember.tpin = false;
-           updatedMember.isTpin = false;
-           updatedMember.isOtp = true;
+            updatedMember.tpin = false;
+            updatedMember.isTpin = false;
+            updatedMember.isOtp = true;
         }
         if (field === 'tpin' && newValue) {
-           updatedMember.otp = false;
-           updatedMember.isOtp = false;
-           updatedMember.isTpin = true;
+            updatedMember.otp = false;
+            updatedMember.isOtp = false;
+            updatedMember.isTpin = true;
         }
         
         const payload = {
           id: updatedMember.id || 0,
-          msrno: updatedMember.msrno || 0,
+          msrno: Number(updatedMember.msrno) || 0,
           twoWay: updatedMember.twoWay || false,
           isOtp: updatedMember.isOtp || updatedMember.otp || false,
           isTpin: updatedMember.isTpin || updatedMember.tpin || false,
@@ -162,7 +187,7 @@ const MemberSecurity = () => {
   };
 
   const handleToggle = async (msrno, field) => {
-    const memberIndex = members.findIndex(m => m.msrno === msrno);
+    const memberIndex = members.findIndex(m => String(m.msrno) === String(msrno));
     if (memberIndex === -1) return;
 
     const m = members[memberIndex];
@@ -186,12 +211,12 @@ const MemberSecurity = () => {
        updatedMember.isTpin = true;
     }
 
-    setMembers(membersList => membersList.map(member => member.msrno === msrno ? updatedMember : member));
+    setMembers(membersList => membersList.map(member => String(member.msrno) === String(msrno) ? updatedMember : member));
 
     try {
       const payload = {
         id: updatedMember.id || 0,
-        msrno: updatedMember.msrno || 0,
+        msrno: Number(updatedMember.msrno) || 0,
         twoWay: updatedMember.twoWay || false,
         isOtp: updatedMember.isOtp || updatedMember.otp || false,
         isTpin: updatedMember.isTpin || updatedMember.tpin || false,
@@ -213,7 +238,7 @@ const MemberSecurity = () => {
       }
     } catch (error) {
       console.error("Failed to update security:", error);
-      setMembers(membersList => membersList.map(member => member.msrno === msrno ? m : member));
+      setMembers(membersList => membersList.map(member => String(member.msrno) === String(msrno) ? m : member));
     }
   };
 

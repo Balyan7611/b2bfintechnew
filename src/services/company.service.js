@@ -33,8 +33,18 @@ export const CompanyService = {
         }
     },
 
-    getAll: async () => {
-        return await apiService.get('/Company/get-all?PageNumber=1&PageSize=10000');
+    getAll: async (params = {}) => {
+        const pageNumber = params.pageNumber || 1;
+        const pageSize = params.pageSize || 10000;
+        const fromDate = params.fromDate || '';
+        const toDate = params.toDate || '';
+        const status = params.status || '';
+        const memberId = params.memberId || 0;
+        return await apiService.get(`/Company/get-all?PageNumber=${pageNumber}&PageSize=${pageSize}&FromDate=${fromDate}&ToDate=${toDate}&Status=${status}&MemberID=${memberId}`);
+    },
+
+    getByMember: async (memberId) => {
+        return await apiService.get(`/Company/get-by-member/${memberId}`);
     },
 
     getById: async (id) => {

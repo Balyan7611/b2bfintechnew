@@ -71,6 +71,7 @@ import APIBalance from '../components/RechargeSettings/APIBalance';
 import SwitchSystem from '../components/RechargeSettings/SwitchSystem';
 import AddAPI from '../components/RechargeSettings/AddAPI';
 import ManageCompany from '../components/SettingsPages/ManageCompany';
+import BannerType from '../components/SettingsPages/BannerType';
 import PackageManagement from '../components/SettingsPages/PackageManagement';
 import RoleManagement from '../components/SettingsPages/RoleManagement';
 import AssignPackage from '../components/SettingsPages/AssignPackage';
@@ -257,6 +258,7 @@ const SIDEBAR_LINKS = [
     icon: FaCog,
     subLinks: [
       { id: 'manage_company', label: 'Manage Company' },
+      { id: 'banner_type', label: 'Banner Type' },
       { id: 'package', label: 'Package' },
       { id: 'role', label: 'Role' },
       { id: 'assign_package', label: 'Assign Package' },
@@ -1155,6 +1157,8 @@ const DashboardPage = () => {
             <SwitchSystem />
           ) : activeTab === 'manage_company' ? (
             <ManageCompany />
+          ) : activeTab === 'banner_type' ? (
+            <BannerType />
           ) : activeTab === 'package' ? (
             <PackageManagement />
           ) : activeTab === 'role' ? (

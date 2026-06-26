@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaCheckDouble, FaCheckSquare, FaCommentDots, FaEllipsisV, FaPaperclip, FaPaperPlane, FaRegSquare, FaSearch, FaTimes, FaTrash, FaUsers } from 'react-icons/fa';
+import { FiActivity, FiFileText, FiUser, FiDollarSign, FiServer, FiCalendar, FiCheckCircle, FiXCircle, FiRefreshCw } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
 import { SITE_CONFIG } from '../../../config/siteConfig';
 import { addNotification } from '../../../store/slices/memberPanelSlice';
 import styles from './AdminChat.module.css';
+import memberStyles from '../MemberPages/MemberPages.module.css';
 
 // Pre-defined quick templates for B2B portal admin
 const QUICK_TEMPLATES = [
@@ -36,6 +38,90 @@ const AdminChat = () => {
   const menuRef = useRef(null);
   const canvasRef = useRef(null);
   const particlesRef = useRef([]);
+
+  // States and refs for Floating Transaction Search
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchTxnId, setSearchTxnId] = useState('');
+  const [txnModalOpen, setTxnModalOpen] = useState(false);
+  const [txnResult, setTxnResult] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, actionTitle: "", actionColor: "", txnId: "", onConfirm: null });
+
+  const searchContainerRef = useRef(null);
+  const searchInputRef = useRef(null);
+
+  // Close search expand on outside click
+  useEffect(() => {
+    const handleClickOutsideSearch = (event) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setIsSearchExpanded(false);
+      }
+    };
+    if (isSearchExpanded) {
+      document.addEventListener('mousedown', handleClickOutsideSearch);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutsideSearch);
+  }, [isSearchExpanded]);
+
+  // Focus input when search expands
+  useEffect(() => {
+    if (isSearchExpanded && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchExpanded]);
+
+  const handleTxnSearchSubmit = () => {
+    const trimmedId = searchTxnId.trim();
+    if (!trimmedId) return;
+    
+    if (trimmedId === "123456789") {
+      setTxnResult({
+        txnId: trimmedId,
+        member: "Rahul Sharma (MEM12345)",
+        amount: "₹ 15,000.00",
+        gateway: "PAYTM B2B GATEWAY",
+        status: "PENDING",
+        date: new Date().toLocaleString('en-GB')
+      });
+    } else {
+      setTxnResult({
+        txnId: trimmedId.toUpperCase(),
+        member: "Ram Prasad (MEM88392)",
+        amount: "₹ 1,500.00",
+        gateway: "ICICI DMT GATEWAY",
+        status: "PENDING",
+        date: new Date().toLocaleString('en-GB')
+      });
+    }
+    setTxnModalOpen(true);
+    setIsSearchExpanded(false);
+    setSearchTxnId('');
+  };
+
+  const handleTxnActionClick = (actionName, color) => {
+    setConfirmModal({
+      isOpen: true,
+      actionTitle: actionName,
+      actionColor: color,
+      txnId: txnResult.txnId,
+      onConfirm: () => {
+        setConfirmModal({ isOpen: false, actionTitle: "", actionColor: "", txnId: "", onConfirm: null });
+        setTxnResult(prev => {
+          if (!prev) return null;
+          let newStatus = prev.status;
+          if (actionName === 'Force Success') {
+            newStatus = 'SUCCESS';
+          } else if (actionName === 'Force Failed') {
+            newStatus = 'FAILED';
+          } else if (actionName === 'Re-hit' || actionName === 'Logs') {
+            newStatus = 'PENDING';
+          } else if (actionName === 'Check Status') {
+            newStatus = 'SUCCESS';
+          }
+          return { ...prev, status: newStatus };
+        });
+      }
+    });
+  };
 
   // Mouse Trail Animation
   useEffect(() => {
@@ -293,6 +379,56 @@ const AdminChat = () => {
 
   return (
     <>
+      {/* FLOATING TRANSACTION SEARCH BUTTON */}
+      <div 
+        ref={searchContainerRef}
+        className={`${styles.searchFloatingContainer} ${isSearchExpanded ? styles.expanded : ''} ${isOpen ? styles.hidden : ''}`}
+        onClick={() => {
+          if (!isSearchExpanded) {
+            setIsSearchExpanded(true);
+          }
+        }}
+      >
+        <div className={styles.searchIconWrapper}>
+          <FaSearch className={styles.searchIconLiquid} />
+        </div>
+        
+        <input
+          ref={searchInputRef}
+          type="text"
+          placeholder="Enter TXN ID..."
+          value={searchTxnId}
+          onChange={(e) => setSearchTxnId(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleTxnSearchSubmit();
+            } else if (e.key === 'Escape') {
+              setIsSearchExpanded(false);
+            }
+          }}
+          className={styles.searchBarInput}
+          style={{
+            opacity: isSearchExpanded ? 1 : 0,
+            width: isSearchExpanded ? '200px' : '0px',
+            transition: 'opacity 0.2s ease, width 0.3s ease',
+            pointerEvents: isSearchExpanded ? 'auto' : 'none'
+          }}
+        />
+
+        {isSearchExpanded && (
+          <button 
+            className={styles.searchCloseBtn} 
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsSearchExpanded(false);
+              setSearchTxnId('');
+            }}
+          >
+            <FaTimes />
+          </button>
+        )}
+      </div>
+
       <div 
         className={`${styles.floatingContainer} ${isOpen ? styles.hidden : ''}`}
         onClick={() => setIsOpen(true)}
@@ -556,6 +692,151 @@ const AdminChat = () => {
               </div>
 
             </main>
+          </div>
+        </div>
+      )}
+
+      {/* Transaction Details Card-like Modal */}
+      {txnModalOpen && txnResult && (
+        <div className={styles.txnModalOverlay} onClick={() => setTxnModalOpen(false)}>
+          <div className={styles.txnModalContent} style={{ width: '960px', maxWidth: '95vw' }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.txnHeader} style={{ padding: '10px 20px' }}>
+              <div className={styles.txnHeaderTitle}>
+                <FiActivity style={{ marginRight: '6px' }} />
+                <h3>Transaction Details</h3>
+              </div>
+              <button className={styles.txnCloseBtn} onClick={() => setTxnModalOpen(false)}>
+                <FaTimes />
+              </button>
+            </div>
+            
+            <div className={styles.txnBody} style={{ padding: '15px 20px 20px 20px' }}>
+              <div className={memberStyles.tableWrapper} style={{ border: '1.5px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden', marginTop: '0px', marginBottom: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+                <table className={memberStyles.table} style={{ width: '100%' }}>
+                  <thead>
+                    <tr style={{ background: 'linear-gradient(90deg,#0D1B5E,#1a2f8a)' }}>
+                      <th style={{ color: '#fff', fontSize: '0.72rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 12px' }}>TRANSACTION ID</th>
+                      <th style={{ color: '#fff', fontSize: '0.72rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 12px' }}>MEMBER DETAILS</th>
+                      <th style={{ color: '#fff', fontSize: '0.72rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 12px' }}>AMOUNT</th>
+                      <th style={{ color: '#fff', fontSize: '0.72rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 12px' }}>GATEWAY / SERVICE</th>
+                      <th style={{ color: '#fff', fontSize: '0.72rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 12px' }}>STATUS</th>
+                      <th style={{ color: '#fff', fontSize: '0.72rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 12px' }}>DATE & TIME</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className={memberStyles.hoverRow} style={{ background: '#fff' }}>
+                      <td style={{ fontWeight: 700, color: '#94A3B8', fontSize: '0.78rem', padding: '8px 12px' }}>{txnResult.txnId}</td>
+                      <td style={{ padding: '8px 12px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#1D4ED8' }}>
+                            {txnResult.member.split('(')[0].trim()}
+                          </span>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', fontSize: '0.72rem', color: '#64748B' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                              <FiUser size={10} /> {txnResult.member.includes('(') ? txnResult.member.split('(')[1].replace(')', '') : 'N/A'}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ padding: '8px 12px' }}>
+                        <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#059669' }}>
+                          {txnResult.amount}
+                        </span>
+                      </td>
+                      <td style={{ color: '#64748B', fontWeight: 600, fontSize: '0.78rem', padding: '8px 12px' }}>
+                        {txnResult.gateway}
+                      </td>
+                      <td style={{ textAlign: 'left', padding: '8px 12px' }}>
+                        <span
+                          style={{
+                            background: txnResult.status === 'SUCCESS' ? '#ECFDF5' : txnResult.status === 'FAILED' ? '#FEF2F2' : '#FFF9E6',
+                            color: txnResult.status === 'SUCCESS' ? '#059669' : txnResult.status === 'FAILED' ? '#EF4444' : '#B08D00',
+                            padding: '4px 12px',
+                            borderRadius: '20px',
+                            fontSize: '0.68rem',
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            border: `1px solid ${txnResult.status === 'SUCCESS' ? '#6EE7B7' : txnResult.status === 'FAILED' ? '#FECACA' : '#FDE68A'}`
+                          }}
+                        >
+                          ● {txnResult.status}
+                        </span>
+                      </td>
+                      <td style={{ color: '#64748B', fontWeight: 600, fontSize: '0.78rem', padding: '8px 12px' }}>
+                        {txnResult.date}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+               {/* Action Buttons inside the Popup */}
+               <div className={styles.txnActions} style={{ display: 'flex', gap: '12px', justifyContent: 'center', width: '100%', marginTop: '10px', borderTop: 'none', paddingTop: '0' }}>
+                 <button 
+                   className={`${styles.txnActionBtn} ${styles.btnSuccess}`}
+                   onClick={() => handleTxnActionClick('Force Success', '#10B981')}
+                   style={{ flex: '0 1 140px', height: '38px', padding: '10px 16px', fontSize: '0.8rem' }}
+                 >
+                   <FiCheckCircle /> Success
+                 </button>
+                 <button 
+                   className={`${styles.txnActionBtn} ${styles.btnFailed}`}
+                   onClick={() => handleTxnActionClick('Force Failed', '#EF4444')}
+                   style={{ flex: '0 1 140px', height: '38px', padding: '10px 16px', fontSize: '0.8rem' }}
+                 >
+                   <FiXCircle /> Failed
+                 </button>
+                 <button 
+                   className={`${styles.txnActionBtn} ${styles.btnRehit}`}
+                   onClick={() => handleTxnActionClick('Logs', '#3B82F6')}
+                   style={{ flex: '0 1 140px', height: '38px', padding: '10px 16px', fontSize: '0.8rem' }}
+                 >
+                   <FiRefreshCw /> Logs
+                 </button>
+                 <button 
+                   className={`${styles.txnActionBtn} ${styles.btnCheckStatus}`}
+                   onClick={() => handleTxnActionClick('Check Status', '#0EA5E9')}
+                   style={{ flex: '0 1 140px', height: '38px', padding: '10px 16px', fontSize: '0.8rem' }}
+                 >
+                   <FaSearch /> Check Status
+                 </button>
+               </div>
+             </div>
+           </div>
+         </div>
+       )}
+
+      {/* Confirmation Modal */}
+      {confirmModal.isOpen && (
+        <div className={styles.confirmModalOverlay} style={{ zIndex: 10002 }}>
+          <div className={styles.confirmModalContent}>
+            <div 
+              className={styles.confirmIconWrap} 
+              style={{ background: `${confirmModal.actionColor}15`, color: confirmModal.actionColor }}
+            >
+              <FiActivity size={24} />
+            </div>
+            <h3 className={styles.confirmModalTitle}>Confirm Action</h3>
+            <p className={styles.confirmModalText}>
+              Are you sure you want to perform <strong style={{ color: confirmModal.actionColor }}>{confirmModal.actionTitle}</strong> on transaction <strong>{confirmModal.txnId}</strong>?
+            </p>
+            <div className={styles.confirmActions}>
+              <button 
+                className={styles.confirmBtnCancel} 
+                onClick={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+              >
+                Cancel
+              </button>
+              <button 
+                className={styles.confirmBtnProceed} 
+                style={{ background: confirmModal.actionColor }}
+                onClick={confirmModal.onConfirm}
+              >
+                Proceed
+              </button>
+            </div>
           </div>
         </div>
       )}

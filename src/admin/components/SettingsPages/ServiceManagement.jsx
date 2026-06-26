@@ -409,21 +409,31 @@ const ServiceManagement = () => {
                   </td>
                   {/* Name */}
                   <td style={{ fontWeight: 600, color: '#334155' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: '120px' }}>
                       <span>{service.name}</span>
                       {service.isNew && <span style={{ fontSize: '0.62rem', background: '#FEF3C7', color: '#D97706', padding: '1px 5px', borderRadius: '8px', fontWeight: 700, width: 'fit-content' }}>NEW</span>}
                     </div>
                   </td>
                   {/* Section */}
-                  <td style={{ color: '#4E6080', fontSize: '0.85rem' }}>
-                    {getSectionName(service.sectionType)}
+                  <td style={{ minWidth: '120px' }}>
+                    <span style={{ background: '#EEF2FF', border: '1px solid #C7D2FE', padding: '4px 10px', borderRadius: '20px', fontWeight: 700, color: '#4338CA', fontSize: '0.72rem', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
+                      {getSectionName(service.sectionType)}
+                    </span>
                   </td>
                   {/* URL */}
-                  <td style={{ color: '#4E6080', wordBreak: 'break-all', fontSize: '0.78rem' }}>
-                    {service.url || <span style={{ color: '#CBD5E1' }}>—</span>}
+                  <td style={{ width: '220px', maxWidth: '220px' }}>
+                    <div style={{ color: '#4E6080', fontSize: '0.68rem', wordBreak: 'break-all', overflowWrap: 'break-word', whiteSpace: 'normal', lineHeight: '1.4', width: '100%', maxWidth: '220px' }}>
+                      {service.url ? (
+                        <a href={service.url} target="_blank" rel="noopener noreferrer" style={{ color: '#2563EB', textDecoration: 'none' }}>
+                          {service.url}
+                        </a>
+                      ) : (
+                        <span style={{ color: '#CBD5E1' }}>—</span>
+                      )}
+                    </div>
                   </td>
                   {/* Price */}
-                  <td style={{ fontWeight: 700, color: '#334155' }}>₹{service.price}</td>
+                  <td style={{ fontWeight: 700, color: '#059669', fontSize: '0.9rem' }}>₹{service.price}</td>
                   {/* Image */}
                   <td style={{ textAlign: 'center' }}>
                     {service.image ? (
@@ -578,24 +588,24 @@ const ServiceManagement = () => {
           <div className={styles.drawer} onClick={e => e.stopPropagation()} style={{ width: '820px', maxWidth: '95%', background: '#fff' }}>
 
             {/* Drawer Header */}
-            <div className={styles.drawerHeader} style={{ padding: '18px 24px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className={styles.drawerHeader} style={{ padding: '12px 24px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(59,130,246,0.1)', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(59,130,246,0.1)', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <FiLayers size={16} />
                 </div>
                 <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>
                   {formData.id ? 'Edit Service' : 'Add New Service'}
                 </h2>
               </div>
-              <button onClick={() => setIsModalOpen(false)} style={{ width: '30px', height: '30px', borderRadius: '50%', border: '1px solid #E2E8F0', background: '#F8FAFC', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
+              <button onClick={() => setIsModalOpen(false)} style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #E2E8F0', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', transition: 'all 0.2s' }}>
                 <FiX size={14} />
               </button>
             </div>
 
             {/* Drawer Body */}
-            <div className={styles.drawerBody} style={{ padding: '24px', overflowY: 'auto', maxHeight: 'calc(100vh - 140px)' }}>
+            <div className={styles.drawerBody} style={{ padding: '20px 24px', overflowY: 'auto', maxHeight: 'calc(100vh - 120px)' }}>
               <form onSubmit={handleSave}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
 
                   {/* ROW 1: Name, URL, Price */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '14px' }}>
@@ -614,10 +624,10 @@ const ServiceManagement = () => {
                   </div>
 
                   {/* ROW 2: Image, Icon, SectionType (API), API ID, Order */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '14px' }}>
                     <div>
                       <label style={labelStyle}>Image</label>
-                      <input name="image" type="file" accept="image/*" onChange={handleInputChange} style={{ ...iStyle, padding: '8px' }} />
+                      <input name="image" type="file" accept="image/*" onChange={handleInputChange} style={{ ...iStyle, padding: '7px' }} />
                     </div>
                     <div>
                       <label style={labelStyle}>Icon</label>
@@ -643,9 +653,9 @@ const ServiceManagement = () => {
                   </div>
 
                   {/* ROW 3: Checkboxes */}
-                  <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '16px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>Flags & Status</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: '10px' }}>
+                  <div style={{ background: '#F8FAFC', borderRadius: '10px', padding: '14px', border: '1px solid #E2E8F0' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>Flags & Status</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: '8px' }}>
                       {[
                         { key: 'isActive',  label: 'Active' },
                         { key: 'onoff',     label: 'On/Off Service' },
@@ -655,8 +665,8 @@ const ServiceManagement = () => {
                         { key: 'gst',       label: 'GST Inclusive' },
                         { key: 'isTds',     label: 'TDS Apply' },
                       ].map(({ key, label }) => (
-                        <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#334155', fontWeight: 600, cursor: 'pointer', padding: '8px 10px', background: '#fff', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                          <input type="checkbox" name={key} checked={!!formData[key]} onChange={handleInputChange} style={{ width: '15px', height: '15px', cursor: 'pointer' }} />
+                        <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#334155', fontWeight: 600, cursor: 'pointer', padding: '6px 10px', background: '#fff', borderRadius: '6px', border: '1px solid #E2E8F0', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+                          <input type="checkbox" name={key} checked={!!formData[key]} onChange={handleInputChange} style={{ width: '14px', height: '14px', cursor: 'pointer', accentColor: '#10B981' }} />
                           {label}
                         </label>
                       ))}
@@ -664,7 +674,7 @@ const ServiceManagement = () => {
                   </div>
 
                   {/* ROW 4: Times & TDS */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '14px' }}>
                     <div>
                       <label style={labelStyle}>On Time (Hour)</label>
                       <input name="onTime" type="number" value={formData.onTime} onChange={handleInputChange} style={iStyle} min="0" max="23" />
@@ -686,7 +696,7 @@ const ServiceManagement = () => {
                 </div>
 
                 {/* Footer Buttons */}
-                <div style={{ display: 'flex', gap: '12px', marginTop: '28px', paddingTop: '20px', borderTop: '1px solid #F1F5F9' }}>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #E2E8F0' }}>
                   <PrimaryButton
                     type="submit"
                     disabled={formSaving}
@@ -696,7 +706,7 @@ const ServiceManagement = () => {
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    style={{ padding: '11px 20px', background: '#F1F5F9', border: 'none', color: '#64748B', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}
+                    style={{ padding: '9px 18px', background: '#F1F5F9', border: 'none', color: '#475569', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', fontSize: '0.88rem', transition: 'background 0.2s' }}
                   >
                     Cancel
                   </button>

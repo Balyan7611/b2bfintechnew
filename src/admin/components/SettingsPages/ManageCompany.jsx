@@ -72,8 +72,9 @@ const ManageCompany = () => {
     setErrorMsg('');
     try {
       const res = await API.company.getAll();
-      if (res && res.status === true && Array.isArray(res.data)) {
-        setLocalCompanies(res.data.map(item => ({
+      if (res && res.status === true && res.data) {
+        const items = Array.isArray(res.data.items) ? res.data.items : (Array.isArray(res.data) ? res.data : []);
+        setLocalCompanies(items.map(item => ({
           ...item,                                          // keep ALL raw fields
           name:    item.name    || item.companyName || '',
           owner:   item.ownerName || '',
@@ -165,61 +166,36 @@ const ManageCompany = () => {
   const buildFormData = () => {
     const fd = new FormData();
 
-    // IDs
-    fd.append('Id',       formData.id ? String(parseInt(formData.id)) : '0');
-    fd.append('MemberId', String(parseInt(formData.member) || 1));
-
-    // Basic info
-    fd.append('Name',            formData.companyName    || '');
-    fd.append('OwnerName',       formData.ownerName      || '');
-    fd.append('Email',           formData.email          || '');
-    fd.append('AlternateEmail',  formData.alternateEmail || '');
-    fd.append('Mobile',          formData.mobile         || '');
-    fd.append('AlternateMobile', formData.alternateMobile|| '');
-    fd.append('Address',         formData.address        || '');
-    fd.append('Copyright',       formData.copyright      || '');
-
-    // Web & Social
+    if (formData.id) {
+      fd.append('Id', String(formData.id));
+    }
+    fd.append('Name', formData.companyName || '');
+    fd.append('Email', formData.email || '');
+    fd.append('Mobile', formData.mobile || '');
+    fd.append('OwnerName', formData.ownerName || '');
+    fd.append('Address', formData.address || '');
+    fd.append('BankName', formData.bankName || '');
+    fd.append('Acname', formData.acName || '');
+    fd.append('Acnumber', formData.acNumber || '');
+    fd.append('Actype', formData.acType || 'Current');
+    fd.append('Ifsc', formData.ifsc || '');
+    fd.append('Micrcode', formData.micrcode || '');
     fd.append('WebsiteUrl', formData.websiteUrl || '');
-    fd.append('AndroidUrl', formData.androidUrl || '');
-    fd.append('FaceBook',   formData.facebook   || '');
-    fd.append('WhastApp',   formData.whatsapp   || '');
-    fd.append('Instagram',  formData.instagram  || '');
-    fd.append('Twiter',     formData.twitter    || '');
-    fd.append('Youtube',    formData.youtube    || '');
+    fd.append('HeaderColor', formData.headerColor || '#ffffff');
+    fd.append('LeftColor', formData.leftColor || '#000000');
+    fd.append('BodyColor', formData.bodyColor || '#f4f4f4');
+    fd.append('MemberId', String(parseInt(formData.member) || 1));
+    fd.append('ip', '192.168.1.1');
 
-    // Banking
-    fd.append('BankName', formData.bankName  || '');
-    fd.append('Acname',   formData.acName    || '');
-    fd.append('Actype',   formData.acType    || 'Current');
-    fd.append('Acnumber', formData.acNumber  || '');
-    fd.append('Ifsc',     formData.ifsc      || '');
-    fd.append('Micrcode', formData.micrcode  || '');
-
-    // Finance
-    fd.append('ProfileAmount', String(parseFloat(formData.profileAmount) || 0));
-
-    // Theme colors
-    fd.append('HeaderColor', formData.headerColor || '#333333');
-    fd.append('LeftColor',   formData.leftColor   || '#000000');
-    fd.append('BodyColor',   formData.bodyColor   || '#ffffff');
-
-    // Files — only append if user selected a new file
-    if (formData.logoFile)      fd.append('FileLogo',    formData.logoFile);
-    if (formData.signatureFile) fd.append('FileSign',    formData.signatureFile);
-    if (formData.faviconFile)   fd.append('FileFevicon', formData.faviconFile);
-
-    // Device info — exact keys from curl
-    fd.append('ip',                    '127.0.0.1');
-    fd.append('deviceInfo.deviceId',   'WEB001');
-    fd.append('deviceInfo.deviceName', navigator.userAgent.substring(0, 50));
-    fd.append('deviceInfo.platform',   'Web');
-
-    // Location — exact keys from curl
-    fd.append('location.lat',     '0.0');
-    fd.append('location.lng',     '0.0');
-    fd.append('location.city',    'City');
-    fd.append('location.country', 'India');
+    if (formData.logoFile) {
+      fd.append('FileLogo', formData.logoFile);
+    }
+    if (formData.faviconFile) {
+      fd.append('FileFevicon', formData.faviconFile);
+    }
+    if (formData.signatureFile) {
+      fd.append('FileSign', formData.signatureFile);
+    }
 
     return fd;
   };
@@ -304,11 +280,14 @@ const ManageCompany = () => {
   };
 
   /* ── Filtered list ── */
-  const filtered = localCompanies.filter(c =>
-    c.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.phone?.includes(searchQuery)
-  );
+  const filtered = localCompanies.filter(c => {
+    const name = String(c.name || '').toLowerCase();
+    const email = String(c.email || '').toLowerCase();
+    const phone = String(c.phone || c.mobile || '').toLowerCase();
+    const owner = String(c.owner || c.ownerName || '').toLowerCase();
+    const query = searchQuery.toLowerCase();
+    return name.includes(query) || email.includes(query) || phone.includes(query) || owner.includes(query);
+  });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
   const startIndex = (currentPage - 1) * rowsPerPage;

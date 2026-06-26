@@ -124,12 +124,11 @@ const AssignPackage = () => {
         else if (rolesRes && rolesRes.data) setRoles(rolesRes.data);
 
         const pkgRes = await API.package.getAll();
-        if (pkgRes && Array.isArray(pkgRes)) {
+        if (pkgRes && pkgRes.status === true && pkgRes.data) {
+          const items = Array.isArray(pkgRes.data.items) ? pkgRes.data.items : (Array.isArray(pkgRes.data) ? pkgRes.data : []);
+          setPackages(items);
+        } else if (Array.isArray(pkgRes)) {
           setPackages(pkgRes);
-        } else if (pkgRes && pkgRes.status === true && Array.isArray(pkgRes.data)) {
-          setPackages(pkgRes.data);
-        } else if (pkgRes && Array.isArray(pkgRes.data)) {
-          setPackages(pkgRes.data);
         }
       } catch (err) {
         console.error("Error fetching data", err);
@@ -189,8 +188,12 @@ const AssignPackage = () => {
 
         // Refresh packages list
         const pkgRes = await API.package.getAll();
-        if (pkgRes && Array.isArray(pkgRes)) setPackages(pkgRes);
-        else if (pkgRes && pkgRes.status === true && Array.isArray(pkgRes.data)) setPackages(pkgRes.data);
+        if (pkgRes && pkgRes.status === true && pkgRes.data) {
+          const items = Array.isArray(pkgRes.data.items) ? pkgRes.data.items : (Array.isArray(pkgRes.data) ? pkgRes.data : []);
+          setPackages(items);
+        } else if (Array.isArray(pkgRes)) {
+          setPackages(pkgRes);
+        }
       }
 
       showPopup('success', 'Assignment Applied!', 'Package assignments have been saved successfully.');
