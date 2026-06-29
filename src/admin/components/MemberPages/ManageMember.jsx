@@ -735,8 +735,8 @@ const ManageMember = () => {
                         <span className={styles.roleTag} style={{ fontSize: '0.7rem', padding: '2px 6px' }}>{m.roleName}</span>
                         <span style={{ fontSize: '0.68rem', color: '#718096', fontWeight: 700 }}>{m.packageName}</span></div></td>
                     <td>{m.mobile}</td>
-                    <td className={styles.fwBold} style={{ color: '#27AE60' }}>₹ {m.balance || m.mainBal || 0}</td>
-                    <td className={styles.fwBold} style={{ color: '#1756AA' }}>₹ {m.aepsBalance || m.aepsBal || 0}</td>
+                    <td className={styles.fwBold} style={{ color: '#27AE60' }}>₹ {m.mainWallet || m.balance || m.mainBal || 0}</td>
+                    <td className={styles.fwBold} style={{ color: '#1756AA' }}>₹ {m.aepsWallet || m.aepsBalance || m.aepsBal || 0}</td>
                     <td>
                       <div style={{ 
                         display: 'inline-flex', 

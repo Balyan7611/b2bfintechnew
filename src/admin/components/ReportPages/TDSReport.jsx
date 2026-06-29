@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
+import { API } from '../../../api/endpoints';
 import { 
   FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo, FiActivity, FiDatabase, FiAlertCircle, FiXCircle, FiFileText, FiPercent
 } from 'react-icons/fi';
@@ -9,6 +10,21 @@ import {
 import styles from '../MemberPages/MemberPages.module.css';
 
 const TDSReport = () => {
+  const [memberList, setMemberList] = useState([]);
+  const [selectedMember, setSelectedMember] = useState('');
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        if (res && Array.isArray(res.data)) setMemberList(res.data);
+        else if (Array.isArray(res)) setMemberList(res);
+        else setMemberList([]);
+      } catch (err) { console.error("Error fetching members:", err); }
+    };
+    fetchMembers();
+  }, []);
+
   return (
     <div className={styles.container}>
       {/* ── PREMIUM FILTER CARD ── */}
@@ -40,8 +56,20 @@ const TDSReport = () => {
 
               <div className={styles.formGroup}>
                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Select Member</label>
-                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', color: '#334155' }} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}>
+                <select 
+                  className={styles.inputControl} 
+                  style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', color: '#334155' }} 
+                  onFocus={(e) => e.target.style.borderColor = '#1756AA'} 
+                  onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}
+                  value={selectedMember}
+                  onChange={(e) => setSelectedMember(e.target.value)}
+                >
                   <option value="">All Registered Members</option>
+                  {Array.isArray(memberList) && memberList.map((m) => (
+                    <option key={m.id || m.memberId} value={m.id || m.memberId}>
+                      {m.name || m.memberId} ({m.mobile})
+                    </option>
+                  ))}
                 </select>
               </div>
               
@@ -95,9 +123,14 @@ const TDSReport = () => {
             </thead>
             <tbody>
               <tr>
-                <td colSpan="10" style={{ textAlign: 'center', padding: '20px 0', color: '#A0AEC0' }}>
-                   
-                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No tax records found</span></td>
+                <td colSpan="10" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0', position: 'relative' }}>
+                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                     <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '50%', border: '1px solid #E2E8F0' }}>
+                       <FiDatabase size={24} color="#94A3B8" />
+                     </div>
+                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No tax records found</span>
+                   </div>
+                </td>
               </tr>
             </tbody>
           </table>

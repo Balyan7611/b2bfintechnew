@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
+import { API } from '../../../api/endpoints';
 import { 
   FiSearch, FiChevronLeft, FiChevronRight, FiCheckCircle,
   FiDatabase, FiAlertCircle, FiXCircle, FiCreditCard
@@ -11,6 +12,34 @@ import styles from '../MemberPages/MemberPages.module.css';
 
 const NSDLHistory = () => {
   const [focusedField, setFocusedField] = useState(null);
+
+  const [serviceList, setServiceList] = useState([]);
+  const [memberList, setMemberList] = useState([]);
+
+  const [selectedService, setSelectedService] = useState('');
+  const [selectedMember, setSelectedMember] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const res = await API.service.getAll();
+        if (res && Array.isArray(res.data)) setServiceList(res.data);
+        else if (Array.isArray(res)) setServiceList(res);
+        else setServiceList([]);
+      } catch (err) { console.error("Error fetching services:", err); }
+    };
+    const fetchMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        if (res && Array.isArray(res.data)) setMemberList(res.data);
+        else if (Array.isArray(res)) setMemberList(res);
+        else setMemberList([]);
+      } catch (err) { console.error("Error fetching members:", err); }
+    };
+    fetchServices();
+    fetchMembers();
+  }, []);
 
   return (
     <div className={styles.container} style={{ padding: '20px' }}>
@@ -83,9 +112,8 @@ const NSDLHistory = () => {
             </div>
           </div>
         </div>
-
         <form onSubmit={(e) => e.preventDefault()}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', alignItems: 'flex-end' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>From Date</label>
               <input type="date" className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'fromDate' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'fromDate' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} onFocus={() => setFocusedField('fromDate')} onBlur={() => setFocusedField(null)} />
@@ -95,26 +123,41 @@ const NSDLHistory = () => {
               <input type="date" className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'toDate' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'toDate' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} onFocus={() => setFocusedField('toDate')} onBlur={() => setFocusedField(null)} />
             </div>
             <div className={styles.formGroup}>
-              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Status</label>
-              <select
-                className={styles.inputControl}
-                style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'status' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'status' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }}
-                onFocus={() => setFocusedField('status')} onBlur={() => setFocusedField(null)}
-              >
-                <option value="">All Status</option>
-                <option>Success</option>
-                <option>Pending</option>
-                <option>Failed</option>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Service</label>
+              <select className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'service' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'service' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} onFocus={() => setFocusedField('service')} onBlur={() => setFocusedField(null)} value={selectedService} onChange={(e) => setSelectedService(e.target.value)}>
+                <option value="">All Services</option>
+                {Array.isArray(serviceList) && serviceList.map((srv) => (
+                  <option key={srv.id} value={srv.id}>{srv.name}</option>
+                ))}
               </select>
             </div>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Select Member</label>
-              <select className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'member' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'member' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} onFocus={() => setFocusedField('member')} onBlur={() => setFocusedField(null)}>
+              <select className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'member' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'member' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} onFocus={() => setFocusedField('member')} onBlur={() => setFocusedField(null)} value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)}>
                 <option value="">All Members</option>
+                {Array.isArray(memberList) && memberList.map((m) => (
+                  <option key={m.id || m.memberId} value={m.id || m.memberId}>
+                    {m.name || m.memberId} ({m.mobile})
+                  </option>
+                ))}
               </select>
             </div>
-
-            <div className={styles.formGroup} style={{ gridColumn: 'span 3', marginTop: '12px' }}>
+            <div className={styles.formGroup}>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Transaction Status</label>
+              <select
+                className={styles.inputControl}
+                style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'status' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'status' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }}
+                onFocus={() => setFocusedField('status')} onBlur={() => setFocusedField(null)}
+                value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}
+              >
+                <option value="">All Status</option>
+                <option value="Success">Success</option>
+                <option value="Pending">Pending</option>
+                <option value="Failed">Failed</option>
+              </select>
+            </div>
+          
+            <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Search Anything (Name, Number, Op ID)</label>
               <div style={{ position: 'relative', width: '100%' }}>
                 <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
@@ -123,7 +166,7 @@ const NSDLHistory = () => {
                 <input type="text" placeholder="Enter keyword..." className={styles.inputControl} style={{ paddingLeft: '32px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'search' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'search' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} onFocus={() => setFocusedField('search')} onBlur={() => setFocusedField(null)} />
               </div>
             </div>
-            <div className={styles.formGroup} style={{ gridColumn: 'span 1', marginTop: '12px' }}>
+            <div className={styles.formGroup}>
               <button
                 type="submit"
                 style={{ background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', color: '#ffffff', border: 'none', borderRadius: '10px', height: '38px', fontSize: '0.825rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(34, 197, 94, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)', width: '100%', textTransform: 'uppercase', letterSpacing: '0.5px' }}
@@ -184,14 +227,15 @@ const NSDLHistory = () => {
               </tr>
             </thead>
             <tbody>
-              <tr style={{ height: '52px', background: '#F8FAFC' }}>
-                <td style={{ textAlign: 'center', color: '#CBD5E1' }}>-</td>
-                <td style={{ textAlign: 'center', color: '#CBD5E1' }}>-</td>
-                <td style={{ textAlign: 'center', color: '#CBD5E1' }}>-</td>
-                <td colSpan="9" style={{ textAlign: 'center', color: '#94A3B8', fontSize: '0.85rem', fontWeight: 500 }}>
-                  <FiDatabase style={{ marginRight: '8px', verticalAlign: 'middle', display: 'inline-block' }} /> No NSDL records found
+              <tr>
+                <td colSpan="13" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0', position: 'relative' }}>
+                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                     <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '50%', border: '1px solid #E2E8F0' }}>
+                       <FiDatabase size={24} color="#94A3B8" />
+                     </div>
+                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No NSDL records found</span>
+                   </div>
                 </td>
-                <td style={{ textAlign: 'center', color: '#CBD5E1' }}>-</td>
               </tr>
             </tbody>
           </table>

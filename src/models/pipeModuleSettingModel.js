@@ -4,7 +4,14 @@ const mapBoolean = (val) => val === true || val === 'true' || val === 1 || val =
 
 export const PipeModuleSettingResponseModel = (res) => {
     if (!res || !res.status) return [];
-    const items = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);
+    let items = [];
+    if (res.data && Array.isArray(res.data.items)) {
+        items = res.data.items;
+    } else if (Array.isArray(res.data)) {
+        items = res.data;
+    } else if (res.data) {
+        items = [res.data];
+    }
     return items.map(item => ({
         id: item.id || 0,
         serviceId: item.serviceId || 0,
@@ -42,9 +49,9 @@ export const PipeModuleSettingRequestModel = (data) => {
         wadhFace: data.wadhFace || "",
         wadhFinger: data.wadhFinger || "",
         wadhIris: data.wadhIris || "",
-        createdBy: data.createdBy || null,
+        createdBy: data.createdBy || "",
         createdDate: data.createdDate || new Date().toISOString(),
-        modifiedBy: data.modifiedBy || null,
+        modifiedBy: data.modifiedBy || "",
         modifiedDate: data.modifiedDate || new Date().toISOString(),
         rowVersion: data.rowVersion || ""
     };

@@ -41,11 +41,19 @@ const SMSIntegration = () => {
         API.smsCategory.getAll().catch(() => [])
       ]);
       
-      if (integrationRes && integrationRes.data) setIntegrations(integrationRes.data);
-      else if (Array.isArray(integrationRes)) setIntegrations(integrationRes);
+      if (integrationRes) {
+        if (Array.isArray(integrationRes)) setIntegrations(integrationRes);
+        else if (Array.isArray(integrationRes.data)) setIntegrations(integrationRes.data);
+        else if (integrationRes.data && Array.isArray(integrationRes.data.items)) setIntegrations(integrationRes.data.items);
+        else if (Array.isArray(integrationRes.items)) setIntegrations(integrationRes.items);
+      }
 
-      if (categoryRes && categoryRes.data) setCategories(categoryRes.data);
-      else if (Array.isArray(categoryRes)) setCategories(categoryRes);
+      if (categoryRes) {
+        if (Array.isArray(categoryRes)) setCategories(categoryRes);
+        else if (Array.isArray(categoryRes.data)) setCategories(categoryRes.data);
+        else if (categoryRes.data && Array.isArray(categoryRes.data.items)) setCategories(categoryRes.data.items);
+        else if (Array.isArray(categoryRes.items)) setCategories(categoryRes.items);
+      }
     } catch (error) {
       console.error("Failed to fetch data:", error);
     }

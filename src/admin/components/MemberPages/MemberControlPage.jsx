@@ -8,19 +8,20 @@ import {
   FaCreditCard, FaExchangeAlt, FaUserLock, FaRupeeSign,
   FaTimesCircle, FaExclamationTriangle, FaUser, FaMobileAlt,
   FaIdCard, FaWallet, FaFingerprint, FaCog, FaCheckCircle,
-  FaUserCheck, FaLock
+  FaUserCheck, FaLock, FaCheck
 } from 'react-icons/fa';
 import { updateMemberDirect } from '../../../store/slices/memberSlice';
 import styles from './MemberControlPage.module.css';
 import QuickActionGrid from '../../../shared/components/common/QuickActionGrid';
 import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 
-const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, backLabel = 'to Dashboard' }) => {
+const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, backLabel = 'to Dashboard', setHasUnsavedChanges }) => {
   const dispatch = useDispatch();
 
   // ── STATE DECLARATIONS ──
   const [isEditingProfile, setIsEditingProfile] = useState(initialEdit);
   const [showTpinModal, setShowTpinModal] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [adminTpin, setAdminTpin] = useState(['', '', '', '']);
   const [adminTpinError, setAdminTpinError] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -92,6 +93,16 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
   const [limitMode, setLimitMode] = useState('Credit'); // 'Credit' | 'Debit'
   const [validationError, setValidationError] = useState(null);
 
+  const [mainWalletBal, setMainWalletBal] = useState(0);
+  const [aepsWalletBal, setAepsWalletBal] = useState(0);
+
+  useEffect(() => {
+    if (activeMemberData) {
+      setMainWalletBal(parseFloat(activeMemberData.mainWallet || activeMemberData.mainBal || activeMemberData.balance || 0));
+      setAepsWalletBal(parseFloat(activeMemberData.aepsWallet || activeMemberData.aepsBal || activeMemberData.aepsBalance || 0));
+    }
+  }, [activeMemberData]);
+
   // ── OTP SECURE COUNTDOWN TIMER EFFECT ──
   useEffect(() => {
     let interval = null;
@@ -125,25 +136,25 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
     let updates = {};
     
     if (activeActionType === 'addFund') {
-      const current = parseFloat(activeMemberData.mainBal || 0);
-      updates = { mainBal: (current + amount).toFixed(2) };
+      const current = parseFloat(mainWalletBal || 0);
+      updates = { mainWallet: (current + amount), mainBal: (current + amount).toFixed(2) };
     } else if (activeActionType === 'deductFund') {
-      const current = parseFloat(activeMemberData.mainBal || 0);
+      const current = parseFloat(mainWalletBal || 0);
       if (current < amount) {
         setValidationError("Insufficient balance to deduct!");
         return;
       }
-      updates = { mainBal: (current - amount).toFixed(2) };
+      updates = { mainWallet: (current - amount), mainBal: (current - amount).toFixed(2) };
     } else if (activeActionType === 'addAeps') {
-      const current = parseFloat(activeMemberData.aepsBal || 0);
-      updates = { aepsBal: (current + amount).toFixed(2) };
+      const current = parseFloat(aepsWalletBal || 0);
+      updates = { aepsWallet: (current + amount), aepsBal: (current + amount).toFixed(2) };
     } else if (activeActionType === 'deductAeps') {
-      const current = parseFloat(activeMemberData.aepsBal || 0);
+      const current = parseFloat(aepsWalletBal || 0);
       if (current < amount) {
         setValidationError("Insufficient AEPS balance to deduct!");
         return;
       }
-      updates = { aepsBal: (current - amount).toFixed(2) };
+      updates = { aepsWallet: (current - amount), aepsBal: (current - amount).toFixed(2) };
     } else if (activeActionType === 'creditLimit') {
       const current = parseFloat(activeMemberData.creditLimit || 0);
       if (limitMode === 'Credit') {
@@ -168,8 +179,39 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
   };
 
   // ── CONFIRM TRANSACTION DISPATCH ──
-  const confirmPendingTransaction = () => {
+  const confirmPendingTransaction = async () => {
     if (!pendingTransaction) return;
+
+    const isFundTransfer = ['addFund', 'deductFund', 'addAeps', 'deductAeps'].includes(pendingTransaction.type);
+    
+    if (isFundTransfer) {
+      try {
+        const payload = {
+          msrno: activeMemberData.msrno || activeMemberData.id,
+          byMsrno: 1,
+          amount: pendingTransaction.amount,
+          transactionType: pendingTransaction.type.startsWith('add') ? 'Credit' : 'Debit',
+          walletType: pendingTransaction.type.toLowerCase().includes('aeps') ? 'Aeps' : 'Main',
+          description: "Wallet update via Member Control Center"
+        };
+        await API.userWalletBalance.transfer(payload);
+        
+        // Locally update state so that balance card updates immediately
+        if (pendingTransaction.updates.mainWallet !== undefined) {
+          setMainWalletBal(pendingTransaction.updates.mainWallet);
+        }
+        if (pendingTransaction.updates.aepsWallet !== undefined) {
+          setAepsWalletBal(pendingTransaction.updates.aepsWallet);
+        }
+
+        alert('Transaction Successful!');
+      } catch (err) {
+        console.error('Transfer API Error:', err);
+        alert('Transaction Failed: ' + (err?.response?.data?.message || err.message || 'Unknown Error'));
+        return; 
+      }
+    }
+
     dispatch(updateMemberDirect({ id: activeMemberData.id, updates: pendingTransaction.updates }));
     setPendingTransaction(null);
     setActionAmount('');
@@ -225,6 +267,17 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
     setShowTpinModal(true);
   };
 
+  // Set Unsaved Changes
+  useEffect(() => {
+    if (setHasUnsavedChanges) {
+      setHasUnsavedChanges(isEditingProfile);
+    }
+  }, [isEditingProfile, setHasUnsavedChanges]);
+
+  const handleActionMenuClick = (menuLabel) => {
+    setActiveActionType(menuLabel);
+  };
+
   const handleTpinSubmit = async () => {
     const enteredAdminTpin = adminTpin.join('');
     if (!enteredAdminTpin || enteredAdminTpin.length < 4) {
@@ -276,7 +329,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
           className={styles.pageBackBtn}
           onClick={() => {
             if (isEditingProfile) {
-              onClose();
+              setShowUnsavedModal(true);
             } else if (activeActionType) {
               setActiveActionType(null);
               setActionAmount('');
@@ -653,13 +706,13 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 <div className={`${styles.miniBalCard} ${styles.miniBalMain}`}>
                   <span className={styles.miniBalLabel}>Main Wallet Balance</span>
                   <span className={styles.miniBalVal}>
-                    ₹ {parseFloat(activeMemberData.mainBal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹ {parseFloat(mainWalletBal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className={`${styles.miniBalCard} ${styles.miniBalAeps}`}>
                   <span className={styles.miniBalLabel}>AEPS Wallet Balance</span>
                   <span className={styles.miniBalVal}>
-                    ₹ {parseFloat(activeMemberData.aepsBal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹ {parseFloat(aepsWalletBal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className={`${styles.miniBalCard} ${styles.miniBalHold}`}>
@@ -884,7 +937,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                     <FaWallet className={styles.balCardIcon} />
                   </div>
                   <span className={styles.balCardVal}>
-                    ₹ {parseFloat(activeMemberData.mainBal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹ {parseFloat(mainWalletBal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className={`${styles.memberBalCard} ${styles.balCardAeps}`}>
@@ -893,7 +946,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                     <FaFingerprint className={styles.balCardIcon} />
                   </div>
                   <span className={styles.balCardVal}>
-                    ₹ {parseFloat(activeMemberData.aepsBal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹ {parseFloat(aepsWalletBal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className={`${styles.memberBalCard} ${styles.balCardHold}`}>
@@ -1164,15 +1217,32 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
         </div>
       )}
 
-      {/* Success Modal */}
+      {/* SUCCESS MESSAGE OVERLAY (Profile Update) */}
       {showSuccessModal && (
-        <div className={styles.errorModalOverlay}>
-          <div className={styles.errorModalCard} style={{ padding: '30px' }}>
-            <div className={styles.errorModalIconCircle} style={{ background: '#E8F5E9', color: '#27AE60' }}>
-              <FaCheckCircle />
+        <div className={styles.modalOverlay}>
+          <div className={styles.successModalCard}>
+            <div className={styles.successIconCircle}>
+              <FaCheck />
             </div>
-            <h3 style={{ marginTop: '15px', color: '#0D1B3E' }}>Success!</h3>
-            <p style={{ color: '#4E6080', fontSize: '0.95rem' }}>Profile details have been updated successfully.</p>
+            <h3>Profile Updated Successfully!</h3>
+            <p>Changes have been saved and applied.</p>
+          </div>
+        </div>
+      )}
+
+      {/* UNSAVED CHANGES MODAL */}
+      {showUnsavedModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(13, 27, 62, 0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '340px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', animation: 'slideUp 0.3s ease' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#FFF5F5', color: '#E53E3E', fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <FaExclamationTriangle />
+            </div>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0D1B3E', margin: '0 0 8px 0' }}>Unsaved Changes</h3>
+            <p style={{ fontSize: '0.85rem', color: '#4E6080', margin: '0 0 24px 0', lineHeight: '1.4' }}>You have unsaved changes in the profile. Do you want to discard them and go back?</p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={() => setShowUnsavedModal(false)} style={{ flex: 1, padding: '10px', background: '#F1F5F9', border: 'none', borderRadius: '8px', color: '#4E6080', fontWeight: '600', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { setShowUnsavedModal(false); setIsEditingProfile(false); onClose(); }} style={{ flex: 1, padding: '10px', background: '#E53E3E', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: '600', cursor: 'pointer' }}>Discard</button>
+            </div>
           </div>
         </div>
       )}

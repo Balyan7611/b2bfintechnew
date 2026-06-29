@@ -41,6 +41,7 @@ export const MemberResponseModel = (item) => {
     if (!item) return null;
     return {
         id: item.id,
+        msrno: item.msrno || item.id,
         memberId: item.memberID || item.username || `MEM${item.id}`,
         name: item.name || "",
         email: item.email || "",
@@ -62,6 +63,9 @@ export const MemberResponseModel = (item) => {
         bizCity: item.businessPostOffice || "",
         role: item.roleName || (item.roleId === 2 ? 'Retailer' : 'Admin'),
         packageId: item.packageId || "",
-        doj: item.createdDate ? new Date(item.createdDate).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB')
+        doj: item.createdDate ? new Date(item.createdDate).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
+        mainWallet: item.mainWallet || 0,
+        aepsWallet: item.aepsWallet || 0,
+        commissionWallet: item.commissionWallet || 0
     };
 };

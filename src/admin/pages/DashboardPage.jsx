@@ -116,6 +116,7 @@ import MoneyWalletLoadHistory from '../components/ReportPages/MoneyWalletLoadHis
 import WalletPPIRegistration from '../components/ReportPages/WalletPPIRegistration';
 import QuickSearch from '../components/ReportPages/QuickSearch';
 import TDSReport from '../components/ReportPages/TDSReport';
+import AllMemberBalance from '../components/BalancePages/AllMemberBalance';
 import MemberControlPage from '../components/MemberPages/MemberControlPage';
 import { updateMemberDirect } from '../../store/slices/memberSlice';
 import Admin from '../components/MemberPages/Admin';
@@ -151,7 +152,8 @@ const SIDEBAR_LINKS = [
       { id: 'add_bank', label: 'Add Bank' },
       { id: 'member_bank_details', label: 'Member Bank Details' },
       { id: 'fund_request', label: 'Fund Request' },
-      { id: 'transfer', label: 'Transfer' }
+      { id: 'transfer', label: 'Transfer' },
+      { id: 'all_member_balance', label: 'All Member Balance' }
     ]
   },
   { 
@@ -481,6 +483,9 @@ const DashboardPage = () => {
   const memberList = useMemo(() => manageMemberState?.list || [], [manageMemberState?.list]);
 
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showUnsavedModalSidebar, setShowUnsavedModalSidebar] = useState(false);
+  const [pendingSidebarAction, setPendingSidebarAction] = useState(null);
   const [selectedMember, setSelectedMember] = useState(null);
   
   // Header Search
@@ -715,25 +720,51 @@ const DashboardPage = () => {
   };
 
   const handleMenuClick = (link) => {
-    navigate(location.pathname);
-    if (link.subLinks) {
-      setExpandedMenu(expandedMenu === link.id ? null : link.id);
-      if (!isSidebarOpen) dispatch(setSidebarOpen(true));
-    } else {
-      setActiveTab(link.id);
-      setExpandedMenu(null);
-      if (window.innerWidth <= 800) dispatch(setSidebarOpen(false));
-      if (contentRef.current) contentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    const executeClick = () => {
+      if (selectedMember) {
+        setHasUnsavedChanges(false);
+        setSelectedMember(null);
+      }
+      navigate(location.pathname);
+      if (link.subLinks) {
+        setExpandedMenu(expandedMenu === link.id ? null : link.id);
+        if (!isSidebarOpen) dispatch(setSidebarOpen(true));
+      } else {
+        setActiveTab(link.id);
+        setExpandedMenu(null);
+        if (window.innerWidth <= 800) dispatch(setSidebarOpen(false));
+        if (contentRef.current) contentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+
+    if (selectedMember && hasUnsavedChanges) {
+      setPendingSidebarAction(() => executeClick);
+      setShowUnsavedModalSidebar(true);
+      return;
     }
+    executeClick();
   };
 
   const handleSubMenuClick = (e, subId) => {
     e.stopPropagation();
-    navigate(location.pathname);
-    setActiveTab(subId);
-    dispatch(setHoveredMenu(null));
-    if (window.innerWidth <= 800) dispatch(setSidebarOpen(false));
-    if (contentRef.current) contentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    const executeSubClick = () => {
+      if (selectedMember) {
+        setHasUnsavedChanges(false);
+        setSelectedMember(null);
+      }
+      navigate(location.pathname);
+      setActiveTab(subId);
+      dispatch(setHoveredMenu(null));
+      if (window.innerWidth <= 800) dispatch(setSidebarOpen(false));
+      if (contentRef.current) contentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    if (selectedMember && hasUnsavedChanges) {
+      setPendingSidebarAction(() => executeSubClick);
+      setShowUnsavedModalSidebar(true);
+      return;
+    }
+    executeSubClick();
   };
 
   const handleQuickActionClick = (label) => {
@@ -1229,6 +1260,8 @@ const DashboardPage = () => {
             <BusinessSummary />
           ) : activeTab === 'earning_commission' ? (
             <EarningCommission />
+          ) : activeTab === 'all_member_balance' ? (
+            <AllMemberBalance />
           ) : activeTab === 'nsdl_history' ? (
             <NSDLHistory />
           ) : activeTab === 'dmt_ppi_history' ? (
@@ -1263,6 +1296,7 @@ const DashboardPage = () => {
             <MemberControlPage 
               activeMemberData={activeMemberData} 
               onClose={() => setSelectedMember(null)} 
+              setHasUnsavedChanges={setHasUnsavedChanges}
             />
           ) : (
             <>
@@ -1813,6 +1847,23 @@ const DashboardPage = () => {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* UNSAVED CHANGES MODAL FOR SIDEBAR */}
+      {showUnsavedModalSidebar && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(13, 27, 62, 0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '340px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', animation: 'slideUp 0.3s ease' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#FFF5F5', color: '#E53E3E', fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <FaExclamationTriangle />
+            </div>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0D1B3E', margin: '0 0 8px 0' }}>Unsaved Changes</h3>
+            <p style={{ fontSize: '0.85rem', color: '#4E6080', margin: '0 0 24px 0', lineHeight: '1.4' }}>You have unsaved changes in the profile. Do you want to discard them and proceed?</p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={() => setShowUnsavedModalSidebar(false)} style={{ flex: 1, padding: '10px', background: '#F1F5F9', border: 'none', borderRadius: '8px', color: '#4E6080', fontWeight: '600', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { setShowUnsavedModalSidebar(false); if (pendingSidebarAction) pendingSidebarAction(); }} style={{ flex: 1, padding: '10px', background: '#E53E3E', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: '600', cursor: 'pointer' }}>Discard</button>
+            </div>
+          </div>
         </div>
       )}
 

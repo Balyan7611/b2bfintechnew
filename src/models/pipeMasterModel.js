@@ -4,7 +4,14 @@ const mapBoolean = (val) => val === true || val === 'true' || val === 1 || val =
 
 export const PipeMasterResponseModel = (res) => {
     if (!res || !res.status) return [];
-    const items = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);
+    let items = [];
+    if (res.data && Array.isArray(res.data.items)) {
+        items = res.data.items;
+    } else if (Array.isArray(res.data)) {
+        items = res.data;
+    } else if (res.data) {
+        items = [res.data];
+    }
     return items.map(item => ({
         id: item.id || 0,
         serviceId: item.serviceId || 0,
@@ -26,9 +33,9 @@ export const PipeMasterRequestModel = (data) => {
         pipeName: data.pipeName || "",
         aliasName: data.aliasName || "",
         isActive: mapBoolean(data.isActive),
-        createdBy: data.createdBy || null,
+        createdBy: data.createdBy || "",
         createdOn: data.createdOn || new Date().toISOString(),
-        modifiedBy: data.modifiedBy || null,
+        modifiedBy: data.modifiedBy || "",
         modifiedOn: data.modifiedOn || new Date().toISOString(),
         rowVersion: data.rowVersion || ""
     };

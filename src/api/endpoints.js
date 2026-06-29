@@ -28,6 +28,7 @@ import { KycDocumentService } from '../services/kycDocument.service';
 import { BbpsDataDownService } from '../services/bbpsDataDown.service';
 import { BannerTypeService } from './../services/bannerType.service';
 import { BannerImageService } from './../services/bannerImage.service';
+import { UserWalletBalanceService } from '../services/userWalletBalance.service';
 
 // Re-exporting everything exactly as before to maintain backward compatibility
 export const API = {
@@ -66,6 +67,7 @@ export const API = {
     bbpsDataDown: BbpsDataDownService,
     bannerType: BannerTypeService,
     bannerImage: BannerImageService,
+    userWalletBalance: UserWalletBalanceService,
 };
 
 export const fetchCompanyData = CompanyService.fetchCompanyData;
@@ -95,5 +97,6 @@ export {
     KycDocumentService,
     BbpsDataDownService,
     BannerTypeService,
-    BannerImageService
+    BannerImageService,
+    UserWalletBalanceService
 };

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { API } from '../../../api/endpoints';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { 
   FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo, 
@@ -12,6 +13,61 @@ import styles from '../MemberPages/MemberPages.module.css';
 
 const MATMHistory = () => {
   const [focusedField, setFocusedField] = useState(null);
+  
+  const [memberList, setMemberList] = useState([]);
+  const [selectedMember, setSelectedMember] = useState('');
+  const [serviceList, setServiceList] = useState([]);
+  const [selectedService, setSelectedService] = useState('');
+  const [operatorList, setOperatorList] = useState([]);
+  const [selectedOperator, setSelectedOperator] = useState('');
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const res = await API.service.getAll();
+        if (res && Array.isArray(res.data)) {
+          setServiceList(res.data);
+        } else if (Array.isArray(res)) {
+          setServiceList(res);
+        } else {
+          setServiceList([]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch services:", err);
+      }
+    };
+    fetchServices();
+  }, []);
+
+  useEffect(() => {
+    const fetchOperators = async () => {
+      try {
+        const res = await API.operator.getAll();
+        if (res?.data?.items) {
+          setOperatorList(res.data.items);
+        } else if (res?.data && Array.isArray(res.data)) {
+          setOperatorList(res.data);
+        } else if (Array.isArray(res)) {
+          setOperatorList(res);
+        }
+      } catch (err) {
+        console.error("Failed to fetch operators:", err);
+      }
+    };
+    fetchOperators();
+  }, []);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        setMemberList(res || []);
+      } catch (err) {
+        console.error("Failed to fetch members:", err);
+      }
+    };
+    fetchMembers();
+  }, []);
 
   return (
     <div className={styles.container} style={{ padding: '20px 24px', maxWidth: '100%' }}>
@@ -197,6 +253,68 @@ const MATMHistory = () => {
               />
             </div>
             <div className={styles.formGroup}>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Service</label>
+              <select 
+                className={styles.inputControl} 
+                style={{ 
+                  paddingLeft: '12px', 
+                  paddingRight: '12px',
+                  height: '38px', 
+                  borderRadius: '10px', 
+                  fontSize: '0.825rem', 
+                  border: focusedField === 'service' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
+                  boxShadow: focusedField === 'service' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
+                  transition: 'all 0.25s', 
+                  width: '100%', 
+                  background: '#FCFDFE',
+                  color: '#334155',
+                  fontWeight: 500
+                }} 
+                onFocus={() => setFocusedField('service')}
+                onBlur={() => setFocusedField(null)}
+                value={selectedService}
+                onChange={(e) => setSelectedService(e.target.value)}
+              >
+                <option value="">All Services</option>
+                {Array.isArray(serviceList) && serviceList.map((srv) => (
+                  <option key={srv.id} value={srv.id}>
+                    {srv.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Operator</label>
+              <select 
+                className={styles.inputControl} 
+                style={{ 
+                  paddingLeft: '12px', 
+                  paddingRight: '12px',
+                  height: '38px', 
+                  borderRadius: '10px', 
+                  fontSize: '0.825rem', 
+                  border: focusedField === 'operator' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
+                  boxShadow: focusedField === 'operator' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
+                  transition: 'all 0.25s', 
+                  width: '100%', 
+                  background: '#FCFDFE',
+                  color: '#334155',
+                  fontWeight: 500
+                }} 
+                onFocus={() => setFocusedField('operator')}
+                onBlur={() => setFocusedField(null)}
+                value={selectedOperator}
+                onChange={(e) => setSelectedOperator(e.target.value)}
+              >
+                <option value="">All Operators</option>
+                {Array.isArray(operatorList) && operatorList.map((op) => (
+                  <option key={op.id || op.operatorId} value={op.id || op.operatorId}>
+                    {op.name || op.operatorName || op.title || op.id || 'Unknown'}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Select Member</label>
               <select 
                 className={styles.inputControl} 
@@ -216,8 +334,15 @@ const MATMHistory = () => {
                 }} 
                 onFocus={() => setFocusedField('member')}
                 onBlur={() => setFocusedField(null)}
+                value={selectedMember}
+                onChange={(e) => setSelectedMember(e.target.value)}
               >
                 <option value="">All Members</option>
+                {Array.isArray(memberList) && memberList.map((m) => (
+                  <option key={m.id || m.memberId} value={m.id || m.memberId}>
+                    {m.name || m.memberId} ({m.mobile})
+                  </option>
+                ))}
               </select>
             </div>
             <div className={styles.formGroup}>
@@ -304,9 +429,9 @@ const MATMHistory = () => {
                   e.currentTarget.style.boxShadow = '0 5px 15px rgba(34, 197, 94, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.12)';
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #1756AA 0%, #124080 100%)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)';
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(23, 86, 170, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)';
                 }}
               >
                 <FiSearch size={15} />
@@ -369,9 +494,9 @@ const MATMHistory = () => {
             </thead>
             <tbody>
               <tr>
-                <td colSpan="18" style={{ padding: '20px 0', color: '#A0AEC0', position: 'relative' }}>
-                   
-                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No MATM data found</span></td>
+                <td colSpan="18" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
+                     <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No MATM data found</span>
+                </td>
               </tr>
             </tbody>
           </table>

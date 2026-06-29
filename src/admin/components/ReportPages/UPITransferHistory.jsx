@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
+import { API } from '../../../api/endpoints';
 import { 
   FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo, 
   FiActivity, FiDatabase, FiAlertCircle, FiXCircle, FiActivity as FiSignal,
@@ -12,6 +13,46 @@ import styles from '../MemberPages/MemberPages.module.css';
 
 const UPITransferHistory = () => {
   const [focusedField, setFocusedField] = useState(null);
+  
+  const [serviceList, setServiceList] = useState([]);
+  const [operatorList, setOperatorList] = useState([]);
+  const [memberList, setMemberList] = useState([]);
+
+  const [selectedService, setSelectedService] = useState('');
+  const [selectedOperator, setSelectedOperator] = useState('');
+  const [selectedMember, setSelectedMember] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const res = await API.service.getAll();
+        if (res && Array.isArray(res.data)) setServiceList(res.data);
+        else if (Array.isArray(res)) setServiceList(res);
+        else setServiceList([]);
+      } catch (err) { console.error("Error fetching services:", err); }
+    };
+    const fetchOperators = async () => {
+      try {
+        const res = await API.operator.getAll();
+        if (res && Array.isArray(res.data)) setOperatorList(res.data);
+        else if (Array.isArray(res)) setOperatorList(res);
+        else setOperatorList([]);
+      } catch (err) { console.error("Error fetching operators:", err); }
+    };
+    const fetchMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        if (res && Array.isArray(res.data)) setMemberList(res.data);
+        else if (Array.isArray(res)) setMemberList(res);
+        else setMemberList([]);
+      } catch (err) { console.error("Error fetching members:", err); }
+    };
+
+    fetchServices();
+    fetchOperators();
+    fetchMembers();
+  }, []);
 
   return (
     <div className={styles.container} style={{ padding: '20px 24px', maxWidth: '100%' }}>
@@ -197,6 +238,37 @@ const UPITransferHistory = () => {
               />
             </div>
             <div className={styles.formGroup}>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Service</label>
+              <select 
+                className={styles.inputControl} 
+                style={{ 
+                  paddingLeft: '12px', 
+                  paddingRight: '12px',
+                  height: '38px', 
+                  borderRadius: '10px', 
+                  fontSize: '0.825rem', 
+                  border: focusedField === 'service' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
+                  boxShadow: focusedField === 'service' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
+                  transition: 'all 0.25s', 
+                  width: '100%', 
+                  background: '#FCFDFE',
+                  color: '#334155',
+                  fontWeight: 500
+                }} 
+                onFocus={() => setFocusedField('service')}
+                onBlur={() => setFocusedField(null)}
+                value={selectedService}
+                onChange={(e) => setSelectedService(e.target.value)}
+              >
+                <option value="">All Services</option>
+                {Array.isArray(serviceList) && serviceList.map((srv) => (
+                  <option key={srv.id} value={srv.id}>
+                    {srv.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Operator</label>
               <select 
                 className={styles.inputControl} 
@@ -216,8 +288,15 @@ const UPITransferHistory = () => {
                 }} 
                 onFocus={() => setFocusedField('operator')}
                 onBlur={() => setFocusedField(null)}
+                value={selectedOperator}
+                onChange={(e) => setSelectedOperator(e.target.value)}
               >
                 <option value="">All Operators</option>
+                {Array.isArray(operatorList) && operatorList.map((op) => (
+                  <option key={op.id || op.operatorId} value={op.id || op.operatorId}>
+                    {op.name || op.operatorName || op.title || op.id || 'Unknown'}
+                  </option>
+                ))}
               </select>
             </div>
             <div className={styles.formGroup}>
@@ -240,8 +319,15 @@ const UPITransferHistory = () => {
                 }} 
                 onFocus={() => setFocusedField('member')}
                 onBlur={() => setFocusedField(null)}
+                value={selectedMember}
+                onChange={(e) => setSelectedMember(e.target.value)}
               >
                 <option value="">All Members</option>
+                {Array.isArray(memberList) && memberList.map((m) => (
+                  <option key={m.id || m.memberId} value={m.id || m.memberId}>
+                    {m.name || m.memberId} ({m.mobile})
+                  </option>
+                ))}
               </select>
             </div>
             <div className={styles.formGroup}>
@@ -269,7 +355,7 @@ const UPITransferHistory = () => {
               </select>
             </div>
             <div className={styles.formGroup}>
-              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Status</label>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Transaction Status</label>
               <select 
                 className={styles.inputControl} 
                 style={{ 
@@ -286,13 +372,15 @@ const UPITransferHistory = () => {
                   color: '#334155',
                   fontWeight: 500
                 }} 
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
                 onFocus={() => setFocusedField('status')}
                 onBlur={() => setFocusedField(null)}
               >
                 <option value="">All Status</option>
-                <option>Success</option>
-                <option>Pending</option>
-                <option>Failed</option>
+                <option value="Success">Success</option>
+                <option value="Pending">Pending</option>
+                <option value="Failed">Failed</option>
               </select>
             </div>
           
@@ -352,9 +440,9 @@ const UPITransferHistory = () => {
                   e.currentTarget.style.boxShadow = '0 5px 15px rgba(34, 197, 94, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.12)';
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #1756AA 0%, #124080 100%)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)';
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(23, 86, 170, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)';
                 }}
               >
                 <FiSearch size={15} />
@@ -419,9 +507,14 @@ const UPITransferHistory = () => {
             </thead>
             <tbody>
               <tr>
-                <td colSpan="20" style={{ padding: '20px 0', color: '#A0AEC0', position: 'relative' }}>
-                   
-                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No UPI data found</span></td>
+                <td colSpan="20" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0', position: 'relative' }}>
+                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                     <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '50%', border: '1px solid #E2E8F0' }}>
+                       <FiDatabase size={24} color="#94A3B8" />
+                     </div>
+                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No UPI transfer data found</span>
+                   </div>
+                </td>
               </tr>
             </tbody>
           </table>

@@ -34,11 +34,19 @@ const SMSCategory = () => {
   const fetchCategories = async () => {
     try {
       const response = await API.smsCategory.getAll();
-      if (response && response.data) {
-        setCategories(response.data);
-      } else if (Array.isArray(response)) {
-        setCategories(response);
+      let parsed = [];
+      if (response) {
+        if (Array.isArray(response)) {
+          parsed = response;
+        } else if (Array.isArray(response.data)) {
+          parsed = response.data;
+        } else if (response.data && Array.isArray(response.data.items)) {
+          parsed = response.data.items;
+        } else if (Array.isArray(response.items)) {
+          parsed = response.items;
+        }
       }
+      setCategories(parsed);
     } catch (error) {
       console.error("Failed to fetch categories:", error);
     }

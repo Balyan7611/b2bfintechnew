@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
+import { API } from '../../../api/endpoints';
 import { 
   FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo, 
   FiActivity, FiDatabase, FiAlertCircle, FiXCircle, FiActivity as FiSignal,
@@ -12,6 +13,20 @@ import styles from '../MemberPages/MemberPages.module.css';
 
 const CCBillPayHistory = () => {
   const [focusedField, setFocusedField] = useState(null);
+  const [memberList, setMemberList] = useState([]);
+  const [selectedMember, setSelectedMember] = useState('');
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        if (res && Array.isArray(res.data)) setMemberList(res.data);
+        else if (Array.isArray(res)) setMemberList(res);
+        else setMemberList([]);
+      } catch (err) { console.error("Error fetching members:", err); }
+    };
+    fetchMembers();
+  }, []);
 
   return (
     <div className={styles.container} style={{ padding: '20px' }}>
@@ -217,8 +232,15 @@ const CCBillPayHistory = () => {
                 }} 
                 onFocus={() => setFocusedField('member')}
                 onBlur={() => setFocusedField(null)}
+                value={selectedMember}
+                onChange={(e) => setSelectedMember(e.target.value)}
               >
                 <option value="">All Members</option>
+                {Array.isArray(memberList) && memberList.map((m) => (
+                  <option key={m.id || m.memberId} value={m.id || m.memberId}>
+                    {m.name || m.memberId} ({m.mobile})
+                  </option>
+                ))}
               </select>
             </div>
           
@@ -278,9 +300,9 @@ const CCBillPayHistory = () => {
                   e.currentTarget.style.boxShadow = '0 5px 15px rgba(34, 197, 94, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.12)';
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #1756AA 0%, #124080 100%)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)';
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(23, 86, 170, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)';
                 }}
               >
                 <FiSearch size={15} />
@@ -341,9 +363,14 @@ const CCBillPayHistory = () => {
             </thead>
             <tbody>
               <tr>
-                <td colSpan="16" style={{ padding: '20px 0', color: '#A0AEC0', position: 'relative' }}>
-                   
-                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No billpay data found</span></td>
+                <td colSpan="16" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0', position: 'relative' }}>
+                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                     <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '50%', border: '1px solid #E2E8F0' }}>
+                       <FiDatabase size={24} color="#94A3B8" />
+                     </div>
+                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No billpay data found</span>
+                   </div>
+                </td>
               </tr>
             </tbody>
           </table>

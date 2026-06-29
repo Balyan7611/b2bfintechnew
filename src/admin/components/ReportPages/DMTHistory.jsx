@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API } from '../../../api/endpoints';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { useLocation } from 'react-router-dom';
 import { 
@@ -17,6 +18,61 @@ const DMTHistory = () => {
   const searchParams = new URLSearchParams(location.search);
   const initialStatus = searchParams.get('Status') || '';
   const [selectedStatus, setSelectedStatus] = useState(initialStatus);
+
+  const [memberList, setMemberList] = useState([]);
+  const [serviceList, setServiceList] = useState([]);
+  const [selectedService, setSelectedService] = useState('');
+  const [operatorList, setOperatorList] = useState([]);
+  const [selectedOperator, setSelectedOperator] = useState('');
+  const [selectedMember, setSelectedMember] = useState('');
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const res = await API.service.getAll();
+        if (res && Array.isArray(res.data)) {
+          setServiceList(res.data);
+        } else if (Array.isArray(res)) {
+          setServiceList(res);
+        } else {
+          setServiceList([]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch services:", err);
+      }
+    };
+    fetchServices();
+  }, []);
+
+  useEffect(() => {
+    const fetchOperators = async () => {
+      try {
+        const res = await API.operator.getAll();
+        if (res?.data?.items) {
+          setOperatorList(res.data.items);
+        } else if (res?.data && Array.isArray(res.data)) {
+          setOperatorList(res.data);
+        } else if (Array.isArray(res)) {
+          setOperatorList(res);
+        }
+      } catch (err) {
+        console.error("Failed to fetch operators:", err);
+      }
+    };
+    fetchOperators();
+  }, []);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        setMemberList(res || []);
+      } catch (err) {
+        console.error("Failed to fetch members:", err);
+      }
+    };
+    fetchMembers();
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -209,6 +265,37 @@ const DMTHistory = () => {
               />
             </div>
             <div className={styles.formGroup}>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Service</label>
+              <select 
+                className={styles.inputControl} 
+                style={{ 
+                  paddingLeft: '12px', 
+                  paddingRight: '12px',
+                  height: '38px', 
+                  borderRadius: '10px', 
+                  fontSize: '0.825rem', 
+                  border: focusedField === 'service' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
+                  boxShadow: focusedField === 'service' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
+                  transition: 'all 0.25s', 
+                  width: '100%', 
+                  background: '#FCFDFE',
+                  color: '#334155',
+                  fontWeight: 500
+                }} 
+                onFocus={() => setFocusedField('service')}
+                onBlur={() => setFocusedField(null)}
+                value={selectedService}
+                onChange={(e) => setSelectedService(e.target.value)}
+              >
+                <option value="">All Services</option>
+                {Array.isArray(serviceList) && serviceList.map((srv) => (
+                  <option key={srv.id} value={srv.id}>
+                    {srv.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Operator</label>
               <select 
                 className={styles.inputControl} 
@@ -228,8 +315,15 @@ const DMTHistory = () => {
                 }} 
                 onFocus={() => setFocusedField('operator')}
                 onBlur={() => setFocusedField(null)}
+                value={selectedOperator}
+                onChange={(e) => setSelectedOperator(e.target.value)}
               >
                 <option value="">All Operators</option>
+                {Array.isArray(operatorList) && operatorList.map((op) => (
+                  <option key={op.id || op.operatorId} value={op.id || op.operatorId}>
+                    {op.name || op.operatorName || op.title || op.id || 'Unknown'}
+                  </option>
+                ))}
               </select>
             </div>
             <div className={styles.formGroup}>
@@ -303,10 +397,15 @@ const DMTHistory = () => {
                   color: '#334155',
                   fontWeight: 500
                 }} 
-                onFocus={() => setFocusedField('member')}
-                onBlur={() => setFocusedField(null)}
+                value={selectedMember}
+                onChange={(e) => setSelectedMember(e.target.value)}
               >
                 <option value="">All Members</option>
+                {Array.isArray(memberList) && memberList.map((m) => (
+                  <option key={m.id || m.memberId} value={m.id || m.memberId}>
+                    {m.name || m.memberId} ({m.mobile})
+                  </option>
+                ))}
               </select>
             </div>
             <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
@@ -426,9 +525,9 @@ const DMTHistory = () => {
             </thead>
             <tbody>
               <tr>
-                <td colSpan="13" style={{ padding: '20px 0', color: '#A0AEC0', position: 'relative' }}>
-                   
-                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No DMT data found</span></td>
+                <td colSpan="13" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
+                     <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No DMT data found</span>
+                </td>
               </tr>
             </tbody>
           </table>

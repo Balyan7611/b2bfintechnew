@@ -58,8 +58,23 @@ const MemberBankDetails = () => {
         API.memberBankDetail.getAll().catch(() => []),
         API.bank.getAll().catch(() => [])
       ]);
-      setBankList(banksData || []);
-      setBankMasterList(masterData || []);
+      let parsedBanks = [];
+      if (banksData) {
+        if (Array.isArray(banksData)) parsedBanks = banksData;
+        else if (Array.isArray(banksData.data)) parsedBanks = banksData.data;
+        else if (banksData.data && Array.isArray(banksData.data.items)) parsedBanks = banksData.data.items;
+        else if (Array.isArray(banksData.items)) parsedBanks = banksData.items;
+      }
+      setBankList(parsedBanks);
+
+      let parsedMaster = [];
+      if (masterData) {
+        if (Array.isArray(masterData)) parsedMaster = masterData;
+        else if (Array.isArray(masterData.data)) parsedMaster = masterData.data;
+        else if (masterData.data && Array.isArray(masterData.data.items)) parsedMaster = masterData.data.items;
+        else if (Array.isArray(masterData.items)) parsedMaster = masterData.items;
+      }
+      setBankMasterList(parsedMaster);
     } catch (error) {
       console.error('Failed to fetch member bank details:', error);
     } finally {
@@ -103,7 +118,7 @@ const MemberBankDetails = () => {
     
     const handleScroll = (e) => {
       if (e.target.closest && e.target.closest('.action-dropdown-wrapper')) return;
-      setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, row: null } : prev);
+      setActiveActionRow(prev => prev.row ? { id: null, x: 0, y: 0, row: null } : prev);
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -517,8 +532,9 @@ const MemberBankDetails = () => {
                               } else {
                                 const rect = e.currentTarget.getBoundingClientRect();
                                 let dropX = rect.right + 12;
+                                let dropY = rect.top;
                                 if (dropX + 170 > window.innerWidth) dropX = rect.left - 175;
-                                setActiveActionRow({ id: row.id, x: dropX, y: rect.top, row: row });
+                                setActiveActionRow({ id: row.id, x: dropX, y: dropY, row: row });
                               }
                             }}
                             style={{ 
@@ -614,7 +630,7 @@ const MemberBankDetails = () => {
       </div>
 
       {/* ── ACTION DROPDOWN POPUP ── */}
-      {activeActionRow.id && (
+      {activeActionRow.row && (
         <div 
           className="action-dropdown-wrapper"
           style={{
@@ -677,16 +693,16 @@ const MemberBankDetails = () => {
 
       {/* ── DELETE CONFIRMATION MODAL ── */}
       {confirmDeleteId && (
-        <div className={styles.modalOverlay} onClick={() => setConfirmDeleteId(null)}>
-          <div className={styles.deleteModal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.deleteIconBox}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(13, 27, 62, 0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setConfirmDeleteId(null)}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '340px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', animation: 'slideUp 0.3s ease' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#FFF5F5', color: '#E53E3E', fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <FaTrash />
             </div>
-            <h3>Are you sure?</h3>
-            <p>Do you really want to delete this bank record? This action cannot be undone.</p>
-            <div className={styles.deleteActionBtns}>
-              <button className={styles.cancelBtn} onClick={() => setConfirmDeleteId(null)}>Cancel</button>
-              <button className={styles.deleteBtn} onClick={handleDelete}>Delete</button>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0D1B3E', margin: '0 0 8px 0' }}>Are you sure?</h3>
+            <p style={{ fontSize: '0.85rem', color: '#4E6080', margin: '0 0 24px 0', lineHeight: '1.4' }}>Do you really want to delete this bank record? This action cannot be undone.</p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={() => setConfirmDeleteId(null)} style={{ flex: 1, padding: '10px', background: '#F1F5F9', border: 'none', borderRadius: '8px', color: '#4E6080', fontWeight: '600', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleDelete} style={{ flex: 1, padding: '10px', background: '#E53E3E', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: '600', cursor: 'pointer' }}>Delete</button>
             </div>
           </div>
         </div>
@@ -694,16 +710,16 @@ const MemberBankDetails = () => {
 
       {/* ── STATUS CHANGE MODAL ── */}
       {confirmToggleRow && (
-        <div className={styles.modalOverlay} onClick={() => setConfirmToggleRow(null)}>
-          <div className={styles.deleteModal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.deleteIconBox} style={{ background: confirmToggleRow.isActive ? '#FFF5F5' : '#F0FDF4', color: confirmToggleRow.isActive ? '#E53E3E' : '#27AE60' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(13, 27, 62, 0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setConfirmToggleRow(null)}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '340px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', animation: 'slideUp 0.3s ease' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: confirmToggleRow.isActive ? '#FFF5F5' : '#F0FDF4', color: confirmToggleRow.isActive ? '#E53E3E' : '#27AE60', fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <FaPowerOff />
             </div>
-            <h3>Confirm Status Change</h3>
-            <p>Are you sure you want to change the status to <strong>{confirmToggleRow.isActive ? 'Inactive' : 'Active'}</strong> for {confirmToggleRow.name}?</p>
-            <div className={styles.deleteActionBtns}>
-              <button className={styles.cancelBtn} onClick={() => setConfirmToggleRow(null)}>Cancel</button>
-              <button className={styles.deleteBtn} style={{ background: confirmToggleRow.isActive ? '#E53E3E' : '#27AE60' }} onClick={handleToggleStatus}>Yes, Change it</button>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0D1B3E', margin: '0 0 8px 0' }}>Confirm Status Change</h3>
+            <p style={{ fontSize: '0.85rem', color: '#4E6080', margin: '0 0 24px 0', lineHeight: '1.4' }}>Are you sure you want to change the status to <strong>{confirmToggleRow.isActive ? 'Inactive' : 'Active'}</strong> for {confirmToggleRow.name}?</p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={() => setConfirmToggleRow(null)} style={{ flex: 1, padding: '10px', background: '#F1F5F9', border: 'none', borderRadius: '8px', color: '#4E6080', fontWeight: '600', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleToggleStatus} style={{ flex: 1, padding: '10px', background: confirmToggleRow.isActive ? '#E53E3E' : '#27AE60', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: '600', cursor: 'pointer' }}>Yes, Change it</button>
             </div>
           </div>
         </div>

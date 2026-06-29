@@ -36,7 +36,8 @@ const scanObjectForMaliciousData = (obj) => {
             if (Object.prototype.hasOwnProperty.call(obj, key)) {
                 const isPwdField = key.toLowerCase().includes('password') || key.toLowerCase().includes('pwd') || key.toLowerCase().includes('tpin') || key.toLowerCase().includes('pin');
                 const isSystemField = ['browser', 'os', 'useragent', 'device', 'ip', 'token', 'sessionid'].includes(key.toLowerCase());
-                const isLooseCheck = isPwdField || isSystemField;
+                const isDateField = key.toLowerCase().includes('date') || key.toLowerCase().includes('time') || key.toLowerCase().includes('createdon') || key.toLowerCase().includes('updatedon') || key.toLowerCase().includes('createdat') || key.toLowerCase().includes('updatedat');
+                const isLooseCheck = isPwdField || isSystemField || isDateField;
                 
                 const val = obj[key];
                 if (typeof val === 'string') {
@@ -53,8 +54,10 @@ const scanObjectForMaliciousData = (obj) => {
 };
 
 httpClient.interceptors.request.use((config) => {
-    // 1. Scan request body for potential SQLi/XSS/Malicious payloads
-    if (config.data && !(config.data instanceof FormData)) {
+    const isAuthRequest = config.url && (config.url.includes('/login') || config.url.includes('/register') || config.url.includes('/forgot') || config.url.includes('/otp'));
+
+    // 1. Scan request body for potential SQLi/XSS/Malicious payloads ONLY on Auth requests
+    if (isAuthRequest && config.data && !(config.data instanceof FormData)) {
         const securityAlert = scanObjectForMaliciousData(config.data);
         if (securityAlert) {
             const error = new Error(`Security Exception: ${securityAlert}`);
@@ -66,7 +69,6 @@ httpClient.interceptors.request.use((config) => {
     const isFrozen = localStorage.getItem('bss_system_frozen') === 'true';
     const method = (config.method || 'get').toLowerCase();
     const isWrite = ['post', 'put', 'delete', 'patch'].includes(method);
-    const isAuthRequest = config.url.includes('/login') || config.url.includes('/register') || config.url.includes('/forgot') || config.url.includes('/otp');
 
     if (isFrozen && isWrite && !isAuthRequest) {
         // If they are not logged in as Admin, block the transaction

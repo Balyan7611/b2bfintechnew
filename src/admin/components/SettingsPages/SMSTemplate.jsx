@@ -41,13 +41,27 @@ const SMSTemplate = () => {
         API.smsSetting.getAll().catch(() => [])
       ]);
       
-      if (templateRes && templateRes.data) setTemplates(templateRes.data);
-      else if (Array.isArray(templateRes)) setTemplates(templateRes);
+      if (templateRes) {
+        if (Array.isArray(templateRes)) setTemplates(templateRes);
+        else if (Array.isArray(templateRes.data)) setTemplates(templateRes.data);
+        else if (templateRes.data && Array.isArray(templateRes.data.items)) setTemplates(templateRes.data.items);
+        else if (Array.isArray(templateRes.items)) setTemplates(templateRes.items);
+      }
 
-      if (categoryRes && categoryRes.data) setCategories(categoryRes.data);
-      else if (Array.isArray(categoryRes)) setCategories(categoryRes);
+      if (categoryRes) {
+        if (Array.isArray(categoryRes)) setCategories(categoryRes);
+        else if (Array.isArray(categoryRes.data)) setCategories(categoryRes.data);
+        else if (categoryRes.data && Array.isArray(categoryRes.data.items)) setCategories(categoryRes.data.items);
+        else if (Array.isArray(categoryRes.items)) setCategories(categoryRes.items);
+      }
 
-      const integrationsList = (integrationRes && integrationRes.data) ? integrationRes.data : (Array.isArray(integrationRes) ? integrationRes : []);
+      let integrationsList = [];
+      if (integrationRes) {
+        if (Array.isArray(integrationRes)) integrationsList = integrationRes;
+        else if (Array.isArray(integrationRes.data)) integrationsList = integrationRes.data;
+        else if (integrationRes.data && Array.isArray(integrationRes.data.items)) integrationsList = integrationRes.data.items;
+        else if (Array.isArray(integrationRes.items)) integrationsList = integrationRes.items;
+      }
       
       // Determine active services
       const hasSms = integrationsList.some(item => item.integrationtype === 1);

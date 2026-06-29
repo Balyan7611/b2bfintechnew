@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
   FaEdit, FaSearch, FaFileExcel, FaFilePdf, FaPrint, FaCopy, FaFileCsv,
-  FaChevronLeft, FaChevronRight, FaPlus, FaTimes, FaTrash 
+  FaChevronLeft, FaChevronRight, FaPlus, FaTimes, FaTrash, FaPowerOff 
 } from 'react-icons/fa';
-import { FiDatabase } from 'react-icons/fi';
+import { FiDatabase, FiMoreVertical } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { API } from '../../../api/endpoints';
 import styles from './CompanyBank.module.css';
@@ -19,6 +19,8 @@ const CompanyBank = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [activeTab, setActiveTab] = useState('BANK');
+  const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, row: null });
+  const [confirmToggleRow, setConfirmToggleRow] = useState(null);
 
   const [formState, setFormState] = useState({
     id: 0,
@@ -44,8 +46,23 @@ const CompanyBank = () => {
         API.companyBankDetail.getAll().catch(() => []),
         API.bank.getAll().catch(() => [])
       ]);
-      setBankList(banksData || []);
-      setBankMasterList(masterData || []);
+      let parsedBanks = [];
+      if (banksData) {
+        if (Array.isArray(banksData)) parsedBanks = banksData;
+        else if (Array.isArray(banksData.data)) parsedBanks = banksData.data;
+        else if (banksData.data && Array.isArray(banksData.data.items)) parsedBanks = banksData.data.items;
+        else if (Array.isArray(banksData.items)) parsedBanks = banksData.items;
+      }
+      setBankList(parsedBanks);
+
+      let parsedMaster = [];
+      if (masterData) {
+        if (Array.isArray(masterData)) parsedMaster = masterData;
+        else if (Array.isArray(masterData.data)) parsedMaster = masterData.data;
+        else if (masterData.data && Array.isArray(masterData.data.items)) parsedMaster = masterData.data.items;
+        else if (Array.isArray(masterData.items)) parsedMaster = masterData.items;
+      }
+      setBankMasterList(parsedMaster);
     } catch (error) {
       console.error('Failed to fetch company banks:', error);
     } finally {
@@ -55,6 +72,23 @@ const CompanyBank = () => {
 
   useEffect(() => {
     fetchData();
+
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.action-dropdown-wrapper')) {
+        setActiveActionRow({ id: null, x: 0, y: 0, row: null });
+      }
+    };
+    const handleScroll = (e) => {
+      if (e.target.closest && e.target.closest('.action-dropdown-wrapper')) return;
+      setActiveActionRow(prev => prev.row ? { id: null, x: 0, y: 0, row: null } : prev);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('scroll', handleScroll, true);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('scroll', handleScroll, true);
+    };
   }, []);
 
   const handleOpenAdd = () => {
@@ -134,13 +168,16 @@ const CompanyBank = () => {
     }
   };
 
-  const toggleActiveStatus = async (bank) => {
-    try {
-      const updated = { ...bank, isActive: !bank.isActive };
-      await API.companyBankDetail.update(updated);
-      setBankList(prev => prev.map(item => item.id === bank.id ? updated : item));
-    } catch (error) {
-      console.error('Failed to toggle active status:', error);
+  const handleToggleStatus = async () => {
+    if (confirmToggleRow) {
+      try {
+        const updated = { ...confirmToggleRow, isActive: !confirmToggleRow.isActive };
+        await API.companyBankDetail.update(updated);
+        setBankList(prev => prev.map(item => item.id === confirmToggleRow.id ? updated : item));
+        setConfirmToggleRow(null);
+      } catch (error) {
+        console.error('Failed to toggle active status:', error);
+      }
     }
   };
 
@@ -181,6 +218,7 @@ const CompanyBank = () => {
                     placeholder="Enter IFSC" 
                     value={formState.ifsccode}
                     onChange={handleInputChange}
+                    maxLength={11}
                     required
                   />
                 </div>
@@ -228,6 +266,7 @@ const CompanyBank = () => {
                     placeholder="Account No" 
                     value={formState.accountNumber}
                     onChange={handleInputChange}
+                    maxLength={18}
                     required
                   />
                 </div>
@@ -255,6 +294,10 @@ const CompanyBank = () => {
                     placeholder="Charge amount" 
                     value={formState.cashdepositecharge}
                     onChange={handleInputChange}
+                    min="0"
+                    onKeyDown={(e) => {
+                      if (e.key === '-') e.preventDefault();
+                    }}
                   />
                 </div>
                 <div style={{ display: 'flex', gap: '15px', flex: 1 }}>
@@ -266,6 +309,10 @@ const CompanyBank = () => {
                       className={styles.inputControl} 
                       value={formState.msrno}
                       onChange={handleInputChange}
+                      min="0"
+                      onKeyDown={(e) => {
+                        if (e.key === '-') e.preventDefault();
+                      }}
                       required
                     />
                   </div>
@@ -277,6 +324,10 @@ const CompanyBank = () => {
                       className={styles.inputControl} 
                       value={formState.companyMemberId}
                       onChange={handleInputChange}
+                      min="0"
+                      onKeyDown={(e) => {
+                        if (e.key === '-') e.preventDefault();
+                      }}
                       required
                     />
                   </div>
@@ -429,8 +480,7 @@ const CompanyBank = () => {
             <thead>
               <tr>
                 <th>S.No</th>
-                <th>Status</th>
-                <th>Action</th>
+                <th style={{ width: '120px', textAlign: 'center' }}>Action</th>
                 <th>Bank Name</th>
                 <th>Branch Name</th>
                 <th>Account Holder</th>
@@ -451,32 +501,43 @@ const CompanyBank = () => {
                 currentData.map((row, index) => (
                   <tr key={row.id} className={index % 2 === 0 ? styles.rowEven : styles.rowOdd}>
                     <td>{startIndex + index + 1}</td>
-                    <td>
-                      <label className={styles.switch}>
-                        <input 
-                          type="checkbox" 
-                          checked={row.isActive} 
-                          onChange={() => toggleActiveStatus(row)} 
-                        />
-                        <span className={styles.slider}></span>
-                      </label>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '8px' }}>
+                    <td style={{ textAlign: 'center' }}>
+                      <div className="action-dropdown-wrapper" style={{ display: 'inline-block' }}>
                         <button 
-                          className={styles.editBtn} 
-                          title="Edit"
-                          onClick={() => handleOpenEdit(row)}
+                          className="action-dropdown-wrapper"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (activeActionRow.id === row.id) {
+                              setActiveActionRow({ id: null, x: 0, y: 0, row: null });
+                            } else {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              let dropX = rect.right + 12;
+                              let dropY = rect.top;
+                              if (dropX + 170 > window.innerWidth) dropX = rect.left - 175;
+                              setActiveActionRow({ id: row.id, x: dropX, y: dropY, row: row });
+                            }
+                          }}
+                          style={{ 
+                            height: '32px', 
+                            padding: '0 12px',
+                            borderRadius: '8px', 
+                            background: '#22c55e', 
+                            color: '#ffffff', 
+                            border: 'none', 
+                            cursor: 'pointer', 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            gap: '6px',
+                            transition: 'all 0.15s', 
+                            margin: '0 auto', 
+                            boxShadow: '0 2px 4px rgba(34, 197, 94, 0.2)',
+                            fontWeight: 700,
+                            fontSize: '0.8rem'
+                          }}
+                          title="Actions"
                         >
-                          <FaEdit />
-                        </button>
-                        <button 
-                          className={styles.editBtn} 
-                          title="Delete"
-                          style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' }}
-                          onClick={() => setConfirmDeleteId(row.id)}
-                        >
-                          <FaTrash />
+                          Action <FiMoreVertical style={{ marginRight: '-4px' }} />
                         </button>
                       </div>
                     </td>
@@ -549,18 +610,97 @@ const CompanyBank = () => {
         </div>
       </div>
 
+      {/* ── ACTION DROPDOWN POPUP ── */}
+      {activeActionRow.row && (
+        <div 
+          className="action-dropdown-wrapper"
+          style={{
+            position: 'fixed',
+            top: activeActionRow.y,
+            left: activeActionRow.x,
+            background: '#ffffff',
+            borderRadius: '12px',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+            border: '1px solid #E2E8F0',
+            padding: '8px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+            zIndex: 9999,
+            minWidth: '160px',
+            animation: 'fadeIn 0.2s ease'
+          }}
+        >
+          <button 
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: '#334155', borderRadius: '8px', textAlign: 'left', transition: 'background 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            onClick={() => {
+              handleOpenEdit(activeActionRow.row);
+              setActiveActionRow({ id: null, x: 0, y: 0, row: null });
+            }}
+          >
+            <FaEdit style={{ color: '#3B82F6' }} /> Edit Details
+          </button>
+
+          <button 
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: '#334155', borderRadius: '8px', textAlign: 'left', transition: 'background 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            onClick={() => {
+              setConfirmToggleRow(activeActionRow.row);
+              setActiveActionRow({ id: null, x: 0, y: 0, row: null });
+            }}
+          >
+            <FaPowerOff style={{ color: activeActionRow.row?.isActive ? '#E53E3E' : '#22C55E' }} /> 
+            {activeActionRow.row?.isActive ? 'Deactivate' : 'Activate'}
+          </button>
+
+          <div style={{ height: '1px', background: '#E2E8F0', margin: '4px 0' }} />
+
+          <button 
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: '#E53E3E', borderRadius: '8px', textAlign: 'left', transition: 'background 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            onClick={() => {
+              setConfirmDeleteId(activeActionRow.id);
+              setActiveActionRow({ id: null, x: 0, y: 0, row: null });
+            }}
+          >
+            <FaTrash /> Delete
+          </button>
+        </div>
+      )}
+
+      {/* ── STATUS CHANGE MODAL ── */}
+      {confirmToggleRow && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(13, 27, 62, 0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setConfirmToggleRow(null)}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '340px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', animation: 'slideUp 0.3s ease' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: confirmToggleRow.isActive ? '#FFF5F5' : '#F0FDF4', color: confirmToggleRow.isActive ? '#E53E3E' : '#27AE60', fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <FaPowerOff />
+            </div>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0D1B3E', margin: '0 0 8px 0' }}>Confirm Status Change</h3>
+            <p style={{ fontSize: '0.85rem', color: '#4E6080', margin: '0 0 24px 0', lineHeight: '1.4' }}>Are you sure you want to change the status to <strong>{confirmToggleRow.isActive ? 'Inactive' : 'Active'}</strong> for {confirmToggleRow.bankName || 'this bank'}?</p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={() => setConfirmToggleRow(null)} style={{ flex: 1, padding: '10px', background: '#F1F5F9', border: 'none', borderRadius: '8px', color: '#4E6080', fontWeight: '600', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleToggleStatus} style={{ flex: 1, padding: '10px', background: confirmToggleRow.isActive ? '#E53E3E' : '#27AE60', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: '600', cursor: 'pointer' }}>Yes, Change it</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── DELETE CONFIRMATION MODAL ── */}
       {confirmDeleteId && (
-        <div className={styles.modalOverlay} onClick={() => setConfirmDeleteId(null)}>
-          <div className={styles.deleteModal} onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: '12px', padding: '25px', maxWidth: '380px', margin: '0 auto', textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
-            <div className={styles.deleteIconBox} style={{ background: '#FFF5F5', color: '#E53E3E', width: '50px', height: '50px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px', fontSize: '1.5rem' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(13, 27, 62, 0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setConfirmDeleteId(null)}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '340px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', animation: 'slideUp 0.3s ease' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#FFF5F5', color: '#E53E3E', fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <FaTrash />
             </div>
-            <h3 style={{ margin: '0 0 10px 0', color: '#0D1B3E' }}>Delete Record</h3>
-            <p style={{ margin: '0 0 20px 0', fontSize: '0.85rem', color: '#718096', lineHeight: '1.4' }}>Are you sure you want to delete this company bank record? This action cannot be undone.</p>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-              <button className={styles.cancelBtn} style={{ background: '#F1F5F9', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', color: '#4E6080' }} onClick={() => setConfirmDeleteId(null)}>Cancel</button>
-              <button className={styles.deleteBtn} style={{ background: '#E53E3E', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', color: '#fff' }} onClick={handleDelete}>Delete</button>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0D1B3E', margin: '0 0 8px 0' }}>Are you sure?</h3>
+            <p style={{ fontSize: '0.85rem', color: '#4E6080', margin: '0 0 24px 0', lineHeight: '1.4' }}>Do you really want to delete this company bank record? This action cannot be undone.</p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={() => setConfirmDeleteId(null)} style={{ flex: 1, padding: '10px', background: '#F1F5F9', border: 'none', borderRadius: '8px', color: '#4E6080', fontWeight: '600', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleDelete} style={{ flex: 1, padding: '10px', background: '#E53E3E', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: '600', cursor: 'pointer' }}>Delete</button>
             </div>
           </div>
         </div>
