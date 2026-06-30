@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   FaEdit, FaSearch, FaFileExcel, FaFilePdf, FaPrint, FaCopy, FaFileCsv,
-  FaChevronLeft, FaChevronRight, FaPlus, FaTimes, FaTrash, FaPowerOff 
+  FaChevronLeft, FaChevronRight, FaPlus, FaTimes, FaTrash, FaPowerOff,
+  FaQrcode, FaImage
 } from 'react-icons/fa';
 import { FiDatabase, FiMoreVertical } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
@@ -21,6 +22,8 @@ const CompanyBank = () => {
   const [activeTab, setActiveTab] = useState('BANK');
   const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, row: null });
   const [confirmToggleRow, setConfirmToggleRow] = useState(null);
+  const [qrLogoFile, setQrLogoFile] = useState(null);
+  const [bankLogoFile, setBankLogoFile] = useState(null);
 
   const [formState, setFormState] = useState({
     id: 0,
@@ -108,6 +111,8 @@ const CompanyBank = () => {
       banklogo: '',
       isActive: true
     });
+    setQrLogoFile(null);
+    setBankLogoFile(null);
     setIsEditing(false);
     setShowModal(true);
   };
@@ -129,6 +134,8 @@ const CompanyBank = () => {
       banklogo: bank.banklogo || '',
       isActive: bank.isActive
     });
+    setQrLogoFile(null);
+    setBankLogoFile(null);
     setIsEditing(true);
     setShowModal(true);
   };
@@ -144,10 +151,32 @@ const CompanyBank = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const formData = new FormData();
+      formData.append('id', formState.id);
+      formData.append('msrno', formState.msrno);
+      formData.append('bankid', formState.bankid);
+      formData.append('companyMemberId', formState.companyMemberId);
+      formData.append('bankName', formState.bankName);
+      formData.append('branchName', formState.branchName);
+      formData.append('accountHolderName', formState.accountHolderName);
+      formData.append('accountNumber', formState.accountNumber);
+      formData.append('ifsccode', formState.ifsccode);
+      formData.append('billinginfo', formState.billinginfo);
+      formData.append('cashdepositecharge', formState.cashdepositecharge);
+      formData.append('isActive', formState.isActive);
+      formData.append('isDelete', false);
+
+      if (qrLogoFile) {
+        formData.append('QrlogoFile', qrLogoFile);
+      }
+      if (bankLogoFile) {
+        formData.append('BanklogoFile', bankLogoFile);
+      }
+
       if (isEditing) {
-        await API.companyBankDetail.update(formState);
+        await API.companyBankDetail.update(formData);
       } else {
-        await API.companyBankDetail.create(formState);
+        await API.companyBankDetail.create(formData);
       }
       setShowModal(false);
       fetchData();
@@ -234,7 +263,8 @@ const CompanyBank = () => {
                       setFormState(prev => ({ 
                         ...prev, 
                         bankid: bid, 
-                        bankName: selected ? selected.bankName || selected.name : '' 
+                        bankName: selected ? selected.bankName || selected.name : '',
+                        ifsccode: selected ? selected.ifscCode || '' : ''
                       }));
                     }}
                     required
@@ -374,32 +404,37 @@ const CompanyBank = () => {
                     />
                   </div>
                 )}
-                
-                {activeTab === 'QR' && (
+                          {activeTab === 'QR' && (
                   <div className={styles.formGroup}>
-                    <label>QR Logo URL / File Name</label>
+                    <label>QR Logo File</label>
                     <input 
-                      type="text"
-                      name="qrlogo"
+                      type="file"
                       className={styles.inputControl}
-                      placeholder="QR Logo name or link"
-                      value={formState.qrlogo}
-                      onChange={handleInputChange}
+                      onChange={(e) => setQrLogoFile(e.target.files[0])}
+                      accept="image/*"
                     />
+                    {formState.qrlogo && (
+                      <p style={{ fontSize: '0.75rem', marginTop: '4px', color: '#64748B' }}>
+                        Current File: {formState.qrlogo}
+                      </p>
+                    )}
                   </div>
                 )}
 
                 {activeTab === 'BANK' && (
                   <div className={styles.formGroup}>
-                    <label>Bank Logo URL / File Name</label>
+                    <label>Bank Logo File</label>
                     <input 
-                      type="text"
-                      name="banklogo"
+                      type="file"
                       className={styles.inputControl}
-                      placeholder="Bank Logo name or link"
-                      value={formState.banklogo}
-                      onChange={handleInputChange}
+                      onChange={(e) => setBankLogoFile(e.target.files[0])}
+                      accept="image/*"
                     />
+                    {formState.banklogo && (
+                      <p style={{ fontSize: '0.75rem', marginTop: '4px', color: '#64748B' }}>
+                        Current File: {formState.banklogo}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
@@ -431,7 +466,7 @@ const CompanyBank = () => {
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h2 className={styles.pageTitle} style={{ marginBottom: 0, borderBottom: 'none', paddingBottom: 0 }}>
-            Bank Accounts List
+            Company Bank Detail
           </h2>
           <button className={styles.addBtn} onClick={handleOpenAdd}>
             <FaPlus /> Add Bank
@@ -550,16 +585,36 @@ const CompanyBank = () => {
                     <td>{row.cashdepositecharge}</td>
                     <td>
                       {row.qrlogo ? (
-                        <span style={{ fontSize: '0.75rem', fontFamily: 'monospace' }}>{row.qrlogo}</span>
+                        <img 
+                          src={`https://api.sahayatamoney.in/UploadedFiles/qrlogos/${row.qrlogo}`} 
+                          alt="QR Code" 
+                          style={{ width: '45px', height: '45px', objectFit: 'contain', borderRadius: '4px', display: 'block', margin: '0 auto' }} 
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://placehold.co/100x100?text=No+QR';
+                          }}
+                        />
                       ) : (
-                        <span className={styles.placeholderImg}>QR</span>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '45px' }}>
+                          <FaQrcode style={{ fontSize: '24px', color: '#94a3b8' }} title="No QR Code" />
+                        </div>
                       )}
                     </td>
                     <td>
                       {row.banklogo ? (
-                        <span style={{ fontSize: '0.75rem', fontFamily: 'monospace' }}>{row.banklogo}</span>
+                        <img 
+                          src={`https://api.sahayatamoney.in/UploadedFiles/banklogos/${row.banklogo}`} 
+                          alt="Bank Logo" 
+                          style={{ width: '45px', height: '45px', objectFit: 'contain', borderRadius: '4px', display: 'block', margin: '0 auto' }} 
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://placehold.co/100x100?text=No+Logo';
+                          }}
+                        />
                       ) : (
-                        <span className={styles.placeholderImg}>Logo</span>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '45px' }}>
+                          <FaImage style={{ fontSize: '24px', color: '#94a3b8' }} title="No Bank Logo" />
+                        </div>
                       )}
                     </td>
                   </tr>

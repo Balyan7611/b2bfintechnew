@@ -79,8 +79,14 @@ httpClient.interceptors.request.use((config) => {
         }
     }
 
-    const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    let token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token');
+    if (token === 'undefined' || token === 'null') {
+        token = null;
+    }
+    if (token) {
+        token = token.replace(/^"(.*)"$/, '$1');
+        config.headers.Authorization = `Bearer ${token}`;
+    }
     
     if (config.data instanceof FormData) {
         config.headers['Content-Type'] = 'multipart/form-data';

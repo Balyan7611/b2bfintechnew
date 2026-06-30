@@ -221,6 +221,7 @@ const MemberBankDetails = () => {
 
   // Filter Data
   const filteredData = bankList.filter(item => {
+    if (item.isDelete) return false;
     const matchMember = !selectedMemberFilter || item.msrno === parseInt(selectedMemberFilter.id) || item.name === selectedMemberFilter.name;
     const matchSearch = (item.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                         (item.accountNumber || '').toLowerCase().includes(searchQuery.toLowerCase());
@@ -258,8 +259,7 @@ const MemberBankDetails = () => {
                       const selected = memberList.find(m => parseInt(m.id) === msrVal || m.uniqueID === e.target.value);
                       setFormState(prev => ({
                         ...prev,
-                        msrno: msrVal,
-                        name: selected ? selected.name : ''
+                        msrno: msrVal
                       }));
                     }}
                     required
@@ -276,7 +276,16 @@ const MemberBankDetails = () => {
                     name="bankId"
                     className={styles.inputControl}
                     value={formState.bankId}
-                    onChange={handleInputChange}
+                    onChange={(e) => {
+                      const bId = parseInt(e.target.value);
+                      const selected = bankMasterList.find(b => parseInt(b.id) === bId);
+                      setFormState(prev => ({
+                        ...prev,
+                        bankId: bId,
+                        name: selected ? (selected.bankName || selected.name) : '',
+                        ifsccode: selected ? (selected.ifscCode || '') : ''
+                      }));
+                    }}
                     required
                   >
                     <option value="">Choose Bank</option>
@@ -391,7 +400,7 @@ const MemberBankDetails = () => {
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h2 className={styles.pageTitle} style={{ marginBottom: 0, borderBottom: 'none', paddingBottom: 0 }}>
-            Bank Details Management
+            Member Bank Detail
           </h2>
           
           <div className={styles.headerFilters} style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
@@ -517,7 +526,8 @@ const MemberBankDetails = () => {
                 </tr>
               ) : currentData.length > 0 ? (
                 currentData.map((row, index) => {
-                  const bankObj = bankMasterList.find(b => b.id === row.bankId);
+                  const bankObj = bankMasterList.find(b => parseInt(b.id) === parseInt(row.bankId));
+                  const memberObj = memberList.find(m => parseInt(m.id) === parseInt(row.msrno) || parseInt(m.memberId) === parseInt(row.msrno));
                   return (
                     <tr key={row.id} className={index % 2 === 0 ? styles.rowEven : styles.rowOdd}>
                       <td>{startIndex + index + 1}</td>
@@ -563,7 +573,7 @@ const MemberBankDetails = () => {
                       </td>
                       <td>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span className={styles.fwBold}>{row.name}</span>
+                          <span className={styles.fwBold}>{memberObj ? memberObj.name : `Member #${row.msrno}`}</span>
                           <span className={styles.subText}>MSR: {row.msrno}</span></div></td>
                       <td>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>

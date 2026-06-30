@@ -2,8 +2,10 @@ import { apiService } from '../api/httpClient';
 import { MemberBankDetailRequestModel, MemberBankDetailResponseModel } from '../models/memberBankDetailModel';
 
 export const MemberBankDetailService = {
-    getAll: async () => {
-        const res = await apiService.get('/MemberBankDetail/GetMemberBankDetail?PageNumber=1&PageSize=10000');
+    getAll: async (params = {}) => {
+        const { PageNumber = 1, PageSize = 1000, FromDate = '', ToDate = '', Status = '', MemberID = '' } = params;
+        const query = `?PageNumber=${PageNumber}&PageSize=${PageSize}&FromDate=${FromDate}&ToDate=${ToDate}&Status=${Status}&MemberID=${MemberID}`;
+        const res = await apiService.get('/MemberBankDetail/GetMemberBankDetail' + query);
         return MemberBankDetailResponseModel(res);
     },
 

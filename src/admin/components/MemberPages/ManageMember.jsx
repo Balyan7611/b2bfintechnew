@@ -371,19 +371,17 @@ const ManageMember = () => {
         </div>
         
         <div className={styles.formGrid4} style={{ marginTop: '20px', overflow: 'visible' }}>
-          {/* MOBILE DATE ROW */}
-          <div style={{ display: 'flex', gap: '12px', gridColumn: 'span 2' }}>
-            <div className={styles.formGroup} style={{ flex: 1 }}>
-              <label className={styles.label} style={{ fontSize: '0.75rem' }}>From Date</label>
-              <div className={styles.inputWrap}>
-                <input type="date" name="fromDate" className={styles.inputControl} style={{ paddingLeft: '12px', fontSize: '0.85rem', height: '38px', boxSizing: 'border-box' }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
-              </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label} style={{ fontSize: '0.75rem' }}>From Date</label>
+            <div className={styles.inputWrap}>
+              <input type="date" name="fromDate" className={styles.inputControl} style={{ paddingLeft: '12px', fontSize: '0.85rem', height: '38px', boxSizing: 'border-box' }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
             </div>
-            <div className={styles.formGroup} style={{ flex: 1 }}>
-              <label className={styles.label} style={{ fontSize: '0.75rem' }}>To Date</label>
-              <div className={styles.inputWrap}>
-                <input type="date" name="toDate" className={styles.inputControl} style={{ paddingLeft: '12px', fontSize: '0.85rem', height: '38px', boxSizing: 'border-box' }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
-              </div>
+          </div>
+          
+          <div className={styles.formGroup}>
+            <label className={styles.label} style={{ fontSize: '0.75rem' }}>To Date</label>
+            <div className={styles.inputWrap}>
+              <input type="date" name="toDate" className={styles.inputControl} style={{ paddingLeft: '12px', fontSize: '0.85rem', height: '38px', boxSizing: 'border-box' }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
             </div>
           </div>
 

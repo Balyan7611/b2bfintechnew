@@ -33,18 +33,18 @@ const AddBank = () => {
   const fetchBanks = async () => {
     try {
       const res = await API.bank.getAll();
-      if (res && res.status === true && Array.isArray(res.data)) {
-        setLocalBankList(res.data.map(item => ({
+      if (Array.isArray(res)) {
+        setLocalBankList(res.map(item => ({
           id: item.id,
           name: item.bankName || item.bankCode,
-          ifsc: item.ifscrequired ? 'Required' : 'Not Required',
+          ifsc: item.ifscCode || item.ifsc || 'N/A',
           status: item.isActive ? 'Active' : 'InActive',
           date: item.createdDate ? new Date(item.createdDate).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
           ...item
         })));
         setErrorMsg('');
       } else {
-        setErrorMsg(res?.mess || 'Failed to fetch banks from API.');
+        setErrorMsg('Failed to fetch banks from API.');
       }
     } catch (err) {
       console.error("Error fetching banks:", err);
@@ -70,6 +70,20 @@ const AddBank = () => {
   const [tableSearch, setTableSearch] = useState('');
   const [showSmartPanel, setShowSmartPanel] = useState(false);
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null }); // Local panel control
+
+  // Bank master configurations
+  const [dailyLimit, setDailyLimit] = useState(1000000.00);
+  const [perTransactionLimit, setPerTransactionLimit] = useState(200000.00);
+  const [isRbirestricted, setIsRbirestricted] = useState(false);
+  const [restrictionReason, setRestrictionReason] = useState('');
+  const [supportsImps, setSupportsImps] = useState(true);
+  const [supportsNeft, setSupportsNeft] = useState(true);
+  const [supportsRtgs, setSupportsRtgs] = useState(true);
+  const [supportsPayout, setSupportsPayout] = useState(true);
+  const [supportsVa, setSupportsVa] = useState(false);
+  const [isHighSpeedEnabled, setIsHighSpeedEnabled] = useState(true);
+  const [maxTpsallowed, setMaxTpsallowed] = useState(10);
+  const [priorityOrder, setPriorityOrder] = useState(1);
 
   // Filter banks based on search query for the Smart Panel
   const filteredBanks = addBankList.filter(bank => 
@@ -140,15 +154,19 @@ const AddBank = () => {
         bankCode: manualBankName.substring(0, 4).toUpperCase(),
         bankName: manualBankName,
         ifscrequired: manualIfsc ? true : false,
-        supportsImps: true,
-        supportsNeft: true,
-        supportsRtgs: true,
-        supportsPayout: true,
-        supportsVa: false,
-        isHighSpeedEnabled: true,
-        maxTpsallowed: 10,
+        supportsImps,
+        supportsNeft,
+        supportsRtgs,
+        supportsPayout,
+        supportsVa,
+        isHighSpeedEnabled,
+        maxTpsallowed,
+        dailyLimit,
+        perTransactionLimit,
+        isRbirestricted,
+        restrictionReason: isRbirestricted ? restrictionReason : null,
         isActive: addBankIsActive,
-        priorityOrder: 1
+        priorityOrder
       };
       
       if (editingBank) {
@@ -183,9 +201,15 @@ const AddBank = () => {
     setDeleteModal({ open: true, id });
   };
 
-  const handleDeleteBank = () => {
-    const updatedList = localBankList.filter(b => b.id !== deleteModal.id);
-    setLocalBankList(updatedList);
+  const handleDeleteBank = async () => {
+    try {
+      await API.bank.delete(deleteModal.id);
+      fetchBanks();
+    } catch (err) {
+      console.error("Error deleting bank:", err);
+      const updatedList = localBankList.filter(b => b.id !== deleteModal.id);
+      setLocalBankList(updatedList);
+    }
     setDeleteModal({ open: false, id: null });
   };
 
@@ -193,6 +217,21 @@ const AddBank = () => {
     setManualBankName('');
     setManualIfsc('');
     dispatch(setAddBankSelectedBank(null));
+    
+    // Reset configs to defaults
+    setDailyLimit(1000000.00);
+    setPerTransactionLimit(200000.00);
+    setIsRbirestricted(false);
+    setRestrictionReason('');
+    setSupportsImps(true);
+    setSupportsNeft(true);
+    setSupportsRtgs(true);
+    setSupportsPayout(true);
+    setSupportsVa(false);
+    setIsHighSpeedEnabled(true);
+    setMaxTpsallowed(10);
+    setPriorityOrder(1);
+
     setIsAddModalOpen(true);
   };
 
@@ -221,55 +260,17 @@ const AddBank = () => {
             
             <div className={styles.modalBody}>
               <div className={styles.modalGrid}>
-                {/* Smart Bank Input */}
-                <div className={`${styles.formGroup} ${styles.relative}`}>
+                {/* Bank Name Input */}
+                <div className={styles.formGroup}>
                   <label><FaSearch className={styles.labelIcon} /> Bank Name</label>
-                  <div className={styles.inputWrapper}>
-                    <input 
-                      ref={inputRef}
-                      type="text" 
-                      className={styles.inputControl}
-                      placeholder="Search or Enter Bank Name..."
-                      value={manualBankName}
-                      onChange={handleInputChange}
-                      onFocus={handleInputFocus}
-                    />
-                  </div>
-
-                  {/* Smart Right Side Panel */}
-                  <div 
-                    ref={panelRef}
-                    className={`${styles.smartPanel} ${showSmartPanel ? styles.panelOpen : ''}`}
-                  >
-                    <div className={styles.panelHeader}>
-                      <FaSearch className={styles.panelSearchIcon} />
-                      <input 
-                        type="text" 
-                        className={styles.panelSearchInput}
-                        placeholder="Filter banks..."
-                        value={addBankSearchQuery}
-                        onChange={(e) => dispatch(setAddBankSearchQuery(e.target.value))}
-                        autoFocus={showSmartPanel}
-                      />
-                    </div>
-                    <div className={styles.panelList}>
-                      {filteredBanks.length > 0 ? filteredBanks.map(bank => (
-                        <div 
-                          key={bank.id} 
-                          className={styles.panelItem}
-                          onClick={() => handleSelectBank(bank)}
-                        >
-                          <div className={styles.bankInfo}>
-                            <span className={styles.bankName}>{bank.name}</span>
-                            <span className={styles.bankIfsc}>{bank.ifsc}</span>
-                          </div>
-                          {addBankSelectedBank?.id === bank.id && <FaCheck className={styles.checkIcon} />}
-                        </div>
-                      )) : (
-                        <div className={styles.noResults}>No banks found</div>
-                      )}
-                    </div>
-                  </div>
+                  <input 
+                    type="text" 
+                    className={styles.inputControl}
+                    placeholder="Enter Bank Name"
+                    value={manualBankName}
+                    onChange={handleInputChange}
+                    required
+                  />
                 </div>
 
                 {/* IFSC Code */}
@@ -280,11 +281,101 @@ const AddBank = () => {
                     className={styles.inputControl}
                     value={manualIfsc}
                     onChange={(e) => setManualIfsc(e.target.value)}
-                    placeholder={addBankSelectedBank ? "Auto-filled" : "Enter IFSC manually"}
-                    readOnly={!!addBankSelectedBank}
-                    style={{ background: addBankSelectedBank ? '#F1F5F9' : '#F8FAFF' }}
+                    placeholder="Enter IFSC manually"
+                    required
                   />
                 </div>
+
+                {/* Priority Order */}
+                <div className={styles.formGroup}>
+                  <label>Priority Order</label>
+                  <input 
+                    type="number" 
+                    className={styles.inputControl}
+                    value={priorityOrder}
+                    onChange={(e) => setPriorityOrder(parseInt(e.target.value) || 1)}
+                  />
+                </div>
+
+                {/* Max TPS Allowed */}
+                <div className={styles.formGroup}>
+                  <label>Max TPS Allowed</label>
+                  <input 
+                    type="number" 
+                    className={styles.inputControl}
+                    value={maxTpsallowed}
+                    onChange={(e) => setMaxTpsallowed(parseInt(e.target.value) || 0)}
+                  />
+                </div>
+
+                {/* Daily Limit */}
+                <div className={styles.formGroup}>
+                  <label>Daily Limit (₹)</label>
+                  <input 
+                    type="number" 
+                    className={styles.inputControl}
+                    value={dailyLimit}
+                    onChange={(e) => setDailyLimit(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+
+                {/* Per Transaction Limit */}
+                <div className={styles.formGroup}>
+                  <label>Per Transaction Limit (₹)</label>
+                  <input 
+                    type="number" 
+                    className={styles.inputControl}
+                    value={perTransactionLimit}
+                    onChange={(e) => setPerTransactionLimit(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+              </div>
+
+              {/* Feature checkboxes */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginTop: '16px', borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={supportsImps} onChange={(e) => setSupportsImps(e.target.checked)} />
+                  Supports IMPS
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={supportsNeft} onChange={(e) => setSupportsNeft(e.target.checked)} />
+                  Supports NEFT
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={supportsRtgs} onChange={(e) => setSupportsRtgs(e.target.checked)} />
+                  Supports RTGS
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={supportsPayout} onChange={(e) => setSupportsPayout(e.target.checked)} />
+                  Supports Payout
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={supportsVa} onChange={(e) => setSupportsVa(e.target.checked)} />
+                  Supports VA
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={isHighSpeedEnabled} onChange={(e) => setIsHighSpeedEnabled(e.target.checked)} />
+                  High Speed Enabled
+                </label>
+              </div>
+
+              {/* RBI Restriction Row */}
+              <div style={{ marginTop: '16px', borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', cursor: 'pointer', marginBottom: '8px' }}>
+                  <input type="checkbox" checked={isRbirestricted} onChange={(e) => setIsRbirestricted(e.target.checked)} />
+                  <span className={styles.fwBold} style={{ color: '#E53E3E' }}>RBI Restricted</span>
+                </label>
+                {isRbirestricted && (
+                  <div className={styles.formGroup}>
+                    <input 
+                      type="text" 
+                      className={styles.inputControl}
+                      placeholder="Enter RBI Restriction Reason"
+                      value={restrictionReason}
+                      onChange={(e) => setRestrictionReason(e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Status Row */}
@@ -411,8 +502,22 @@ const AddBank = () => {
                         title="Edit Bank"
                         onClick={() => {
                           setEditingBank(row);
-                          setManualBankName(row.name);
-                          setManualIfsc(row.ifsc);
+                          setManualBankName(row.bankName || row.name);
+                          setManualIfsc(row.ifscrequired ? 'Required' : '');
+                          
+                          setDailyLimit(row.dailyLimit || 1000000.00);
+                          setPerTransactionLimit(row.perTransactionLimit || 200000.00);
+                          setIsRbirestricted(row.isRbirestricted || false);
+                          setRestrictionReason(row.restrictionReason || '');
+                          setSupportsImps(row.supportsImps !== false);
+                          setSupportsNeft(row.supportsNeft !== false);
+                          setSupportsRtgs(row.supportsRtgs !== false);
+                          setSupportsPayout(row.supportsPayout !== false);
+                          setSupportsVa(row.supportsVa || false);
+                          setIsHighSpeedEnabled(row.isHighSpeedEnabled !== false);
+                          setMaxTpsallowed(row.maxTpsallowed || 10);
+                          setPriorityOrder(row.priorityOrder || 1);
+
                           setIsEditModalOpen(true);
                         }}
                       >

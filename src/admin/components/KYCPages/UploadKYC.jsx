@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../../../api/httpClient';
 import { useDispatch } from 'react-redux';
 import { 
   FiUploadCloud, FiCheckCircle, FiPlus, FiEye, FiTrash2, FiEdit2, FiX, FiCheck
@@ -134,8 +134,14 @@ const UploadKYC = () => {
       });
       if (res.data && res.data.status) {
         const rawItems = res.data.data.items || [];
+        console.log("UploadKYC: RAW ITEMS FROM API:", rawItems);
         const mappedItems = rawItems.map(item => {
           const docs = (item.documents || []).filter(d => !d.isDelete);
+          if (docs.length > 0) {
+            console.log("UploadKYC: DOC 0 DETAILS:", docs[0]);
+            console.log("UploadKYC: DOC 0 KEYS:", Object.keys(docs[0]));
+            console.log("UploadKYC: DOC 0 STRINGIFIED:", JSON.stringify(docs[0]));
+          }
           return {
             msrno: item.msrno,
             empid: item.empid,
@@ -833,14 +839,32 @@ const UploadKYC = () => {
                   if (normalizedPath.startsWith('http://') || normalizedPath.startsWith('https://')) return normalizedPath;
                   
                   const cleanPath = normalizedPath.startsWith('/') ? normalizedPath.substring(1) : normalizedPath;
-                  if (cleanPath.startsWith('UploadedFiles/Kycdocuments')) {
-                    return `https://api.sahayatamoney.in/${cleanPath}`;
+                  if (cleanPath.toLowerCase().startsWith('uploadedfiles/kycdocuments')) {
+                    const suffix = cleanPath.substring('uploadedfiles/kycdocuments'.length);
+                    const cleanSuffix = suffix.startsWith('/') ? suffix : '/' + suffix;
+                    return `https://api.sahayatamoney.in/UploadedFiles/kycdocuments${cleanSuffix}`;
                   }
-                  return `https://api.sahayatamoney.in/UploadedFiles/Kycdocuments/${cleanPath}`;
+                  return `https://api.sahayatamoney.in/UploadedFiles/kycdocuments/${cleanPath}`;
                 };
 
-                const frontImgUrl = getImageUrl(doc.frontImage || doc.frontImageFile || doc.frontImagePath || doc.frontImageName || doc.frontDoc);
-                const backImgUrl = getImageUrl(doc.backImage || doc.backImageFile || doc.backImagePath || doc.backImageName || doc.backDoc);
+                const frontImgUrl = getImageUrl(
+                  doc.docImage || doc.DocImage ||
+                  doc.frontImage || doc.FrontImage || 
+                  doc.frontImageFile || doc.FrontImageFile || 
+                  doc.frontImagePath || doc.FrontImagePath || 
+                  doc.frontImageName || doc.FrontImageName || 
+                  doc.frontDoc || doc.FrontDoc
+                );
+                const backImgUrl = getImageUrl(
+                  doc.docImageBack || doc.DocImageBack ||
+                  doc.backImage || doc.BackImage || 
+                  doc.backImageFile || doc.BackImageFile || 
+                  doc.backImagePath || doc.BackImagePath || 
+                  doc.backImageName || doc.BackImageName || 
+                  doc.backDoc || doc.BackDoc
+                );
+
+                const isTwoSided = doc.documentSide ? (parseInt(doc.documentSide) === 2) : (doc.docName && !doc.docName.toLowerCase().includes('pan'));
 
                 return (
                   <div 
@@ -884,7 +908,7 @@ const UploadKYC = () => {
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isTwoSided ? 'repeat(auto-fit, minmax(240px, 1fr))' : '1fr', gap: '16px', maxWidth: isTwoSided ? '100%' : '480px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#4E6080', marginBottom: '6px' }}>Front Image</label>
                         <div style={{ 
@@ -909,30 +933,32 @@ const UploadKYC = () => {
                           </a>
                         )}
                       </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#4E6080', marginBottom: '6px' }}>Back Image</label>
-                        <div style={{ 
-                          height: '180px', 
-                          background: '#F8FAFF', 
-                          borderRadius: '12px', 
-                          border: '1.5px dashed #CBD5E1', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center', 
-                          overflow: 'hidden'
-                        }}>
-                          {backImgUrl ? (
-                            <img src={backImgUrl} alt="Back Document" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                          ) : (
-                            <span style={{ color: '#94A3B8', fontSize: '0.75rem', fontWeight: 500 }}>No Back Image</span>
+                      {isTwoSided && (
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#4E6080', marginBottom: '6px' }}>Back Image</label>
+                          <div style={{ 
+                            height: '180px', 
+                            background: '#F8FAFF', 
+                            borderRadius: '12px', 
+                            border: '1.5px dashed #CBD5E1', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            overflow: 'hidden'
+                          }}>
+                            {backImgUrl ? (
+                              <img src={backImgUrl} alt="Back Document" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                            ) : (
+                              <span style={{ color: '#94A3B8', fontSize: '0.75rem', fontWeight: 500 }}>No Back Image</span>
+                            )}
+                          </div>
+                          {backImgUrl && (
+                            <a href={backImgUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '6px', fontSize: '0.75rem', color: '#1756AA', fontWeight: 700, textDecoration: 'underline' }}>
+                              Open Back Image ↗
+                            </a>
                           )}
                         </div>
-                        {backImgUrl && (
-                          <a href={backImgUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '6px', fontSize: '0.75rem', color: '#1756AA', fontWeight: 700, textDecoration: 'underline' }}>
-                            Open Back Image ↗
-                          </a>
-                        )}
-                      </div>
+                      )}
                     </div>
 
                     <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed #E2E8F0', paddingTop: '12px', flexWrap: 'wrap' }}>

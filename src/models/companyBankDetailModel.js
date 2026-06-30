@@ -1,6 +1,6 @@
 export const CompanyBankDetailResponseModel = (res) => {
     if (!res || !res.status) return [];
-    const items = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);
+    const items = Array.isArray(res.data) ? res.data : (res.data?.items ? res.data.items : (res.data ? [res.data] : []));
     return items.map(item => ({
         id: item.id || 0,
         msrno: item.msrno || 0,

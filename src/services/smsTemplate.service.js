@@ -1,8 +1,28 @@
 import { apiService } from '../api/httpClient';
 
 export const SmsTemplateService = {
-    getAll: async () => {
-        return await apiService.get('/Smstemplate/GetSmstemplate?PageNumber=1&PageSize=10000');
+    getAll: async (params = {}) => {
+        const queryParams = [];
+        const pageNumber = params.pageNumber || params.PageNumber || 1;
+        const pageSize = params.pageSize || params.PageSize || 10000;
+        
+        queryParams.push(`PageNumber=${pageNumber}`);
+        queryParams.push(`PageSize=${pageSize}`);
+        
+        const fromDate = params.fromDate || params.FromDate;
+        if (fromDate) queryParams.push(`FromDate=${encodeURIComponent(fromDate)}`);
+        
+        const toDate = params.toDate || params.ToDate;
+        if (toDate) queryParams.push(`ToDate=${encodeURIComponent(toDate)}`);
+        
+        const status = params.status || params.Status;
+        if (status) queryParams.push(`Status=${encodeURIComponent(status)}`);
+        
+        const memberID = params.memberID || params.MemberID;
+        if (memberID) queryParams.push(`MemberID=${encodeURIComponent(memberID)}`);
+        
+        const queryString = queryParams.join('&');
+        return await apiService.get(`/Smstemplate/GetSmstemplate?${queryString}`);
     },
     
     getById: async (id) => {

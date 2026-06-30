@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FaPlus, FaSearch, FaTrash, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, 
   FaPrint, FaChevronLeft, FaChevronRight, FaCheckCircle, FaTimesCircle, FaCheck, FaTimes, FaEdit, FaChartBar, FaFileAlt, FaDatabase
 } from 'react-icons/fa';
+import { API } from '../../../api/endpoints';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const ManageSMSTemplate = () => {
@@ -18,6 +19,54 @@ const ManageSMSTemplate = () => {
   });
 
   const [templates, setTemplates] = useState([]);
+  const [categories, setCategories] = useState([]);
+
+  const fetchData = async () => {
+    try {
+      const [templateRes, categoryRes] = await Promise.all([
+        API.smsTemplate.getAll().catch(() => []),
+        API.smsCategory.getAll().catch(() => [])
+      ]);
+      
+      let cats = [];
+      if (categoryRes) {
+        if (Array.isArray(categoryRes)) cats = categoryRes;
+        else if (Array.isArray(categoryRes.data)) cats = categoryRes.data;
+        else if (categoryRes.data && Array.isArray(categoryRes.data.items)) cats = categoryRes.data.items;
+        else if (Array.isArray(categoryRes.items)) cats = categoryRes.items;
+      }
+      setCategories(cats);
+
+      let rawTemplates = [];
+      if (templateRes) {
+        if (Array.isArray(templateRes)) rawTemplates = templateRes;
+        else if (Array.isArray(templateRes.data)) rawTemplates = templateRes.data;
+        else if (templateRes.data && Array.isArray(templateRes.data.items)) rawTemplates = templateRes.data.items;
+        else if (Array.isArray(templateRes.items)) rawTemplates = templateRes.items;
+      }
+
+      const mapped = rawTemplates.map(item => {
+        const cat = cats.find(c => c.id === item.categoryId);
+        return {
+          id: item.id,
+          categoryId: item.categoryId || '',
+          name: cat ? cat.name : (item.template || `Template #${item.id}`),
+          approved: item.isActive === true || item.isActive === 1,
+          usageCount: item.msrno || 0,
+          lastModified: 'API Synced',
+          original: item
+        };
+      });
+
+      setTemplates(mapped);
+    } catch (error) {
+      console.error("Failed to fetch templates:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -27,17 +76,34 @@ const ManageSMSTemplate = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const now = new Date().toLocaleDateString();
-    if (editingItem) {
-      setTemplates(templates.map(t => t.id === editingItem.id ? { ...t, ...formData, lastModified: now } : t));
-      setSuccessToast('Template updated successfully!');
-    } else {
-      setTemplates([{ ...formData, id: Date.now(), lastModified: now }, ...templates]);
-      setSuccessToast('New template added successfully!');
+    try {
+      if (editingItem) {
+        const payload = {
+          ...editingItem.original,
+          isActive: formData.approved,
+          template: formData.name
+        };
+        await API.smsTemplate.update(payload);
+        setSuccessToast('Template updated successfully!');
+      } else {
+        const payload = {
+          categoryId: categories[0]?.id || 1,
+          template: formData.name,
+          templateId: `DLT-${Date.now()}`,
+          isActive: formData.approved,
+          isSms: true
+        };
+        await API.smsTemplate.create(payload);
+        setSuccessToast('New template added successfully!');
+      }
+      fetchData();
+      resetForm();
+    } catch (err) {
+      console.error("Error saving template:", err);
+      setSuccessToast('Operation failed!');
     }
-    resetForm();
     setTimeout(() => setSuccessToast(''), 3000);
   };
 
@@ -52,15 +118,21 @@ const ManageSMSTemplate = () => {
     setFormData({
       name: tmp.name,
       approved: tmp.approved,
-      usageCount: tmp.usageCount
+      usageCount: String(tmp.usageCount)
     });
     setIsDrawerOpen(true);
   };
 
-  const handleDelete = () => {
-    setTemplates(templates.filter(t => t.id !== showConfirmModal.id));
+  const handleDelete = async () => {
+    try {
+      await API.smsTemplate.delete(showConfirmModal.id);
+      setSuccessToast('Template deleted successfully.');
+      fetchData();
+    } catch (err) {
+      console.error("Error deleting template:", err);
+      setSuccessToast('Delete failed.');
+    }
     setShowConfirmModal({ isOpen: false, id: null });
-    setSuccessToast('Template deleted successfully.');
     setTimeout(() => setSuccessToast(''), 3000);
   };
 

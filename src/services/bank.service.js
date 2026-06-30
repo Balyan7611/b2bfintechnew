@@ -9,7 +9,7 @@ export const BankService = {
             fromDate: params.fromDate || null,
             toDate: params.toDate || null,
             status: params.status || null,
-            memberID: params.memberID || 0
+            memberID: params.memberID || null
         };
         const res = await apiService.post('/BankMaster/AllBankMaster', payload);
         return BankResponseModel(res);
@@ -28,5 +28,9 @@ export const BankService = {
     update: async (data) => {
         const payload = BankRequestModel(data);
         return await apiService.put('/BankMaster', payload);
+    },
+    
+    delete: async (id) => {
+        return await apiService.delete(`/BankMaster/Delete/${id}`);
     }
 };

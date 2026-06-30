@@ -26,10 +26,20 @@ export const LoginResponseModel = (res) => {
         throw new Error(res?.mess || "Login Failed");
     }
     
-    if (res.data?.token) {
-        localStorage.setItem('access_token', res.data.token);
-        localStorage.setItem('admin_token', res.data.token);
+    const token = res.data?.token || res.data?.accessToken || res.data?.refreshToken;
+    
+    if (token) {
+        localStorage.setItem('access_token', token);
+        localStorage.setItem('admin_token', token);
     }
     
-    return res.data;
+    return {
+        status: res.status,
+        code: res.code,
+        mess: res.mess,
+        token: token,
+        accessToken: token,
+        refreshToken: token,
+        ...res.data
+    };
 };

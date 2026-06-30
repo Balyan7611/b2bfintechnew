@@ -25,6 +25,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
   const [adminTpin, setAdminTpin] = useState(['', '', '', '']);
   const [adminTpinError, setAdminTpinError] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [transactionStatus, setTransactionStatus] = useState(null); // { type: 'success'|'error', message: '' }
   const [pendingProfilePayload, setPendingProfilePayload] = useState(null);
   const adminTpinRefs = useRef([]);
   const [profileForm, setProfileForm] = useState({
@@ -204,10 +205,10 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
           setAepsWalletBal(pendingTransaction.updates.aepsWallet);
         }
 
-        alert('Transaction Successful!');
+        setTransactionStatus({ type: 'success', message: 'Wallet balance updated successfully!' });
       } catch (err) {
         console.error('Transfer API Error:', err);
-        alert('Transaction Failed: ' + (err?.response?.data?.message || err.message || 'Unknown Error'));
+        setTransactionStatus({ type: 'error', message: 'Transaction Failed: ' + (err?.response?.data?.message || err.message || 'Unknown Error') });
         return; 
       }
     }
@@ -1226,6 +1227,29 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
             </div>
             <h3>Profile Updated Successfully!</h3>
             <p>Changes have been saved and applied.</p>
+          </div>
+        </div>
+      )}
+
+      {/* TRANSACTION STATUS MODAL */}
+      {transactionStatus && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(13, 27, 62, 0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '340px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', animation: 'slideUp 0.3s ease' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: transactionStatus.type === 'success' ? '#ECFDF5' : '#FFF5F5', color: transactionStatus.type === 'success' ? '#10B981' : '#E53E3E', fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              {transactionStatus.type === 'success' ? <FaCheck /> : <FaTimesCircle />}
+            </div>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0D1B3E', margin: '0 0 8px 0' }}>
+              {transactionStatus.type === 'success' ? 'Success' : 'Failed'}
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: '#4E6080', margin: '0 0 24px 0', lineHeight: '1.4' }}>
+              {transactionStatus.message}
+            </p>
+            <button 
+              onClick={() => setTransactionStatus(null)} 
+              style={{ width: '100%', padding: '10px', background: transactionStatus.type === 'success' ? '#10B981' : '#E53E3E', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: '600', cursor: 'pointer' }}
+            >
+              Okay
+            </button>
           </div>
         </div>
       )}

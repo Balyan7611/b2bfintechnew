@@ -1,6 +1,6 @@
 export const MemberBankDetailResponseModel = (res) => {
     if (!res || !res.status) return [];
-    const items = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);
+    const items = Array.isArray(res.data) ? res.data : (res.data?.items ? res.data.items : (res.data ? [res.data] : []));
     return items.map(item => ({
         id: item.id || 0,
         msrno: item.msrno || 0,
@@ -25,7 +25,7 @@ export const MemberBankDetailRequestModel = (data) => {
         msrno: parseInt(data.msrno) || 0,
         bankId: parseInt(data.bankId) || 0,
         name: data.name || "",
-        ifsccode: data.ifsccode || "",
+        IFSCCode: data.ifsccode || "",
         accountNumber: data.accountNumber || "",
         accountHolderName: data.accountHolderName || "",
         branchName: data.branchName || "",
