@@ -55,7 +55,7 @@ const UPITransferHistory = () => {
   }, []);
 
   return (
-    <div className={styles.container} style={{ padding: '20px 24px', maxWidth: '100%' }}>
+    <div className={styles.container} style={{ padding: '12px', maxWidth: '100%' }}>
       {/* Dynamic Keyframe Animations for Button Rays */}
       <style>{`
         @keyframes successGlow {

@@ -22,17 +22,47 @@ export const MemberService = {
         const payload = {
             pageNumber,
             pageSize,
-            roleId: roleId ? parseInt(roleId) : 0,
+            roleId: (search && search.trim() !== '') ? 0 : (roleId ? parseInt(roleId) : 0),
             search: search || '',
         };
         if (isActive !== null) payload.isActive = isActive;
         if (isKycApproved !== null) payload.isKycApproved = isKycApproved;
         if (fromDate) payload.fromDate = fromDate;
         if (toDate) payload.toDate = toDate;
-        return await apiService.post('/Member/get-all-members', payload);
+        
+        let res = await apiService.post('/Member/get-all-members', payload);
+        
+        // Workaround for backend bug: if both search and roleId were requested, we fetched roleId=0 and now filter locally.
+        if (search && search.trim() !== '' && roleId && roleId !== "0" && roleId !== 0) {
+            const targetRole = parseInt(roleId);
+            if (res && res.status === true && res.data && Array.isArray(res.data.items)) {
+                res.data.items = res.data.items.filter(m => {
+                    const rId = m.roleId || m.roleID || m.RoleID || m.role_id;
+                    if (rId == null) return true; // Safety check if raw data lacks role ID
+                    return parseInt(rId) === targetRole;
+                });
+                res.data.totalItems = res.data.items.length;
+                res.data.totalPageNumber = Math.ceil(res.data.totalItems / pageSize) || 1;
+            }
+        }
+        return res;
     },
 
     updateMember: async (id, data) => {
         return await apiService.put(`/Member/update-member/${id}`, data);
+    },
+
+    changePassword: async (data) => {
+        return await apiService.post('/Member/change-password', {
+            memberId: parseInt(data.memberId) || 0,
+            newPassword: data.newPassword || ""
+        });
+    },
+
+    changePin: async (data) => {
+        return await apiService.post('/Member/change-pin', {
+            memberId: parseInt(data.memberId) || 0,
+            newPin: data.newPin || ""
+        });
     }
 };

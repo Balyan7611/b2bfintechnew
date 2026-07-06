@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { API } from '../../../api/endpoints';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { 
   FiSearch, FiChevronLeft, FiChevronRight, FiCheckCircle,
@@ -11,6 +12,20 @@ import styles from '../MemberPages/MemberPages.module.css';
 
 const DMTPPIHistory = () => {
   const [focusedField, setFocusedField] = useState(null);
+  const [memberList, setMemberList] = useState([]);
+  const [selectedMember, setSelectedMember] = useState('');
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        setMemberList(res || []);
+      } catch (err) {
+        console.error("Failed to fetch members:", err);
+      }
+    };
+    fetchMembers();
+  }, []);
 
   return (
     <div className={styles.container} style={{ padding: '20px' }}>
@@ -39,7 +54,7 @@ const DMTPPIHistory = () => {
         borderRadius: '20px',
         boxShadow: '0 8px 24px rgba(23, 86, 170, 0.02), 0 1px 4px rgba(0, 0, 0, 0.01)',
         border: '1px solid #E2E8F0',
-        padding: '20px 24px',
+        padding: '12px',
         position: 'relative',
         overflow: 'hidden',
         marginBottom: '20px'
@@ -96,8 +111,13 @@ const DMTPPIHistory = () => {
             </div>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Select Member</label>
-              <select className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'member' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'member' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} onFocus={() => setFocusedField('member')} onBlur={() => setFocusedField(null)}>
+              <select value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'member' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'member' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} onFocus={() => setFocusedField('member')} onBlur={() => setFocusedField(null)}>
                 <option value="">All Members</option>
+                {memberList.map(m => (
+                  <option key={m.memberId || m.id} value={m.memberId || m.id}>
+                    {m.name} ({m.mobile})
+                  </option>
+                ))}
               </select>
             </div>
             <div className={styles.formGroup}>

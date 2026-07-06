@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { API } from '../../../api/endpoints';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { 
   FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo, FiActivity, FiDatabase, FiAlertCircle, FiXCircle, FiTrendingUp, FiDollarSign
@@ -9,6 +10,34 @@ import {
 import styles from '../MemberPages/MemberPages.module.css';
 
 const EarningCommission = () => {
+  const [memberList, setMemberList] = useState([]);
+  const [serviceList, setServiceList] = useState([]);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        setMemberList(res || []);
+      } catch (err) {
+        console.error("Failed to fetch members:", err);
+      }
+    };
+    fetchMembers();
+  }, []);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const res = await API.service.getAll();
+        if (res && Array.isArray(res.data)) setServiceList(res.data);
+        else if (Array.isArray(res)) setServiceList(res);
+      } catch (err) {
+        console.error("Failed to fetch services:", err);
+      }
+    };
+    fetchServices();
+  }, []);
+
   return (
     <div className={styles.container}>
       {/* ── PREMIUM FILTER CARD ── */}
@@ -47,6 +76,19 @@ const EarningCommission = () => {
                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Select User</label>
                 <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', color: '#334155' }} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}>
                   <option value="">All Downline Members</option>
+                  {memberList.map(m => (
+                    <option key={m.memberId || m.id} value={m.memberId || m.id}>{m.name} ({m.mobile})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Service</label>
+                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', color: '#334155' }} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}>
+                  <option value="">All Services</option>
+                  {serviceList.map(s => (
+                    <option key={s.id || s.serviceId} value={s.id || s.serviceId}>{s.serviceName || s.name}</option>
+                  ))}
                 </select>
               </div>
               

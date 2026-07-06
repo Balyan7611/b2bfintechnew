@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Navigate, Route, Routes, useNavigate, useLocation } from 'react-router-dom';
 import AdminLoginPage from './admin/pages/AdminLoginPage';
@@ -49,11 +49,12 @@ import RefundPolicyPage from './public/pages/RefundPolicyPage';
 import RegisterDetailsPage from './public/pages/RegisterDetailsPage';
 import TermsPage from './public/pages/TermsPage';
 import { AuthGuard } from './security/auth-guard';
-import { clearSession } from './utils/authUtils';
+import { clearSession, isTokenExpired } from './utils/authUtils';
 import { setNavScrolled, setNotification } from './store/slices/uiSlice';
 import GlobalLoaderAndToast from './components/GlobalLoaderAndToast';
 
 function App() {
+  const [sessionExpiredModal, setSessionExpiredModal] = useState({ show: false, message: '', redirectUrl: '' });
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -66,29 +67,102 @@ function App() {
     const resetTimer = () => {
       if (timeoutId) clearTimeout(timeoutId);
       
-      const hasAdmin = localStorage.getItem('admin_token');
-      const hasAccess = localStorage.getItem('access_token');
-      const session = localStorage.getItem('bss_current_session');
+      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname === '/dashboard';
+      if (!isDashboardPath) return;
       
-      if ((hasAdmin || hasAccess) && session) {
+      const adminStr = localStorage.getItem('admin_token');
+      const accessStr = localStorage.getItem('access_token');
+      
+      const isValidTokenStr = (token) => {
+        if (!token) return false;
+        const t = token.replace(/^"(.*)"$/, '$1');
+        return t !== 'null' && t !== 'undefined' && t !== '';
+      };
+
+      const hasAdmin = isValidTokenStr(adminStr);
+      const hasAccess = isValidTokenStr(accessStr);
+      const session = localStorage.getItem('bss_current_session');
+      const isValidSession = isValidTokenStr(session);
+      
+      if ((hasAdmin || hasAccess) && isValidSession) {
         timeoutId = setTimeout(handleAutoLogout, INACTIVITY_LIMIT);
       }
     };
 
     const handleAutoLogout = () => {
+      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname === '/dashboard';
+      if (!isDashboardPath || window.__isLoggingOut) return;
+      
+      window.__isLoggingOut = true;
       const isAdminPath = location.pathname.startsWith('/admin');
       clearSession();
-      dispatch(setNotification({ 
-        type: 'error', 
-        message: 'Session expired due to inactivity. Please login again.' 
-      }));
+      setSessionExpiredModal({
+        show: true,
+        message: "You have been logged out due to inactivity.",
+        redirectUrl: isAdminPath ? '/admin/login' : '/member/login'
+      });
+    };
+
+    const handleTokenExpirationLogout = () => {
+      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname === '/dashboard';
+      if (!isDashboardPath || window.__isLoggingOut) return;
+
+      window.__isLoggingOut = true;
+      const isAdminPath = location.pathname.startsWith('/admin');
+      clearSession();
+      setSessionExpiredModal({
+        show: true,
+        message: "Your session has expired. Please log in again.",
+        redirectUrl: isAdminPath ? '/admin/login' : '/member/login'
+      });
+    };
+
+    const checkTokenExpiration = () => {
+      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname === '/dashboard';
+      if (!isDashboardPath) return;
+
+      const adminToken = localStorage.getItem('admin_token');
+      const memberToken = localStorage.getItem('access_token');
       
-      if (isAdminPath) {
-        navigate('/admin/login', { replace: true });
-      } else {
-        navigate('/member/login', { replace: true });
+      const isValidTokenStr = (token) => {
+        if (!token) return false;
+        const t = token.replace(/^"(.*)"$/, '$1');
+        return t !== 'null' && t !== 'undefined' && t !== '';
+      };
+
+      const isValidAdminToken = isValidTokenStr(adminToken);
+      const isValidMemberToken = isValidTokenStr(memberToken);
+
+      if (isValidAdminToken || isValidMemberToken) {
+        // Retrieve session data to check how long ago the user logged in
+        const session = localStorage.getItem('bss_current_session');
+        if (session) {
+          try {
+            const parsedSession = JSON.parse(session);
+            if (parsedSession.loggedInAt) {
+              const loginTime = new Date(parsedSession.loggedInAt).getTime();
+              const elapsedMs = Date.now() - loginTime;
+              // If logged in for more than 15 minutes (900,000 ms), force logout
+              if (elapsedMs >= 15 * 60 * 1000) {
+                handleTokenExpirationLogout();
+                return;
+              }
+            }
+          } catch (e) {
+            console.error("Session parsing failed in token expiration check", e);
+          }
+        }
+      }
+
+      if (isValidAdminToken && isTokenExpired(adminToken)) {
+         handleTokenExpirationLogout();
+      } else if (isValidMemberToken && isTokenExpired(memberToken)) {
+         handleTokenExpirationLogout();
       }
     };
+
+    // Check token expiration every 10 seconds
+    const tokenCheckInterval = setInterval(checkTokenExpiration, 10000);
 
     const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
     
@@ -97,9 +171,11 @@ function App() {
     });
 
     resetTimer();
+    checkTokenExpiration(); // Check immediately on mount/route change
 
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
+      if (tokenCheckInterval) clearInterval(tokenCheckInterval);
       activityEvents.forEach(event => {
         window.removeEventListener(event, resetTimer);
       });
@@ -454,6 +530,29 @@ function App() {
           <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
         </Routes>
         <GlobalLoaderAndToast />
+        {sessionExpiredModal.show && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+            <div style={{ background: '#fff', padding: '30px', borderRadius: '12px', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+              <div style={{ width: '60px', height: '60px', background: '#FEE2E2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px' }}>
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+              </div>
+              <h3 style={{ color: '#1F2937', marginBottom: '10px', fontSize: '20px', fontWeight: 'bold', fontFamily: 'inherit' }}>Session Expired</h3>
+              <p style={{ color: '#4B5563', marginBottom: '25px', fontSize: '15px', fontFamily: 'inherit' }}>{sessionExpiredModal.message}</p>
+              <button 
+                onClick={() => window.location.href = sessionExpiredModal.redirectUrl} 
+                style={{ background: '#0D1B5E', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', width: '100%', fontSize: '16px', transition: 'background 0.2s', fontFamily: 'inherit' }}
+                onMouseOver={(e) => e.currentTarget.style.background = '#0a1445'}
+                onMouseOut={(e) => e.currentTarget.style.background = '#0D1B5E'}
+              >
+                Log In Again
+              </button>
+            </div>
+          </div>
+        )}
       </div>
   );
 }

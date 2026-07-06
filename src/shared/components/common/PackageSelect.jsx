@@ -8,9 +8,18 @@ const PackageSelect = ({ value, onChange, placeholder = "Select Package", style 
     const fetchPackages = async () => {
       try {
         const pkgRes = await API.package.getAll();
-        if (pkgRes && pkgRes.status === true && Array.isArray(pkgRes.data)) {
-          setPackages(pkgRes.data);
+        let arr = [];
+        if (Array.isArray(pkgRes)) {
+            arr = pkgRes;
+        } else if (pkgRes && Array.isArray(pkgRes.data)) {
+            arr = pkgRes.data;
+        } else if (pkgRes && pkgRes.data && Array.isArray(pkgRes.data.items)) {
+            arr = pkgRes.data.items;
+        } else if (pkgRes && Array.isArray(pkgRes.items)) {
+            arr = pkgRes.items;
         }
+
+        setPackages(arr);
       } catch (err) {
         console.error("Error loading packages in PackageSelect component:", err);
       }

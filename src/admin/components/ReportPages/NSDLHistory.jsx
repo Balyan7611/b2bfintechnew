@@ -68,7 +68,7 @@ const NSDLHistory = () => {
         borderRadius: '20px',
         boxShadow: '0 8px 24px rgba(23, 86, 170, 0.02), 0 1px 4px rgba(0, 0, 0, 0.01)',
         border: '1px solid #E2E8F0',
-        padding: '20px 24px',
+        padding: '12px',
         position: 'relative',
         overflow: 'hidden',
         marginBottom: '20px'

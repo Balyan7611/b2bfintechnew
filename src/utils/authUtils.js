@@ -96,3 +96,12 @@ export const decodeToken = (token) => {
     return null;
   }
 };
+
+export const isTokenExpired = (token) => {
+  const decoded = decodeToken(token);
+  if (!decoded || !decoded.exp) return true; // If no expiration, assume expired or invalid
+  
+  // exp is in seconds, convert to milliseconds
+  const expirationTime = decoded.exp * 1000;
+  return Date.now() >= expirationTime;
+};

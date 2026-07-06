@@ -127,6 +127,36 @@ httpClient.interceptors.response.use((response) => {
 }, (error) => {
     stopLoading();
     
+    if (error.response && error.response.status === 401) {
+        const isAuthRequest = error.config?.url && (error.config.url.includes('/login') || error.config.url.includes('/register') || error.config.url.includes('/forgot') || error.config.url.includes('/otp'));
+        const isLoginPath = window.location.pathname.includes('/login');
+        
+        const isDashboardPath = window.location.pathname.startsWith('/member/dashboard') || window.location.pathname.startsWith('/admin/dashboard');
+        
+        if (isDashboardPath) {
+            const hasAdminToken = localStorage.getItem('admin_token') || sessionStorage.getItem('admin_token');
+            const hasAccessToken = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+            
+            if (window.__isLoggingOut) return Promise.reject(error);
+            window.__isLoggingOut = true;
+
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('access_token');
+            sessionStorage.removeItem('admin_token');
+            sessionStorage.removeItem('access_token');
+            localStorage.removeItem('bss_current_session');
+            
+            if (hasAdminToken || hasAccessToken) {
+                alert("Session Expired: Your session has expired or is invalid. Please log in again.");
+            }
+            
+            const isAdmin = window.location.pathname.startsWith('/admin');
+            window.location.href = isAdmin ? '/admin/login' : '/member/login';
+            
+            return Promise.reject(error);
+        }
+    }
+    
     const errorMsg = error.response?.data?.mess || error.response?.data?.message || error.message || "Network error. Please try again.";
     store.dispatch(setNotification({ type: 'error', message: errorMsg }));
     

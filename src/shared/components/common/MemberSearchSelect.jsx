@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FiChevronDown, FiRefreshCw } from 'react-icons/fi';
 import { API } from '../../../api/endpoints';
 
-const MemberSearchSelect = ({ value, onChange, placeholder = "Search or Select Member ID...", style = {} }) => {
+const MemberSearchSelect = ({ value, onChange, roleId, placeholder = "Search or Select Member ID...", style = {} }) => {
   const [searchTerm, setSearchTerm] = useState(value || "");
   const [showDropdown, setShowDropdown] = useState(false);
   const [memberList, setMemberList] = useState([]);
@@ -23,7 +23,11 @@ const MemberSearchSelect = ({ value, onChange, placeholder = "Search or Select M
       try {
         const results = await API.member.search("");
         if (results && Array.isArray(results)) {
-          setAllMembers(results);
+          if (roleId) {
+            setAllMembers(results.filter(m => m.roleId && parseInt(m.roleId) === parseInt(roleId)));
+          } else {
+            setAllMembers(results);
+          }
         }
       } catch (err) {
         console.error("Error loading initial members in shared select:", err);
@@ -32,7 +36,7 @@ const MemberSearchSelect = ({ value, onChange, placeholder = "Search or Select M
       }
     };
     fetchInitial();
-  }, []);
+  }, [roleId]);
 
   // Search filter
   useEffect(() => {
@@ -49,7 +53,11 @@ const MemberSearchSelect = ({ value, onChange, placeholder = "Search or Select M
       try {
         const results = await API.member.search(trimmed);
         if (results && Array.isArray(results)) {
-          setMemberList(results);
+          if (roleId) {
+            setMemberList(results.filter(m => m.roleId && parseInt(m.roleId) === parseInt(roleId)));
+          } else {
+            setMemberList(results);
+          }
         }
       } catch (err) {
         console.error("Error searching members in shared select:", err);
@@ -60,7 +68,7 @@ const MemberSearchSelect = ({ value, onChange, placeholder = "Search or Select M
 
     const delayDebounce = setTimeout(performSearch, 300);
     return () => clearTimeout(delayDebounce);
-  }, [searchTerm, value]);
+  }, [searchTerm, value, roleId]);
 
   // Click outside to close dropdown
   useEffect(() => {

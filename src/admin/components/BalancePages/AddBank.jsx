@@ -503,7 +503,7 @@ const AddBank = () => {
                         onClick={() => {
                           setEditingBank(row);
                           setManualBankName(row.bankName || row.name);
-                          setManualIfsc(row.ifscrequired ? 'Required' : '');
+                          setManualIfsc(row.ifsc || row.ifscCode || '');
                           
                           setDailyLimit(row.dailyLimit || 1000000.00);
                           setPerTransactionLimit(row.perTransactionLimit || 200000.00);
