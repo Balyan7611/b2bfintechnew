@@ -67,7 +67,7 @@ const ApiHeader = () => {
   };
 
   const confirmLogout = () => {
-    navigate('/api/login');
+    navigate('/api-panel/login');
   };
 
   const handleNavigate = (path) => {
@@ -230,7 +230,7 @@ const ApiHeader = () => {
           }}
           onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(26, 35, 126, 0.08)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#dbeafe'; e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.02)'; }}
-          onClick={() => handleNavigate('/api/dashboard/wallet/main')}
+          onClick={() => handleNavigate('/api-panel/dashboard/wallet/main')}
           >
             <FaWallet style={{ fontSize: '1.4rem', color: 'var(--color-primary)' }} />
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.1' }}>
@@ -389,11 +389,11 @@ const ApiHeader = () => {
                 </div>
                 <div className={styles.divider}></div>
                 <div className={styles.dropdownMenu}>
-                  <div className={styles.menuItem} onClick={() => handleNavigate('/api/dashboard/profile')}>
+                  <div className={styles.menuItem} onClick={() => handleNavigate('/api-panel/dashboard/profile')}>
                     <div className={`${styles.menuIcon} ${styles.iconNavy}`}><FaUser /></div>
                     <span>My Profile</span>
                   </div>
-                  <div className={styles.menuItem} onClick={() => handleNavigate('/api/dashboard/settings')}>
+                  <div className={styles.menuItem} onClick={() => handleNavigate('/api-panel/dashboard/settings')}>
                     <div className={`${styles.menuIcon} ${styles.iconChart}`}><FaCog /></div>
                     <span>Account Setting</span>
                   </div>
@@ -435,3 +435,4 @@ const ApiHeader = () => {
 };
 
 export default ApiHeader;
+

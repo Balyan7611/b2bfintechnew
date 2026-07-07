@@ -60,7 +60,7 @@ const formatCardNumber = (accNo) => {
 
 const FundRequest = () => {
   const location = useLocation();
-  const isApiPanel = location.pathname.startsWith('/api');
+  const isApiPanel = location.pathname.startsWith('/api-panel');
   // Form states
   const [selectedBank, setSelectedBank] = useState('');
   const [amount, setAmount] = useState('');
@@ -631,3 +631,4 @@ const FundRequest = () => {
 };
 
 export default FundRequest;
+

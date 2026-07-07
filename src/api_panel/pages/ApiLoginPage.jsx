@@ -132,7 +132,7 @@ const ApiLoginPage = () => {
 
       saveSession(user);
       setLoading(false);
-      navigate('/api/dashboard');
+      navigate('/api-panel/dashboard');
     }, 1500);
   };
 
@@ -433,3 +433,4 @@ const ApiLoginPage = () => {
 };
 
 export default ApiLoginPage;
+

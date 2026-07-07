@@ -35,13 +35,13 @@ const ApiSidebar = () => {
   };
 
   const menuItems = [
-    { name: 'Dashboard', icon: <FaTachometerAlt />, path: '/api/dashboard' },
+    { name: 'Dashboard', icon: <FaTachometerAlt />, path: '/api-panel/dashboard' },
     { 
       name: 'Security Settings', 
       icon: <FaShieldAlt />, 
       hasChildren: true,
       children: [
-        { name: 'API Whitelisting', path: '/api/dashboard/whitelist' },
+        { name: 'API Whitelisting', path: '/api-panel/dashboard/whitelist' },
       ]
     },
     { 
@@ -49,10 +49,10 @@ const ApiSidebar = () => {
       icon: <FaWallet />, 
       hasChildren: true,
       children: [
-        { name: 'Wallet to Wallet', path: '/api/dashboard/wallet/w2w' },
-        { name: 'Fund Request', path: '/api/dashboard/wallet/fund-request' },
-        { name: 'Main Wallet', path: '/api/dashboard/wallet/main' },
-        { name: 'AEPS Wallet', path: '/api/dashboard/wallet/aeps' },
+        { name: 'Wallet to Wallet', path: '/api-panel/dashboard/wallet/w2w' },
+        { name: 'Fund Request', path: '/api-panel/dashboard/wallet/fund-request' },
+        { name: 'Main Wallet', path: '/api-panel/dashboard/wallet/main' },
+        { name: 'AEPS Wallet', path: '/api-panel/dashboard/wallet/aeps' },
       ]
     },
   ];
@@ -180,3 +180,4 @@ const ApiSidebar = () => {
 };
 
 export default ApiSidebar;
+

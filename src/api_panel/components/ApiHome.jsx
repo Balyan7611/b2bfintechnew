@@ -71,16 +71,16 @@ const ApiHome = () => {
   };
 
   const quickServices = [
-    { name: 'DMT', icon: <FaMoneyBillWave />, color: '#8E24AA', path: '/api/dashboard/service/dmt', value: '₹ 12.5L', max: '₹ 20L', usagePercent: 62 },
-    { name: 'RECHARGE', icon: <FaMobileAlt />, color: '#1E88E5', path: '/api/dashboard/service/mobile-recharge', value: '₹ 24K', max: '₹ 50K', usagePercent: 48 },
-    { name: 'AEPS', icon: <FaFingerprint />, color: '#43A047', path: '/api/dashboard/service/aeps', value: '₹ 45L', max: '₹ 50L', usagePercent: 90 },
-    { name: 'PAYOUT', icon: <FaWallet />, color: '#E53935', path: '/api/dashboard/service/payout', value: '₹ 8.2L', max: '₹ 15L', usagePercent: 55 },
-    { name: 'UPI', icon: <FaQrcode />, color: '#1A237E', path: '/api/dashboard/service/upitransfer', value: '₹ 1.5L', max: '₹ 5L', usagePercent: 30 },
-    { name: 'W2W', icon: <FaExchangeAlt />, color: '#FB8C00', path: '/api/dashboard/wallet/w2w', value: '₹ 9.1L', max: '₹ 10L', usagePercent: 91 },
-    { name: 'AADHARPAY', icon: <FaIdCard />, color: '#00897B', path: '/api/dashboard/service/aadharpay', value: '₹ 2.8L', max: '₹ 5L', usagePercent: 56 },
-    { name: 'PAN', icon: <FaAddressCard />, color: '#D81B60', path: '/api/dashboard/service/pan', value: '45/100', max: 'Cards', usagePercent: 45 },
-    { name: 'V-ACCOUNT', icon: <FaUniversity />, color: '#5E35B1', path: '/api/dashboard/wallet/main', value: '₹ 18.5L', max: '₹ 25L', usagePercent: 74 },
-    { name: 'FUND REQ', icon: <FaUserPlus />, color: '#F4511E', path: '/api/dashboard/wallet/fund-request', value: '₹ 32L', max: '₹ 50L', usagePercent: 64 }
+    { name: 'DMT', icon: <FaMoneyBillWave />, color: '#8E24AA', path: '/api-panel/dashboard/service/dmt', value: '₹ 12.5L', max: '₹ 20L', usagePercent: 62 },
+    { name: 'RECHARGE', icon: <FaMobileAlt />, color: '#1E88E5', path: '/api-panel/dashboard/service/mobile-recharge', value: '₹ 24K', max: '₹ 50K', usagePercent: 48 },
+    { name: 'AEPS', icon: <FaFingerprint />, color: '#43A047', path: '/api-panel/dashboard/service/aeps', value: '₹ 45L', max: '₹ 50L', usagePercent: 90 },
+    { name: 'PAYOUT', icon: <FaWallet />, color: '#E53935', path: '/api-panel/dashboard/service/payout', value: '₹ 8.2L', max: '₹ 15L', usagePercent: 55 },
+    { name: 'UPI', icon: <FaQrcode />, color: '#1A237E', path: '/api-panel/dashboard/service/upitransfer', value: '₹ 1.5L', max: '₹ 5L', usagePercent: 30 },
+    { name: 'W2W', icon: <FaExchangeAlt />, color: '#FB8C00', path: '/api-panel/dashboard/wallet/w2w', value: '₹ 9.1L', max: '₹ 10L', usagePercent: 91 },
+    { name: 'AADHARPAY', icon: <FaIdCard />, color: '#00897B', path: '/api-panel/dashboard/service/aadharpay', value: '₹ 2.8L', max: '₹ 5L', usagePercent: 56 },
+    { name: 'PAN', icon: <FaAddressCard />, color: '#D81B60', path: '/api-panel/dashboard/service/pan', value: '45/100', max: 'Cards', usagePercent: 45 },
+    { name: 'V-ACCOUNT', icon: <FaUniversity />, color: '#5E35B1', path: '/api-panel/dashboard/wallet/main', value: '₹ 18.5L', max: '₹ 25L', usagePercent: 74 },
+    { name: 'FUND REQ', icon: <FaUserPlus />, color: '#F4511E', path: '/api-panel/dashboard/wallet/fund-request', value: '₹ 32L', max: '₹ 50L', usagePercent: 64 }
   ];
 
   return (
@@ -345,3 +345,4 @@ const ApiHome = () => {
 };
 
 export default ApiHome;
+

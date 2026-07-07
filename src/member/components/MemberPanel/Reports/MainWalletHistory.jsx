@@ -14,7 +14,7 @@ import styles from './AEPSReport.module.css';
 const MainWalletHistory = () => {
   const dispatch = useDispatch();
   const location = useLocation();
-  const isApiPanel = location.pathname.startsWith('/api');
+  const isApiPanel = location.pathname.startsWith('/api-panel');
   const { 
     list, 
     filters,
@@ -110,3 +110,4 @@ const MainWalletHistory = () => {
 };
 
 export default MainWalletHistory;
+

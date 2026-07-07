@@ -37,7 +37,7 @@ const initialTransactions = [
 
 const WalletToWallet = () => {
   const location = useLocation();
-  const isApiPanel = location.pathname.startsWith('/api');
+  const isApiPanel = location.pathname.startsWith('/api-panel');
   const [mobile, setMobile] = useState('');
   const [receiver, setReceiver] = useState(null);
   const [error, setError] = useState('');
@@ -411,3 +411,4 @@ const WalletToWallet = () => {
 };
 
 export default WalletToWallet;
+

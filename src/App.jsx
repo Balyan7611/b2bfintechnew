@@ -72,7 +72,7 @@ function App() {
     const resetTimer = () => {
       if (timeoutId) clearTimeout(timeoutId);
       
-      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname.startsWith('/api/dashboard') || location.pathname === '/dashboard';
+      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname.startsWith('/api-panel/dashboard') || location.pathname === '/dashboard';
       if (!isDashboardPath) return;
       
       const adminStr = localStorage.getItem('admin_token');
@@ -95,37 +95,37 @@ function App() {
     };
 
     const handleAutoLogout = () => {
-      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname.startsWith('/api/dashboard') || location.pathname === '/dashboard';
+      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname.startsWith('/api-panel/dashboard') || location.pathname === '/dashboard';
       if (!isDashboardPath || window.__isLoggingOut) return;
       
       window.__isLoggingOut = true;
       const isAdminPath = location.pathname.startsWith('/admin');
-      const isApiPath = location.pathname.startsWith('/api');
+      const isApiPath = location.pathname.startsWith('/api-panel');
       clearSession();
       setSessionExpiredModal({
         show: true,
         message: "You have been logged out due to inactivity.",
-        redirectUrl: isAdminPath ? '/admin/login' : isApiPath ? '/api/login' : '/member/login'
+        redirectUrl: isAdminPath ? '/admin/login' : isApiPath ? '/api-panel/login' : '/member/login'
       });
     };
 
     const handleTokenExpirationLogout = () => {
-      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname.startsWith('/api/dashboard') || location.pathname === '/dashboard';
+      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname.startsWith('/api-panel/dashboard') || location.pathname === '/dashboard';
       if (!isDashboardPath || window.__isLoggingOut) return;
 
       window.__isLoggingOut = true;
       const isAdminPath = location.pathname.startsWith('/admin');
-      const isApiPath = location.pathname.startsWith('/api');
+      const isApiPath = location.pathname.startsWith('/api-panel');
       clearSession();
       setSessionExpiredModal({
         show: true,
         message: "Your session has expired. Please log in again.",
-        redirectUrl: isAdminPath ? '/admin/login' : isApiPath ? '/api/login' : '/member/login'
+        redirectUrl: isAdminPath ? '/admin/login' : isApiPath ? '/api-panel/login' : '/member/login'
       });
     };
 
     const checkTokenExpiration = () => {
-      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname.startsWith('/api/dashboard') || location.pathname === '/dashboard';
+      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname.startsWith('/api-panel/dashboard') || location.pathname === '/dashboard';
       if (!isDashboardPath) return;
 
       const adminToken = localStorage.getItem('admin_token');
@@ -526,10 +526,10 @@ function App() {
           <Route path="/member/certificate" element={<Navigate to="/member/dashboard/certificate" replace />} />
 
           {/* --- API ROUTES --- */}
-          <Route path="/api" element={<Navigate to="/api/login" replace />} />
-          <Route path="/api/" element={<ApiLoginPage />} />
-          <Route path="/api/login" element={<ApiLoginPage />} />
-          <Route path="/api/dashboard" element={<AuthGuard role="2">
+          <Route path="/api-panel" element={<Navigate to="/api-panel/login" replace />} />
+          <Route path="/api-panel/" element={<ApiLoginPage />} />
+          <Route path="/api-panel/login" element={<ApiLoginPage />} />
+          <Route path="/api-panel/dashboard" element={<AuthGuard role="2">
                 <ApiDashboardLayout />
             </AuthGuard>}>
             <Route index element={<ApiHome />} />
@@ -582,3 +582,4 @@ function App() {
 }
 
 export default App;
+
