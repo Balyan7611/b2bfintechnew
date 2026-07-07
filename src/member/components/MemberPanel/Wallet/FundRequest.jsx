@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   FaUniversity, FaMoneyBillWave, FaClock, FaCheckCircle, FaTimesCircle, 
   FaUpload, FaFileInvoiceDollar, FaQrcode, FaSearch, FaFilter,
@@ -58,6 +59,8 @@ const formatCardNumber = (accNo) => {
 };
 
 const FundRequest = () => {
+  const location = useLocation();
+  const isApiPanel = location.pathname.startsWith('/api');
   // Form states
   const [selectedBank, setSelectedBank] = useState('');
   const [amount, setAmount] = useState('');
@@ -190,6 +193,7 @@ const FundRequest = () => {
 
 
       {/* SECTION 1: Submit New Request (Polished & Beautiful formCard) */}
+      {!isApiPanel && (
       <div className={`${styles.premiumSectionCard} ${styles.formCard}`}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionTitleWrap}>
@@ -317,8 +321,10 @@ const FundRequest = () => {
           </div>
         </form>
       </div>
+      )}
 
       {/* SECTION 2: Company Bank Cards (Styled to look like real light ATM / Credit Cards) */}
+      {!isApiPanel && (
       <div className={styles.premiumSectionCard}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionTitleWrap}>
@@ -415,8 +421,9 @@ const FundRequest = () => {
           ))}
         </div>
       </div>
+      )}
 
-      {/* SECTION 3: Fund Request Report History */}
+      {/* SECTION 3: Fund Request History (Styled identically to AEPS Report) */}
       <div className={styles.tableCard}>
         <div className={styles.tableHeaderRow}>
           <h2 className={styles.sectionTitle}><FaFileInvoiceDollar /> Fund Request List</h2>

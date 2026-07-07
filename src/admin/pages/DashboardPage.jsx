@@ -245,7 +245,7 @@ const SIDEBAR_LINKS = [
   },
   { 
     id: 'recharge', 
-    label: 'Recharge Setting', 
+    label: 'API Setting', 
     icon: FaMobileAlt,
     subLinks: [
       { id: 'list_api', label: 'List API' },

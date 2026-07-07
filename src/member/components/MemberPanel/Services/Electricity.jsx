@@ -2,11 +2,15 @@ import React, { useState } from 'react';
 import { FiSearch, FiChevronRight, FiZap, FiX } from 'react-icons/fi';
 import styles from './Electricity.module.css';
 import ServiceQuickNav from './ServiceQuickNav';
+import { useFetchServices } from '../../../../hooks/useFetchServices';
 
 const Electricity = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedService, setSelectedService] = useState('');
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [consumerNumber, setConsumerNumber] = useState('');
+  
+  const { services, loading: servicesLoading } = useFetchServices(2);
 
   const providers = [
     { id: 'adani', name: 'Adani Electricity Mumbai Limited', logo: 'https://logo.clearbit.com/adani.com' },
@@ -72,6 +76,18 @@ const Electricity = () => {
           <p className={styles.subtitle}>Pay your electricity bills instantly</p>
         </div>
         <ServiceQuickNav />
+      </div>
+
+      <div style={{ marginBottom: '20px' }}>
+        <select 
+          className={styles.searchInput}
+          style={{ width: '100%', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', appearance: 'auto' }}
+          value={selectedService}
+          onChange={(e) => setSelectedService(e.target.value)}
+        >
+          <option value="">{servicesLoading ? 'Loading services...' : 'Select Service'}</option>
+          {services && services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
       </div>
 
       <div className={styles.searchSection}>

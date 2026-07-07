@@ -7,6 +7,7 @@ import {
 import styles from './DMT.module.css';
 import TransactionReceipt from './TransactionReceipt';
 import { SITE_CONFIG } from '../../../../config/siteConfig';
+import { useFetchServices } from '../../../../hooks/useFetchServices';
 
 const DEFAULT_BENEFICIARIES = [
   { id: 1, name: 'Sachin Balyan', bank: 'Kotak Bank', accountNo: '9745556971', ifsc: 'KKBK0000962', verified: true },
@@ -77,7 +78,10 @@ const numberToWords = (num) => {
 const DMT = () => {
   const [view, setView] = useState('selection');
   const [selectedMobile, setSelectedMobile] = useState('');
+  const [selectedService, setSelectedService] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  const { services, loading: servicesLoading } = useFetchServices(7);
   const [showModal, setShowModal] = useState(null);
   const [toast, setToast] = useState(null);
   const [beneficiaries, setBeneficiaries] = useState([]);
@@ -729,6 +733,7 @@ const DMT = () => {
               </div>
             </div>
           </div>
+
           <div className={styles.cardContent}>
             <div className={styles.actionBar}>
               <div className={styles.topActionsRow}>
@@ -1302,6 +1307,19 @@ const DMT = () => {
         <div className={styles.mainLayout}>
           <div className={styles.rightPanel}>
             <h1 className={styles.title} style={{ marginTop: '15px', marginBottom: '20px', fontSize: '1.6rem', color: '#1756AA' }}>DMT Service</h1>
+            
+            <div className={styles.formGroup}>
+              <label>Service Provider</label>
+              <select 
+                className={styles.select} 
+                value={selectedService} 
+                onChange={(e) => setSelectedService(e.target.value)}
+              >
+                <option value="">{servicesLoading ? 'Loading services...' : '-- Select Service --'}</option>
+                {services && services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+            
             <div className={styles.formGroup}><label>Select Customer Mobile Number</label>
               <select className={styles.select} value={selectedMobile} onChange={(e) => setSelectedMobile(e.target.value)}>
                 <option value="">-- Select Contact --</option>

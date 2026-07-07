@@ -30,13 +30,16 @@ const RechargeHistory = () => {
     const fetchServices = async () => {
       try {
         const res = await API.service.getAll();
+        let list = [];
         if (res && Array.isArray(res.data)) {
-          setServiceList(res.data);
+          list = res.data;
         } else if (Array.isArray(res)) {
-          setServiceList(res);
-        } else {
-          setServiceList([]);
+          list = res;
         }
+        
+        // Filter specifically for Recharge services (sectionType 1)
+        const rechargeServices = list.filter(srv => String(srv.sectionType || '') === '1');
+        setServiceList(rechargeServices);
       } catch (err) {
         console.error("Failed to fetch services:", err);
       }

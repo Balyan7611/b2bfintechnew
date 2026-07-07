@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fa';
 import styles from './Aeps.module.css';
 import ReceiptModal from '../../../../shared/components/common/ReceiptModal';
+import { useFetchServices } from '../../../../hooks/useFetchServices';
 const getImagePath = (path) => {
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   const pathname = window.location.pathname;
@@ -44,7 +45,10 @@ const INITIAL_TRANSACTIONS = [
 
 const Aeps = () => {
   const [activeTab, setActiveTab] = useState('CASH WITHDRAWAL');
+  const [selectedService, setSelectedService] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
+  
+  const { services, loading: servicesLoading } = useFetchServices(9);
   const [amount, setAmount] = useState('');
   const [aadharNumber, setAadharNumber] = useState('');
   const [selectedBank, setSelectedBank] = useState('');
@@ -234,6 +238,24 @@ const Aeps = () => {
           </div>
 
           <form onSubmit={handleTransactionSubmit} className={styles.inputGrid}>
+            {/* Service Provider */}
+            <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+              <label>Service Provider</label>
+              <div className={styles.inputWrapper}>
+                <FaShieldAlt className={styles.inputIcon} />
+                <select
+                  className={styles.inputField}
+                  value={selectedService}
+                  onChange={e => setSelectedService(e.target.value)}
+                  style={{ appearance: 'auto' }}
+                  required
+                >
+                  <option value="">{servicesLoading ? 'Loading services...' : 'Select Service'}</option>
+                  {services && services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+            </div>
+
             {/* Mobile Number */}
             <div className={styles.formGroup}>
               <label>Customer Mobile Number</label>

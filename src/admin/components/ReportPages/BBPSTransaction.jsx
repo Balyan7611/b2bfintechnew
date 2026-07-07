@@ -27,9 +27,13 @@ const BBPSTransaction = () => {
     const fetchServices = async () => {
       try {
         const res = await API.service.getAll();
-        if (res && Array.isArray(res.data)) setServiceList(res.data);
-        else if (Array.isArray(res)) setServiceList(res);
-        else setServiceList([]);
+        let list = [];
+        if (res && Array.isArray(res.data)) list = res.data;
+        else if (Array.isArray(res)) list = res;
+        
+        // Filter specifically for BBPS/Electricity services (sectionType 2)
+        const bbpsServices = list.filter(srv => String(srv.sectionType || '') === '2');
+        setServiceList(bbpsServices);
       } catch (err) { console.error("Error fetching services:", err); }
     };
     const fetchOperators = async () => {

@@ -25,18 +25,73 @@ const DMTHistory = () => {
   const [operatorList, setOperatorList] = useState([]);
   const [selectedOperator, setSelectedOperator] = useState('');
   const [selectedMember, setSelectedMember] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [transactions, setTransactions] = useState([]);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [loading, setLoading] = useState(false);
 
+  const fetchTransactions = async () => {
+    setLoading(true);
+    try {
+      const res = await API.transaction.getAll({
+        pageNumber,
+        pageSize,
+        fromDate,
+        toDate,
+        serviceId: '9', // FOR DMT
+        operatorId: selectedOperator,
+        apiId: '1',
+        memberId: selectedMember,
+        status: selectedStatus
+      });
+      if (res && res.status === true) {
+        if (Array.isArray(res.data)) {
+          setTransactions(res.data);
+          setTotalRecords(res.totalRecords || res.data.length);
+        } else if (res.data && Array.isArray(res.data.items)) {
+          setTransactions(res.data.items);
+          setTotalRecords(res.data.totalItems || res.data.items.length);
+        } else {
+          setTransactions([]);
+          setTotalRecords(0);
+        }
+      } else if (Array.isArray(res)) {
+        setTransactions(res);
+        setTotalRecords(res.length);
+      } else {
+        setTransactions([]);
+        setTotalRecords(0);
+      }
+    } catch (err) {
+      console.error("Failed to fetch transactions:", err);
+      setTransactions([]);
+      setTotalRecords(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [pageNumber, pageSize, selectedStatus]);
   useEffect(() => {
     const fetchServices = async () => {
       try {
         const res = await API.service.getAll();
+        let list = [];
         if (res && Array.isArray(res.data)) {
-          setServiceList(res.data);
+          list = res.data;
         } else if (Array.isArray(res)) {
-          setServiceList(res);
-        } else {
-          setServiceList([]);
+          list = res;
         }
+        
+        // Filter specifically for DMT services (sectionType 7)
+        const dmtServices = list.filter(srv => String(srv.sectionType || '') === '7');
+        setServiceList(dmtServices);
       } catch (err) {
         console.error("Failed to fetch services:", err);
       }
@@ -524,21 +579,68 @@ const DMTHistory = () => {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td colSpan="13" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
-                     <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No DMT data found</span>
-                </td>
-              </tr>
+              {loading ? (
+                <tr>
+                  <td colSpan="13" style={{ padding: '40px 0', textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#1756AA' }}>Loading DMT history...</span>
+                  </td>
+                </tr>
+              ) : transactions.length > 0 ? (
+                transactions.map((txn, index) => (
+                  <tr key={txn.id || index}>
+                    <td>{((pageNumber - 1) * pageSize) + index + 1}</td>
+                    <td>{txn.createdDate ? new Date(txn.createdDate).toLocaleString('en-IN') : 'N/A'}</td>
+                    <td>
+                      <div style={{ fontWeight: '700', color: '#1E293B', fontSize: '0.9rem' }}>{txn.memberName || 'N/A'}</div>
+                    </td>
+                    <td style={{ fontWeight: '600', color: '#475569' }}>{txn.memberMobile || 'N/A'}</td>
+                    <td style={{ fontWeight: '600', color: '#64748B' }}>{txn.customerMobile || 'N/A'}</td>
+                    <td style={{ fontWeight: '700', color: '#1E293B' }}>{txn.customerName || 'N/A'}</td>
+                    <td style={{ fontWeight: '600', color: '#1756AA' }}>{txn.accountNo || 'N/A'}</td>
+                    <td>{txn.beniName || 'N/A'}</td>
+                    <td>{txn.beniVerifyName || 'N/A'}</td>
+                    <td style={{ fontSize: '0.85rem', color: '#64748B' }}>{txn.orderId || txn.refid || 'N/A'}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span style={{
+                        padding: '4px 12px',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: '800',
+                        textTransform: 'uppercase',
+                        background: txn.status?.toLowerCase() === 'success' ? '#DCFCE7' : txn.status?.toLowerCase() === 'pending' ? '#FEF3C7' : '#FEE2E2',
+                        color: txn.status?.toLowerCase() === 'success' ? '#15803D' : txn.status?.toLowerCase() === 'pending' ? '#B45309' : '#B91C1C',
+                        border: `1px solid ${txn.status?.toLowerCase() === 'success' ? '#BBF7D0' : txn.status?.toLowerCase() === 'pending' ? '#FDE68A' : '#FECACA'}`
+                      }}>
+                        {txn.status || 'N/A'}
+                      </span>
+                    </td>
+                    <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.openingBalance || txn.opBal || 0).toFixed(2)}</td>
+                    <td>
+                      <span style={{ fontWeight: '800', color: '#0369A1', background: '#E0F2FE', padding: '4px 8px', borderRadius: '6px' }}>
+                        ₹{(txn.amount || 0).toFixed(2)}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="13" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No DMT data found</span>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
 
         <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>Showing 0 to 0 of 0 entries</div>
+          <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
+            Showing {transactions.length > 0 ? ((pageNumber - 1) * pageSize) + 1 : 0} to {Math.min(pageNumber * pageSize, totalRecords)} of {totalRecords} entries
+          </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="global-page-btn" disabled><FiChevronLeft /></button>
-            <button className="global-page-btn global-page-active">1</button>
-            <button className="global-page-btn" disabled><FiChevronRight /></button>
+            <button className="global-page-btn" onClick={() => setPageNumber(p => Math.max(p - 1, 1))} disabled={pageNumber === 1}><FiChevronLeft /></button>
+            <button className="global-page-btn global-page-active">{pageNumber}</button>
+            <button className="global-page-btn" onClick={() => setPageNumber(p => p + 1)} disabled={pageNumber * pageSize >= totalRecords}><FiChevronRight /></button>
           </div>
         </div>
       </div>

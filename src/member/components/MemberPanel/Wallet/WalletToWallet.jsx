@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   FaUser, FaIdCard, FaEnvelope, FaWallet, FaPaperPlane,
   FaSearch, FaCopy, FaFileExcel, FaFilePdf, FaCheckCircle, FaExclamationCircle, FaSpinner
@@ -35,6 +36,8 @@ const initialTransactions = [
 ];
 
 const WalletToWallet = () => {
+  const location = useLocation();
+  const isApiPanel = location.pathname.startsWith('/api');
   const [mobile, setMobile] = useState('');
   const [receiver, setReceiver] = useState(null);
   const [error, setError] = useState('');
@@ -166,8 +169,9 @@ const WalletToWallet = () => {
 
 
 
-      <div className={styles.layout}>
+      <div className={styles.layout} style={isApiPanel ? { display: 'block' } : {}}>
         {/* LEFT PANEL */}
+        {!isApiPanel && (
         <div className={styles.formPanel}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '10px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9' }}>
             <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800' }}>
@@ -256,6 +260,7 @@ const WalletToWallet = () => {
             </button>
           </form>
         </div>
+        )}
 
         {/* RIGHT PANEL */}
         <div className={styles.historyPanel}>

@@ -29,6 +29,7 @@ import { BbpsDataDownService } from '../services/bbpsDataDown.service';
 import { BannerTypeService } from './../services/bannerType.service';
 import { BannerImageService } from './../services/bannerImage.service';
 import { UserWalletBalanceService } from '../services/userWalletBalance.service';
+import { TransactionService } from '../services/transaction.service';
 
 // Re-exporting everything exactly as before to maintain backward compatibility
 export const API = {
@@ -68,6 +69,7 @@ export const API = {
     bannerType: BannerTypeService,
     bannerImage: BannerImageService,
     userWalletBalance: UserWalletBalanceService,
+    transaction: TransactionService,
 };
 
 export const fetchCompanyData = CompanyService.fetchCompanyData;

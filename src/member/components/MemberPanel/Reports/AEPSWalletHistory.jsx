@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { 
   setAEPSWalletList, 
   updateAEPSWalletFilters, 
@@ -12,6 +13,8 @@ import styles from './AEPSReport.module.css';
 
 const AEPSWalletHistory = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
+  const isApiPanel = location.pathname.startsWith('/api');
   const { 
     list, 
     filters,
@@ -44,6 +47,7 @@ const AEPSWalletHistory = () => {
       <AdminTable
         title="AEPS EWALLET SUMMARY"
         topContent={
+          !isApiPanel ? (
           <div className={styles.filterSection}>
             <div className={styles.filterRow}>
               <div className={styles.formGroup}>
@@ -64,6 +68,7 @@ const AEPSWalletHistory = () => {
               <button className={styles.submitBtn}>Filter Records</button>
             </div>
           </div>
+          ) : null
         }
         columns={columns}
         data={filteredList}

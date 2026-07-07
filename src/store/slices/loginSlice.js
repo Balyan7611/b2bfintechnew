@@ -1,10 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  userId: '6377749427',
+  userId: '',
   generatedOtp: '',
   enteredOtp: '',
-  password: '1234',
+  password: '',
   isStep1Done: false,
 };
 

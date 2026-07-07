@@ -35,7 +35,8 @@ const UPITransferHistory = () => {
     const fetchOperators = async () => {
       try {
         const res = await API.operator.getAll();
-        if (res && Array.isArray(res.data)) setOperatorList(res.data);
+        if (res?.data?.items) setOperatorList(res.data.items);
+        else if (res?.data && Array.isArray(res.data)) setOperatorList(res.data);
         else if (Array.isArray(res)) setOperatorList(res);
         else setOperatorList([]);
       } catch (err) { console.error("Error fetching operators:", err); }

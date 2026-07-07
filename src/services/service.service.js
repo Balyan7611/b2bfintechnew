@@ -37,6 +37,11 @@ export const ServiceManagementService = {
     return await apiService.post('/Service/get-all-services', {});
   },
 
+  // GET services by section type
+  getBySectionType: async (sectionType) => {
+    return await apiService.get(`/Service/get-services-by-sectiontype/${sectionType}?isActive=true`);
+  },
+
   // CREATE service — POST multipart/form-data
   create: async (data, fileObj = null) => {
     const fd = buildServiceFormData(data, fileObj);

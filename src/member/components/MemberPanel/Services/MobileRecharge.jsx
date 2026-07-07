@@ -13,9 +13,11 @@ import {
 } from 'react-icons/md';
 import { BiNetworkChart } from 'react-icons/bi';
 import ServiceQuickNav from './ServiceQuickNav';
+import { useFetchServices } from '../../../../hooks/useFetchServices';
 
 const MobileRecharge = () => {
   const [mobileNumber, setMobileNumber] = useState('');
+  const [service, setService] = useState('');
   const [operator, setOperator] = useState('');
   const [state, setState] = useState('');
   const [amount, setAmount] = useState('0');
@@ -24,6 +26,8 @@ const MobileRecharge = () => {
   const [selectedPlanPrice, setSelectedPlanPrice] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [toast, setToast] = useState(null);
+
+  const { services, loading: servicesLoading } = useFetchServices(1);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -90,6 +94,7 @@ const MobileRecharge = () => {
     setShowConfirm(false);
     // Reset form
     setMobileNumber('');
+    setService('');
     setAmount('0');
     setTp('');
     setSelectedPlanPrice(null);
@@ -133,6 +138,22 @@ const MobileRecharge = () => {
                   onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, ''))}
                   required
                 />
+              </div>
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>Service Provider</label>
+              <div className={styles.inputWrapper}>
+                <BiNetworkChart className={styles.inputIcon} />
+                <select 
+                  className={`${styles.inputField} ${styles.selectField}`}
+                  value={service}
+                  onChange={(e) => setService(e.target.value)}
+                  required
+                >
+                  <option value="">{servicesLoading ? 'Loading services...' : 'Select Service'}</option>
+                  {services && services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
               </div>
             </div>
 

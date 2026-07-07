@@ -42,6 +42,11 @@ import FundRequest from './member/components/MemberPanel/Wallet/FundRequest';
 import WalletToWallet from './member/components/MemberPanel/Wallet/WalletToWallet';
 import LoginPage from './member/pages/LoginPage';
 import MemberDashboard from './member/pages/MemberDashboard';
+import ApiLoginPage from './api_panel/pages/ApiLoginPage';
+import ApiDashboardLayout from './api_panel/pages/ApiDashboardLayout';
+import ApiHome from './api_panel/components/ApiHome';
+import ApiSettings from './api_panel/components/ApiSettings';
+import ApiWhitelisting from './api_panel/pages/ApiWhitelisting';
 import ContactPage from './public/pages/ContactPage';
 import HomePage from './public/pages/HomePage';
 import PrivacyPolicyPage from './public/pages/PrivacyPolicyPage';
@@ -67,7 +72,7 @@ function App() {
     const resetTimer = () => {
       if (timeoutId) clearTimeout(timeoutId);
       
-      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname === '/dashboard';
+      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname.startsWith('/api/dashboard') || location.pathname === '/dashboard';
       if (!isDashboardPath) return;
       
       const adminStr = localStorage.getItem('admin_token');
@@ -90,35 +95,37 @@ function App() {
     };
 
     const handleAutoLogout = () => {
-      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname === '/dashboard';
+      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname.startsWith('/api/dashboard') || location.pathname === '/dashboard';
       if (!isDashboardPath || window.__isLoggingOut) return;
       
       window.__isLoggingOut = true;
       const isAdminPath = location.pathname.startsWith('/admin');
+      const isApiPath = location.pathname.startsWith('/api');
       clearSession();
       setSessionExpiredModal({
         show: true,
         message: "You have been logged out due to inactivity.",
-        redirectUrl: isAdminPath ? '/admin/login' : '/member/login'
+        redirectUrl: isAdminPath ? '/admin/login' : isApiPath ? '/api/login' : '/member/login'
       });
     };
 
     const handleTokenExpirationLogout = () => {
-      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname === '/dashboard';
+      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname.startsWith('/api/dashboard') || location.pathname === '/dashboard';
       if (!isDashboardPath || window.__isLoggingOut) return;
 
       window.__isLoggingOut = true;
       const isAdminPath = location.pathname.startsWith('/admin');
+      const isApiPath = location.pathname.startsWith('/api');
       clearSession();
       setSessionExpiredModal({
         show: true,
         message: "Your session has expired. Please log in again.",
-        redirectUrl: isAdminPath ? '/admin/login' : '/member/login'
+        redirectUrl: isAdminPath ? '/admin/login' : isApiPath ? '/api/login' : '/member/login'
       });
     };
 
     const checkTokenExpiration = () => {
-      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname === '/dashboard';
+      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname.startsWith('/api/dashboard') || location.pathname === '/dashboard';
       if (!isDashboardPath) return;
 
       const adminToken = localStorage.getItem('admin_token');
@@ -517,6 +524,23 @@ function App() {
           <Route path="/member/report/aeps" element={<Navigate to="/member/dashboard/report/aeps" replace />} />
           <Route path="/member/kyc/upload" element={<Navigate to="/member/dashboard/kyc/upload" replace />} />
           <Route path="/member/certificate" element={<Navigate to="/member/dashboard/certificate" replace />} />
+
+          {/* --- API ROUTES --- */}
+          <Route path="/api" element={<Navigate to="/api/login" replace />} />
+          <Route path="/api/" element={<ApiLoginPage />} />
+          <Route path="/api/login" element={<ApiLoginPage />} />
+          <Route path="/api/dashboard" element={<AuthGuard role="2">
+                <ApiDashboardLayout />
+            </AuthGuard>}>
+            <Route index element={<ApiHome />} />
+            <Route path="settings" element={<ApiSettings />} />
+            <Route path="whitelist" element={<ApiWhitelisting />} />
+            <Route path="profile" element={<MyProfile />} />
+            <Route path="wallet/w2w" element={<WalletToWallet />} />
+            <Route path="wallet/fund-request" element={<FundRequest />} />
+            <Route path="wallet/aeps" element={<AEPSWalletHistory />} />
+            <Route path="wallet/main" element={<MainWalletHistory />} />
+          </Route>
 
           {/* --- ADMIN ROUTES --- */}
           <Route path="/admin/" element={<AdminLoginPage />} />

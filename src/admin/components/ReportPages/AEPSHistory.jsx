@@ -27,18 +27,82 @@ const AEPSHistory = () => {
   const [operatorList, setOperatorList] = useState([]);
   const [selectedOperator, setSelectedOperator] = useState('');
   const [selectedMember, setSelectedMember] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [transactions, setTransactions] = useState([]);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [loading, setLoading] = useState(false);
+
+  const fetchTransactions = async () => {
+    setLoading(true);
+    try {
+      // Fix ServiceId=8 as requested and category is AEPS (section type 9 is filtered on backend by serviceId 8)
+      const res = await API.transaction.getAll({
+        pageNumber,
+        pageSize,
+        fromDate,
+        toDate,
+        serviceId: '8', // Fixed ServiceId = 8
+        operatorId: selectedOperator,
+        apiId: '1',     // Fixed ApiId = 1
+        memberId: selectedMember,
+        status: selectedStatus
+      });
+
+      if (res && res.status === true) {
+        if (Array.isArray(res.data)) {
+          setTransactions(res.data);
+          setTotalRecords(res.totalRecords || res.data.length);
+        } else if (res.data && Array.isArray(res.data.items)) {
+          setTransactions(res.data.items);
+          setTotalRecords(res.data.totalItems || res.data.items.length);
+        } else {
+          setTransactions([]);
+          setTotalRecords(0);
+        }
+      } else if (Array.isArray(res)) {
+        setTransactions(res);
+        setTotalRecords(res.length);
+      } else {
+        setTransactions([]);
+        setTotalRecords(0);
+      }
+    } catch (err) {
+      console.error("Failed to fetch transactions:", err);
+      setTransactions([]);
+      setTotalRecords(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [pageNumber, pageSize, selectedStatus]);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setPageNumber(1);
+    fetchTransactions();
+  };
 
   useEffect(() => {
     const fetchServices = async () => {
       try {
         const res = await API.service.getAll();
+        let list = [];
         if (res && Array.isArray(res.data)) {
-          setServiceList(res.data);
+          list = res.data;
         } else if (Array.isArray(res)) {
-          setServiceList(res);
-        } else {
-          setServiceList([]);
+          list = res;
         }
+        
+        // Filter specifically for AEPS services (sectionType 9 or Aeps related)
+        const aepsServices = list.filter(srv => String(srv.sectionType || '') === '9');
+        setServiceList(aepsServices);
       } catch (err) {
         console.error("Failed to fetch services:", err);
       }
@@ -218,7 +282,7 @@ const AEPSHistory = () => {
           </div>
         </div>
 
-        <form onSubmit={(e) => e.preventDefault()}>
+        <form onSubmit={handleSearchSubmit}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>From Date</label>
@@ -239,6 +303,8 @@ const AEPSHistory = () => {
                   color: '#334155',
                   fontWeight: 500
                 }} 
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
                 onFocus={() => setFocusedField('fromDate')}
                 onBlur={() => setFocusedField(null)}
               />
@@ -262,6 +328,8 @@ const AEPSHistory = () => {
                   color: '#334155',
                   fontWeight: 500
                 }} 
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
                 onFocus={() => setFocusedField('toDate')}
                 onBlur={() => setFocusedField(null)}
               />
@@ -435,6 +503,8 @@ const AEPSHistory = () => {
                     color: '#334155',
                     fontWeight: 500
                   }} 
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
                   onFocus={() => setFocusedField('search')}
                   onBlur={() => setFocusedField(null)}
                 />
@@ -528,22 +598,82 @@ const AEPSHistory = () => {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td colSpan="13" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
-                     <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No data available in table</span>
-                </td>
-              </tr>
+              {loading ? (
+                <tr>
+                  <td colSpan="13" style={{ padding: '40px 0', textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#1756AA' }}>Loading transactions...</span>
+                  </td>
+                </tr>
+              ) : transactions.length > 0 ? (
+                transactions.map((txn, index) => (
+                  <tr key={txn.id || index}>
+                    <td>{((pageNumber - 1) * pageSize) + index + 1}</td>
+                    <td>{txn.createdDate ? new Date(txn.createdDate).toLocaleString('en-IN') : 'N/A'}</td>
+                    <td>
+                      <div style={{ fontWeight: '700', color: '#1E293B', fontSize: '0.9rem' }}>{txn.memberName || 'N/A'}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: '500' }}>Code: <span style={{color: '#1756AA'}}>{txn.memberCode || 'N/A'}</span></div>
+                    </td>
+                    <td style={{ fontWeight: '600', color: '#475569' }}>{txn.aadharNo || txn.number || 'N/A'}</td>
+                    <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.opBal || 0).toFixed(2)}</td>
+                    <td>
+                      <span style={{ fontWeight: '800', color: '#0369A1', background: '#E0F2FE', padding: '4px 8px', borderRadius: '6px' }}>
+                        ₹{(txn.amount || 0).toFixed(2)}
+                      </span>
+                    </td>
+                    <td style={{ fontWeight: '700', color: '#334155' }}>₹{(txn.clBal || 0).toFixed(2)}</td>
+                    <td>
+                      <span style={{ color: '#166534', fontWeight: '800', background: '#DCFCE7', padding: '4px 8px', borderRadius: '6px' }}>
+                        ₹{(txn.commission || 0).toFixed(2)}
+                      </span>
+                    </td>
+                    <td>
+                      <span style={{ color: '#991B1B', fontWeight: '800', background: '#FEE2E2', padding: '4px 8px', borderRadius: '6px' }}>
+                        ₹{(txn.tds || 0).toFixed(2)}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: '0.85rem', fontWeight: '600', color: '#475569' }}>{txn.operatorId || 'N/A'}</td>
+                    <td>
+                      <span style={{ background: '#F1F5F9', color: '#475569', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '600', border: '1px solid #E2E8F0' }}>
+                        {txn.providerName || txn.serviceName || 'N/A'}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span style={{
+                        padding: '4px 12px',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: '800',
+                        textTransform: 'uppercase',
+                        background: txn.status?.toLowerCase() === 'success' ? '#DCFCE7' : txn.status?.toLowerCase() === 'pending' ? '#FEF3C7' : '#FEE2E2',
+                        color: txn.status?.toLowerCase() === 'success' ? '#15803D' : txn.status?.toLowerCase() === 'pending' ? '#B45309' : '#B91C1C',
+                        border: `1px solid ${txn.status?.toLowerCase() === 'success' ? '#BBF7D0' : txn.status?.toLowerCase() === 'pending' ? '#FDE68A' : '#FECACA'}`
+                      }}>
+                        {txn.status || 'N/A'}
+                      </span>
+                    </td>
+                    <td style={{ color: '#64748B', fontSize: '0.85rem', fontStyle: 'italic' }}>{txn.remark || 'N/A'}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="13" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No data available in table</span>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
 
         {/* PAGINATION */}
         <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>Showing 0 to 0 of 0 records</div>
+          <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
+            Showing {transactions.length > 0 ? ((pageNumber - 1) * pageSize) + 1 : 0} to {Math.min(pageNumber * pageSize, totalRecords)} of {totalRecords} records
+          </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="global-page-btn" disabled><FiChevronLeft /></button>
-            <button className="global-page-btn global-page-active">1</button>
-            <button className="global-page-btn" disabled><FiChevronRight /></button>
+            <button className="global-page-btn" onClick={() => setPageNumber(p => Math.max(p - 1, 1))} disabled={pageNumber === 1}><FiChevronLeft /></button>
+            <button className="global-page-btn global-page-active">{pageNumber}</button>
+            <button className="global-page-btn" onClick={() => setPageNumber(p => p + 1)} disabled={pageNumber * pageSize >= totalRecords}><FiChevronRight /></button>
           </div>
         </div>
       </div>
