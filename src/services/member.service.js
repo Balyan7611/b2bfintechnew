@@ -19,10 +19,38 @@ export const MemberService = {
 
     // Paginated get-all with filters
     getAll: async ({ pageNumber = 1, pageSize = 10, search = '', roleId = 0, isActive = null, isKycApproved = null, fromDate = '', toDate = '' } = {}) => {
+        if (search && search.trim() !== '') {
+            try {
+                let searchedMembers = await MemberService.searchMember(search.trim());
+                
+                if (roleId && roleId !== "0" && roleId !== 0) {
+                    const targetRole = parseInt(roleId);
+                    searchedMembers = searchedMembers.filter(m => {
+                        const rId = m.roleId || m.roleID || m.RoleID || m.role_id;
+                        if (!rId) return true; // Safety check: if raw search response lacks role ID, don't filter it out
+                        return parseInt(rId) === targetRole;
+                    });
+                }
+                
+                return {
+                    status: true,
+                    data: {
+                        items: searchedMembers,
+                        totalItems: searchedMembers.length,
+                        pageNumber: 1,
+                        pageSize: searchedMembers.length || 10,
+                        totalPageNumber: 1
+                    }
+                };
+            } catch (err) {
+                console.error("Error in fallback search:", err);
+            }
+        }
+
         const payload = {
             pageNumber,
             pageSize,
-            roleId: (search && search.trim() !== '') ? 0 : (roleId ? parseInt(roleId) : 0),
+            roleId: roleId ? parseInt(roleId) : 0,
             search: search || '',
         };
         if (isActive !== null) payload.isActive = isActive;
@@ -30,22 +58,7 @@ export const MemberService = {
         if (fromDate) payload.fromDate = fromDate;
         if (toDate) payload.toDate = toDate;
         
-        let res = await apiService.post('/Member/get-all-members', payload);
-        
-        // Workaround for backend bug: if both search and roleId were requested, we fetched roleId=0 and now filter locally.
-        if (search && search.trim() !== '' && roleId && roleId !== "0" && roleId !== 0) {
-            const targetRole = parseInt(roleId);
-            if (res && res.status === true && res.data && Array.isArray(res.data.items)) {
-                res.data.items = res.data.items.filter(m => {
-                    const rId = m.roleId || m.roleID || m.RoleID || m.role_id;
-                    if (rId == null) return true; // Safety check if raw data lacks role ID
-                    return parseInt(rId) === targetRole;
-                });
-                res.data.totalItems = res.data.items.length;
-                res.data.totalPageNumber = Math.ceil(res.data.totalItems / pageSize) || 1;
-            }
-        }
-        return res;
+        return await apiService.post('/Member/get-all-members', payload);
     },
 
     updateMember: async (id, data) => {

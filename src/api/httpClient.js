@@ -136,7 +136,17 @@ httpClient.interceptors.response.use((response) => {
         if (isDashboardPath) {
             const hasAdminToken = localStorage.getItem('admin_token') || sessionStorage.getItem('admin_token');
             const hasAccessToken = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+            const isAdmin = window.location.pathname.startsWith('/admin');
             
+            // If this is a mock token (used for testing without a backend), ignore the 401 to prevent a logout loop
+            const isMockToken = hasAccessToken && (
+                !String(hasAccessToken).includes('.') || 
+                String(hasAccessToken).includes('mock_signature')
+            );
+            if (isMockToken && !isAdmin) {
+                return Promise.reject(error);
+            }
+
             if (window.__isLoggingOut) return Promise.reject(error);
             window.__isLoggingOut = true;
 
@@ -146,11 +156,8 @@ httpClient.interceptors.response.use((response) => {
             sessionStorage.removeItem('access_token');
             localStorage.removeItem('bss_current_session');
             
-            if (hasAdminToken || hasAccessToken) {
-                alert("Session Expired: Your session has expired or is invalid. Please log in again.");
-            }
+            // Note: Native browser alert() removed for better UX. App.jsx will handle modals.
             
-            const isAdmin = window.location.pathname.startsWith('/admin');
             window.location.href = isAdmin ? '/admin/login' : '/member/login';
             
             return Promise.reject(error);

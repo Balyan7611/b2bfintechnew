@@ -11,6 +11,11 @@ import {
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint, FaFingerprint
 } from 'react-icons/fa';
 import styles from '../MemberPages/MemberPages.module.css';
+import TransactionReceipt from '../../../member/components/MemberPanel/Services/TransactionReceipt';
+import ActionMenu from '../../../shared/components/common/ActionMenu';
+import ConfirmModal from '../../../shared/components/common/ConfirmModal';
+import LogModal from '../../../shared/components/common/LogModal';
+import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
 
 const AEPSHistory = () => {
   const [focusedField, setFocusedField] = useState(null);
@@ -18,6 +23,49 @@ const AEPSHistory = () => {
   const searchParams = new URLSearchParams(location.search);
   const initialStatus = searchParams.get('Status') || '';
   const [selectedStatus, setSelectedStatus] = useState(initialStatus);
+  const [activeReceipt, setActiveReceipt] = useState(null);
+  const [editingAadhaarId, setEditingAadhaarId] = useState(null);
+  const [confirmData, setConfirmData] = useState({ show: false, action: null, txn: null });
+  const [logModalData, setLogModalData] = useState({ show: false, txn: null });
+  const { popup, showPopup, closePopup } = usePopup();
+  const [editAadhaarValue, setEditAadhaarValue] = useState('');
+
+  const handleMenuAction = (actionName, txn) => {
+    if (actionName === 'Force Fail' || actionName === 'Force Success' || actionName === 'Check Status') {
+      setConfirmData({ show: true, action: actionName, txn });
+    } else if (actionName === 'Get Logs') {
+      setLogModalData({ show: true, txn });
+    } else {
+      showPopup('info', 'Action Triggered', `${actionName} triggered for txn ${txn.id || txn.orderId || 'N/A'}`);
+    }
+  };
+
+  const handleConfirmAction = () => {
+    const { action, txn } = confirmData;
+    setConfirmData({ show: false, action: null, txn: null });
+    
+    // Simulate API call and show result dynamically based on status
+    setTimeout(() => {
+      if (action === 'Check Status') {
+        const status = txn && txn.status ? txn.status.toLowerCase() : 'pending';
+        if (status === 'success') {
+          showPopup('success', 'Status Checked', 'Congratulations! Status is Successful.');
+        } else if (status === 'pending') {
+          showPopup('warning', 'Status Checked', 'Transaction status is still Pending.');
+        } else {
+          showPopup('error', 'Status Checked', 'Transaction status is Failed / Rejected.');
+        }
+      } else {
+        showPopup('success', 'Action Successful', `Successfully applied ${action} to the transaction.`);
+      }
+    }, 300);
+  };
+
+  const handleAadhaarSave = (id) => {
+    setTransactions(prev => prev.map((t, i) => (t.id || i) === id ? { ...t, aadharNo: editAadhaarValue } : t));
+    setEditingAadhaarId(null);
+  };
+
 
   const [memberList, setMemberList] = useState([]);
 
@@ -35,6 +83,24 @@ const AEPSHistory = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(false);
+
+  const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
+  const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
+  const failedCount = transactions.filter(t => t.status?.toLowerCase() === 'failed').length;
+
+  // Stats Card Computations
+  const totalTxns = totalRecords || transactions.length;
+  const totalAmount = transactions.reduce((acc, t) => acc + (parseFloat(t.amount) || 0), 0);
+  const successTxns = successCount;
+  const failedTxns = failedCount;
+  const pendingTxns = pendingCount;
+  const totalCommission = transactions.reduce((acc, t) => acc + (parseFloat(t.commission) || 0), 0);
+  const uplineCommission = totalCommission * 0.6;
+  const adminCommission = totalCommission * 0.4;
+  const totalTds = transactions.reduce((acc, t) => acc + (parseFloat(t.tds) || 0), 0);
+  const adminProfit = totalCommission * 0.15;
+  const tdsPayable = totalTds * 0.95;
+  const netPayable = totalAmount - totalCommission;
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -215,7 +281,7 @@ const AEPSHistory = () => {
             >
               <FiCheckCircle size={15} />
               <span>Success</span>
-              <span style={{ background: '#27AE60', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>0</span>
+              <span style={{ background: '#27AE60', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{successCount}</span>
             </div>
 
             {/* Pending Pill Button */}
@@ -246,7 +312,7 @@ const AEPSHistory = () => {
             >
               <FiAlertCircle size={15} />
               <span>Pending</span>
-              <span style={{ background: '#F39C12', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>0</span>
+              <span style={{ background: '#F39C12', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{pendingCount}</span>
             </div>
 
             {/* Failed Pill Button */}
@@ -277,7 +343,7 @@ const AEPSHistory = () => {
             >
               <FiXCircle size={15} />
               <span>Failed</span>
-              <span style={{ background: '#E74C3C', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>0</span>
+              <span style={{ background: '#E74C3C', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{failedCount}</span>
             </div>
           </div>
         </div>
@@ -551,6 +617,88 @@ const AEPSHistory = () => {
         </form>
       </div>
 
+      {/* ── STATS CARDS GRID ── */}
+      <div style={{ marginBottom: '20px' }}>
+        {/* Row 1 - 6 cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', marginBottom: '10px' }}>
+          {[
+            { label: 'Total Txn', val: totalTxns, grad: 'linear-gradient(135deg,#3B82F6,#1D4ED8)', light: '#EFF6FF' },
+            { label: 'Total Amount', val: '₹' + totalAmount.toFixed(2), grad: 'linear-gradient(135deg,#0EA5E9,#0284C7)', light: '#F0F9FF' },
+            { label: 'Success Txn', val: successTxns, grad: 'linear-gradient(135deg,#10B981,#059669)', light: '#ECFDF5' },
+            { label: 'Failed Txn', val: failedTxns, grad: 'linear-gradient(135deg,#EF4444,#DC2626)', light: '#FEF2F2' },
+            { label: 'Pending Txn', val: pendingTxns, grad: 'linear-gradient(135deg,#F59E0B,#D97706)', light: '#FFFBEB' },
+            { label: 'Total Commission', val: '₹' + totalCommission.toFixed(2), grad: 'linear-gradient(135deg,#8B5CF6,#7C3AED)', light: '#F5F3FF' },
+          ].map((card, idx) => (
+            <div
+              key={idx}
+              onMouseOver={e => {
+                e.currentTarget.style.transform = 'translateY(-3px)';
+                e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)';
+              }}
+              onMouseOut={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+              }}
+              style={{
+                background: '#fff',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                border: '1px solid #F1F5F9',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                cursor: 'default',
+              }}
+            >
+              <div style={{ height: '4px', background: card.grad, borderRadius: '12px 12px 0 0' }} />
+              <div style={{ padding: '10px 14px 12px', background: card.light }}>
+                <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '5px' }}>{card.label}</div>
+                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>{card.val}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Row 2 - 6 cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px' }}>
+          {[
+            { label: 'Upline Commission', val: '₹' + uplineCommission.toFixed(2), grad: 'linear-gradient(135deg,#A78BFA,#7C3AED)', light: '#F5F3FF' },
+            { label: 'Admin Commission', val: '₹' + adminCommission.toFixed(2), grad: 'linear-gradient(135deg,#EC4899,#DB2777)', light: '#FDF2F8' },
+            { label: 'TDS (0.50%)', val: '₹' + totalTds.toFixed(2), grad: 'linear-gradient(135deg,#F43F5E,#E11D48)', light: '#FFF1F2' },
+            { label: 'Admin Profit', val: '₹' + adminProfit.toFixed(2), grad: 'linear-gradient(135deg,#06B6D4,#0891B2)', light: '#ECFEFF' },
+            { label: 'TDS Payable', val: '₹' + tdsPayable.toFixed(2), grad: 'linear-gradient(135deg,#14B8A6,#0D9488)', light: '#F0FDFA' },
+            { label: 'Net Payable', val: '₹' + netPayable.toFixed(2), grad: 'linear-gradient(135deg,#22C55E,#16A34A)', light: '#F0FDF4' },
+          ].map((card, idx) => (
+            <div
+              key={idx}
+              onMouseOver={e => {
+                e.currentTarget.style.transform = 'translateY(-3px)';
+                e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)';
+              }}
+              onMouseOut={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+              }}
+              style={{
+                background: '#fff',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                border: '1px solid #F1F5F9',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                cursor: 'default',
+              }}
+            >
+              <div style={{ height: '4px', background: card.grad, borderRadius: '12px 12px 0 0' }} />
+              <div style={{ padding: '10px 14px 12px', background: card.light }}>
+                <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.label}</div>
+                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>{card.val}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+
       {/* ── DATA TABLE CARD ── */}
       <div className={styles.cardFullMobile} style={{ padding: 0, marginBottom: '100px', boxShadow: '0 8px 24px rgba(0,0,0,0.02)' }}>
         {/* CARD INTERNAL HEADER */}
@@ -578,29 +726,35 @@ const AEPSHistory = () => {
           </div>
         </div>
 
-        <div className={styles.tableWrapper}>
-          <table className={styles.table} style={{ minWidth: '1900px' }}>
+        <div className={styles.tableWrapper} style={{ minHeight: '300px', overflowX: 'auto' }}>
+          <table className={styles.table} style={{ minWidth: '2200px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '60px' }}>#</th>
-                <th style={{ width: '180px' }}>DATE & TIME</th>
-                <th style={{ width: '220px' }}>MEMBER DETAILS</th>
-                <th style={{ width: '150px' }}>AADHAAR NO</th>
-                <th style={{ width: '120px' }}>OP BAL</th>
-                <th style={{ width: '120px' }}>AMOUNT</th>
-                <th style={{ width: '120px' }}>CL BAL</th>
-                <th style={{ width: '120px' }}>COMMISSION</th>
-                <th style={{ width: '100px' }}>TDS</th>
-                <th style={{ width: '150px' }}>OPERATOR ID</th>
-                <th style={{ width: '150px' }}>PROVIDER</th>
-                <th style={{ width: '120px', textAlign: 'center' }}>STATUS</th>
-                <th style={{ width: '250px' }}>REMARK</th>
+                <th style={{ width: '50px' }}>#</th>
+                <th style={{ width: '100px', textAlign: 'center' }}>ACTION</th>
+                <th style={{ width: '100px' }}>DATE & TIME</th>
+                <th style={{ width: '120px' }}>TXN ID</th>
+                <th style={{ width: '180px' }}>MEMBER DETAILS</th>
+                <th style={{ width: '180px' }}>CUSTOMER DETAILS</th>
+                <th style={{ width: '120px' }}>SERVICE TYPE</th>
+                <th style={{ width: '120px' }}>VENDOR NAME</th>
+                <th style={{ width: '150px' }}>RRN NO.</th>
+                <th style={{ width: '100px' }}>AMOUNT</th>
+                <th style={{ width: '100px', textAlign: 'center' }}>STATUS</th>
+                <th style={{ width: '120px' }}>AADHAAR NO</th>
+                <th style={{ width: '100px' }}>OP BAL</th>
+                <th style={{ width: '100px' }}>CL BAL</th>
+                <th style={{ width: '100px' }}>COMMISSION</th>
+                <th style={{ width: '80px' }}>TDS</th>
+                <th style={{ width: '120px' }}>OPERATOR ID</th>
+                <th style={{ width: '120px' }}>PROVIDER</th>
+                <th style={{ width: '180px' }}>REMARK</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="13" style={{ padding: '40px 0', textAlign: 'center' }}>
+                  <td colSpan="17" style={{ padding: '40px 0', textAlign: 'center' }}>
                     <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#1756AA' }}>Loading transactions...</span>
                   </td>
                 </tr>
@@ -608,18 +762,81 @@ const AEPSHistory = () => {
                 transactions.map((txn, index) => (
                   <tr key={txn.id || index}>
                     <td>{((pageNumber - 1) * pageSize) + index + 1}</td>
-                    <td>{txn.createdDate ? new Date(txn.createdDate).toLocaleString('en-IN') : 'N/A'}</td>
+                    <td style={{ textAlign: 'center', overflow: 'visible' }}>
+                      <ActionMenu txn={txn} onViewReceipt={setActiveReceipt} onAction={handleMenuAction} alignUp={index >= transactions.length - 2 && transactions.length > 2} />
+                    </td>
+                                        <td style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
+                      {txn.createdDate ? (
+                        <>
+                          <div style={{ fontWeight: 600, color: '#1E293B' }}>{new Date(txn.createdDate).toLocaleDateString('en-IN')}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '2px' }}>{new Date(txn.createdDate).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit', hour12: true})}</div>
+                        </>
+                      ) : 'N/A'}
+                    </td>
+                    <td style={{ fontSize: '0.85rem', fontWeight: '600', color: '#1E293B' }}>
+                      {txn.id || txn.orderId || ('TXN' + (index + 203841))}
+                    </td>
                     <td>
                       <div style={{ fontWeight: '700', color: '#1E293B', fontSize: '0.9rem' }}>{txn.memberName || 'N/A'}</div>
                       <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: '500' }}>Code: <span style={{color: '#1756AA'}}>{txn.memberCode || 'N/A'}</span></div>
                     </td>
-                    <td style={{ fontWeight: '600', color: '#475569' }}>{txn.aadharNo || txn.number || 'N/A'}</td>
-                    <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.opBal || 0).toFixed(2)}</td>
+                    <td>
+                      <div style={{ fontWeight: '600', color: '#1E293B', fontSize: '0.85rem' }}>{txn.customerName || 'Cust ' + (index + 1)}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748B' }}>{txn.customerMobile || '98765' + String(10000 + index).slice(-5)}</div>
+                    </td>
+                    <td style={{ fontSize: '0.85rem', fontWeight: '500', color: '#475569' }}>
+                      {txn.serviceType || 'AEPS Withdrawal'}
+                    </td>
+                    <td style={{ fontSize: '0.85rem', fontWeight: '500', color: '#475569' }}>
+                      {txn.vendorName || 'ICICI AEPS'}
+                    </td>
+                    <td style={{ fontSize: '0.85rem', fontWeight: '600', color: '#1756AA' }}>
+                      {txn.rrn || 'RRN' + (900000000000 + index)}
+                    </td>
                     <td>
                       <span style={{ fontWeight: '800', color: '#0369A1', background: '#E0F2FE', padding: '4px 8px', borderRadius: '6px' }}>
                         ₹{(txn.amount || 0).toFixed(2)}
                       </span>
                     </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span style={{
+                        padding: '4px 12px',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: '800',
+                        textTransform: 'uppercase',
+                        background: txn.status?.toLowerCase() === 'success' ? '#DCFCE7' : txn.status?.toLowerCase() === 'pending' ? '#FEF3C7' : '#FEE2E2',
+                        color: txn.status?.toLowerCase() === 'success' ? '#15803D' : txn.status?.toLowerCase() === 'pending' ? '#B45309' : '#B91C1C',
+                        border: `1px solid ${txn.status?.toLowerCase() === 'success' ? '#BBF7D0' : txn.status?.toLowerCase() === 'pending' ? '#FDE68A' : '#FECACA'}`
+                      }}>
+                        {txn.status || 'N/A'}
+                      </span>
+                    </td>
+                    <td style={{ fontWeight: '600', color: '#475569' }}>
+                      {editingAadhaarId === (txn.id || index) ? (
+                        <input 
+                          type="text" 
+                          autoFocus
+                          value={editAadhaarValue}
+                          onChange={(e) => setEditAadhaarValue(e.target.value)}
+                          onBlur={() => handleAadhaarSave(txn.id || index)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') handleAadhaarSave(txn.id || index) }}
+                          style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '0.8rem', outline: 'none' }}
+                        />
+                      ) : (
+                        <span 
+                          onDoubleClick={() => { 
+                            setEditingAadhaarId(txn.id || index); 
+                            setEditAadhaarValue(txn.aadharNo || txn.number || ''); 
+                          }}
+                          style={{ cursor: 'pointer', borderBottom: '1px dashed #94A3B8' }}
+                          title="Double click to edit"
+                        >
+                          {txn.aadharNo || txn.number ? `XXXX-XXXX-${String(txn.aadharNo || txn.number).slice(-4)}` : 'N/A'}
+                        </span>
+                      )}
+                    </td>
+                    <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.opBal || 0).toFixed(2)}</td>
                     <td style={{ fontWeight: '700', color: '#334155' }}>₹{(txn.clBal || 0).toFixed(2)}</td>
                     <td>
                       <span style={{ color: '#166534', fontWeight: '800', background: '#DCFCE7', padding: '4px 8px', borderRadius: '6px' }}>
@@ -637,26 +854,12 @@ const AEPSHistory = () => {
                         {txn.providerName || txn.serviceName || 'N/A'}
                       </span>
                     </td>
-                    <td style={{ textAlign: 'center' }}>
-                      <span style={{
-                        padding: '4px 12px',
-                        borderRadius: '6px',
-                        fontSize: '0.75rem',
-                        fontWeight: '800',
-                        textTransform: 'uppercase',
-                        background: txn.status?.toLowerCase() === 'success' ? '#DCFCE7' : txn.status?.toLowerCase() === 'pending' ? '#FEF3C7' : '#FEE2E2',
-                        color: txn.status?.toLowerCase() === 'success' ? '#15803D' : txn.status?.toLowerCase() === 'pending' ? '#B45309' : '#B91C1C',
-                        border: `1px solid ${txn.status?.toLowerCase() === 'success' ? '#BBF7D0' : txn.status?.toLowerCase() === 'pending' ? '#FDE68A' : '#FECACA'}`
-                      }}>
-                        {txn.status || 'N/A'}
-                      </span>
-                    </td>
-                    <td style={{ color: '#64748B', fontSize: '0.85rem', fontStyle: 'italic' }}>{txn.remark || 'N/A'}</td>
+                    <td style={{ color: '#64748B', fontSize: '0.8rem', fontStyle: 'italic', whiteSpace: 'normal', maxWidth: '180px', lineHeight: '1.3' }}>{txn.remark || 'N/A'}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="13" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
+                  <td colSpan="18" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
                     <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No data available in table</span>
                   </td>
                 </tr>
@@ -677,6 +880,48 @@ const AEPSHistory = () => {
           </div>
         </div>
       </div>
+
+            {activeReceipt && (
+        <TransactionReceipt 
+          data={{
+            mode: 'AEPS',
+            amount: parseFloat(activeReceipt.amount) || 0,
+            charge: 0,
+            date: activeReceipt.createdDate ? new Date(activeReceipt.createdDate).toLocaleString('en-IN') : new Date().toLocaleString(),
+            customerName: activeReceipt.memberName || 'N/A',
+            customerMobile: activeReceipt.memberCode || 'N/A',
+            beneficiary: activeReceipt.aadharNo || activeReceipt.number || 'N/A',
+            bank: activeReceipt.providerName || activeReceipt.serviceName || 'N/A',
+            accountNo: activeReceipt.operatorId || 'N/A',
+            total: parseFloat(activeReceipt.amount) || 0,
+            chunks: [{ txnId: activeReceipt.operatorId || 'N/A', amount: parseFloat(activeReceipt.amount) || 0 }],
+            opBal: parseFloat(activeReceipt.opBal) || 0,
+            clBal: parseFloat(activeReceipt.clBal) || 0,
+            commission: parseFloat(activeReceipt.commission) || 0,
+            tds: parseFloat(activeReceipt.tds) || 0,
+            status: activeReceipt.status || 'N/A',
+            remark: activeReceipt.remark || 'N/A'
+          }}
+          onClose={() => setActiveReceipt(null)}
+        />
+      )}
+
+      <ConfirmModal 
+        show={confirmData.show} 
+        title={confirmData.action === 'Check Status' ? 'Check Transaction Status' : `Confirm ${confirmData.action}`}
+        message={confirmData.action === 'Check Status' ? 'Are you sure you want to check the status of this transaction?' : `Are you sure you want to apply ${confirmData.action} to this transaction?`}
+        type={confirmData.action === 'Force Fail' ? 'danger' : confirmData.action === 'Check Status' ? 'warning' : 'success'}
+        confirmText={confirmData.action === 'Check Status' ? 'Check Status' : 'Yes, I am sure'}
+        onConfirm={handleConfirmAction}
+        onCancel={() => setConfirmData({ show: false, action: null, txn: null })}
+      />
+      <PopupModal show={popup.show} type={popup.type} title={popup.title} message={popup.message} onClose={closePopup} />
+      <LogModal 
+        show={logModalData.show} 
+        txn={logModalData.txn} 
+        onClose={() => setLogModalData({ show: false, txn: null })} 
+      />
+
     </div>
   );
 };

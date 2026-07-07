@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import TransactionReceipt from '../../../member/components/MemberPanel/Services/TransactionReceipt';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiFilter } from 'react-icons/fi';
@@ -14,6 +15,7 @@ import styles from './AEPSReport.module.css';
 
 const AEPSReport = () => {
   const dispatch = useDispatch();
+  const [activeReceipt, setActiveReceipt] = useState(null);
   const { 
     list, 
     filters,
@@ -145,6 +147,7 @@ const AEPSReport = () => {
                   }}
                   onMouseOver={(e) => { e.currentTarget.style.background = '#1756AA'; e.currentTarget.style.color = '#fff'; }}
                   onMouseOut={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#1756AA'; }}
+                  onClick={() => setActiveReceipt(item)}
                 >
                   View Receipt
                 </button>
@@ -161,6 +164,25 @@ const AEPSReport = () => {
         totalEntries={totalEntries}
         totalPages={totalPages}
       />
+
+      {activeReceipt && (
+        <TransactionReceipt 
+          data={{
+            mode: 'AEPS',
+            amount: parseFloat(activeReceipt.amount) || 0,
+            charge: 0,
+            date: activeReceipt.date,
+            customerName: activeReceipt.memberName,
+            customerMobile: activeReceipt.memberId,
+            beneficiary: activeReceipt.aadhar,
+            bank: activeReceipt.type,
+            accountNo: activeReceipt.bankTransId,
+            total: parseFloat(activeReceipt.amount) || 0,
+            chunks: [{ txnId: activeReceipt.bankTransId, amount: parseFloat(activeReceipt.amount) || 0 }]
+          }}
+          onClose={() => setActiveReceipt(null)}
+        />
+      )}
 
     </div>
   );

@@ -107,6 +107,40 @@ const ApiDashboardLayout = () => {
 
 
 
+  if (isLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        background: isDarkMode ? '#0f172a' : '#f4f7fa',
+        color: isDarkMode ? '#f8fafc' : '#0f172a',
+        fontFamily: "'Inter', sans-serif"
+      }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          border: '4px solid rgba(23, 86, 170, 0.1)',
+          borderTop: '4px solid #1756AA',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
+          marginBottom: '16px'
+        }}></div>
+        <div style={{ fontWeight: '700', fontSize: '1rem', color: isDarkMode ? '#94a3b8' : '#64748b', letterSpacing: '0.5px' }}>
+          SECURE CONNECTION ESTABLISHED...
+        </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <div className={`${styles.dashboardContainer} ${isDarkMode ? styles.dark : ''}`}>
       <ApiHeader />
@@ -114,7 +148,7 @@ const ApiDashboardLayout = () => {
         <ApiSidebar />
         <div className={`${styles.mainWrapper} ${!isSidebarOpen && !isMobile ? styles.expanded : ''}`}>
           
-          <main className={styles.content}>
+          <main className={styles.content} style={{ padding: '8px 8px 16px 8px' }}>
             <Outlet />
           </main>
         </div>

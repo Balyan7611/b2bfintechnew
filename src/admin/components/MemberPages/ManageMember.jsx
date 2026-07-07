@@ -399,7 +399,7 @@ const ManageMember = () => {
             <label className={styles.label} style={{ fontSize: '0.75rem' }}>Search Member</label>
             <MemberSearchSelect 
               value={searchQuery} 
-              onChange={(m) => setSearchQuery(m ? (m.memberId || m.loginId || m.id) : '')} 
+              onChange={(m) => setSearchQuery(m ? (m.loginId || m.mobile || m.memberId || m.id) : '')} 
               placeholder="Search Member..." 
               style={{ height: '38px', fontSize: '0.85rem' }}
             />

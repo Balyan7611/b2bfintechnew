@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { FiSearch, FiCalendar, FiUser, FiFilter, FiActivity, FiDatabase, FiChevronLeft, FiChevronRight, FiSliders } from 'react-icons/fi';
 import { FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint } from 'react-icons/fa';
 import styles from '../MemberPages/MemberPages.module.css';
+import TransactionReceipt from '../../../member/components/MemberPanel/Services/TransactionReceipt';
 
 const servicesList = [
   { id: 'recharge', name: 'Recharge' },
@@ -73,6 +74,7 @@ const AEPSReport = () => {
     service: '',
     mode: ''
   });
+  const [activeReceipt, setActiveReceipt] = useState(null);
   const sampleData = [];
   
   const handleFilterChange = (e) => {
@@ -210,6 +212,7 @@ const AEPSReport = () => {
                 <th style={{ textAlign: 'center', width: '120px', padding: '10px 15px', fontSize: '0.75rem' }}>COMMISSION</th>
                 <th style={{ textAlign: 'center', width: '140px', padding: '10px 15px', fontSize: '0.75rem' }}>CLOSING BALANCE</th>
                 <th style={{ padding: '10px 15px', fontSize: '0.75rem' }}>NARRATION</th>
+                <th style={{ textAlign: 'center', width: '100px', padding: '10px 15px', fontSize: '0.75rem' }}>RECEIPT</th>
                 <th style={{ textAlign: 'right', width: '130px', padding: '10px 15px', fontSize: '0.75rem' }}>TRANSFERDATE</th>
               </tr>
             </thead>
@@ -254,6 +257,14 @@ const AEPSReport = () => {
                         {item.narration || 'N/A'}
                       </div>
                     </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <button 
+                        style={{ background: '#F1F5F9', color: '#1756AA', border: '1px solid #E2E8F0', padding: '4px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
+                        onClick={() => setActiveReceipt(item)}
+                      >
+                        Receipt
+                      </button>
+                    </td>
                     <td style={{ textAlign: 'right', fontWeight: 700, color: '#718096', fontSize: '0.75rem' }}>{item.date || 'N/A'}</td>
                   </tr>
                 ))
@@ -271,6 +282,26 @@ const AEPSReport = () => {
           </div>
         </div>
       </div>
+      
+      {activeReceipt && (
+        <TransactionReceipt 
+          data={{
+            mode: 'AEPS',
+            amount: parseFloat(activeReceipt.amount) || 0,
+            charge: parseFloat(activeReceipt.surcharge) || 0,
+            date: activeReceipt.date || new Date().toLocaleString(),
+            customerName: activeReceipt.member || 'Member User',
+            customerMobile: 'N/A',
+            beneficiary: activeReceipt.narration || 'AEPS Transaction',
+            bank: activeReceipt.factor || 'Ledger',
+            accountNo: 'N/A',
+            total: parseFloat(activeReceipt.amount) || 0,
+            chunks: [{ txnId: 'N/A', amount: parseFloat(activeReceipt.amount) || 0 }]
+          }}
+          onClose={() => setActiveReceipt(null)}
+        />
+      )}
+      
     </div>
   );
 };

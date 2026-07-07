@@ -10,9 +10,52 @@ import {
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint
 } from 'react-icons/fa';
 import styles from '../MemberPages/MemberPages.module.css';
+import TransactionReceipt from '../../../member/components/MemberPanel/Services/TransactionReceipt';
+import ActionMenu from '../../../shared/components/common/ActionMenu';
+import ConfirmModal from '../../../shared/components/common/ConfirmModal';
+import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
+import LogModal from '../../../shared/components/common/LogModal';
 
-const CCBillPayHistory = () => {
+const CCBillPayHistory = () => { 
+  const [transactions, setTransactions] = useState([]);
+  const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
+  const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
+  const failedCount = transactions.filter(t => t.status?.toLowerCase() === 'failed').length;
+  const [activeReceipt, setActiveReceipt] = useState(null);
+  const [confirmData, setConfirmData] = useState({ show: false, action: null, txn: null });
+  const [logModalData, setLogModalData] = useState({ show: false, txn: null });
+  const { popup, showPopup, closePopup } = usePopup();
   const [focusedField, setFocusedField] = useState(null);
+  const handleMenuAction = (actionName, txn) => {
+    if (actionName === 'Force Fail' || actionName === 'Force Success' || actionName === 'Check Status') {
+      setConfirmData({ show: true, action: actionName, txn });
+    } else if (actionName === 'Get Logs') {
+      setLogModalData({ show: true, txn });
+    } else {
+      showPopup('info', 'Action Triggered', `${actionName} triggered for txn ${txn.id || txn.orderId || 'N/A'}`);
+    }
+  };
+
+  const handleConfirmAction = () => {
+    const { action, txn } = confirmData;
+    setConfirmData({ show: false, action: null, txn: null });
+    
+    setTimeout(() => {
+      if (action === 'Check Status') {
+        const status = txn && txn.status ? txn.status.toLowerCase() : 'pending';
+        if (status === 'success') {
+          showPopup('success', 'Status Checked', 'Congratulations! Status is Successful.');
+        } else if (status === 'pending') {
+          showPopup('warning', 'Status Checked', 'Transaction status is still Pending.');
+        } else {
+          showPopup('error', 'Status Checked', 'Transaction status is Failed / Rejected.');
+        }
+      } else {
+        showPopup('success', 'Action Successful', `Successfully applied ${action} to the transaction.`);
+      }
+    }, 300);
+  };
+
   const [memberList, setMemberList] = useState([]);
   const [selectedMember, setSelectedMember] = useState('');
 
@@ -96,7 +139,7 @@ const CCBillPayHistory = () => {
           >
             <FiCheckCircle size={15} />
             <span>Success</span>
-            <span style={{ background: '#27AE60', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>0</span>
+            <span style={{ background: '#27AE60', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{successCount}</span>
           </div>
 
           {/* Pending Pill Button */}
@@ -127,7 +170,7 @@ const CCBillPayHistory = () => {
           >
             <FiAlertCircle size={15} />
             <span>Pending</span>
-            <span style={{ background: '#F39C12', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>0</span>
+            <span style={{ background: '#F39C12', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{pendingCount}</span>
           </div>
 
           {/* Failed Pill Button */}
@@ -158,7 +201,7 @@ const CCBillPayHistory = () => {
           >
             <FiXCircle size={15} />
             <span>Failed</span>
-            <span style={{ background: '#E74C3C', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>0</span>
+            <span style={{ background: '#E74C3C', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{failedCount}</span>
           </div>
           </div>
         </div>
@@ -359,11 +402,11 @@ const CCBillPayHistory = () => {
                 <th>REMARK</th>
                 <th>SOURCE</th>
                 <th style={{ textAlign: 'center' }}>STATUS MESSAGE</th>
-              </tr>
+                </tr>
             </thead>
             <tbody>
               <tr>
-                <td colSpan="16" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0', position: 'relative' }}>
+                <td colSpan="15" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0', position: 'relative' }}>
                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                      <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '50%', border: '1px solid #E2E8F0' }}>
                        <FiDatabase size={24} color="#94A3B8" />
@@ -385,8 +428,44 @@ const CCBillPayHistory = () => {
           </div>
         </div>
       </div>
+      {activeReceipt && (
+        <TransactionReceipt 
+          data={{
+            mode: 'GENERAL',
+            amount: parseFloat(activeReceipt.amount || activeReceipt.txnAmount) || 0,
+            charge: parseFloat(activeReceipt.surcharge || activeReceipt.charge) || 0,
+            date: activeReceipt.createdDate ? new Date(activeReceipt.createdDate).toLocaleString('en-IN') : new Date().toLocaleString(),
+            customerName: activeReceipt.customerName || activeReceipt.memberName || 'N/A',
+            customerMobile: activeReceipt.customerMobile || activeReceipt.mobile || activeReceipt.memberMobile || 'N/A',
+            beneficiary: activeReceipt.beniName || activeReceipt.operatorName || activeReceipt.operator || 'N/A',
+            bank: activeReceipt.bankName || 'N/A',
+            accountNo: activeReceipt.accountNo || activeReceipt.number || 'N/A',
+            total: parseFloat(activeReceipt.amount || activeReceipt.txnAmount) || 0,
+            chunks: [{ txnId: activeReceipt.orderId || activeReceipt.refid || activeReceipt.txnId || 'N/A', amount: parseFloat(activeReceipt.amount || activeReceipt.txnAmount) || 0 }],
+            status: activeReceipt.status || 'N/A',
+            remark: activeReceipt.remark || 'N/A'
+          }}
+          onClose={() => setActiveReceipt(null)}
+        />
+      )}
+
+      <ConfirmModal 
+        show={confirmData.show} 
+        title={confirmData.action === 'Check Status' ? 'Check Transaction Status' : `Confirm ${confirmData.action}`}
+        message={confirmData.action === 'Check Status' ? 'Are you sure you want to check the status of this transaction?' : `Are you sure you want to apply ${confirmData.action} to this transaction?`}
+        type={confirmData.action === 'Force Fail' ? 'danger' : confirmData.action === 'Check Status' ? 'warning' : 'success'}
+        confirmText={confirmData.action === 'Check Status' ? 'Check Status' : 'Yes, I am sure'}
+        onConfirm={handleConfirmAction}
+        onCancel={() => setConfirmData({ show: false, action: null, txn: null })}
+      />
+      <PopupModal show={popup.show} type={popup.type} title={popup.title} message={popup.message} onClose={closePopup} />
+      <LogModal 
+        show={logModalData.show} 
+        txn={logModalData.txn} 
+        onClose={() => setLogModalData({ show: false, txn: null })} 
+      />
+
     </div>
   );
 };
-
 export default CCBillPayHistory;

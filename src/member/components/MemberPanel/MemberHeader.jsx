@@ -278,45 +278,7 @@ const MemberHeader = () => {
             <FaExpand />
           </button>
 
-          {!isMobile && (
-            <div className={styles.dropdownWrap} ref={mailRef}>
-              <button className={styles.iconBtn} onClick={() => dispatch(toggleMailOpen())}>
-                <FaEnvelope />
-                {unreadMail > 0 && <span className={styles.badge}>{unreadMail}</span>}
-              </button>
-              {isMailOpen && (
-                <div className={styles.msgDropdown}>
-                  <div className={styles.dropdownTopPointer}></div>
-                  <div className={styles.msgHeader}>
-                    <span className={styles.msgTitle}>{unreadMail} new Messages</span>
-                    <button className={styles.markReadBtn} onClick={() => dispatch(markAllMailRead())}>
-                      Mark All Read
-                    </button>
-                  </div>
-                  <div className={styles.msgList}>
-                    {mailList.map((mail) => (
-                      <div key={mail.id} className={styles.msgItem}>
-                        <div className={styles.msgAvatar} style={{ background: mail.color }}>
-                          {mail.initial}
-                          <span className={styles.onlineDot}></span>
-                        </div>
-                        <div className={styles.msgBody}>
-                          <div className={styles.msgTop}>
-                            <span className={styles.msgName}>{mail.name}</span>
-                            <span className={styles.msgTime}>{mail.time}</span>
-                          </div>
-                          <p className={styles.msgPreview}>{mail.text}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className={styles.msgFooter}>
-                    <span className={styles.viewAllText}>VIEW ALL</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+
 
           <button className={`${styles.iconBtn} ${styles.mobileHide}`} onClick={() => dispatch(toggleDarkMode())}>
             {isDarkMode ? <FaSun /> : <FaMoon />}

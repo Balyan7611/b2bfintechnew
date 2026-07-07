@@ -82,7 +82,7 @@ const MemberSearchSelect = ({ value, onChange, roleId, placeholder = "Search or 
   }, []);
 
   const handleSelect = (member) => {
-    setSearchTerm(member.memberId || member.id);
+    setSearchTerm(member.loginId || member.mobile || member.memberId || member.id);
     setShowDropdown(false);
     if (onChange) {
       onChange(member);
@@ -127,7 +127,7 @@ const MemberSearchSelect = ({ value, onChange, roleId, placeholder = "Search or 
                 onMouseOver={(e) => e.currentTarget.style.background = '#F8FAFC'}
                 onMouseOut={(e) => e.currentTarget.style.background = '#fff'}
               >
-                <span style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.9rem' }}>{m.memberId || m.id}</span>
+                <span style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.9rem' }}>{m.loginId || m.memberId || m.id}</span>
                 <span style={{ fontSize: '0.75rem', color: '#64748B' }}>{m.name} {m.mobile ? `(${m.mobile})` : ''}</span>
               </div>
             ))

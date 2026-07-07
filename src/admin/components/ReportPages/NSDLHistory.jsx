@@ -9,8 +9,13 @@ import {
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint
 } from 'react-icons/fa';
 import styles from '../MemberPages/MemberPages.module.css';
+import TransactionReceipt from '../../../member/components/MemberPanel/Services/TransactionReceipt';
 
-const NSDLHistory = () => {
+const NSDLHistory = () => { 
+  const [transactions, setTransactions] = useState([]);
+  const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
+  const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
+  const failedCount = transactions.filter(t => t.status?.toLowerCase() === 'failed').length;
   const [focusedField, setFocusedField] = useState(null);
 
   const [serviceList, setServiceList] = useState([]);
@@ -18,7 +23,8 @@ const NSDLHistory = () => {
 
   const [selectedService, setSelectedService] = useState('');
   const [selectedMember, setSelectedMember] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState(''); 
+  const [activeReceipt, setActiveReceipt] = useState(null);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -86,7 +92,7 @@ const NSDLHistory = () => {
             >
               <FiCheckCircle size={15} />
               <span>Success</span>
-              <span style={{ background: '#27AE60', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>0</span>
+              <span style={{ background: '#27AE60', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{successCount}</span>
             </div>
 
             {/* Pending Pill */}
@@ -97,7 +103,7 @@ const NSDLHistory = () => {
             >
               <FiAlertCircle size={15} />
               <span>Pending</span>
-              <span style={{ background: '#F39C12', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>0</span>
+              <span style={{ background: '#F39C12', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{pendingCount}</span>
             </div>
 
             {/* Failed Pill */}
@@ -108,7 +114,7 @@ const NSDLHistory = () => {
             >
               <FiXCircle size={15} />
               <span>Failed</span>
-              <span style={{ background: '#E74C3C', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>0</span>
+              <span style={{ background: '#E74C3C', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{failedCount}</span>
             </div>
           </div>
         </div>
@@ -224,6 +230,7 @@ const NSDLHistory = () => {
                 <th style={{ textAlign: 'center' }}>STATUS</th>
                 <th>OPERATOR ID</th>
                 <th>REMARK</th>
+                <th style={{ width: '120px', textAlign: 'center' }}>RECEIPT</th>
               </tr>
             </thead>
             <tbody>
@@ -250,8 +257,27 @@ const NSDLHistory = () => {
           </div>
         </div>
       </div>
+      {activeReceipt && (
+        <TransactionReceipt 
+          data={{
+            mode: 'GENERAL',
+            amount: parseFloat(activeReceipt.amount || activeReceipt.txnAmount) || 0,
+            charge: parseFloat(activeReceipt.surcharge || activeReceipt.charge) || 0,
+            date: activeReceipt.createdDate ? new Date(activeReceipt.createdDate).toLocaleString('en-IN') : new Date().toLocaleString(),
+            customerName: activeReceipt.customerName || activeReceipt.memberName || 'N/A',
+            customerMobile: activeReceipt.customerMobile || activeReceipt.mobile || activeReceipt.memberMobile || 'N/A',
+            beneficiary: activeReceipt.beniName || activeReceipt.operatorName || activeReceipt.operator || 'N/A',
+            bank: activeReceipt.bankName || 'N/A',
+            accountNo: activeReceipt.accountNo || activeReceipt.number || 'N/A',
+            total: parseFloat(activeReceipt.amount || activeReceipt.txnAmount) || 0,
+            chunks: [{ txnId: activeReceipt.orderId || activeReceipt.refid || activeReceipt.txnId || 'N/A', amount: parseFloat(activeReceipt.amount || activeReceipt.txnAmount) || 0 }],
+            status: activeReceipt.status || 'N/A',
+            remark: activeReceipt.remark || 'N/A'
+          }}
+          onClose={() => setActiveReceipt(null)}
+        />
+      )}
     </div>
   );
 };
-
 export default NSDLHistory;

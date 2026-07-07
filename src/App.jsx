@@ -141,18 +141,20 @@ function App() {
       const isValidMemberToken = isValidTokenStr(memberToken);
 
       if (isValidAdminToken || isValidMemberToken) {
-        // Retrieve session data to check how long ago the user logged in
         const session = localStorage.getItem('bss_current_session');
         if (session) {
           try {
             const parsedSession = JSON.parse(session);
             if (parsedSession.loggedInAt) {
               const loginTime = new Date(parsedSession.loggedInAt).getTime();
-              const elapsedMs = Date.now() - loginTime;
-              // If logged in for more than 15 minutes (900,000 ms), force logout
-              if (elapsedMs >= 15 * 60 * 1000) {
-                handleTokenExpirationLogout();
-                return;
+              if (!isNaN(loginTime)) {
+                const elapsedMs = Date.now() - loginTime;
+                
+                // Dynamic absolute 15 minutes session limit
+                if (elapsedMs >= 15 * 60 * 1000) {
+                  handleTokenExpirationLogout();
+                  return;
+                }
               }
             }
           } catch (e) {

@@ -24,7 +24,13 @@ export const MemberSearchResponseModel = (res) => {
         name: item.name || '',
         mobile: item.mobile || '',
         email: item.email || '',
-        memberId: item.loginID || '',
+        memberId: item.loginID || item.loginId || '',
+        loginId: item.loginID || item.loginId || '',
+        createdDate: item.createdDate || item.doj || '',
+        doj: item.createdDate || item.doj || '',
+        alterNativeMobileNumber: item.alterNativeMobileNumber || item.whatsapp || '',
+        videoKyc: item.videoKyc === true,
+        isHold: item.isHold === true || item.isOnHold === true,
         
         // Mapped values for UI & Redux compat
         shopName: item.shopName || '',
@@ -54,6 +60,7 @@ export const MemberSearchResponseModel = (res) => {
         
         isOnHold: item.isOnHold === true,
         role: item.roleName || '',
+        roleName: item.roleName || '',
         roleId: item.roleId || '',
         packageName: item.packageName || '',
         packageId: item.packageId || '',

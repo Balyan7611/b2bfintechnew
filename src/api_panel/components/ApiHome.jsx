@@ -88,25 +88,25 @@ const ApiHome = () => {
       
       {/* Top Status Cards */}
       <div className={styles.statusGrid}>
-        <div className={`${styles.statusCard} ${styles.blueCard} ${styles.animateFadeIn}`} style={{ animationDelay: '0.1s' }}>
+        <div className={`${styles.statusCard} ${styles.blueCard} ${styles.animateCardPop}`} style={{ animationDelay: '0.1s' }}>
           <div className={styles.cardGlow}></div>
           <div className={styles.cardTitle}>DEPOSIT TRANSACTIONS</div>
           <div className={styles.cardAmount}>₹ 0.00</div>
           <div className={styles.cardSubtext}>Today's Deposit Amount</div>
         </div>
-        <div className={`${styles.statusCard} ${styles.greenCard} ${styles.animateFadeIn}`} style={{ animationDelay: '0.2s' }}>
+        <div className={`${styles.statusCard} ${styles.greenCard} ${styles.animateCardPop}`} style={{ animationDelay: '0.2s' }}>
           <div className={styles.cardGlow}></div>
           <div className={styles.cardTitle}>SUCCESS TRANSACTIONS</div>
           <div className={styles.cardAmount}>₹ 0.00</div>
           <div className={styles.cardSubtext}>Today's Successful Amount</div>
         </div>
-        <div className={`${styles.statusCard} ${styles.purpleCard} ${styles.animateFadeIn}`} style={{ animationDelay: '0.3s' }}>
+        <div className={`${styles.statusCard} ${styles.purpleCard} ${styles.animateCardPop}`} style={{ animationDelay: '0.3s' }}>
           <div className={styles.cardGlow}></div>
           <div className={styles.cardTitle}>FAILED TRANSACTIONS</div>
           <div className={styles.cardAmount}>₹ 0.00</div>
           <div className={styles.cardSubtext}>Today's Failed Amount</div>
         </div>
-        <div className={`${styles.statusCard} ${styles.orangeCard} ${styles.animateFadeIn}`} style={{ animationDelay: '0.4s' }}>
+        <div className={`${styles.statusCard} ${styles.orangeCard} ${styles.animateCardPop}`} style={{ animationDelay: '0.4s' }}>
           <div className={styles.cardGlow}></div>
           <div className={styles.cardTitle}>PENDING TRANSACTIONS</div>
           <div className={styles.cardAmount}>₹ 0.00</div>
@@ -125,7 +125,6 @@ const ApiHome = () => {
             <div 
               key={index} 
               className={styles.overviewCard}
-              onClick={() => navigate(service.path)}
               style={{ '--theme-color': service.color }}
             >
               <div className={styles.overviewCardTop}>
@@ -149,7 +148,7 @@ const ApiHome = () => {
               <div className={styles.overviewProgressTrack}>
                 <div 
                   className={styles.overviewProgressBar} 
-                  style={{ width: `${service.usagePercent}%`, background: service.usagePercent > 90 ? '#EF4444' : service.color }}
+                  style={{ '--target-width': `${service.usagePercent}%`, background: service.usagePercent > 90 ? '#EF4444' : service.color }}
                 />
               </div>
             </div>

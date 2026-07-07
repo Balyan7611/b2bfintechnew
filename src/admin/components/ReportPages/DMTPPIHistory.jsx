@@ -9,8 +9,14 @@ import {
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint
 } from 'react-icons/fa';
 import styles from '../MemberPages/MemberPages.module.css';
+import TransactionReceipt from '../../../member/components/MemberPanel/Services/TransactionReceipt';
 
-const DMTPPIHistory = () => {
+const DMTPPIHistory = () => { 
+  const [transactions, setTransactions] = useState([]);
+  const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
+  const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
+  const failedCount = transactions.filter(t => t.status?.toLowerCase() === 'failed').length;
+  const [activeReceipt, setActiveReceipt] = useState(null);
   const [focusedField, setFocusedField] = useState(null);
   const [memberList, setMemberList] = useState([]);
   const [selectedMember, setSelectedMember] = useState('');
@@ -72,7 +78,7 @@ const DMTPPIHistory = () => {
             >
               <FiCheckCircle size={15} />
               <span>Success</span>
-              <span style={{ background: '#27AE60', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>0</span>
+              <span style={{ background: '#27AE60', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{successCount}</span>
             </div>
 
             {/* Pending Pill */}
@@ -83,7 +89,7 @@ const DMTPPIHistory = () => {
             >
               <FiAlertCircle size={15} />
               <span>Pending</span>
-              <span style={{ background: '#F39C12', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>0</span>
+              <span style={{ background: '#F39C12', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{pendingCount}</span>
             </div>
 
             {/* Failed Pill */}
@@ -94,7 +100,7 @@ const DMTPPIHistory = () => {
             >
               <FiXCircle size={15} />
               <span>Failed</span>
-              <span style={{ background: '#E74C3C', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>0</span>
+              <span style={{ background: '#E74C3C', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{failedCount}</span>
             </div>
           </div>
         </div>
@@ -212,6 +218,7 @@ const DMTPPIHistory = () => {
                 <th>SOURCE</th>
                 <th style={{ textAlign: 'center' }}>STATUS</th>
                 <th>REASON</th>
+                <th style={{ width: '120px', textAlign: 'center' }}>RECEIPT</th>
               </tr>
             </thead>
             <tbody>
@@ -233,8 +240,27 @@ const DMTPPIHistory = () => {
           </div>
         </div>
       </div>
+      {activeReceipt && (
+        <TransactionReceipt 
+          data={{
+            mode: 'GENERAL',
+            amount: parseFloat(activeReceipt.amount || activeReceipt.txnAmount) || 0,
+            charge: parseFloat(activeReceipt.surcharge || activeReceipt.charge) || 0,
+            date: activeReceipt.createdDate ? new Date(activeReceipt.createdDate).toLocaleString('en-IN') : new Date().toLocaleString(),
+            customerName: activeReceipt.customerName || activeReceipt.memberName || 'N/A',
+            customerMobile: activeReceipt.customerMobile || activeReceipt.mobile || activeReceipt.memberMobile || 'N/A',
+            beneficiary: activeReceipt.beniName || activeReceipt.operatorName || activeReceipt.operator || 'N/A',
+            bank: activeReceipt.bankName || 'N/A',
+            accountNo: activeReceipt.accountNo || activeReceipt.number || 'N/A',
+            total: parseFloat(activeReceipt.amount || activeReceipt.txnAmount) || 0,
+            chunks: [{ txnId: activeReceipt.orderId || activeReceipt.refid || activeReceipt.txnId || 'N/A', amount: parseFloat(activeReceipt.amount || activeReceipt.txnAmount) || 0 }],
+            status: activeReceipt.status || 'N/A',
+            remark: activeReceipt.remark || 'N/A'
+          }}
+          onClose={() => setActiveReceipt(null)}
+        />
+      )}
     </div>
   );
 };
-
 export default DMTPPIHistory;
