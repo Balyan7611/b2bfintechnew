@@ -1,31 +1,55 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { FiChevronDown, FiAlertTriangle, FiCheckCircle, FiActivity, FiFileText, FiFile, FiSettings } from 'react-icons/fi';
 
 const ActionMenu = ({ txn, onViewReceipt, onAction, actions }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState('bottom');
   const menuRef = useRef(null);
+  const portalRef = useRef(null);
+
+  const [menuCoords, setMenuCoords] = useState(null);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
+    const handleScrollOrResize = () => {
+      if (isOpen) setIsOpen(false);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
-  const toggleMenu = () => {
+    const handleMouseDown = (e) => {
+      if (portalRef.current && portalRef.current.contains(e.target)) {
+        return; // Let the onClick handler of the item take care of it
+      }
+      if (menuRef.current && menuRef.current.contains(e.target)) {
+        return; // Button click will be handled by toggleMenu
+      }
+      setIsOpen(false);
+    };
+
+    if (isOpen) {
+      window.addEventListener('scroll', handleScrollOrResize, true);
+      window.addEventListener('resize', handleScrollOrResize);
+      document.addEventListener('mousedown', handleMouseDown);
+    }
+    return () => {
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+      window.removeEventListener('resize', handleScrollOrResize);
+      document.removeEventListener('mousedown', handleMouseDown);
+    };
+  }, [isOpen]);
+
+  const toggleMenu = (e) => {
+    e.stopPropagation();
     if (!isOpen && menuRef.current) {
       const rect = menuRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
-      // If there is less than 240px space below the button, open it upwards
-      if (spaceBelow < 240) {
-        setDropdownPosition('top');
-      } else {
-        setDropdownPosition('bottom');
-      }
+      const isTop = spaceBelow < 240;
+      
+      setDropdownPosition(isTop ? 'top' : 'bottom');
+      setMenuCoords({
+        top: rect.bottom + 8,
+        bottom: window.innerHeight - rect.top + 8,
+        left: rect.left + (rect.width / 2)
+      });
     }
     setIsOpen(!isOpen);
   };
@@ -85,27 +109,27 @@ const ActionMenu = ({ txn, onViewReceipt, onAction, actions }) => {
         <FiChevronDown size={13} style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
       </button>
 
-      {isOpen && (
-        <div style={{
-          position: 'absolute',
-          // Position conditionally based on space detection
-          top: isTop ? 'auto' : '100%',
-          bottom: isTop ? '100%' : 'auto',
-          left: '50%',
+      {isOpen && menuCoords && createPortal(
+        <div 
+        ref={portalRef}
+        style={{
+          position: 'fixed',
+          top: isTop ? 'auto' : `${menuCoords.top}px`,
+          bottom: isTop ? `${menuCoords.bottom}px` : 'auto',
+          left: `${menuCoords.left}px`,
           transform: 'translateX(-30%)',
-          // Add margins appropriately
-          marginTop: isTop ? '0' : '8px',
-          marginBottom: isTop ? '8px' : '0',
           background: 'rgba(255, 255, 255, 0.98)',
           backdropFilter: 'blur(8px)',
           borderRadius: '12px',
           boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 16px -6px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.05)',
           minWidth: '175px',
-          zIndex: 99999,
+          zIndex: 999999,
           overflow: 'visible',
           border: '1px solid rgba(226, 232, 240, 0.8)',
           animation: isTop ? 'fadeInMenuTop 0.2s cubic-bezier(0.16, 1, 0.3, 1)' : 'fadeInMenuBottom 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
-        }}>
+        }}
+        onClick={(e) => e.stopPropagation()}
+        >
           {/* Arrow */}
           <div style={{
             position: 'absolute',
@@ -182,7 +206,8 @@ const ActionMenu = ({ txn, onViewReceipt, onAction, actions }) => {
               <span>{action.name}</span>
             </div>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

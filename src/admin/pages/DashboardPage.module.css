@@ -3,12 +3,15 @@
   height: 100vh;
   overflow: hidden;
   background: linear-gradient(135deg, #F0F4FA 0%, #E3EAF5 100%);
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "sidebar header"
+    "sidebar main";
   font-family: 'Inter', sans-serif;
   color: #0D1B3E;
   box-sizing: border-box;
-  /* Global fix */
 }
 
 .layout *,
@@ -19,6 +22,7 @@
 
 /* ── HEADER (Glassmorphism) ── */
 .header {
+  grid-area: header;
   height: 70px;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
@@ -146,7 +150,7 @@
 
 .headerCenter {
   flex: 1;
-  max-width: 480px;
+  max-width: 350px;
   margin: 0 30px;
 }
 
@@ -168,8 +172,9 @@
 .adminSearchDropdown {
   position: absolute;
   top: calc(100% + 12px);
-  left: 0;
-  width: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 440px;
   background: #fff;
   border: 1px solid #E2E8F0;
   border-radius: 16px;
@@ -558,24 +563,51 @@
 
 /* ── MAIN CONTAINER ── */
 .mainContainer {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-  position: relative;
+  display: contents;
 }
 
 /* ── PREMIUM SIDEBAR ── */
 .sidebar {
-  background: #ffffff;
+  grid-area: sidebar;
+  background: #FFFFFF;
   border-right: 1px solid #E2E8F0;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto;
   overflow-x: hidden;
   z-index: 40;
-  box-shadow: 4px 0 24px rgba(13, 27, 62, 0.02);
+  box-shadow: 4px 0 24px rgba(13, 27, 62, 0.04);
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+.sidebarLogoWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 70px;
+  padding: 0 20px;
+  border-bottom: 1px solid #E2E8F0;
+  flex-shrink: 0;
+}
+
+.sidebarLogo {
+  height: 45px;
+  width: auto;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.sidebarClosed .sidebarLogoWrapper {
+  justify-content: center;
+  flex-direction: column;
+  height: auto;
+  padding: 15px 5px;
+  gap: 12px;
+}
+
+.sidebarClosed .sidebarLogo {
+  height: 25px;
 }
 
 .sidebar::-webkit-scrollbar {
@@ -583,20 +615,20 @@
 }
 
 .sidebar::-webkit-scrollbar-track {
-  background: #F8FAFF;
+  background: transparent;
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-  background: #CBD5E0;
+  background: #E2E8F0;
   border-radius: 10px;
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover {
-  background: #A0AEC0;
+  background: #CBD5E1;
 }
 
 .sidebarOpen {
-  width: 260px;
+  width: 230px;
 }
 
 .sidebarClosed {
@@ -624,12 +656,12 @@
 .sidebarLink {
   display: flex;
   align-items: center;
-  gap: 14px;
-  height: 48px;
+  gap: 12px;
+  height: 42px;
   border: none;
   background: transparent;
-  color: #4E6080;
-  font-size: 0.9rem;
+  color: #475569;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   text-align: left;
@@ -658,20 +690,20 @@
 }
 
 .sidebarOpen .sidebarLink:hover {
-  background: #F8FAFF;
+  background: rgba(23, 86, 170, 0.06);
   color: #1756AA;
 }
 
 .sidebarClosed .sidebarLink:hover {
-  background: #F8FAFF;
+  background: rgba(23, 86, 170, 0.06);
   color: #1756AA;
 }
 
 .sidebarLinkActive {
-  background: #1756AA;
+  background: linear-gradient(90deg, #1756AA 0%, #1a63c4 100%);
   color: #fff;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(23, 86, 170, 0.2);
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(23, 86, 170, 0.4);
 }
 
 .sidebarOpen .sidebarLinkActive {
@@ -688,16 +720,16 @@
 
 .sidebarOpen .sidebarLinkActive:hover {
   color: #fff;
-  background: #1756AA;
+  background: linear-gradient(90deg, #1a63c4 0%, #1e70db 100%);
 }
 
 .sidebarClosed .sidebarLinkActive:hover {
   color: #fff;
-  background: #1756AA;
+  background: linear-gradient(90deg, #1a63c4 0%, #1e70db 100%);
 }
 
 .menuExpandedBg {
-  background: #F8FAFF;
+  background: rgba(23, 86, 170, 0.04);
   color: #1756AA;
 }
 
@@ -757,14 +789,13 @@
   opacity: 0.8;
 }
 
-/* Submenu Drawer */
 .subMenuDrawer {
   display: flex;
   flex-direction: column;
   overflow: hidden;
   max-height: 0;
   transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  background: #F8FAFF;
+  background: #F8FAFC;
 }
 
 .subMenuOpen {
@@ -776,11 +807,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 24px 10px 48px;
+  padding: 8px 24px 8px 48px;
   border: none;
   background: transparent;
-  color: #718096;
-  font-size: 0.85rem;
+  color: #64748B;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   text-align: left;
@@ -852,6 +883,7 @@
 
 /* ── CONTENT ── */
 .content {
+  grid-area: main;
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;

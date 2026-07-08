@@ -55,8 +55,6 @@
   width: auto;
   max-width: 320px;
   object-fit: contain;
-  transform: scale(1.95);
-  transform-origin: left center;
 }
 
 .logoTextContainer {

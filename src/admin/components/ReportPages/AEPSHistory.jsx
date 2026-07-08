@@ -16,6 +16,7 @@ import ActionMenu from '../../../shared/components/common/ActionMenu';
 import ConfirmModal from '../../../shared/components/common/ConfirmModal';
 import LogModal from '../../../shared/components/common/LogModal';
 import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
+import StatsGrid from '../../../shared/components/common/StatsGrid';
 
 const AEPSHistory = () => {
   const [focusedField, setFocusedField] = useState(null);
@@ -251,101 +252,6 @@ const AEPSHistory = () => {
         
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px', flexWrap: 'wrap', marginBottom: '20px' }}>
           <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', letterSpacing: '0.3px' }}>AEPS History</h3>
-          
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            {/* Success Pill Button */}
-            <div 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: '#eafaf1',
-                color: '#27AE60',
-                padding: '6px 16px',
-                borderRadius: '30px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                border: '1.5px solid #27AE60',
-                gap: '8px',
-                cursor: 'pointer',
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                animation: 'successGlow 2s infinite'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.background = '#dcf7e7';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.background = '#eafaf1';
-              }}
-            >
-              <FiCheckCircle size={15} />
-              <span>Success</span>
-              <span style={{ background: '#27AE60', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{successCount}</span>
-            </div>
-
-            {/* Pending Pill Button */}
-            <div 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: '#fef5e7',
-                color: '#F39C12',
-                padding: '6px 16px',
-                borderRadius: '30px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                border: '1.5px solid #F39C12',
-                gap: '8px',
-                cursor: 'pointer',
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                animation: 'pendingGlow 2s infinite'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.background = '#fdedd3';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.background = '#fef5e7';
-              }}
-            >
-              <FiAlertCircle size={15} />
-              <span>Pending</span>
-              <span style={{ background: '#F39C12', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{pendingCount}</span>
-            </div>
-
-            {/* Failed Pill Button */}
-            <div 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: '#fdeaea',
-                color: '#E74C3C',
-                padding: '6px 16px',
-                borderRadius: '30px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                border: '1.5px solid #E74C3C',
-                gap: '8px',
-                cursor: 'pointer',
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                animation: 'failedGlow 2s infinite'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.background = '#fcdada';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.background = '#fdeaea';
-              }}
-            >
-              <FiXCircle size={15} />
-              <span>Failed</span>
-              <span style={{ background: '#E74C3C', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{failedCount}</span>
-            </div>
-          </div>
         </div>
 
         <form onSubmit={handleSearchSubmit}>
@@ -618,85 +524,20 @@ const AEPSHistory = () => {
       </div>
 
       {/* ── STATS CARDS GRID ── */}
-      <div style={{ marginBottom: '20px' }}>
-        {/* Row 1 - 6 cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', marginBottom: '10px' }}>
-          {[
-            { label: 'Total Txn', val: totalTxns, grad: 'linear-gradient(135deg,#3B82F6,#1D4ED8)', light: '#EFF6FF' },
-            { label: 'Total Amount', val: '₹' + totalAmount.toFixed(2), grad: 'linear-gradient(135deg,#0EA5E9,#0284C7)', light: '#F0F9FF' },
-            { label: 'Success Txn', val: successTxns, grad: 'linear-gradient(135deg,#10B981,#059669)', light: '#ECFDF5' },
-            { label: 'Failed Txn', val: failedTxns, grad: 'linear-gradient(135deg,#EF4444,#DC2626)', light: '#FEF2F2' },
-            { label: 'Pending Txn', val: pendingTxns, grad: 'linear-gradient(135deg,#F59E0B,#D97706)', light: '#FFFBEB' },
-            { label: 'Total Commission', val: '₹' + totalCommission.toFixed(2), grad: 'linear-gradient(135deg,#8B5CF6,#7C3AED)', light: '#F5F3FF' },
-          ].map((card, idx) => (
-            <div
-              key={idx}
-              onMouseOver={e => {
-                e.currentTarget.style.transform = 'translateY(-3px)';
-                e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)';
-              }}
-              onMouseOut={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
-              }}
-              style={{
-                background: '#fff',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                border: '1px solid #F1F5F9',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                cursor: 'default',
-              }}
-            >
-              <div style={{ height: '4px', background: card.grad, borderRadius: '12px 12px 0 0' }} />
-              <div style={{ padding: '10px 14px 12px', background: card.light }}>
-                <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '5px' }}>{card.label}</div>
-                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>{card.val}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Row 2 - 6 cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px' }}>
-          {[
-            { label: 'Upline Commission', val: '₹' + uplineCommission.toFixed(2), grad: 'linear-gradient(135deg,#A78BFA,#7C3AED)', light: '#F5F3FF' },
-            { label: 'Admin Commission', val: '₹' + adminCommission.toFixed(2), grad: 'linear-gradient(135deg,#EC4899,#DB2777)', light: '#FDF2F8' },
-            { label: 'TDS (0.50%)', val: '₹' + totalTds.toFixed(2), grad: 'linear-gradient(135deg,#F43F5E,#E11D48)', light: '#FFF1F2' },
-            { label: 'Admin Profit', val: '₹' + adminProfit.toFixed(2), grad: 'linear-gradient(135deg,#06B6D4,#0891B2)', light: '#ECFEFF' },
-            { label: 'TDS Payable', val: '₹' + tdsPayable.toFixed(2), grad: 'linear-gradient(135deg,#14B8A6,#0D9488)', light: '#F0FDFA' },
-            { label: 'Net Payable', val: '₹' + netPayable.toFixed(2), grad: 'linear-gradient(135deg,#22C55E,#16A34A)', light: '#F0FDF4' },
-          ].map((card, idx) => (
-            <div
-              key={idx}
-              onMouseOver={e => {
-                e.currentTarget.style.transform = 'translateY(-3px)';
-                e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)';
-              }}
-              onMouseOut={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
-              }}
-              style={{
-                background: '#fff',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                border: '1px solid #F1F5F9',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                cursor: 'default',
-              }}
-            >
-              <div style={{ height: '4px', background: card.grad, borderRadius: '12px 12px 0 0' }} />
-              <div style={{ padding: '10px 14px 12px', background: card.light }}>
-                <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.label}</div>
-                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>{card.val}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <StatsGrid stats={{
+        totalTxns,
+        totalAmount,
+        successTxns,
+        failedTxns,
+        pendingTxns,
+        totalCommission,
+        uplineCommission,
+        adminCommission,
+        totalTds,
+        adminProfit,
+        tdsPayable,
+        netPayable
+      }} />
 
 
       {/* ── DATA TABLE CARD ── */}
@@ -730,31 +571,36 @@ const AEPSHistory = () => {
           <table className={styles.table} style={{ minWidth: '2200px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '50px' }}>#</th>
-                <th style={{ width: '100px', textAlign: 'center' }}>ACTION</th>
-                <th style={{ width: '100px' }}>DATE & TIME</th>
-                <th style={{ width: '120px' }}>TXN ID</th>
-                <th style={{ width: '180px' }}>MEMBER DETAILS</th>
-                <th style={{ width: '180px' }}>CUSTOMER DETAILS</th>
-                <th style={{ width: '120px' }}>SERVICE TYPE</th>
-                <th style={{ width: '120px' }}>VENDOR NAME</th>
-                <th style={{ width: '150px' }}>RRN NO.</th>
-                <th style={{ width: '100px' }}>AMOUNT</th>
-                <th style={{ width: '100px', textAlign: 'center' }}>STATUS</th>
-                <th style={{ width: '120px' }}>AADHAAR NO</th>
-                <th style={{ width: '100px' }}>OP BAL</th>
-                <th style={{ width: '100px' }}>CL BAL</th>
-                <th style={{ width: '100px' }}>COMMISSION</th>
-                <th style={{ width: '80px' }}>TDS</th>
-                <th style={{ width: '120px' }}>OPERATOR ID</th>
-                <th style={{ width: '120px' }}>PROVIDER</th>
-                <th style={{ width: '180px' }}>REMARK</th>
+                <th rowSpan="2" style={{ width: '50px' }}>#</th>
+                <th rowSpan="2" style={{ width: '100px', textAlign: 'center' }}>ACTION</th>
+                <th rowSpan="2" style={{ width: '100px' }}>DATE & TIME</th>
+                <th rowSpan="2" style={{ width: '120px' }}>TXN ID</th>
+                <th rowSpan="2" style={{ width: '180px' }}>MEMBER DETAILS</th>
+                <th rowSpan="2" style={{ width: '180px' }}>CUSTOMER DETAILS</th>
+                <th rowSpan="2" style={{ width: '120px' }}>SERVICE TYPE</th>
+                <th rowSpan="2" style={{ width: '120px' }}>VENDOR NAME</th>
+                <th rowSpan="2" style={{ width: '150px' }}>RRN NO.</th>
+                <th rowSpan="2" style={{ width: '100px' }}>AMOUNT</th>
+                <th rowSpan="2" style={{ width: '70px', fontSize: '0.7rem' }}>CHARGE</th>
+                <th rowSpan="2" style={{ width: '100px', textAlign: 'center' }}>STATUS</th>
+                <th rowSpan="2" style={{ width: '120px' }}>AADHAAR NO</th>
+                <th rowSpan="2" style={{ width: '100px' }}>OP BAL</th>
+                <th rowSpan="2" style={{ width: '100px' }}>CL BAL</th>
+                <th colSpan="3" style={{ textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '4px 10px', height: '20px', lineHeight: '1' }}>COMMISSION</th>
+                <th rowSpan="2" style={{ width: '120px' }}>OPERATOR ID</th>
+                <th rowSpan="2" style={{ width: '120px' }}>PROVIDER</th>
+                <th rowSpan="2" style={{ width: '180px' }}>REMARK</th>
+              </tr>
+              <tr style={{ background: 'linear-gradient(90deg, #1a2f8a 0%, #0D1B5E 100%)' }}>
+                <th style={{ width: '60px', fontSize: '0.65rem', padding: '4px 10px', height: '20px', lineHeight: '1' }}>UPPER LINE</th>
+                <th style={{ width: '60px', fontSize: '0.65rem', padding: '4px 10px', height: '20px', lineHeight: '1' }}>ADMIN</th>
+                <th style={{ width: '60px', fontSize: '0.65rem', padding: '4px 10px', height: '20px', lineHeight: '1' }}>TDS</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="17" style={{ padding: '40px 0', textAlign: 'center' }}>
+                  <td colSpan="21" style={{ padding: '40px 0', textAlign: 'center' }}>
                     <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#1756AA' }}>Loading transactions...</span>
                   </td>
                 </tr>
@@ -798,6 +644,9 @@ const AEPSHistory = () => {
                         ₹{(txn.amount || 0).toFixed(2)}
                       </span>
                     </td>
+                    <td style={{ fontWeight: '700', color: '#475569', fontSize: '0.75rem' }}>
+                      ₹{(txn.charge || 0).toFixed(2)}
+                    </td>
                     <td style={{ textAlign: 'center' }}>
                       <span style={{
                         padding: '4px 12px',
@@ -838,13 +687,14 @@ const AEPSHistory = () => {
                     </td>
                     <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.opBal || 0).toFixed(2)}</td>
                     <td style={{ fontWeight: '700', color: '#334155' }}>₹{(txn.clBal || 0).toFixed(2)}</td>
-                    <td>
-                      <span style={{ color: '#166534', fontWeight: '800', background: '#DCFCE7', padding: '4px 8px', borderRadius: '6px' }}>
-                        ₹{(txn.commission || 0).toFixed(2)}
-                      </span>
+                    <td style={{ fontSize: '0.75rem', fontWeight: '700', color: '#166534' }}>
+                      ₹{((parseFloat(txn.commission) || 0) * 0.6).toFixed(2)}
+                    </td>
+                    <td style={{ fontSize: '0.75rem', fontWeight: '700', color: '#166534' }}>
+                      ₹{((parseFloat(txn.commission) || 0) * 0.4).toFixed(2)}
                     </td>
                     <td>
-                      <span style={{ color: '#991B1B', fontWeight: '800', background: '#FEE2E2', padding: '4px 8px', borderRadius: '6px' }}>
+                      <span style={{ color: '#991B1B', fontWeight: '800', background: '#FEE2E2', padding: '3px 6px', borderRadius: '4px', fontSize: '0.75rem' }}>
                         ₹{(txn.tds || 0).toFixed(2)}
                       </span>
                     </td>
@@ -859,7 +709,7 @@ const AEPSHistory = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="18" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
+                  <td colSpan="21" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
                     <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No data available in table</span>
                   </td>
                 </tr>
@@ -912,6 +762,12 @@ const AEPSHistory = () => {
         message={confirmData.action === 'Check Status' ? 'Are you sure you want to check the status of this transaction?' : `Are you sure you want to apply ${confirmData.action} to this transaction?`}
         type={confirmData.action === 'Force Fail' ? 'danger' : confirmData.action === 'Check Status' ? 'warning' : 'success'}
         confirmText={confirmData.action === 'Check Status' ? 'Check Status' : 'Yes, I am sure'}
+        details={confirmData.txn ? {
+          'Member': confirmData.txn.member || confirmData.txn.memberName || 'N/A',
+          'Txn ID': confirmData.txn.txnId || confirmData.txn.id || 'N/A',
+          'Amount': `₹${confirmData.txn.amount || 0}`,
+          'Date': confirmData.txn.date || 'N/A'
+        } : null}
         onConfirm={handleConfirmAction}
         onCancel={() => setConfirmData({ show: false, action: null, txn: null })}
       />

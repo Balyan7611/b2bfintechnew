@@ -1,7 +1,7 @@
 import React from 'react';
 import { FiHelpCircle } from 'react-icons/fi';
 
-const ConfirmModal = ({ show, title, message, onConfirm, onCancel, confirmText = 'Yes, I am sure', type = 'warning' }) => {
+const ConfirmModal = ({ show, title, message, onConfirm, onCancel, confirmText = 'Yes, I am sure', type = 'warning', details = null }) => {
   if (!show) return null;
 
   const isDanger = type === 'danger';
@@ -53,6 +53,17 @@ const ConfirmModal = ({ show, title, message, onConfirm, onCancel, confirmText =
           <p style={{ margin: 0, fontSize: '0.88rem', color: '#475569', fontWeight: 500, lineHeight: 1.55 }}>
             {message}
           </p>
+          
+          {details && (
+            <div style={{ marginTop: '16px', background: '#ffffff', borderRadius: '8px', padding: '12px', border: '1px solid #E2E8F0', textAlign: 'left' }}>
+              {Object.entries(details).map(([key, value]) => (
+                <div key={key} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.8rem' }}>
+                  <span style={{ color: '#64748B', fontWeight: 600 }}>{key}:</span>
+                  <span style={{ color: '#0F172A', fontWeight: 700 }}>{value}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div style={{ padding: '18px 28px 24px', display: 'flex', gap: '12px', background: '#fff' }}>

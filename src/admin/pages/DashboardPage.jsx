@@ -844,13 +844,6 @@ const DashboardPage = () => {
           <button className={styles.hamburger} onClick={() => dispatch(toggleSidebar())}>
             <FaBars />
           </button>
-          <button 
-            className={styles.desktopToggleBtn} 
-            onClick={() => dispatch(toggleSidebar())}
-          >
-            {isSidebarOpen ? <FaChevronLeft /> : <FaChevronRight />}
-          </button>
-          <img src={SITE_CONFIG.logo} alt="Logo" className={styles.headerLogo} />
         </div>
 
         <div className={styles.headerCenter}>
@@ -1034,6 +1027,15 @@ const DashboardPage = () => {
       <div className={styles.mainContainer}>
         {/* ── SIDEBAR ── */}
         <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : styles.sidebarClosed}`}>
+          <div className={styles.sidebarLogoWrapper}>
+            <img src={SITE_CONFIG.logo} alt="Logo" className={styles.sidebarLogo} />
+            <button 
+              className={styles.desktopToggleBtn} 
+              onClick={() => dispatch(toggleSidebar())}
+            >
+              {isSidebarOpen ? <FaChevronLeft /> : <FaChevronRight />}
+            </button>
+          </div>
           <nav className={styles.sidebarNav}>
             {SIDEBAR_LINKS.map((link) => {
               const isExpanded = expandedMenu === link.id;

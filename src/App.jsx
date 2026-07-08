@@ -42,6 +42,7 @@ import FundRequest from './member/components/MemberPanel/Wallet/FundRequest';
 import WalletToWallet from './member/components/MemberPanel/Wallet/WalletToWallet';
 import LoginPage from './member/pages/LoginPage';
 import MemberDashboard from './member/pages/MemberDashboard';
+import MemberOnboardingWizard from './member/components/MemberPanel/KYC/MemberOnboardingWizard';
 import ApiLoginPage from './api_panel/pages/ApiLoginPage';
 import ApiDashboardLayout from './api_panel/pages/ApiDashboardLayout';
 import ApiHome from './api_panel/components/ApiHome';
@@ -500,6 +501,7 @@ function App() {
             <Route path="wallet/w2w" element={<WalletToWallet />} />
             <Route path="wallet/fund-request" element={<FundRequest />} />
             <Route path="my-services" element={<MyServices />} />
+            <Route path="kyc/onboarding" element={<MemberOnboardingWizard />} />
             <Route path="kyc/upload" element={<UploadKYC />} />
             <Route path="service/mobile-postpaid" element={<MobilePostpaid />} />
             <Route path="service/dth" element={<DTHRecharge />} />

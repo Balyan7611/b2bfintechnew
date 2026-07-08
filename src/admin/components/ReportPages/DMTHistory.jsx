@@ -16,6 +16,7 @@ import ActionMenu from '../../../shared/components/common/ActionMenu';
 import ConfirmModal from '../../../shared/components/common/ConfirmModal';
 import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
 import LogModal from '../../../shared/components/common/LogModal';
+import StatsGrid from '../../../shared/components/common/StatsGrid';
 
 const DMTHistory = () => {
   const [focusedField, setFocusedField] = useState(null);
@@ -76,6 +77,20 @@ const DMTHistory = () => {
   const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
   const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
   const failedCount = transactions.filter(t => t.status?.toLowerCase() === 'failed').length;
+
+  // Stats Card Computations
+  const totalTxns = totalRecords || transactions.length;
+  const totalAmount = transactions.reduce((acc, t) => acc + (parseFloat(t.amount) || 0), 0);
+  const successTxns = successCount;
+  const failedTxns = failedCount;
+  const pendingTxns = pendingCount;
+  const totalCommission = transactions.reduce((acc, t) => acc + (parseFloat(t.commission) || 0), 0);
+  const uplineCommission = totalCommission * 0.6;
+  const adminCommission = totalCommission * 0.4;
+  const totalTds = transactions.reduce((acc, t) => acc + (parseFloat(t.tds) || 0), 0);
+  const adminProfit = adminCommission - totalTds;
+  const tdsPayable = totalTds;
+  const netPayable = totalAmount + totalCommission - totalTds;
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -217,101 +232,6 @@ const DMTHistory = () => {
         
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px', flexWrap: 'wrap', marginBottom: '20px' }}>
           <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', letterSpacing: '0.3px' }}>DMT History</h3>
-          
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            {/* Success Pill Button */}
-            <div 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: '#eafaf1',
-                color: '#27AE60',
-                padding: '6px 16px',
-                borderRadius: '30px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                border: '1.5px solid #27AE60',
-                gap: '8px',
-                cursor: 'pointer',
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                animation: 'successGlow 2s infinite'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.background = '#dcf7e7';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.background = '#eafaf1';
-              }}
-            >
-              <FiCheckCircle size={15} />
-              <span>Success</span>
-              <span style={{ background: '#27AE60', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{successCount}</span>
-            </div>
-
-            {/* Pending Pill Button */}
-            <div 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: '#fef5e7',
-                color: '#F39C12',
-                padding: '6px 16px',
-                borderRadius: '30px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                border: '1.5px solid #F39C12',
-                gap: '8px',
-                cursor: 'pointer',
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                animation: 'pendingGlow 2s infinite'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.background = '#fdedd3';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.background = '#fef5e7';
-              }}
-            >
-              <FiAlertCircle size={15} />
-              <span>Pending</span>
-              <span style={{ background: '#F39C12', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{pendingCount}</span>
-            </div>
-
-            {/* Failed Pill Button */}
-            <div 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: '#fdeaea',
-                color: '#E74C3C',
-                padding: '6px 16px',
-                borderRadius: '30px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                border: '1.5px solid #E74C3C',
-                gap: '8px',
-                cursor: 'pointer',
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                animation: 'failedGlow 2s infinite'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.background = '#fcdada';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.background = '#fdeaea';
-              }}
-            >
-              <FiXCircle size={15} />
-              <span>Failed</span>
-              <span style={{ background: '#E74C3C', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{failedCount}</span>
-            </div>
-          </div>
         </div>
 
         <form onSubmit={(e) => e.preventDefault()}>
@@ -575,6 +495,22 @@ const DMTHistory = () => {
         </form>
       </div>
 
+      {/* ── STATS CARDS GRID ── */}
+      <StatsGrid stats={{
+        totalTxns,
+        totalAmount,
+        successTxns,
+        failedTxns,
+        pendingTxns,
+        totalCommission,
+        uplineCommission,
+        adminCommission,
+        totalTds,
+        adminProfit,
+        tdsPayable,
+        netPayable
+      }} />
+
       {/* ── DATA TABLE CARD ── */}
       <div className={styles.cardFullMobile} style={{ padding: 0, marginBottom: '100px' }}>
         {/* CARD INTERNAL HEADER */}
@@ -724,6 +660,12 @@ const DMTHistory = () => {
         message={confirmData.action === 'Check Status' ? 'Are you sure you want to check the status of this transaction?' : `Are you sure you want to apply ${confirmData.action} to this transaction?`}
         type={confirmData.action === 'Force Fail' ? 'danger' : confirmData.action === 'Check Status' ? 'warning' : 'success'}
         confirmText={confirmData.action === 'Check Status' ? 'Check Status' : 'Yes, I am sure'}
+        details={confirmData.txn ? {
+          'Member': confirmData.txn.member || confirmData.txn.memberName || 'N/A',
+          'Txn ID': confirmData.txn.txnId || confirmData.txn.id || confirmData.txn.orderId || confirmData.txn.refid || 'N/A',
+          'Amount': `₹${confirmData.txn.amount || 0}`,
+          'Date': confirmData.txn.date || confirmData.txn.createdDate ? new Date(confirmData.txn.date || confirmData.txn.createdDate).toLocaleString('en-IN') : 'N/A'
+        } : null}
         onConfirm={handleConfirmAction}
         onCancel={() => setConfirmData({ show: false, action: null, txn: null })}
       />

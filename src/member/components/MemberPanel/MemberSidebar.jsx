@@ -50,6 +50,7 @@ const MemberSidebar = () => {
       icon: <FaUserCheck />, 
       hasChildren: true,
       children: [
+        { name: 'Onboarding Process', path: '/member/dashboard/kyc/onboarding' },
         { name: 'Upload KYC', path: '/member/dashboard/kyc/upload' }
       ]
     },
