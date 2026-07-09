@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-  FaTachometerAlt, FaCog, FaUserCheck, FaFileAlt, FaWallet, FaPlug, FaShieldAlt
+  FaTachometerAlt, FaWallet, FaShieldAlt
 } from 'react-icons/fa';
-import { FiChevronRight, FiChevronLeft, FiGrid, FiX } from 'react-icons/fi';
+import { FiChevronRight, FiChevronLeft, FiX } from 'react-icons/fi';
 import { toggleSidebar, setSidebarOpen } from '../../store/slices/memberPanelSlice';
-
+import { SITE_CONFIG } from '../../config/siteConfig';
 import styles from './ApiSidebar.module.css';
 
 const ApiSidebar = () => {
@@ -14,8 +14,8 @@ const ApiSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isDarkMode, isSidebarOpen, isMobile } = useSelector((state) => state.memberPanel);
-  const [activeMenu, setActiveMenu] = useState('Dashboard');
-  const [hoveredItem, setHoveredItem] = useState(null); // stores { name, top, item }
+  const [activeMenu, setActiveMenu] = useState(null);
+  const [hoveredItem, setHoveredItem] = useState(null);
 
   const handleMouseEnter = (e, item) => {
     if (!isSidebarOpen && !isMobile && item.hasChildren) {
@@ -79,21 +79,38 @@ const ApiSidebar = () => {
         ${isDarkMode ? styles.dark : ''}
       `}>
         
-        <div className={styles.sidebarHeader} style={isMobile ? { padding: '15px 20px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', borderBottom: '1px solid #e2e8f0', background: '#fff' } : {}}>
-          {isMobile && (
-            <div className={styles.mobileHeaderContent} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* Header with logo + toggle */}
+        <div className={styles.sidebarHeader}>
+          {isMobile ? (
+            <div className={styles.mobileHeaderContent}>
               <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#1e293b' }}>Menu</span>
               <button 
                 className={styles.closeSidebarBtn} 
                 onClick={() => dispatch(setSidebarOpen(false))}
-                style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', fontSize: '1.2rem', color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
               >
                 <FiX />
               </button>
             </div>
+          ) : (
+            <>
+              {isSidebarOpen && (
+                <img 
+                  src="/images/browser_logo.jpeg" 
+                  alt={SITE_CONFIG.shortName} 
+                  className={styles.sidebarLogo} 
+                />
+              )}
+              <button 
+                className={styles.desktopToggleBtn} 
+                onClick={() => dispatch(toggleSidebar())}
+              >
+                {isSidebarOpen ? <FiChevronLeft /> : <FiChevronRight />}
+              </button>
+            </>
           )}
         </div>
 
+        {/* Nav Menu */}
         <nav className={styles.navMenu}>
           {menuItems.map((item) => (
             <div
@@ -106,7 +123,6 @@ const ApiSidebar = () => {
                 className={`
                   ${styles.menuItem} 
                   ${(location.pathname === item.path || (item.hasChildren && item.children.some(child => location.pathname === child.path))) ? styles.active : ''}
-                  ${!isSidebarOpen && !isMobile && hoveredItem?.name === item.name ? styles.collapsedHovered : ''}
                 `}
                 onClick={() => handleMenuClick(item)}
               >
@@ -146,7 +162,7 @@ const ApiSidebar = () => {
           ))}
         </nav>
 
-        {/* Floating Tooltip/Hover Popup for Collapsed Sidebar */}
+        {/* Floating Hover Popup for Collapsed Sidebar */}
         {!isSidebarOpen && !isMobile && hoveredItem && (
           <div 
             className={styles.hoverPopup} 
@@ -180,4 +196,3 @@ const ApiSidebar = () => {
 };
 
 export default ApiSidebar;
-

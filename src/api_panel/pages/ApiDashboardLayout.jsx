@@ -144,14 +144,12 @@ const ApiDashboardLayout = () => {
   return (
     <div className={`${styles.dashboardContainer} ${isDarkMode ? styles.dark : ''}`}>
       <ApiHeader />
-      <div className={styles.layout}>
-        <ApiSidebar />
-        <div className={`${styles.mainWrapper} ${!isSidebarOpen && !isMobile ? styles.expanded : ''}`}>
-          
-          <main className={styles.content} style={{ padding: '8px 8px 16px 8px' }}>
-            <Outlet />
-          </main>
-        </div>
+      <ApiSidebar />
+      <div className={`${styles.mainWrapper} ${!isSidebarOpen && !isMobile ? styles.expanded : ''}`}>
+        
+        <main className={styles.content} style={{ padding: '8px 8px 16px 8px' }}>
+          <Outlet />
+        </main>
       </div>
 
       {/* Global Toast Notification */}

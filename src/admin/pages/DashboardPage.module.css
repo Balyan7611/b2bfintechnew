@@ -1683,7 +1683,7 @@
 
 /* ── RIGHT COLUMN - CHART & STATS ── */
 .chartCard {
-  padding-bottom: 8px !important;
+  padding-bottom: 0px !important;
 }
 
 .chartWrapper {

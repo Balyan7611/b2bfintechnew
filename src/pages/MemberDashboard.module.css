@@ -1,22 +1,19 @@
 .dashboardContainer {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "sidebar header"
+    "sidebar main";
   height: 100vh;
   width: 100%;
-  min-width: 100vw;
   overflow: hidden;
   background: var(--color-background);
   color: var(--color-text-primary);
 }
 
-.layout {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-  position: relative;
-}
-
 .mainWrapper {
+  grid-area: main;
   flex: 1;
   display: flex;
   flex-direction: column;

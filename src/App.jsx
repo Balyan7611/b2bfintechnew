@@ -38,6 +38,7 @@ import Payout from './member/components/MemberPanel/Services/Payout';
 import UpiCashout from './member/components/MemberPanel/Services/UpiCashout';
 import UpiTransfer from './member/components/MemberPanel/Services/UpiTransfer';
 import Water from './member/components/MemberPanel/Services/Water';
+import MemberSupport from './member/components/MemberPanel/Support/MemberSupport';
 import FundRequest from './member/components/MemberPanel/Wallet/FundRequest';
 import WalletToWallet from './member/components/MemberPanel/Wallet/WalletToWallet';
 import LoginPage from './member/pages/LoginPage';
@@ -522,6 +523,7 @@ function App() {
             <Route path="service/upicashout" element={<UpiCashout />} />
             <Route path="service/upitransfer" element={<UpiTransfer />} />
             <Route path="service/pan" element={<PanCard />} />
+            <Route path="support" element={<MemberSupport />} />
             <Route path="certificate" element={<MemberCertificate />} />
           </Route>
           <Route path="/member/commission" element={<Navigate to="/member/dashboard/commission" replace />} />

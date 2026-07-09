@@ -155,92 +155,51 @@ const ApiHeader = () => {
     <header className={`${styles.header} ${isDarkMode ? styles.dark : ''}`}>
       <div className={styles.left}>
         {isMobile ? (
-          <button className={styles.hamburgerBtn} onClick={() => dispatch(toggleSidebar())}>
-            <FaBars />
-          </button>
+          <>
+            <button className={styles.hamburgerBtn} onClick={() => dispatch(toggleSidebar())}>
+              <FaBars />
+            </button>
+            <img 
+              src="/images/browser_logo.jpeg" 
+              alt={SITE_CONFIG.shortName} 
+              className={styles.headerLogo} 
+            />
+          </>
         ) : (
-          <button 
-            className={styles.desktopToggleBtn} 
-            onClick={() => dispatch(toggleSidebar())}
-          >
-            {isSidebarOpen ? <FiChevronLeft /> : <FiChevronRight />}
-          </button>
+          <img 
+            src="/images/browser_logo.jpeg" 
+            alt={SITE_CONFIG.shortName} 
+            className={styles.headerLogo} 
+          />
         )}
-        <img 
-          src="/images/browser_logo.jpeg" 
-          alt={SITE_CONFIG.shortName} 
-          className={styles.headerLogo} 
-        />
       </div>
 
-      <div className={styles.center}>
-        {!isMobile && (
-          <div className={styles.searchBar} ref={searchRef}>
-            <FiSearch className={styles.searchIcon} />
-            <input 
-              type="text" 
-              placeholder="Search for services, reports..." 
-              className={styles.searchInput} 
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setShowSearchResults(true);
-              }}
-              onFocus={() => setShowSearchResults(true)}
-            />
-            
-            {showSearchResults && searchQuery && (
-              <div className={styles.searchDropdown}>
-                {filteredSearchItems.length > 0 ? (
-                  filteredSearchItems.map((item, index) => (
-                    <div 
-                      key={index} 
-                      className={styles.searchResultItem}
-                      onClick={() => {
-                        navigate(item.path);
-                        setShowSearchResults(false);
-                        setSearchQuery('');
-                      }}
-                    >
-                      <FiSearch style={{ color: '#A0AEC0', marginRight: '10px' }} />
-                      <span style={{ fontSize: '0.85rem', color: '#0D1B3E', fontWeight: 500 }}>{item.name}</span>
-                    </div>
-                  ))
-                ) : (
-                  <div style={{ padding: '15px', textAlign: 'center', color: '#718096', fontSize: '0.85rem' }}>
-                    No results found for "{searchQuery}"
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      <div className={styles.center}></div>
 
       <div className={styles.right}>
-        {/* Main Wallet Card placed on Right Side */}
-        {!isMobile && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '10px',
+        {/* All Wallet Cards placed on Right Side */}
+        {!isMobile && walletData.map((wallet, index) => (
+          <div key={index} style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
             background: '#ffffff',
-            border: '1px solid #dbeafe',
-            padding: '4px 12px', borderRadius: '8px', marginRight: '16px',
+            border: `1px solid ${wallet.color}40`,
+            padding: '4px 10px', borderRadius: '8px', marginRight: index === walletData.length - 1 ? '16px' : '4px',
             transition: 'all 0.2s ease', cursor: 'pointer',
             boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(26, 35, 126, 0.08)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#dbeafe'; e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.02)'; }}
-          onClick={() => handleNavigate('/api-panel/dashboard/wallet/main')}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = wallet.color; e.currentTarget.style.boxShadow = `0 2px 4px ${wallet.color}20`; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${wallet.color}40`; e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.02)'; }}
+          onClick={() => handleNavigate('/api-panel/dashboard/wallet/' + wallet.name.toLowerCase().split(' ')[0])}
           >
-            <FaWallet style={{ fontSize: '1.4rem', color: 'var(--color-primary)' }} />
+            <FaWallet style={{ fontSize: '1.2rem', color: wallet.color }} />
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.1' }}>
-              <span style={{ fontSize: '0.65rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>MAIN WALLET</span>
-              <span style={{ fontSize: '0.95rem', fontWeight: '800', color: '#0f172a' }}>
-                {parseFloat(apiWallets?.main || 0).toLocaleString('en-IN', {minimumFractionDigits:2})}
+              <span style={{ fontSize: '0.6rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{wallet.name}</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: '800', color: '#0f172a' }}>
+                {parseFloat(wallet.value).toLocaleString('en-IN', {minimumFractionDigits:2})}
               </span>
             </div>
           </div>
-        )}
+        ))}
 
         <div className={styles.verticalDivider}></div>
 
@@ -249,49 +208,7 @@ const ApiHeader = () => {
             <FaExpand />
           </button>
 
-          {!isMobile && (
-            <div className={styles.dropdownWrap} ref={mailRef}>
-              <button className={styles.iconBtn} onClick={() => dispatch(toggleMailOpen())}>
-                <FaEnvelope />
-                {unreadMail > 0 && <span className={styles.badge}>{unreadMail}</span>}
-              </button>
-              {isMailOpen && (
-                <div className={styles.msgDropdown}>
-                  <div className={styles.dropdownTopPointer}></div>
-                  <div className={styles.msgHeader}>
-                    <span className={styles.msgTitle}>{unreadMail} new Messages</span>
-                    <button className={styles.markReadBtn} onClick={() => dispatch(markAllMailRead())}>
-                      Mark All Read
-                    </button>
-                  </div>
-                  <div className={styles.msgList}>
-                    {mailList.map((mail) => (
-                      <div key={mail.id} className={styles.msgItem}>
-                        <div className={styles.msgAvatar} style={{ background: mail.color }}>
-                          {mail.initial}
-                          <span className={styles.onlineDot}></span>
-                        </div>
-                        <div className={styles.msgBody}>
-                          <div className={styles.msgTop}>
-                            <span className={styles.msgName}>{mail.name}</span>
-                            <span className={styles.msgTime}>{mail.time}</span>
-                          </div>
-                          <p className={styles.msgPreview}>{mail.text}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className={styles.msgFooter}>
-                    <span className={styles.viewAllText}>VIEW ALL</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          <button className={`${styles.iconBtn} ${styles.mobileHide}`} onClick={() => dispatch(toggleDarkMode())}>
-            {isDarkMode ? <FaSun /> : <FaMoon />}
-          </button>
+          {/* Dark Mode and Mail icons removed as per request */}
 
           <div className={styles.dropdownWrap} ref={notifRef}>
             <button className={styles.iconBtn} onClick={() => {
@@ -364,47 +281,30 @@ const ApiHeader = () => {
             )}
           </div>
 
-          <div className={styles.profileContainer} ref={dropdownRef}>
-            <div className={styles.avatarWrapper} onClick={() => dispatch(toggleProfileDropdown())}>
-              <img
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sachin"
-                alt="Avatar"
-                className={styles.avatarImage}
-              />
-            </div>
-            {isProfileDropdownOpen && (
-              <div className={styles.dropdown}>
-                <div className={styles.dropdownHeader}>
-                  <div className={styles.dropdownAvatarWrapper}>
-                    <img
-                      src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sachin"
-                      alt="User"
-                      className={styles.dropdownAvatar}
-                    />
-                  </div>
-                  <div className={styles.dropdownUserInfo}>
-                    <div className={styles.dropdownUserName}>{user?.name}</div>
-                    <div className={styles.dropdownUserRole}>{user?.role}</div>
-                  </div>
-                </div>
-                <div className={styles.divider}></div>
-                <div className={styles.dropdownMenu}>
-                  <div className={styles.menuItem} onClick={() => handleNavigate('/api-panel/dashboard/profile')}>
-                    <div className={`${styles.menuIcon} ${styles.iconNavy}`}><FaUser /></div>
-                    <span>My Profile</span>
-                  </div>
-                  <div className={styles.menuItem} onClick={() => handleNavigate('/api-panel/dashboard/settings')}>
-                    <div className={`${styles.menuIcon} ${styles.iconChart}`}><FaCog /></div>
-                    <span>Account Setting</span>
-                  </div>
-                  <div className={styles.divider}></div>
-                  <div className={`${styles.menuItem} ${styles.logoutItem}`} onClick={handleLogout}>
-                    <div className={`${styles.menuIcon} ${styles.iconRed}`}><FaPowerOff /></div>
-                    <span>Logout</span>
-                  </div>
-                </div>
-              </div>
-            )}
+          <div className={styles.profileContainer}>
+            <button 
+              className={styles.logoutHeaderBtn} 
+              onClick={handleLogout}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: '#FEE2E2',
+                color: '#EF4444',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#FCA5A5'}
+              onMouseLeave={(e) => e.currentTarget.style.background = '#FEE2E2'}
+            >
+              <FaPowerOff />
+              <span style={{ fontSize: '0.9rem' }}>Logout</span>
+            </button>
           </div>
         </div>
       </div>

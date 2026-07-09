@@ -55,12 +55,10 @@
 }
 
 .headerLogo {
-  height: 32px; /* Original PC height */
+  height: 32px;
   width: auto;
   object-fit: contain;
-  transform: scale(1.6);
-  transform-origin: left center;
-  margin-left: 0;
+  display: none; /* Hide in header on desktop */
 }
 
 .center {
@@ -73,7 +71,7 @@
 .searchBar {
   position: relative;
   width: 100%;
-  max-width: 400px;
+  max-width: 250px;
 }
 
 .searchIcon {
@@ -716,6 +714,7 @@
   }
 
   .headerLogo {
+    display: block; /* Show in header on mobile */
     height: 40px; /* Enhanced mobile height */
   }
 

@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fa';
 import styles from './ChatPopup.module.css';
 
-const ChatPopup = () => {
+const ChatPopup = ({ isMember }) => {
   const dispatch = useDispatch();
   const { isChatOpen, activeChatTicket, chatMessages, chatInput } = useSelector(s => s.support);
   const messagesEndRef = useRef(null);
@@ -44,7 +44,7 @@ const ChatPopup = () => {
   const handleSend = () => {
     const text = chatInput.trim();
     if (!text || !activeChatTicket) return;
-    dispatch(sendChatMessage({ ticketId: activeChatTicket.id, text }));
+    dispatch(sendChatMessage({ ticketId: activeChatTicket.id, text, sender: isMember ? 'member' : 'admin' }));
   };
 
   const handleKeyDown = (e) => {
@@ -86,7 +86,7 @@ const ChatPopup = () => {
               {getInitials(activeChatTicket.name)}
             </div>
             <div className={styles.headerInfo}>
-              <span className={styles.headerName}>{activeChatTicket.name}</span>
+              <span className={styles.headerName}>{isMember ? 'Admin Support' : activeChatTicket.name}</span>
               <span className={styles.headerTicket}>{activeChatTicket.ticketId}</span>
             </div>
           </div>
@@ -109,20 +109,20 @@ const ChatPopup = () => {
           </div>
 
           {messages.map((msg, idx) => {
-            const isAdmin = msg.sender === 'admin';
+            const isMe = msg.sender === (isMember ? 'member' : 'admin');
             return (
               <div
                 key={idx}
-                className={`${styles.messageRow} ${isAdmin ? styles.messageRowAdmin : styles.messageRowUser}`}
+                className={`${styles.messageRow} ${isMe ? styles.messageRowAdmin : styles.messageRowUser}`}
               >
-                {/* Avatar shown only beside user messages */}
-                {!isAdmin && (
+                {/* Avatar shown only beside other's messages */}
+                {!isMe && (
                   <div className={styles.msgAvatar}>
-                    {getInitials(activeChatTicket.name)}
+                    {getInitials(isMember ? 'Admin' : activeChatTicket.name)}
                   </div>
                 )}
 
-                <div className={`${styles.bubble} ${isAdmin ? styles.bubbleAdmin : styles.bubbleUser}`}>
+                <div className={`${styles.bubble} ${isMe ? styles.bubbleAdmin : styles.bubbleUser}`}>
                   <p className={styles.bubbleText}>{msg.text}</p>
                   <span className={styles.bubbleTime}>{msg.time}</span>
                 </div>

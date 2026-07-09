@@ -1,21 +1,15 @@
 .sidebar {
+  grid-area: sidebar;
   width: 240px;
   background: var(--color-surface);
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 60px);
-  position: sticky;
-  top: 60px;
+  height: 100%;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
   z-index: 90;
-  overflow: hidden; /* Prevent outer sidebar from scrolling */
-}
-
-@supports (height: 100dvh) {
-  .sidebar {
-    height: calc(100dvh - 60px);
-  }
+  overflow: hidden;
+  box-shadow: 4px 0 24px rgba(13, 27, 62, 0.04);
 }
 
 .collapsed {
@@ -23,25 +17,62 @@
 }
 
 .sidebarHeader {
-  display: none; /* Hidden on desktop to save space */
-}
-
-@media (max-width: 768px) {
-  .sidebarHeader {
-    display: flex;
-    height: 60px;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 0 16px;
-    background: #ffffff;
-    border-bottom: 1px solid var(--color-border);
-    flex-shrink: 0;
-  }
+  display: flex;
+  height: 60px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .collapsed .sidebarHeader {
   justify-content: center;
   padding: 0;
+}
+
+.sidebarLogo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.sidebarLogoMini {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1756AA, #0D1B3E);
+  color: white;
+  font-weight: 900;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.desktopToggleBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #f0f4ff;
+  border: 1px solid rgba(23, 86, 170, 0.12);
+  color: #1756AA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.desktopToggleBtn:hover {
+  background: #1756AA;
+  color: white;
+  border-color: #1756AA;
 }
 
 .toggleArrow {
@@ -67,9 +98,16 @@
 
 .navMenu {
   flex: 1;
-  padding: 20px 8px;
+  padding: 16px 0;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.collapsed .navMenu {
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Custom Scrollbar */
@@ -89,25 +127,41 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
+  padding: 0 14px;
+  height: 42px;
   border-radius: 10px;
-  color: var(--color-text-secondary);
+  color: #475569;
   cursor: pointer;
-  margin-bottom: 4px;
+  margin: 2px 10px;
   transition: all 0.3s ease;
   position: relative;
   white-space: nowrap;
+  border: none;
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  width: calc(100% - 20px);
+}
+
+.collapsed .menuItem {
+  justify-content: center;
+  padding: 0;
+  margin: 2px auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
 }
 
 .menuItem:hover {
-  background: rgba(23, 86, 170, 0.05);
-  color: var(--color-primary);
+  background: rgba(23, 86, 170, 0.06);
+  color: #1756AA;
 }
 
 .menuItem.active {
-  background: var(--color-primary);
-  color: white;
+  background: linear-gradient(90deg, #1756AA 0%, #1a63c4 100%);
+  color: #fff;
   font-weight: 600;
+  box-shadow: 0 4px 15px rgba(23, 86, 170, 0.4);
 }
 
 .menuLeft {
@@ -115,11 +169,13 @@
   align-items: center;
   gap: 12px;
   flex: 1;
+  min-width: 0;
 }
 
 .collapsed .menuLeft {
   justify-content: center;
   gap: 0;
+  flex: none;
 }
 
 .menuIcon {
@@ -132,9 +188,11 @@
 }
 
 .menuText {
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 600;
   transition: opacity 0.3s;
+  flex: 1;
+  color: inherit;
 }
 
 .collapsed .menuText {
@@ -152,6 +210,7 @@
 .rotate {
   transform: rotate(90deg);
   opacity: 1;
+  color: #1756AA;
 }
 
 .collapsed .arrowIcon {
@@ -159,51 +218,59 @@
 }
 
 .subMenu {
-  max-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  opacity: 0;
-  transition: all 0.3s ease;
-  padding-left: 36px;
+  max-height: 0;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #F8FAFC;
+  margin: 0 4px;
 }
 
 .subMenuShow {
-  max-height: 400px;
-  opacity: 1;
-  margin-bottom: 10px;
+  max-height: 500px;
 }
 
 .subMenuItem {
-  padding: 8px 12px;
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-  border-radius: 8px;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 10px;
-  transition: all 0.2s;
+  gap: 12px;
+  padding: 8px 24px 8px 48px;
+  border: none;
+  background: transparent;
+  color: #64748B;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
 }
 
 .subMenuItem:hover {
-  color: var(--color-primary);
-  background: rgba(23, 86, 170, 0.03);
+  color: #1756AA;
+  background: rgba(23, 86, 170, 0.05);
 }
 
 .subActive {
-  color: var(--color-primary) !important;
+  color: #1756AA;
   font-weight: 600;
+  background: transparent;
 }
 
 .subActive .subDot {
   opacity: 1;
+  color: #1756AA;
 }
 
 .subDot {
+  font-size: 0.4rem;
+  color: currentColor;
+  opacity: 0.6;
+  flex-shrink: 0;
   width: 5px;
   height: 5px;
-  background: currentColor;
   border-radius: 50%;
-  opacity: 0.5;
+  background: currentColor;
 }
 
 @keyframes energyPulse {

@@ -184,9 +184,8 @@ const MemberDashboard = () => {
   return (
     <div className={`${styles.dashboardContainer} ${isDarkMode ? styles.dark : ''}`}>
       <MemberHeader />
-      <div className={styles.layout}>
-        <MemberSidebar />
-        <div className={`${styles.mainWrapper} ${!isSidebarOpen && !isMobile ? styles.expanded : ''}`}>
+      <MemberSidebar />
+      <div className={`${styles.mainWrapper} ${!isSidebarOpen && !isMobile ? styles.expanded : ''}`}>
           {isSystemFrozen && (
             <div style={{
               background: '#FEF2F2',
@@ -391,7 +390,6 @@ const MemberDashboard = () => {
             </button>
           )}
         </div>
-      </div>
 
       {/* MyServices Float Modal */}
       {isMyServicesFloatOpen && (

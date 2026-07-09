@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { 
   FaQrcode, FaArrowRight, FaCheckCircle, FaExclamationCircle, 
-  FaMobileAlt, FaUser, FaInfoCircle, FaSearch, FaArrowLeft, FaPrint 
+  FaMobileAlt, FaUser, FaInfoCircle, FaSearch, FaArrowLeft, FaPrint, FaFileInvoiceDollar
 } from 'react-icons/fa';
 import styles from './UpiTransfer.module.css';
+import TransactionReceipt from './TransactionReceipt';
 
 const INITIAL_TRANSACTIONS = [
   { sNo: 1, date: '2026-05-19 12:45', name: 'Vishnu Prajapat', upiId: '6377749427@ybl', amount: 500, status: 'success' },
@@ -33,6 +34,36 @@ const UpiTransfer = () => {
   const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
   const [toast, setToast] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const [selectedTxnForReceipt, setSelectedTxnForReceipt] = useState(null);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+
+  const handleViewReceipt = (txn) => {
+    const formattedData = {
+      amount: parseFloat(txn.amount),
+      charge: 0,
+      total: parseFloat(txn.amount),
+      beneficiary: txn.name,
+      accountNo: txn.upiId, // UPI ID
+      bank: 'UPI SETTLEMENT NETWORK',
+      ifsc: 'UPI00000001',
+      mode: 'UPI',
+      customerName: 'Vishnu Kumar', // simulated customer name
+      customerMobile: '9876543210',
+      date: txn.date,
+      status: 'SUCCESS',
+      chunks: [
+        {
+          txnId: txn.txnId || `UT${Date.now().toString().slice(-8)}`,
+          amount: parseFloat(txn.amount),
+          charge: 0,
+          total: parseFloat(txn.amount)
+        }
+      ]
+    };
+    setSelectedTxnForReceipt(formattedData);
+    setShowReceiptModal(true);
+  };
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -123,7 +154,34 @@ const UpiTransfer = () => {
       setTransactions([createdTxn, ...transactions]);
       setLastTxn(createdTxn);
       showToast(`Transfer of ₹${amount} successful!`, 'success');
-      setStep('success');
+      
+      // Auto trigger the DMT-like transaction receipt modal
+      const receiptData = {
+        amount: parseFloat(amount),
+        charge: 0,
+        total: parseFloat(amount),
+        beneficiary: name,
+        accountNo: upiId,
+        bank: 'UPI SETTLEMENT NETWORK',
+        ifsc: 'UPI00000001',
+        mode: 'UPI',
+        customerName: 'Vishnu Kumar',
+        customerMobile: '9876543210',
+        date: createdTxn.date,
+        status: 'SUCCESS',
+        chunks: [
+          {
+            txnId: createdTxn.txnId,
+            amount: parseFloat(amount),
+            charge: 0,
+            total: parseFloat(amount)
+          }
+        ]
+      };
+      setSelectedTxnForReceipt(receiptData);
+      setShowReceiptModal(true);
+      
+      handleReset();
     }, 1200);
   };
 
@@ -159,98 +217,125 @@ const UpiTransfer = () => {
               <FaQrcode /> Initiate UPI Transfer
             </h3>
 
-            <div className={styles.formFieldsRow}>
-              <div className={styles.formGroup} style={{ flex: 2, minWidth: '280px' }}>
-                <label>Enter UPIID</label>
-                <div className={styles.upiInputGroup}>
-                  <input 
-                    type="text" 
-                    placeholder="Enter UPI ID (e.g. name@upi)"
-                    value={upiId}
-                    onChange={(e) => {
-                      setUpiId(e.target.value);
-                      setName(''); // Reset name if UPI ID is changed
-                    }}
-                    className={styles.inputField}
-                    required
-                  />
-                  <button 
-                    type="button" 
-                    onClick={handleVerify}
-                    disabled={isVerifying}
-                    className={name ? styles.btnVerified : styles.btnVerify}
-                  >
-                    {isVerifying ? <div className={styles.spinner}></div> : (name ? 'Verified' : 'Verify')}
-                  </button>
-                </div>
-              </div>
-
-              <div className={styles.formGroup} style={{ flex: 1.5, minWidth: '200px' }}>
-                <label>Name</label>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <input 
-                    type="text" 
-                    placeholder="Beneficiary Name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className={styles.inputField}
-                    style={{ paddingRight: name ? '40px' : '16px' }}
-                    required
-                  />
-                  {name && (
-                    <FaCheckCircle 
-                      style={{ 
-                        position: 'absolute', 
-                        right: '14px', 
-                        color: '#22c55e',
-                        fontSize: '1.1rem'
-                      }} 
+            <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
+              
+              {/* Left Column: Form Fields */}
+              <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div className={styles.formGroup}>
+                  <label>Enter UPIID</label>
+                  <div className={styles.upiInputGroup}>
+                    <input 
+                      type="text" 
+                      placeholder="Enter UPI ID (e.g. name@upi)"
+                      value={upiId}
+                      onChange={(e) => {
+                        setUpiId(e.target.value);
+                        setName(''); // Reset name if UPI ID is changed
+                      }}
+                      className={styles.inputField}
+                      required
                     />
-                  )}
+                    <button 
+                      type="button" 
+                      onClick={handleVerify}
+                      disabled={isVerifying}
+                      className={name ? styles.btnVerified : styles.btnVerify}
+                    >
+                      {isVerifying ? <div className={styles.spinner}></div> : (name ? 'Verified' : 'Verify')}
+                    </button>
+                  </div>
                 </div>
+
+                <div className={styles.formGroup}>
+                  <label>Name</label>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Beneficiary Name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className={styles.inputField}
+                      style={{ paddingRight: name ? '40px' : '16px' }}
+                      required
+                    />
+                    {name && (
+                      <FaCheckCircle 
+                        style={{ 
+                          position: 'absolute', 
+                          right: '14px', 
+                          color: '#22c55e',
+                          fontSize: '1.1rem'
+                        }} 
+                      />
+                    )}
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Enter Amount</label>
+                  <input 
+                    type="number" 
+                    placeholder="Enter Amount"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className={styles.inputField}
+                    required
+                  />
+                </div>
+
+                <button 
+                  type="submit" 
+                  className={styles.btnPrimary}
+                  style={{ width: 'fit-content', padding: '12px 32px', marginTop: '10px' }}
+                >
+                  <><FaArrowRight /> Next</>
+                </button>
               </div>
 
-              <div className={styles.formGroup} style={{ flex: 1, minWidth: '150px' }}>
-                <label>Enter Amount</label>
-                <input 
-                  type="number" 
-                  placeholder="Enter Amount"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className={styles.inputField}
-                  required
-                />
-              </div>
-            </div>
-
-            {/* UPI Tag */}
-            <div className={styles.tagsSection}>
-              <div className={styles.tagsTitle}>UPI Tag</div>
-              <div className={styles.tagsGrid}>
-                {UPI_TAGS.map((col, cIdx) => (
-                  <div key={cIdx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {col.map(tag => (
-                      <button 
-                        key={tag}
-                        type="button"
-                        onClick={() => handleTagClick(tag)}
-                        className={styles.tagBtn}
-                      >
-                        {tag}
-                      </button>
+              {/* Right Column: Tags & Bill */}
+              <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* UPI Tags Card */}
+                <div className={styles.tagsSection} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px' }}>
+                  <div className={styles.tagsTitle} style={{ marginBottom: '12px', color: '#475569', fontSize: '0.85rem' }}>QUICK UPI TAGS</div>
+                  <div className={styles.tagsGrid}>
+                    {UPI_TAGS.map((col, cIdx) => (
+                      <div key={cIdx} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {col.map(tag => (
+                          <button 
+                            key={tag}
+                            type="button"
+                            onClick={() => handleTagClick(tag)}
+                            className={styles.tagBtn}
+                            style={{ background: '#ffffff', border: '1px solid #e2e8f0' }}
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
                     ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            <button 
-              type="submit" 
-              className={styles.btnPrimary}
-              style={{ width: 'fit-content', padding: '12px 32px' }}
-            >
-              <><FaArrowRight /> Next</>
-            </button>
+                {/* Compact Bill Icon / Badge */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '10px 16px',
+                  background: 'rgba(23,86,170,0.05)',
+                  border: '1px solid rgba(23,86,170,0.1)',
+                  borderRadius: '30px',
+                  width: 'fit-content',
+                  alignSelf: 'flex-start'
+                }}>
+                  <FaFileInvoiceDollar style={{ color: '#1756AA', fontSize: '1.2rem' }} />
+                  <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#1e293b' }}>
+                    Secure UPI Receipts
+                  </span>
+                </div>
+              </div>
+              
+            </div>
           </form>
         )}
 
@@ -310,83 +395,7 @@ const UpiTransfer = () => {
           </form>
         )}
 
-        {step === 'success' && lastTxn && (
-          /* Payment Successful Receipt Ticket Screen */
-          <div className={styles.successTicketContainer}>
-            <div className={styles.successHeader}>
-              <div className={styles.checkmarkIconWrapper}>
-                <FaCheckCircle className={styles.checkmarkIcon} />
-              </div>
-              <h2 className={styles.successTitle}>Payment Successful!</h2>
-              <p className={styles.successSubtitle}>Your transaction has been processed instantly.</p>
-            </div>
 
-            <div className={styles.receiptTicket}>
-              <div className={styles.receiptHeader}>
-                <div className={styles.receiptLogo}>🏦</div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span className={styles.receiptBankName}>UPI SETTLEMENT NETWORK</span>
-                  <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600 }}>Secured UPI Transfer</span>
-                </div>
-              </div>
-
-              <div className={styles.receiptDivider}>
-                <div className={styles.dividerDotLeft}></div>
-                <div className={styles.dividerLine}></div>
-                <div className={styles.dividerDotRight}></div>
-              </div>
-
-              <div className={styles.receiptBody}>
-                <div className={styles.receiptAmountBlock}>
-                  <span className={styles.receiptAmountLabel}>TRANSFER VALUE</span>
-                  <strong className={styles.receiptAmountDisplay}>
-                    ₹{lastTxn.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                  </strong>
-                </div>
-
-                <div className={styles.receiptDetailGrid}>
-                  <div className={styles.receiptDetailItem}>
-                    <span className={styles.detailLabel}>TRANSACTION ID</span>
-                    <span className={styles.detailValue}>{lastTxn.txnId}</span>
-                  </div>
-                  <div className={styles.receiptDetailItem}>
-                    <span className={styles.detailLabel}>DATE & TIME</span>
-                    <span className={styles.detailValue}>{lastTxn.date}</span>
-                  </div>
-                  <div className={styles.receiptDetailItem}>
-                    <span className={styles.detailLabel}>BENEFICIARY</span>
-                    <span className={styles.detailValue}>{lastTxn.name}</span>
-                  </div>
-                  <div className={styles.receiptDetailItem}>
-                    <span className={styles.detailLabel}>UPI ID</span>
-                    <span className={styles.detailValue}>{lastTxn.upiId}</span>
-                  </div>
-                  <div className={styles.receiptDetailItem}>
-                    <span className={styles.detailLabel}>STATUS</span>
-                    <span className={styles.modeHighlight}>SUCCESSFUL</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.successActionsRow}>
-              <button 
-                type="button" 
-                onClick={() => window.print()} 
-                className={styles.btnPrintReceipt}
-              >
-                <FaPrint /> Print Receipt
-              </button>
-              <button 
-                type="button" 
-                onClick={handleReset} 
-                className={styles.btnDone}
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Confirmation Modal Popup */}
@@ -447,6 +456,7 @@ const UpiTransfer = () => {
                 <th>UPI ID</th>
                 <th>AMOUNT</th>
                 <th>STATUS</th>
+                <th>ACTION</th>
               </tr>
             </thead>
             <tbody>
@@ -469,6 +479,34 @@ const UpiTransfer = () => {
                         {txn.status}
                       </span>
                     </td>
+                    <td>
+                      <button 
+                        onClick={() => handleViewReceipt(txn)}
+                        style={{
+                          background: '#EFF6FF',
+                          color: '#1756AA',
+                          border: '1px solid #BFDBFE',
+                          padding: '6px 12px',
+                          borderRadius: '8px',
+                          fontSize: '0.75rem',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          transition: 'all 0.2s',
+                          fontFamily: 'inherit'
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.background = '#DBEAFE';
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.background = '#EFF6FF';
+                        }}
+                      >
+                        <FaPrint size={11} /> Receipt
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -476,6 +514,16 @@ const UpiTransfer = () => {
           </table>
         </div>
       </div>
+
+      {showReceiptModal && selectedTxnForReceipt && (
+        <TransactionReceipt 
+          data={selectedTxnForReceipt}
+          onClose={() => {
+            setShowReceiptModal(false);
+            setSelectedTxnForReceipt(null);
+          }}
+        />
+      )}
     </div>
   );
 };

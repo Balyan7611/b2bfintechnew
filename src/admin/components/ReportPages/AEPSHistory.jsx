@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { 
   FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo, 
   FiActivity, FiDatabase, FiAlertCircle, FiXCircle, FiActivity as FiSignal,
-  FiUser, FiSmartphone, FiCpu, FiTrendingUp
+  FiUser, FiSmartphone, FiCpu, FiTrendingUp, FiBarChart2
 } from 'react-icons/fi';
 import { 
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint, FaFingerprint
@@ -19,6 +19,7 @@ import PopupModal, { usePopup } from '../../../shared/components/common/PopupMod
 import StatsGrid from '../../../shared/components/common/StatsGrid';
 
 const AEPSHistory = () => {
+  const [showStats, setShowStats] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -252,6 +253,40 @@ const AEPSHistory = () => {
         
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px', flexWrap: 'wrap', marginBottom: '20px' }}>
           <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', letterSpacing: '0.3px' }}>AEPS History</h3>
+          <button 
+            type="button" 
+            onClick={() => setShowStats(!showStats)}
+            style={{
+              background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '10px',
+              height: '38px',
+              padding: '0 20px',
+              fontSize: '0.825rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-1.5px)';
+              e.currentTarget.style.boxShadow = '0 5px 15px rgba(15, 23, 42, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.12)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)';
+            }}
+          >
+            <FiBarChart2 size={16} />
+            {showStats ? 'Hide Stats' : 'View Stats'}
+          </button>
         </div>
 
         <form onSubmit={handleSearchSubmit}>
@@ -537,7 +572,7 @@ const AEPSHistory = () => {
         adminProfit,
         tdsPayable,
         netPayable
-      }} />
+      }} showStats={showStats} />
 
 
       {/* ── DATA TABLE CARD ── */}

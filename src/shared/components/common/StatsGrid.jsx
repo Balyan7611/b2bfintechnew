@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { FiBarChart2, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
-const StatsGrid = ({ stats }) => {
-  const [showStats, setShowStats] = useState(false);
+const StatsGrid = ({ stats, showStats }) => {
   if (!stats) return null;
 
   const {
@@ -22,41 +21,6 @@ const StatsGrid = ({ stats }) => {
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
-        <button
-          onClick={() => setShowStats(!showStats)}
-          style={{
-            background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
-            color: '#fff',
-            border: 'none',
-            padding: '8px 16px',
-            borderRadius: '20px',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
-            transition: 'all 0.2s ease',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.transform = 'translateY(-1px)';
-            e.currentTarget.style.boxShadow = '0 6px 16px rgba(15, 23, 42, 0.25)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.15)';
-          }}
-        >
-          <FiBarChart2 size={16} />
-          {showStats ? 'Hide Statistics' : 'View Statistics'}
-          {showStats ? <FiChevronUp size={16} /> : <FiChevronDown size={16} />}
-        </button>
-      </div>
-
       {showStats && (
         <div style={{ animation: 'fadeIn 0.3s ease' }}>
           {/* Row 1 - 6 cards */}

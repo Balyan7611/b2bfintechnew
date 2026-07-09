@@ -1,4 +1,5 @@
 .header {
+  grid-area: header;
   height: 60px;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
@@ -58,6 +59,7 @@
   height: 32px; /* Original PC height */
   width: auto;
   object-fit: contain;
+  display: none; /* Hide in header on desktop, moved to sidebar */
 }
 
 .center {
@@ -714,6 +716,7 @@
 
   .headerLogo {
     height: 40px; /* Enhanced mobile height */
+    display: block !important;
   }
 
   .mobileHide {

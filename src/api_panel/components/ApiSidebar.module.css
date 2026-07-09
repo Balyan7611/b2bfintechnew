@@ -1,42 +1,32 @@
+/* ── SIDEBAR WRAPPER ── */
 .sidebar {
+  grid-area: sidebar;
   width: 240px;
   background: var(--color-surface);
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 60px);
-  position: sticky;
-  top: 60px;
+  height: 100%;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
   z-index: 90;
-  overflow: hidden; /* Prevent outer sidebar from scrolling */
-}
-
-@supports (height: 100dvh) {
-  .sidebar {
-    height: calc(100dvh - 60px);
-  }
+  overflow: hidden;
+  box-shadow: 4px 0 24px rgba(13, 27, 62, 0.04);
 }
 
 .collapsed {
   width: 64px;
 }
 
+/* ── SIDEBAR HEADER (logo + toggle) ── */
 .sidebarHeader {
-  display: none; /* Hidden on desktop to save space */
-}
-
-@media (max-width: 768px) {
-  .sidebarHeader {
-    display: flex;
-    height: 60px;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 0 16px;
-    background: #ffffff;
-    border-bottom: 1px solid var(--color-border);
-    flex-shrink: 0;
-  }
+  display: flex;
+  height: 60px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .collapsed .sidebarHeader {
@@ -44,32 +34,49 @@
   padding: 0;
 }
 
-.toggleArrow {
+.sidebarLogo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+/* ── DESKTOP TOGGLE BUTTON ── */
+.desktopToggleBtn {
   width: 28px;
   height: 28px;
   border-radius: 8px;
   background: #f0f4ff;
-  border: 1px solid rgba(26, 35, 126, 0.1);
-  color: var(--color-primary);
+  border: 1px solid rgba(23, 86, 170, 0.12);
+  color: #1756AA;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.9rem;
+  flex-shrink: 0;
 }
 
-.toggleArrow:hover {
-  background: var(--color-primary);
+.desktopToggleBtn:hover {
+  background: #1756AA;
   color: white;
-  border-color: var(--color-primary);
+  border-color: #1756AA;
 }
 
+/* ── NAV MENU ── */
 .navMenu {
   flex: 1;
-  padding: 20px 8px;
+  padding: 16px 0;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.collapsed .navMenu {
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Custom Scrollbar */
@@ -81,6 +88,7 @@
   border-radius: 10px;
 }
 
+/* ── MENU GROUPS ── */
 .menuGroup {
   position: relative;
 }
@@ -89,37 +97,56 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
+  padding: 0 14px;
+  height: 42px;
   border-radius: 10px;
-  color: var(--color-text-secondary);
+  color: #475569;
   cursor: pointer;
-  margin-bottom: 4px;
+  margin: 2px 10px;
   transition: all 0.3s ease;
   position: relative;
   white-space: nowrap;
+  border: none;
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  width: calc(100% - 20px);
+}
+
+.collapsed .menuItem {
+  justify-content: center;
+  padding: 0;
+  margin: 2px auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
 }
 
 .menuItem:hover {
-  background: rgba(26, 35, 126, 0.05);
-  color: var(--color-primary);
+  background: rgba(23, 86, 170, 0.06);
+  color: #1756AA;
 }
 
 .menuItem.active {
-  background: var(--color-primary);
-  color: white;
+  background: linear-gradient(90deg, #1756AA 0%, #1a63c4 100%);
+  color: #fff;
   font-weight: 600;
+  box-shadow: 0 4px 15px rgba(23, 86, 170, 0.4);
 }
 
+/* ── MENU LEFT (icon + text) ── */
 .menuLeft {
   display: flex;
   align-items: center;
   gap: 12px;
   flex: 1;
+  min-width: 0;
 }
 
 .collapsed .menuLeft {
   justify-content: center;
   gap: 0;
+  flex: none;
 }
 
 .menuIcon {
@@ -128,13 +155,16 @@
   width: 24px;
   display: flex;
   justify-content: center;
+  flex-shrink: 0;
   transition: transform 0.3s ease;
 }
 
 .menuText {
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 600;
   transition: opacity 0.3s;
+  flex: 1;
+  color: inherit;
 }
 
 .collapsed .menuText {
@@ -147,170 +177,89 @@
   align-items: center;
   transition: transform 0.3s ease;
   opacity: 0.5;
+  flex-shrink: 0;
 }
 
 .rotate {
   transform: rotate(90deg);
   opacity: 1;
+  color: #1756AA;
 }
 
 .collapsed .arrowIcon {
   display: none;
 }
 
+/* ── SUBMENU ── */
 .subMenu {
-  max-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  opacity: 0;
-  transition: all 0.3s ease;
-  padding-left: 36px;
+  max-height: 0;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #F8FAFC;
+  margin: 0 4px;
 }
 
 .subMenuShow {
-  max-height: 400px;
-  opacity: 1;
-  margin-bottom: 10px;
+  max-height: 500px;
 }
 
 .subMenuItem {
-  padding: 8px 12px;
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-  border-radius: 8px;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 10px;
-  transition: all 0.2s;
+  gap: 12px;
+  padding: 8px 24px 8px 48px;
+  border: none;
+  background: transparent;
+  color: #64748B;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
 }
 
 .subMenuItem:hover {
-  color: var(--color-primary);
-  background: rgba(26, 35, 126, 0.03);
+  color: #1756AA;
+  background: rgba(23, 86, 170, 0.05);
 }
 
 .subActive {
-  color: var(--color-primary) !important;
+  color: #1756AA;
   font-weight: 600;
+  background: transparent;
+}
+
+.subDot {
+  font-size: 0.4rem;
+  color: currentColor;
+  opacity: 0.6;
+  flex-shrink: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .subActive .subDot {
   opacity: 1;
+  color: #1756AA;
 }
 
-.subDot {
-  width: 5px;
-  height: 5px;
-  background: currentColor;
-  border-radius: 50%;
-  opacity: 0.5;
-}
-
-@keyframes energyPulse {
-  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3); }
-  50% { box-shadow: 0 0 12px 6px rgba(255, 255, 255, 0.1); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-}
-
-.bottomSection {
-  margin-top: auto; /* Push to the very bottom */
-  padding: 15px 10px;
-  border-top: 1px solid var(--color-border);
-  flex-shrink: 0; /* Prevent shrinking */
-  background: var(--color-surface);
-}
-
-.myServiceWrapper {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-}
-
-.myServiceBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
-  height: 44px;
-  background: var(--color-primary); /* Standard navy */
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s;
-  overflow: hidden;
-}
-
-.myServiceBtn:hover {
-  animation: energyPulse 1.5s infinite;
-  background: var(--color-primary); /* Keep navy always */
-}
-
-.collapsed .myServiceBtn {
-  width: 40px;
-  height: 40px;
-  padding: 0;
-}
-
-.btnIconMain {
-  font-size: 1.2rem;
-  flex-shrink: 0;
-}
-
-.btnTextMain {
-  font-weight: 800;
-  letter-spacing: 1px;
-  font-size: 0.8rem;
-  white-space: nowrap;
-}
-
-.serviceTooltip {
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  margin-left: 15px;
-  background: var(--color-primary);
-  color: white;
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: all 0.2s;
-  z-index: 1000;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-
-.myServiceWrapper:hover .serviceTooltip {
-  opacity: 1;
-  margin-left: 20px;
-}
-
-.collapsedHovered {
-  background: var(--color-primary) !important;
-  color: white !important;
-}
-
+/* ── HOVER POPUP (collapsed submenu flyout) ── */
 .hoverPopup {
   position: fixed;
   left: 74px;
-  margin-left: 0;
   min-width: 200px;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--color-border);
   z-index: 1000;
   padding: 8px 0;
 }
 
-/* Invisible bridge to prevent mouseleave when crossing the gap */
 .hoverPopup::before {
   content: '';
   position: absolute;
@@ -331,18 +280,29 @@
 .popupSubItem {
   padding: 8px 16px;
   font-size: 0.8rem;
-  color: var(--color-text-secondary);
+  color: #64748B;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 10px;
+  transition: all 0.2s ease;
 }
 
 .popupSubItem:hover {
   background: #f8f9fa;
-  color: var(--color-primary);
+  color: #1756AA;
 }
 
+.popupDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* ── OVERLAY (mobile) ── */
 .overlay {
   position: fixed;
   top: 0;
@@ -354,6 +314,7 @@
   backdrop-filter: blur(2px);
 }
 
+/* ── MOBILE ── */
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
@@ -365,7 +326,7 @@
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 20px 0 50px rgba(0, 0, 0, 0.2);
   }
-  
+
   @supports (height: 100dvh) {
     .sidebar {
       height: 100dvh;
@@ -373,22 +334,20 @@
   }
 
   .sidebarHeader {
-    height: 60px; /* Match main header height */
+    height: 60px;
     padding: 0 16px;
     background: #ffffff;
     border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .mobileHeaderContent {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
     width: 100%;
-  }
-
-  .mobileLogo {
-    height: 28px;
-    object-fit: contain;
   }
 
   .closeSidebarBtn {
@@ -403,18 +362,22 @@
     color: #64748b;
     font-size: 1.2rem;
     cursor: pointer;
+    transition: all 0.2s;
   }
-  
+
   .mobileOpen {
     left: 0 !important;
   }
 
-  .toggleArrow {
-    display: none;
+  .collapsed {
+    width: 240px;
   }
 
-  .collapsed {
-    width: 240px; /* On mobile, it's either open or hidden */
+  .collapsed .menuItem {
+    width: calc(100% - 20px);
+    padding: 0 14px;
+    margin: 2px 10px;
+    justify-content: flex-start;
   }
 
   .collapsed .menuText {
@@ -425,7 +388,8 @@
     display: flex;
   }
 
-  .collapsed .subMenu {
-    padding-left: 36px;
+  .collapsed .navMenu {
+    align-items: flex-start;
+    padding: 16px 0;
   }
 }

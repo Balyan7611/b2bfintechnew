@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-  FaTachometerAlt, FaCog, FaUserCheck, FaFileAlt, FaWallet, FaPlug
+  FaTachometerAlt, FaCog, FaUserCheck, FaFileAlt, FaWallet, FaHeadset
 } from 'react-icons/fa';
 import { FiChevronRight, FiChevronLeft, FiGrid, FiX } from 'react-icons/fi';
 import { toggleSidebar, setSidebarOpen } from '../../../store/slices/memberPanelSlice';
 import MyServicesModal from './MyServices';
 import styles from './MemberSidebar.module.css';
+import { SITE_CONFIG } from '../../../config/siteConfig';
 
 const MemberSidebar = () => {
   const dispatch = useDispatch();
@@ -79,6 +80,11 @@ const MemberSidebar = () => {
         { name: 'AEPS Wallet', path: '/member/dashboard/wallet/aeps' }
       ]
     },
+    {
+      name: 'Help & Support',
+      icon: <FaHeadset />,
+      path: '/member/dashboard/support'
+    }
   ];
 
   const handleMenuClick = (item) => {
@@ -103,8 +109,8 @@ const MemberSidebar = () => {
         ${isDarkMode ? styles.dark : ''}
       `}>
         
-        <div className={styles.sidebarHeader} style={isMobile ? { padding: '15px 20px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', borderBottom: '1px solid #e2e8f0', background: '#fff' } : {}}>
-          {isMobile && (
+        <div className={styles.sidebarHeader}>
+          {isMobile ? (
             <div className={styles.mobileHeaderContent} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#1e293b' }}>Menu</span>
               <button 
@@ -115,6 +121,18 @@ const MemberSidebar = () => {
                 <FiX />
               </button>
             </div>
+          ) : (
+            <>
+              {isSidebarOpen && (
+                <img src="/images/browser_logo.jpeg" alt={SITE_CONFIG.shortName} className={styles.sidebarLogo} />
+              )}
+              <button 
+                className={styles.desktopToggleBtn} 
+                onClick={() => dispatch(toggleSidebar())}
+              >
+                {isSidebarOpen ? <FiChevronLeft /> : <FiChevronRight />}
+              </button>
+            </>
           )}
         </div>
 

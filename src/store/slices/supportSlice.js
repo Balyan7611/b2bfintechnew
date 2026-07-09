@@ -1,7 +1,33 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { SITE_CONFIG } from '../../config/siteConfig';
 
-const SAMPLE_DATA = [];
+const SAMPLE_DATA = [
+  {
+    id: 1, ticketId: 'TCK739281', loginId: 'MEM101', name: 'John Doe', contact: '9876543210', service: 'DMT', 
+    message: 'Amount deducted but transfer failed.', date: '09/07/2026 10:30', 
+    status: 'Open', priority: 'High', approveDate: '-',
+    attachment: { type: 'image', url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&q=80', name: 'txn_proof.jpg' },
+    apiRequest: '{\n  "remitterId": "REM8291",\n  "amount": 5000\n}',
+    apiResponse: '{\n  "status": "FAILED",\n  "code": "ERR091",\n  "message": "Bank Gateway Timeout"\n}'
+  },
+  {
+    id: 2, ticketId: 'TCK482910', loginId: 'MEM105', name: 'Alice Smith', contact: '8765432109', service: 'Recharge', 
+    message: 'Recharge pending for last 2 hours.', date: '08/07/2026 14:15', 
+    status: 'Under Process', priority: 'Normal', approveDate: '-',
+    attachment: null,
+    apiRequest: '{\n  "operator": "Jio",\n  "mobile": "9876543210",\n  "amount": 299\n}',
+    apiResponse: '{\n  "status": "PENDING",\n  "txnId": "OP12984921"\n}'
+  }
+];
+
+const INITIAL_MESSAGES = {
+  1: [
+    { sender: 'member', text: 'Amount deducted but transfer failed.', time: '10:30 AM', attachment: { type: 'image', url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&q=80', name: 'txn_proof.jpg' } }
+  ],
+  2: [
+    { sender: 'member', text: 'Recharge pending for last 2 hours.', time: '02:15 PM', attachment: null }
+  ]
+};
 
 const MANAGE_SUPPORT_SAMPLE = [];
 
@@ -24,10 +50,10 @@ const initialState = {
   addSupportRows: 10,
   addSupportSearch: '',
 
-  // Chat Popup
+  // Chat Popup / Detail View
   isChatOpen: false,
   activeChatTicket: null,
-  chatMessages: {},   // keyed by ticket id: { [id]: [{sender, text, time}] }
+  chatMessages: INITIAL_MESSAGES,
   chatInput: '',
 };
 
@@ -50,6 +76,31 @@ const supportSlice = createSlice({
           ticket.approveDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
         }
       }
+    },
+
+    // Manage Tickets (Member)
+    createTicket: (state, action) => {
+      const { category, txnId, message, priority, attachment } = action.payload;
+      const newTicket = {
+        id: Date.now(),
+        ticketId: `TCK${Math.floor(100000 + Math.random() * 900000)}`,
+        loginId: 'MEM101', // Mock member ID
+        name: 'John Doe',
+        service: category,
+        message: message,
+        date: getFormattedDate(),
+        status: 'Open',
+        priority: priority || 'Normal',
+        approveDate: '-'
+      };
+      state.complainList.unshift(newTicket);
+      // add initial message
+      state.chatMessages[newTicket.id] = [{ 
+        sender: 'member', 
+        text: message, 
+        time: getFormattedDate().split(' ')[1],
+        attachment: attachment || null
+      }];
     },
 
     // Manage Support reducers
@@ -101,14 +152,19 @@ const supportSlice = createSlice({
       state.chatInput = '';
     },
     sendChatMessage: (state, action) => {
-      const { ticketId, text } = action.payload;
+      const { ticketId, text, sender, attachment } = action.payload;
       const now = new Date();
       const hours = now.getHours();
       const mins = now.getMinutes().toString().padStart(2, '0');
       const ampm = hours >= 12 ? 'PM' : 'AM';
       const time = `${hours % 12 || 12}:${mins} ${ampm}`;
       if (!state.chatMessages[ticketId]) state.chatMessages[ticketId] = [];
-      state.chatMessages[ticketId].push({ sender: 'admin', text, time });
+      state.chatMessages[ticketId].push({ 
+        sender: sender || 'admin', 
+        text, 
+        time,
+        attachment: attachment || null 
+      });
       state.chatInput = '';
     },
     setChatInput: (state, action) => { state.chatInput = action.payload; },
@@ -116,7 +172,7 @@ const supportSlice = createSlice({
 });
 
 export const {
-  setCurrentPage, setRowsPerPage, setSearchQuery, setFilterStatus, updateTicketStatus,
+  setCurrentPage, setRowsPerPage, setSearchQuery, setFilterStatus, updateTicketStatus, createTicket,
   addSupportEntry, updateSupportEntry, deleteSupportEntry, toggleSupportStatus,
   setAddSupportPage, setAddSupportRows, setAddSupportSearch,
   openChat, closeChat, sendChatMessage, setChatInput,

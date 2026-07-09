@@ -190,22 +190,23 @@ const MemberHeader = () => {
     <header className={`${styles.header} ${isDarkMode ? styles.dark : ''}`}>
       <div className={styles.left}>
         {isMobile ? (
-          <button className={styles.hamburgerBtn} onClick={() => dispatch(toggleSidebar())}>
-            <FaBars />
-          </button>
+          <>
+            <button className={styles.hamburgerBtn} onClick={() => dispatch(toggleSidebar())}>
+              <FaBars />
+            </button>
+            <img 
+              src="/images/browser_logo.jpeg" 
+              alt={SITE_CONFIG.shortName} 
+              className={styles.headerLogo} 
+            />
+          </>
         ) : (
-          <button 
-            className={styles.desktopToggleBtn} 
-            onClick={() => dispatch(toggleSidebar())}
-          >
-            {isSidebarOpen ? <FiChevronLeft /> : <FiChevronRight />}
-          </button>
+          <img 
+            src="/images/browser_logo.jpeg" 
+            alt={SITE_CONFIG.shortName} 
+            className={styles.headerLogo} 
+          />
         )}
-        <img 
-          src="/images/browser_logo.jpeg" 
-          alt={SITE_CONFIG.shortName} 
-          className={styles.headerLogo} 
-        />
       </div>
 
       <div className={styles.center}>

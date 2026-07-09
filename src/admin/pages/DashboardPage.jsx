@@ -1563,7 +1563,7 @@ const DashboardPage = () => {
                         </div>
                       </div>
                       <div className={styles.chartWrapper}>
-                        <ResponsiveContainer width="100%" height={220}>
+                        <ResponsiveContainer width="100%" height={190}>
                           {adminChartView === 'revenue' ? (
                             <AreaChart data={revenueProfitData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                               <defs>
