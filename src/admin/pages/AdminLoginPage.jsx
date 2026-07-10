@@ -175,7 +175,7 @@ const AdminLoginPage = () => {
           sessionStorage.setItem('access_token', token);
           
           // Save the secure session
-          saveSession({ adminId, fullName: decoded.name || 'Admin', role: 1 });
+          saveSession({ adminId, fullName: decoded.name || 'Admin', role: 1, msrno: decoded.sub || 0 });
           
           navigate('/admin/dashboard', { replace: true });
         } else {

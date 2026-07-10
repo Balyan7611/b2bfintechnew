@@ -62,6 +62,7 @@ export const saveSession = (user) => {
     name: user?.fullName || user?.name || 'User',
     sessionId,
     role: user?.role || 2,
+    msrno: user?.msrno || 0,
     loggedInAt: new Date().toISOString()
   });
   localStorage.setItem(SESSION_KEY, sessionData);

@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { updateTicketStatus, openChat } from '../../../store/slices/supportSlice';
-import { FaSearch, FaImage, FaEye, FaCommentDots, FaTimes, FaFileAlt, FaCopy } from 'react-icons/fa';
+import { updateTicketStatus, openChat, sendChatMessage } from '../../../store/slices/supportSlice';
+import { FaSearch, FaImage, FaEye, FaCommentDots, FaTimes, FaFileAlt, FaCopy, FaCheck } from 'react-icons/fa';
 import sharedStyles from '../common/SharedTable.module.css';
 import styles from './SupportList.module.css';
 import ChatPopup from './ChatPopup';
 
 const SupportList = () => {
   const dispatch = useDispatch();
-  const { complainList, isChatOpen } = useSelector((s) => s.support);
+  const { complainList, isChatOpen, chatMessages } = useSelector((s) => s.support);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPriority, setFilterPriority] = useState('All');
@@ -20,8 +20,19 @@ const SupportList = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   
-  // Detail Viewer Modal State
   const [detailTicket, setDetailTicket] = useState(null);
+  const [adminReplyText, setAdminReplyText] = useState('');
+  const [copiedField, setCopiedField] = useState(null); // 'request' | 'response'
+  const [showHistoryPopup, setShowHistoryPopup] = useState(false);
+
+  const handleCopyText = (text, field) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => {
+      setCopiedField(null);
+    }, 1500);
+  };
 
   // Filter Data
   const filteredData = complainList.filter(item => {
@@ -64,6 +75,18 @@ const SupportList = () => {
       setIsDragging(true);
       setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
     }
+  };
+
+  const handleSendReply = () => {
+    if (!adminReplyText.trim() || !detailTicket) return;
+    dispatch(sendChatMessage({
+      ticketId: detailTicket.id,
+      text: adminReplyText,
+      sender: 'admin'
+    }));
+    // Auto-update status to Under Process when admin replies
+    dispatch(updateTicketStatus({ id: detailTicket.id, status: 'Under Process' }));
+    setAdminReplyText('');
   };
 
   const handleMouseMove = (e) => {
@@ -214,7 +237,15 @@ const SupportList = () => {
             <div className={styles.detailBody}>
               <div className={styles.contentRow}>
                 <div className={styles.messageSection}>
-                  <label className={styles.sectionLabel}>User Message</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label className={styles.sectionLabel} style={{ marginBottom: 0 }}>User Message</label>
+                    <button 
+                      className={styles.actionBtnGreen} 
+                      onClick={() => dispatch(openChat(detailTicket))}
+                    >
+                      <FaCommentDots /> Reply
+                    </button>
+                  </div>
                   <div className={styles.cleanMessageBox}>
                     {detailTicket.message}
                   </div>
@@ -243,32 +274,24 @@ const SupportList = () => {
                 </div>
               </div>
 
+
+
               <div className={styles.jsonRow}>
                 <div className={styles.jsonBox}>
                   <div className={styles.apiBoxHeader}>
                     <label className={styles.sectionLabel}>API Request</label>
-                    <button 
-                      className={styles.copyBtn} 
-                      onClick={() => navigator.clipboard.writeText(detailTicket.apiRequest)}
-                    >
-                      <FaCopy /> Copy
-                    </button>
                   </div>
                   <pre className={styles.jsonBlock}>{detailTicket.apiRequest || 'No Request Payload'}</pre>
                 </div>
                 <div className={styles.jsonBox}>
                   <div className={styles.apiBoxHeader}>
                     <label className={styles.sectionLabel}>API Response</label>
-                    <button 
-                      className={styles.copyBtn} 
-                      onClick={() => navigator.clipboard.writeText(detailTicket.apiResponse)}
-                    >
-                      <FaCopy /> Copy
-                    </button>
                   </div>
                   <pre className={styles.jsonBlock}>{detailTicket.apiResponse || 'No Response Payload'}</pre>
                 </div>
               </div>
+
+
             </div>
           </div>
         </div>
@@ -309,6 +332,7 @@ const SupportList = () => {
       )}
 
       {/* Admin Reply Chat Popup */}
+      {/* ChatPopup for regular bottom chat */}
       {isChatOpen && <ChatPopup isMember={false} />}
     </div>
   );

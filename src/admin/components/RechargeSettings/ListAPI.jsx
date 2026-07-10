@@ -1,38 +1,142 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FiSearch, FiEdit, FiSettings, FiActivity, FiServer, FiX, FiCheck, FiChevronLeft, FiChevronRight, FiDatabase, FiPlus, FiCpu, FiTrendingUp, FiTrash2
 } from 'react-icons/fi';
 import { 
-  FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint 
+  FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint, FaEllipsisV, FaCheckCircle, FaExclamationCircle, FaToggleOn, FaToggleOff
 } from 'react-icons/fa';
 import { toggleApiStatus } from '../../../store/slices/rechargeSlice';
 import styles from '../MemberPages/MemberPages.module.css';
+import sharedStyles from '../../../shared/components/common/SharedTable.module.css';
+import { API } from '../../../api/endpoints';
 
 const ListAPI = () => {
   const dispatch = useDispatch();
-  const { apiList: reduxApiList } = useSelector(state => state.recharge);
-  const [localApiList, setLocalApiList] = useState(null);
-  const apis = localApiList !== null ? localApiList : reduxApiList;
+  const [apis, setApis] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState(''); // 'api', 'operator', 'comm', 'add'
   const [selectedApi, setSelectedApi] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, api: null });
+  const [showStatusConfirmModal, setShowStatusConfirmModal] = useState({ isOpen: false, api: null });
+  const [activeActionMenuId, setActiveActionMenuId] = useState(null);
+
+  // Form states
+  const [apiname, setApiname] = useState('');
+  const [apiUrl, setApiUrl] = useState('');
+  const [merchantKey, setMerchantKey] = useState('');
+  const [callbackUrl, setCallbackUrl] = useState('');
+  const [isActive, setIsActive] = useState(true);
+
+  // Close action menu on click outside
+  useEffect(() => {
+    const handleOutsideClick = () => setActiveActionMenuId(null);
+    window.addEventListener('click', handleOutsideClick);
+    return () => window.removeEventListener('click', handleOutsideClick);
+  }, []);
+
+  const fetchApis = async () => {
+    setLoading(true);
+    try {
+      const res = await API.masterApi.getAll();
+      if (res && Array.isArray(res.data)) {
+        setApis(res.data);
+      } else if (Array.isArray(res)) {
+        setApis(res);
+      } else {
+        setApis([]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch Master APIs from database:", err);
+      setApis([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchApis();
+  }, []);
 
   const openModal = (type, api) => {
     setModalType(type);
     setSelectedApi(api);
+    if (api) {
+      setApiname(api.apiname || '');
+      setApiUrl(api.url || '');
+      setMerchantKey(api.prm1val || '');
+      setCallbackUrl(api.callBackUrl || '');
+      setIsActive(api.isActive !== false);
+    } else {
+      setApiname('');
+      setApiUrl('');
+      setMerchantKey('');
+      setCallbackUrl('');
+      setIsActive(true);
+    }
     setIsModalOpen(true);
+  };
+
+  const handleSaveOrUpdate = async () => {
+    try {
+      if (modalType === 'add') {
+        const payload = {
+          apiname,
+          url: apiUrl,
+          prm1val: merchantKey,
+          callBackUrl: callbackUrl,
+          isActive,
+          createdBy: 1,
+          modifiedBy: 1
+        };
+        await API.masterApi.create(payload);
+      } else {
+        const payload = {
+          ...selectedApi,
+          apiname,
+          url: apiUrl,
+          prm1val: merchantKey,
+          callBackUrl: callbackUrl,
+          isActive,
+          modifiedBy: 1
+        };
+        await API.masterApi.update(payload);
+      }
+      setIsModalOpen(false);
+      fetchApis();
+    } catch (err) {
+      console.error("Failed to save/update API in database:", err);
+    }
+  };
+
+  const handleToggleStatus = async (api) => {
+    try {
+      const payload = {
+        ...api,
+        isActive: !api.isActive
+      };
+      await API.masterApi.update(payload);
+      fetchApis();
+    } catch (err) {
+      console.error("Failed to toggle status in database:", err);
+    }
   };
 
   const handleDeleteClick = (api) => {
     setShowConfirmModal({ isOpen: true, api });
   };
 
-  const confirmDelete = () => {
-    setLocalApiList(apis.filter(a => a.id !== showConfirmModal.api.id));
-    setShowConfirmModal({ isOpen: false, api: null });
+  const confirmDelete = async () => {
+    try {
+      await API.masterApi.delete(showConfirmModal.api.id);
+      setShowConfirmModal({ isOpen: false, api: null });
+      fetchApis();
+    } catch (err) {
+      console.error("Failed to delete API from database:", err);
+      setShowConfirmModal({ isOpen: false, api: null });
+    }
   };
 
   return (
@@ -84,24 +188,27 @@ const ListAPI = () => {
 
         {/* ── TABLE ── */}
         <div className={styles.tableWrapper}>
-          <table className={styles.table} style={{ minWidth: '1300px' }}>
+          <table className={styles.table} style={{ minWidth: '800px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
                 <th style={{ width: '60px' }}>S.NO</th>
+                <th style={{ width: '80px', textAlign: 'center' }}>ACTION</th>
                 <th style={{ width: '250px' }}>API NAME</th>
                 <th style={{ textAlign: 'center', width: '180px' }}>CREATED</th>
                 <th style={{ textAlign: 'center', width: '180px' }}>LAST SYNC</th>
-                <th style={{ textAlign: 'center', width: '100px' }}>EDIT API</th>
-                <th style={{ textAlign: 'center', width: '100px' }}>EDIT OP</th>
-                <th style={{ textAlign: 'center', width: '100px' }}>SET COMM.</th>
-                <th style={{ textAlign: 'center', width: '100px' }}>STATUS</th>
-                <th style={{ textAlign: 'center', width: '100px' }}>DELETE</th>
+                <th style={{ textAlign: 'center', width: '120px' }}>STATUS</th>
               </tr>
             </thead>
             <tbody>
-              {apis.length === 0 ? (
+              {loading ? (
                 <tr>
-                  <td colSpan="9" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
+                    <div>Loading API Gateways...</div>
+                  </td>
+                </tr>
+              ) : apis.length === 0 ? (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
                     <div>No API Gateways configured</div>
                   </td>
                 </tr>
@@ -109,39 +216,160 @@ const ListAPI = () => {
                 apis.map((api, idx) => (
                   <tr key={api.id} className={styles.hoverRow}>
                     <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{idx + 1}</td>
+                    <td style={{ textAlign: 'center', position: 'relative' }}>
+                      <button 
+                        style={{
+                          background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                          color: 'white',
+                          border: 'none',
+                          padding: '6px 14px',
+                          borderRadius: '8px',
+                          fontSize: '0.75rem',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.2), 0 2px 4px -1px rgba(16, 185, 129, 0.1)',
+                          transition: 'all 0.2s',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px'
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveActionMenuId(activeActionMenuId === api.id ? null : api.id);
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-1px)';
+                          e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(16, 185, 129, 0.3), 0 4px 6px -2px rgba(16, 185, 129, 0.15)';
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(16, 185, 129, 0.2), 0 2px 4px -1px rgba(16, 185, 129, 0.1)';
+                        }}
+                      >
+                        Action <FaEllipsisV size={9} />
+                      </button>
+                      
+                      {activeActionMenuId === api.id && (
+                        <div 
+                          style={{
+                            position: 'absolute',
+                            left: '110px',
+                            top: '-10px',
+                            background: '#ffffff',
+                            borderRadius: '8px',
+                            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -5px rgba(0, 0, 0, 0.1)',
+                            border: '1px solid #E2E8F0',
+                            zIndex: 10,
+                            width: '180px',
+                            padding: '6px 0'
+                          }}
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <button
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              width: '100%',
+                              padding: '10px 14px',
+                              border: 'none',
+                              background: 'transparent',
+                              fontSize: '0.85rem',
+                              color: '#1E293B',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              textAlign: 'left'
+                            }}
+                            onClick={() => {
+                              openModal('api', api);
+                              setActiveActionMenuId(null);
+                            }}
+                          >
+                            <FiEdit style={{ color: '#3B82F6', fontSize: '1rem' }} /> Edit API
+                          </button>
+                          
+                          <button
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              width: '100%',
+                              padding: '10px 14px',
+                              border: 'none',
+                              background: 'transparent',
+                              fontSize: '0.85rem',
+                              color: '#475569',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              textAlign: 'left'
+                            }}
+                            onClick={() => {
+                              setShowStatusConfirmModal({ isOpen: true, api });
+                              setActiveActionMenuId(null);
+                            }}
+                          >
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              {api.isActive ? (
+                                <FaToggleOn size={18} style={{ color: '#10B981' }} />
+                              ) : (
+                                <FaToggleOff size={18} style={{ color: '#64748B' }} />
+                              )}
+                              Status
+                            </span>
+                            <span style={{ 
+                              fontSize: '0.7rem', 
+                              padding: '2px 6px', 
+                              borderRadius: '4px', 
+                              background: api.isActive ? '#D1FAE5' : '#F3F4F6', 
+                              color: api.isActive ? '#065F46' : '#374151',
+                              fontWeight: '700'
+                            }}>
+                              {api.isActive ? 'Active' : 'Deactive'}
+                            </span>
+                          </button>
+
+                          <button
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              width: '100%',
+                              padding: '10px 14px',
+                              border: 'none',
+                              background: 'transparent',
+                              fontSize: '0.85rem',
+                              color: '#ef4444',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              textAlign: 'left'
+                            }}
+                            onClick={() => {
+                              handleDeleteClick(api);
+                              setActiveActionMenuId(null);
+                            }}
+                          >
+                            <FiTrash2 style={{ fontSize: '1rem' }} /> Delete API
+                          </button>
+                        </div>
+                      )}
+                    </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{ width: '32px', height: '32px', background: 'rgba(23, 86, 170, 0.06)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA' }}>
                            <FiCpu />
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                           <span style={{ color: '#1756AA', fontSize: '0.9rem', fontWeight: 800 }}>{api.name}</span>
-                           <small style={{ color: '#718096', fontSize: '0.7rem', fontWeight: 600 }}>ID: #{api.apiId}</small>
+                           <span style={{ color: '#1756AA', fontSize: '0.9rem', fontWeight: 800 }}>{api.apiname}</span>
+                           <small style={{ color: '#718096', fontSize: '0.7rem', fontWeight: 600 }}>ID: #{api.apiid || api.id}</small>
                         </div></div></td>
-                    <td style={{ textAlign: 'center', fontSize: '0.8rem', color: '#718096', fontWeight: 600 }}>{api.createDate}</td>
-                    <td style={{ textAlign: 'center', fontSize: '0.8rem', color: '#718096', fontWeight: 600 }}>{api.lastUpdate}</td>
+                    <td style={{ textAlign: 'center', fontSize: '0.8rem', color: '#718096', fontWeight: 600 }}>{api.createdDate ? new Date(api.createdDate).toLocaleDateString() : '-'}</td>
+                    <td style={{ textAlign: 'center', fontSize: '0.8rem', color: '#718096', fontWeight: 600 }}>{api.modifiedDate ? new Date(api.modifiedDate).toLocaleDateString() : '-'}</td>
                     <td style={{ textAlign: 'center' }}>
-                      <button className={styles.editBtn} onClick={() => openModal('api', api)} style={{ background: 'transparent', border: 'none', color: '#1756AA', fontSize: '1.1rem', padding: 0 }} title="Edit API Details"><FiEdit /></button>
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      <button className={styles.editBtn} onClick={() => openModal('operator', api)} style={{ background: 'transparent', border: 'none', color: '#1756AA', fontSize: '1.1rem', padding: 0 }} title="Manage Operators"><FiEdit /></button>
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      <button className={styles.editBtn} onClick={() => openModal('comm', api)} style={{ background: 'transparent', border: 'none', color: '#1756AA', fontSize: '1.1rem', padding: 0 }} title="Set Commission"><FiEdit /></button>
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      <label className={styles.switch} style={{ transform: 'scale(0.8)', margin: 0 }}>
-                        <input type="checkbox" checked={api.status} onChange={() => dispatch(toggleApiStatus(api.id))} />
-                        <span className={styles.slider}></span>
-                      </label>
-                      {api.status && (
-                        <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#1E7E34', marginTop: '4px', textTransform: 'uppercase' }}>Online</div>
-                      )}
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      <button className={styles.deleteBtn} onClick={() => handleDeleteClick(api)} style={{ background: 'transparent', border: 'none', color: '#E53E3E', fontSize: '1.1rem', padding: 0 }} title="Delete API">
-                        <FiTrash2 />
-                      </button>
+                      <span className={`${sharedStyles.statusPill} ${api.isActive ? sharedStyles.success : sharedStyles.pending}`}>
+                        {api.isActive ? 'Active' : 'Deactive'}
+                      </span>
                     </td>
                   </tr>
                 ))
@@ -185,30 +413,30 @@ const ListAPI = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div className={styles.formGroup}>
                   <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Gateway Name</label>
-                  <input type="text" className={styles.inputControl} autoComplete="off" defaultValue={modalType === 'add' ? '' : selectedApi?.name} placeholder="Enter provider name" style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
+                  <input type="text" className={styles.inputControl} autoComplete="off" value={apiname} onChange={e => setApiname(e.target.value)} placeholder="Enter provider name" style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
                 </div>
                 
                 <div className={styles.formGroup}>
                   <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>API URL</label>
-                  <input type="text" className={styles.inputControl} autoComplete="off" placeholder="Enter endpoint URL" style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
+                  <input type="text" className={styles.inputControl} autoComplete="off" value={apiUrl} onChange={e => setApiUrl(e.target.value)} placeholder="Enter endpoint URL" style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Merchant Key</label>
-                  <input type="password" className={styles.inputControl} autoComplete="new-password" placeholder="••••••••••••" style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
+                  <input type="password" className={styles.inputControl} autoComplete="new-password" value={merchantKey} onChange={e => setMerchantKey(e.target.value)} placeholder="••••••••••••" style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Callback URL</label>
-                  <input type="text" className={styles.inputControl} autoComplete="off" placeholder="https://yourdomain.com/callback" style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
+                  <input type="text" className={styles.inputControl} autoComplete="off" value={callbackUrl} onChange={e => setCallbackUrl(e.target.value)} placeholder="https://yourdomain.com/callback" style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Gateway Status</label>
                   <div style={{ background: '#F8FAFC', padding: '12px 20px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #E2E8F0' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#1756AA' }}>ACTIVE</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#1756AA' }}>{isActive ? 'ACTIVE' : 'INACTIVE'}</span>
                     <label className={styles.switch} style={{ transform: 'scale(0.8)', margin: 0 }}>
-                      <input type="checkbox" defaultChecked={selectedApi ? selectedApi.status : true} />
+                      <input type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} />
                       <span className={styles.slider}></span>
                     </label>
                   </div>
@@ -239,7 +467,7 @@ const ListAPI = () => {
                   }} 
                   onMouseOver={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)'; }}
                   onMouseOut={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)'; }}
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={handleSaveOrUpdate}
                 >
                   {modalType === 'add' ? 'Save Integration' : 'Update Gateway'} <FiChevronRight />
                 </button>
@@ -248,6 +476,7 @@ const ListAPI = () => {
           </div>
         </div>
       )}
+
       {/* CONFIRM DELETE MODAL */}
       {showConfirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3600 }}>
@@ -272,6 +501,42 @@ const ListAPI = () => {
                   style={{ flex: 1, padding: '10px', background: '#E53E3E', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
                 >
                   Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM STATUS TOGGLE MODAL */}
+      {showStatusConfirmModal.isOpen && (
+        <div className={styles.modalOverlay} style={{ zIndex: 3600 }}>
+          <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+              <div style={{ width: '50px', height: '50px', background: '#EAF5FF', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3B82F6', marginBottom: '16px' }}>
+                <FaExclamationCircle style={{ fontSize: '1.2rem' }} />
+              </div>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', color: '#0D1B3E' }}>
+                {showStatusConfirmModal.api?.isActive ? 'Deactivate API' : 'Activate API'}
+              </h3>
+              <p style={{ margin: '0 0 20px 0', fontSize: '0.85rem', color: '#718096', lineHeight: '1.4' }}>
+                Are you sure you want to {showStatusConfirmModal.api?.isActive ? 'deactivate' : 'activate'} this API gateway?
+              </p>
+              <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+                <button
+                  onClick={() => setShowStatusConfirmModal({ isOpen: false, api: null })}
+                  style={{ flex: 1, padding: '10px', background: '#F1F5F9', border: 'none', borderRadius: '8px', color: '#4E6080', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    handleToggleStatus(showStatusConfirmModal.api);
+                    setShowStatusConfirmModal({ isOpen: false, api: null });
+                  }}
+                  style={{ flex: 1, padding: '10px', background: '#3B82F6', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Confirm
                 </button>
               </div>
             </div>

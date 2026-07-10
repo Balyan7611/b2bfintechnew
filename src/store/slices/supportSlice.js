@@ -1,33 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { SITE_CONFIG } from '../../config/siteConfig';
 
-const SAMPLE_DATA = [
-  {
-    id: 1, ticketId: 'TCK739281', loginId: 'MEM101', name: 'John Doe', contact: '9876543210', service: 'DMT', 
-    message: 'Amount deducted but transfer failed.', date: '09/07/2026 10:30', 
-    status: 'Open', priority: 'High', approveDate: '-',
-    attachment: { type: 'image', url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&q=80', name: 'txn_proof.jpg' },
-    apiRequest: '{\n  "remitterId": "REM8291",\n  "amount": 5000\n}',
-    apiResponse: '{\n  "status": "FAILED",\n  "code": "ERR091",\n  "message": "Bank Gateway Timeout"\n}'
-  },
-  {
-    id: 2, ticketId: 'TCK482910', loginId: 'MEM105', name: 'Alice Smith', contact: '8765432109', service: 'Recharge', 
-    message: 'Recharge pending for last 2 hours.', date: '08/07/2026 14:15', 
-    status: 'Under Process', priority: 'Normal', approveDate: '-',
-    attachment: null,
-    apiRequest: '{\n  "operator": "Jio",\n  "mobile": "9876543210",\n  "amount": 299\n}',
-    apiResponse: '{\n  "status": "PENDING",\n  "txnId": "OP12984921"\n}'
-  }
-];
+const SAMPLE_DATA = [];
 
-const INITIAL_MESSAGES = {
-  1: [
-    { sender: 'member', text: 'Amount deducted but transfer failed.', time: '10:30 AM', attachment: { type: 'image', url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&q=80', name: 'txn_proof.jpg' } }
-  ],
-  2: [
-    { sender: 'member', text: 'Recharge pending for last 2 hours.', time: '02:15 PM', attachment: null }
-  ]
-};
+const INITIAL_MESSAGES = {};
 
 const MANAGE_SUPPORT_SAMPLE = [];
 
@@ -37,8 +13,11 @@ const getFormattedDate = () => {
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
+const savedTickets = localStorage.getItem('bss_tickets');
+const savedMessages = localStorage.getItem('bss_chat_messages');
+
 const initialState = {
-  complainList: SAMPLE_DATA,
+  complainList: savedTickets ? JSON.parse(savedTickets) : [],
   currentPage: 1,
   rowsPerPage: 10,
   searchQuery: '',
@@ -53,7 +32,7 @@ const initialState = {
   // Chat Popup / Detail View
   isChatOpen: false,
   activeChatTicket: null,
-  chatMessages: INITIAL_MESSAGES,
+  chatMessages: savedMessages ? JSON.parse(savedMessages) : {},
   chatInput: '',
 };
 
@@ -75,23 +54,28 @@ const supportSlice = createSlice({
           const today = new Date();
           ticket.approveDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
         }
+        localStorage.setItem('bss_tickets', JSON.stringify(state.complainList));
       }
     },
 
     // Manage Tickets (Member)
     createTicket: (state, action) => {
-      const { category, txnId, message, priority, attachment } = action.payload;
+      const { category, txnId, message, priority, attachment, loginId, name, contact, apiRequest, apiResponse } = action.payload;
       const newTicket = {
         id: Date.now(),
         ticketId: `TCK${Math.floor(100000 + Math.random() * 900000)}`,
-        loginId: 'MEM101', // Mock member ID
-        name: 'John Doe',
+        loginId: loginId || 'MEM101',
+        name: name || 'John Doe',
+        contact: contact || 'N/A',
         service: category,
         message: message,
         date: getFormattedDate(),
         status: 'Open',
         priority: priority || 'Normal',
-        approveDate: '-'
+        approveDate: '-',
+        attachment: attachment || null,
+        apiRequest: apiRequest || '',
+        apiResponse: apiResponse || ''
       };
       state.complainList.unshift(newTicket);
       // add initial message
@@ -101,6 +85,9 @@ const supportSlice = createSlice({
         time: getFormattedDate().split(' ')[1],
         attachment: attachment || null
       }];
+
+      localStorage.setItem('bss_tickets', JSON.stringify(state.complainList));
+      localStorage.setItem('bss_chat_messages', JSON.stringify(state.chatMessages));
     },
 
     // Manage Support reducers
@@ -166,8 +153,40 @@ const supportSlice = createSlice({
         attachment: attachment || null 
       });
       state.chatInput = '';
+
+      localStorage.setItem('bss_chat_messages', JSON.stringify(state.chatMessages));
     },
     setChatInput: (state, action) => { state.chatInput = action.payload; },
+
+    // Edit & Delete Tickets (Member)
+    deleteTicket: (state, action) => {
+      const ticketIdToDelete = action.payload;
+      state.complainList = state.complainList.filter(t => t.id !== ticketIdToDelete);
+      delete state.chatMessages[ticketIdToDelete];
+      localStorage.setItem('bss_tickets', JSON.stringify(state.complainList));
+      localStorage.setItem('bss_chat_messages', JSON.stringify(state.chatMessages));
+    },
+    updateTicket: (state, action) => {
+      const { id, category, txnId, message, priority, attachment, apiRequest, apiResponse } = action.payload;
+      const ticket = state.complainList.find(t => t.id === id);
+      if (ticket) {
+        ticket.service = category;
+        ticket.message = message;
+        ticket.txnId = txnId;
+        ticket.priority = priority || 'Normal';
+        ticket.attachment = attachment;
+        ticket.apiRequest = apiRequest;
+        ticket.apiResponse = apiResponse;
+        
+        // update initial chat message too if it was changed
+        if (state.chatMessages[id] && state.chatMessages[id].length > 0) {
+          state.chatMessages[id][0].text = message;
+          state.chatMessages[id][0].attachment = attachment;
+        }
+        localStorage.setItem('bss_tickets', JSON.stringify(state.complainList));
+        localStorage.setItem('bss_chat_messages', JSON.stringify(state.chatMessages));
+      }
+    }
   },
 });
 
@@ -176,6 +195,7 @@ export const {
   addSupportEntry, updateSupportEntry, deleteSupportEntry, toggleSupportStatus,
   setAddSupportPage, setAddSupportRows, setAddSupportSearch,
   openChat, closeChat, sendChatMessage, setChatInput,
+  deleteTicket, updateTicket
 } = supportSlice.actions;
 
 export default supportSlice.reducer;

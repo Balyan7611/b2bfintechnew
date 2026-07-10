@@ -56,7 +56,8 @@ import RefundPolicyPage from './public/pages/RefundPolicyPage';
 import RegisterDetailsPage from './public/pages/RegisterDetailsPage';
 import TermsPage from './public/pages/TermsPage';
 import { AuthGuard } from './security/auth-guard';
-import { clearSession, isTokenExpired } from './utils/authUtils';
+import { clearSession, isTokenExpired, getSession } from './utils/authUtils';
+import { API } from './api/endpoints';
 import { setNavScrolled, setNotification } from './store/slices/uiSlice';
 import GlobalLoaderAndToast from './components/GlobalLoaderAndToast';
 
@@ -119,11 +120,103 @@ function App() {
       const isAdminPath = location.pathname.startsWith('/admin');
       const isApiPath = location.pathname.startsWith('/api-panel');
       clearSession();
+      sessionStorage.removeItem('bss_session_registered');
       setSessionExpiredModal({
         show: true,
         message: "Your session has expired. Please log in again.",
         redirectUrl: isAdminPath ? '/admin/login' : isApiPath ? '/api-panel/login' : '/member/login'
       });
+    };
+
+    const handleConcurrentLogout = () => {
+      const isDashboardPath = location.pathname.startsWith('/member/dashboard') || location.pathname.startsWith('/admin/dashboard') || location.pathname.startsWith('/api-panel/dashboard') || location.pathname === '/dashboard';
+      if (!isDashboardPath || window.__isLoggingOut) return;
+
+      window.__isLoggingOut = true;
+      const isAdminPath = location.pathname.startsWith('/admin');
+      const isApiPath = location.pathname.startsWith('/api-panel');
+      clearSession();
+      sessionStorage.removeItem('bss_session_registered');
+      setSessionExpiredModal({
+        show: true,
+        message: "You have been logged out because your account was logged in from another device or PC.",
+        redirectUrl: isAdminPath ? '/admin/login' : isApiPath ? '/api-panel/login' : '/member/login'
+      });
+    };
+
+    const registerSessionOnBackend = async (session) => {
+      if (sessionStorage.getItem('bss_session_registered') === 'true') return;
+      
+      try {
+        const userAgent = navigator.userAgent;
+        let browserName = "Browser";
+        let osName = "OS";
+        if (userAgent.indexOf("Chrome") > -1) browserName = "Chrome";
+        else if (userAgent.indexOf("Safari") > -1) browserName = "Safari";
+        else if (userAgent.indexOf("Firefox") > -1) browserName = "Firefox";
+
+        if (userAgent.indexOf("Windows") > -1) osName = "Windows";
+        else if (userAgent.indexOf("Mac") > -1) osName = "MacOS";
+        else if (userAgent.indexOf("Linux") > -1) osName = "Linux";
+        else if (userAgent.indexOf("Android") > -1) osName = "Android";
+        else if (userAgent.indexOf("iPhone") > -1) osName = "iOS";
+
+        await API.userLoginHistory.create({
+          loginType: session.role === 1 ? "Admin" : "Member",
+          loginStatus: "Success",
+          loginIpaddress: "127.0.0.1",
+          deviceId: "Web-Browser",
+          deviceName: `${osName} - ${browserName}`,
+          os: osName,
+          browser: browserName,
+          location: "Web Session",
+          latitude: 0,
+          longitude: 0,
+          sessionId: session.sessionId,
+          msrno: session.msrno || 0,
+          isActiveSession: true
+        }, { hideLoader: true });
+
+        sessionStorage.setItem('bss_session_registered', 'true');
+      } catch (err) {
+        console.error("Concurrent login registration failed:", err);
+      }
+    };
+
+    const checkConcurrentSession = async (session) => {
+      try {
+        const response = await API.userLoginHistory.getAll();
+        let histories = [];
+        if (response && response.data) {
+          histories = response.data;
+        } else if (Array.isArray(response)) {
+          histories = response;
+        }
+
+        if (histories && histories.length > 0) {
+          let myHistories = [];
+          if (session.role === 1) {
+            myHistories = histories.filter(h => h.loginType === 'Admin');
+          } else {
+            myHistories = histories.filter(h => String(h.msrno) === String(session.msrno) && h.loginType !== 'Admin');
+          }
+
+          if (myHistories.length > 0) {
+            myHistories.sort((a, b) => b.id - a.id);
+            const latest = myHistories[0];
+
+            if (latest && latest.sessionId && latest.sessionId !== session.sessionId) {
+              handleConcurrentLogout();
+            }
+          }
+        }
+      } catch (err) {
+        if (err?.response?.status === 401) {
+          console.warn("Session expired during concurrent check.");
+        } else {
+          console.error("Concurrent session check failed:", err);
+        }
+      }
     };
 
     const checkTokenExpiration = () => {
@@ -147,6 +240,14 @@ function App() {
         if (session) {
           try {
             const parsedSession = JSON.parse(session);
+            
+            // 1. Register the session to the server if not done yet
+            registerSessionOnBackend(parsedSession);
+
+            // 2. Query the server to see if a newer session ID has logged in
+            checkConcurrentSession(parsedSession);
+
+            // 3. Absolute inactivity check
             if (parsedSession.loggedInAt) {
               const loginTime = new Date(parsedSession.loggedInAt).getTime();
               if (!isNaN(loginTime)) {

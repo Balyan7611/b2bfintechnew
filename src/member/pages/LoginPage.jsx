@@ -272,7 +272,7 @@ const LoginPage = () => {
           sessionStorage.setItem('member_token', token);
           
           // Save session
-          saveSession({ mobile: userId, fullName: decoded.name || 'Member', role: 2 });
+          saveSession({ mobile: userId, fullName: decoded.name || 'Member', role: 2, msrno: decoded.sub || 0 });
           
           navigate('/member/dashboard', { replace: true });
         } else {

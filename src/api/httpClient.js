@@ -89,20 +89,26 @@ httpClient.interceptors.request.use((config) => {
     }
     
     if (config.data instanceof FormData) {
-        config.headers['Content-Type'] = 'multipart/form-data';
+        delete config.headers['Content-Type'];
     }
     
-    // Start global loader
-    startLoading();
+    // Start global loader if not hidden
+    if (!config.hideLoader) {
+        startLoading();
+    }
     
     return config;
 }, (error) => {
-    stopLoading();
+    if (!error.config || !error.config.hideLoader) {
+        stopLoading();
+    }
     return Promise.reject(error);
 });
 
 httpClient.interceptors.response.use((response) => {
-    stopLoading();
+    if (!response.config || !response.config.hideLoader) {
+        stopLoading();
+    }
     
     const resData = response.data;
     if (resData) {
@@ -120,12 +126,15 @@ httpClient.interceptors.response.use((response) => {
         } else if (isError) {
             const msg = resData.mess || resData.message || "Operation failed!";
             store.dispatch(setNotification({ type: 'error', message: msg }));
+            return Promise.reject(new Error(msg));
         }
     }
     
     return response;
 }, (error) => {
-    stopLoading();
+    if (!error.config || !error.config.hideLoader) {
+        stopLoading();
+    }
     
     if (error.response && error.response.status === 401) {
         const isAuthRequest = error.config?.url && (error.config.url.includes('/login') || error.config.url.includes('/register') || error.config.url.includes('/forgot') || error.config.url.includes('/otp'));
@@ -156,16 +165,17 @@ httpClient.interceptors.response.use((response) => {
             sessionStorage.removeItem('access_token');
             localStorage.removeItem('bss_current_session');
             
-            // Note: Native browser alert() removed for better UX. App.jsx will handle modals.
-            
             window.location.href = isAdmin ? '/admin/login' : '/member/login';
             
             return Promise.reject(error);
         }
     }
     
-    const errorMsg = error.response?.data?.mess || error.response?.data?.message || error.message || "Network error. Please try again.";
-    store.dispatch(setNotification({ type: 'error', message: errorMsg }));
+    const errorMsg = error.response?.data?.message || error.message || 'Network Error';
+    store.dispatch(setNotification({
+        type: 'error',
+        message: errorMsg
+    }));
     
     return Promise.reject(error);
 });
@@ -237,50 +247,66 @@ const getSecurityData = async () => {
 
 
 export const apiService = {
-    post: async (url, data) => {
-        const response = await httpClient.post(url, data);
+    post: async (url, data, config = {}) => {
+        const response = await httpClient.post(url, data, config);
         return response.data;
     },
     
-    postWithSecurity: async (url, data, Mapper) => {
+    postWithSecurity: async (url, data, Mapper, config = {}) => {
         const securityData = await getSecurityData();
         const payload = Mapper ? Mapper(data, securityData) : { ...data, ...securityData };
-        const response = await httpClient.post(url, payload);
+        const response = await httpClient.post(url, payload, config);
         return response.data;
     },
     
-    put: async (url, data) => {
-        const response = await httpClient.put(url, data);
+    put: async (url, data, config = {}) => {
+        const response = await httpClient.put(url, data, config);
         return response.data;
     },
     
-    get: async (url) => {
-        const response = await httpClient.get(url);
+    get: async (url, config = {}) => {
+        const response = await httpClient.get(url, config);
         return response.data;
     },
     
-    delete: async (url) => {
-        const response = await httpClient.delete(url);
+    delete: async (url, config = {}) => {
+        const response = await httpClient.delete(url, config);
         return response.data;
     },
     
-    patch: async (url, data) => {
-        const response = await httpClient.patch(url, data);
+    patch: async (url, data, config = {}) => {
+        const response = await httpClient.patch(url, data, config);
         return response.data;
     },
 
     // multipart/form-data POST
-    postForm: async (url, formData) => {
+    postForm: async (url, formData, config = {}) => {
+        const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token') || localStorage.getItem('member_token');
+        const headers = { ...(config.headers || {}) };
+        delete headers['Content-Type'];
+        if (token) {
+            const cleanToken = token.replace(/^"(.*)"$/, '$1');
+            headers['Authorization'] = `Bearer ${cleanToken}`;
+        }
         const response = await httpClient.post(url, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+            ...config,
+            headers
         });
         return response.data;
     },
 
     // multipart/form-data PUT
-    putForm: async (url, formData) => {
+    putForm: async (url, formData, config = {}) => {
+        const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token') || localStorage.getItem('member_token');
+        const headers = { ...(config.headers || {}) };
+        delete headers['Content-Type'];
+        if (token) {
+            const cleanToken = token.replace(/^"(.*)"$/, '$1');
+            headers['Authorization'] = `Bearer ${cleanToken}`;
+        }
         const response = await httpClient.put(url, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+            ...config,
+            headers
         });
         return response.data;
     }

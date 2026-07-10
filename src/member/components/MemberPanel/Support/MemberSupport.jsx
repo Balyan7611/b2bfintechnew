@@ -1,22 +1,102 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { createTicket, sendChatMessage } from '../../../../store/slices/supportSlice';
+import { createTicket, sendChatMessage, deleteTicket, updateTicket } from '../../../../store/slices/supportSlice';
+import { showLoader, hideLoader } from '../../../../store/slices/uiSlice';
 import { 
   FaTicketAlt, FaPlus, FaCheck, FaPaperPlane, FaPaperclip, 
   FaSearch, FaChevronLeft, FaFileAlt, FaImage, FaCircle,
-  FaCheckCircle, FaExclamationCircle
+  FaCheckCircle, FaExclamationCircle, FaTimes, FaEdit, FaTrash, FaEllipsisV
 } from 'react-icons/fa';
 import { FiDatabase, FiUploadCloud } from 'react-icons/fi';
 import styles from './MemberSupport.module.css';
 import sharedStyles from '../../../../shared/components/common/SharedTable.module.css';
+import { API } from '../../../../api/endpoints';
 
 const MemberSupport = () => {
   const dispatch = useDispatch();
-  const { complainList, chatMessages } = useSelector((s) => s.support);
+  const { chatMessages } = useSelector((s) => s.support);
+  
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [activeTab, setActiveTab] = useState('raise'); // 'raise', 'history', 'detail'
+  const [zoomImage, setZoomImage] = useState(null);
   
-  // Raise Ticket State
+  // Action menu & confirmation states
+  const [activeActionMenuId, setActiveActionMenuId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [editingTicketId, setEditingTicketId] = useState(null);
+
+  // Close action menu on click outside
+  useEffect(() => {
+    const handleOutsideClick = () => setActiveActionMenuId(null);
+    window.addEventListener('click', handleOutsideClick);
+    return () => window.removeEventListener('click', handleOutsideClick);
+  }, []);
+
+  // Parse session dynamically and decode JWT token priorities
+  const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+  let currentLoginId = 'MEM-1001';
+  let currentName = 'John Doe';
+  let currentMobile = '9876543210';
+  let currentNumericId = '1';
+
+  if (token) {
+    try {
+      const payloadBase64 = token.split('.')[1];
+      if (payloadBase64) {
+        const decoded = JSON.parse(atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/')));
+        if (decoded.LoginId) currentLoginId = decoded.LoginId;
+        else if (decoded.sub) currentLoginId = decoded.sub;
+        
+        if (decoded.sub) currentNumericId = decoded.sub;
+        if (decoded.unique_name) currentName = decoded.unique_name;
+        if (decoded.name) currentName = decoded.name;
+        if (decoded.mobile) currentMobile = decoded.mobile;
+      }
+    } catch (e) {
+      console.warn("JWT token decoding failed:", e);
+    }
+  }
+
+  const sessionStr = localStorage.getItem('bss_current_session');
+  if (sessionStr) {
+    try {
+      const session = JSON.parse(sessionStr);
+      if (session?.memberId || session?.username || session?.loginId) {
+        currentLoginId = session.memberId || session.username || session.loginId;
+      }
+      if (session?.userId) currentNumericId = session.userId;
+      if (session?.name) currentName = session.name;
+      if (session?.mobile) currentMobile = session.mobile;
+    } catch (e) {}
+  }
+
+  // Fetch tickets from database
+  const fetchTickets = async () => {
+    setLoading(true);
+    try {
+      const res = await API.supportTicket.getAll({ memberId: currentLoginId });
+      if (res && Array.isArray(res.data)) {
+        setTickets(res.data);
+      } else if (Array.isArray(res)) {
+        setTickets(res);
+      } else {
+        setTickets([]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch support tickets from database:", err);
+      setTickets([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTickets();
+  }, [currentLoginId]);
+
+  // Raise/Edit Ticket State
   const [category, setCategory] = useState('');
   const [txnId, setTxnId] = useState('');
   const [priority, setPriority] = useState('Normal');
@@ -52,45 +132,104 @@ const MemberSupport = () => {
         setPreview({
           type: file.type.startsWith('image/') ? 'image' : 'document',
           url: reader.result,
-          name: file.name
+          name: file.name,
+          fileObject: file
         });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmitTicket = (e) => {
+  const handleSubmitTicket = async (e) => {
     e.preventDefault();
     if (!category || !message) {
       showToast('Please fill all required fields.', 'error');
       return;
     }
-    const newTicket = {
-      loginId: 'MEM123',
-      name: 'Ramesh Kumar',
-      contact: '9876543210',
-      service: category,
-      message,
-      txnId,
-      priority,
-      attachment: filePreview,
-      apiRequest,
-      apiResponse
-    };
     
-    dispatch(createTicket(newTicket));
-    showToast('Ticket raised successfully!');
-    setCategory('');
-    setTxnId('');
-    setPriority('Normal');
-    setMessage('');
-    setApiRequest('');
-    setApiResponse('');
-    setFilePreview(null);
-    setActiveTab('history');
+    dispatch(showLoader());
+
+    const generatedTicketId = editingTicketId ? editingTicketId : `TCK${Math.floor(100000 + Math.random() * 900000)}`;
+
+    // Prepare Multipart FormData
+    const formData = new FormData();
+    formData.append('TicketId', generatedTicketId);
+    formData.append('MemberId', currentLoginId);
+    formData.append('MemberName', currentName);
+    formData.append('ContactNumber', currentMobile);
+    formData.append('Category', category);
+    
+    // Only append optional fields if they have value
+    if (txnId) formData.append('TransactionId', txnId);
+    formData.append('Priority', priority);
+    formData.append('UserMessage', message);
+    
+    if (apiRequest) formData.append('ApiRequestPayload', apiRequest);
+    if (apiResponse) formData.append('ApiResponsePayload', apiResponse);
+    formData.append('Status', 'Open');
+
+    if (filePreview && filePreview.fileObject) {
+      formData.append('AttachmentFile', filePreview.fileObject);
+    }
+
+    try {
+      if (editingTicketId) {
+        formData.append('Id', editingTicketId);
+        formData.append('ModifiedBy', currentNumericId);
+        await API.supportTicket.update(formData);
+        showToast('Ticket updated successfully!');
+        setEditingTicketId(null);
+      } else {
+        formData.append('CreatedBy', currentNumericId);
+        await API.supportTicket.create(formData);
+        showToast('Ticket raised successfully!');
+      }
+      fetchTickets();
+    } catch (err) {
+      console.error("Backend database request failed:", err);
+      const errMsg = err.response?.data?.mess || err.response?.data?.message || err.message || "Failed to save";
+      showToast(`Database error: ${errMsg}`, 'error');
+    } finally {
+      setCategory('');
+      setTxnId('');
+      setPriority('Normal');
+      setMessage('');
+      setApiRequest('');
+      setApiResponse('');
+      setFilePreview(null);
+      setActiveTab('history');
+      dispatch(hideLoader());
+    }
   };
 
-  const activeTicket = complainList.find(t => t.id === activeTicketId);
+  const handleEditTicket = (t) => {
+    // Map backend response fields to form state
+    setEditingTicketId(t.id);
+    setCategory(t.service || t.category || '');
+    setTxnId(t.txnId || t.transactionId || '');
+    setPriority(t.priority || 'Normal');
+    setMessage(t.message || t.userMessage || '');
+    setApiRequest(t.apiRequest || t.apiRequestPayload || '');
+    setApiResponse(t.apiResponse || t.apiResponsePayload || '');
+    setFilePreview(t.attachment ? t.attachment : null);
+    setActiveTab('raise');
+  };
+
+  const handleDeleteTicket = async () => {
+    if (confirmDeleteId) {
+      try {
+        await API.supportTicket.delete(confirmDeleteId);
+        showToast('Ticket deleted successfully!');
+        fetchTickets();
+      } catch (err) {
+        console.error("Failed to delete ticket from database:", err);
+        showToast('Failed to delete ticket.', 'error');
+      }
+      setConfirmDeleteId(null);
+    }
+  };
+
+  const activeTicket = tickets.find(t => t.id === activeTicketId);
   const activeMessages = activeTicket ? (chatMessages[activeTicket.id] || []) : [];
 
   const handleSendReply = () => {
@@ -112,8 +251,8 @@ const MemberSupport = () => {
   };
 
   // Filter member's tickets
-  const myTickets = complainList.filter(t => t.loginId === 'MEM101');
-  const filteredTickets = myTickets.filter(t => t.ticketId.toLowerCase().includes(search.toLowerCase()) || t.service.toLowerCase().includes(search.toLowerCase()));
+  const myTickets = tickets.filter(t => (t.loginId || t.memberId) === currentLoginId);
+  const filteredTickets = myTickets.filter(t => (t.ticketId || '').toLowerCase().includes(search.toLowerCase()) || (t.service || t.category || '').toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className={styles.container}>
@@ -137,7 +276,7 @@ const MemberSupport = () => {
           </div>
           <div className={styles.tabs}>
             <button className={`${styles.tabBtn} ${activeTab === 'raise' ? styles.activeTab : ''}`} onClick={() => setActiveTab('raise')}>
-              <FaPlus /> Raise Ticket
+              <FaPlus /> {editingTicketId ? 'Edit Ticket' : 'Raise Ticket'}
             </button>
             <button className={`${styles.tabBtn} ${activeTab === 'history' ? styles.activeTab : ''}`} onClick={() => setActiveTab('history')}>
               <FaTicketAlt /> My Tickets
@@ -149,34 +288,73 @@ const MemberSupport = () => {
       {/* RAISE TICKET */}
       {activeTab === 'raise' && (
         <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Create New Ticket</h3>
-          <form className={styles.form} onSubmit={handleSubmitTicket}>
+          <div className={styles.cardHeader}>
+            <h3 className={styles.cardTitle}>{editingTicketId ? 'Edit Ticket Details' : 'New Ticket Details'}</h3>
+            {editingTicketId && (
+              <button 
+                onClick={() => {
+                  setEditingTicketId(null);
+                  setCategory('');
+                  setTxnId('');
+                  setPriority('Normal');
+                  setMessage('');
+                  setApiRequest('');
+                  setApiResponse('');
+                  setFilePreview(null);
+                  setActiveTab('history');
+                }} 
+                style={{
+                  background: '#ef4444',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel Edit
+              </button>
+            )}
+          </div>
+          <form onSubmit={handleSubmitTicket} className={styles.form}>
             <div className={styles.formGrid}>
               <div className={styles.formGroup}>
-                <label>Category <span style={{color: 'red'}}>*</span></label>
+                <label>Issue Category <span style={{color: 'red'}}>*</span></label>
                 <select value={category} onChange={(e) => setCategory(e.target.value)} required className={styles.input}>
-                  <option value="">Select Category</option>
+                  <option value="">Select Category...</option>
+                  <option value="AEPS">AEPS Withdrawal / Enquiry</option>
                   <option value="DMT">Money Transfer (DMT)</option>
-                  <option value="AEPS">AEPS Transaction</option>
-                  <option value="Recharge">Mobile/DTH Recharge</option>
-                  <option value="Wallet">Wallet Top-up</option>
-                  <option value="General">General Query</option>
+                  <option value="Recharge">Mobile / DTH Recharge</option>
+                  <option value="BBPS">Electricity / Water Bill (BBPS)</option>
+                  <option value="MATM">Micro ATM Transaction</option>
+                  <option value="Wallet">Wallet Loading / Credit Limit</option>
+                  <option value="Other">Other Query / Complaint</option>
                 </select>
               </div>
+
               <div className={styles.formGroup}>
                 <label>Transaction ID (Optional)</label>
-                <input type="text" placeholder="e.g. TXN12345678" value={txnId} onChange={(e) => setTxnId(e.target.value)} className={styles.input} />
+                <input 
+                  type="text" 
+                  placeholder="e.g., TXN92840281" 
+                  value={txnId} 
+                  onChange={(e) => setTxnId(e.target.value)}
+                  className={styles.input}
+                />
               </div>
+
               <div className={styles.formGroup}>
-                <label>Priority</label>
-                <select value={priority} onChange={(e) => setPriority(e.target.value)} className={styles.input}>
-                  <option value="Low">Low</option>
+                <label>Priority <span style={{color: 'red'}}>*</span></label>
+                <select value={priority} onChange={(e) => setPriority(e.target.value)} required className={styles.input}>
                   <option value="Normal">Normal</option>
                   <option value="High">High</option>
+                  <option value="Low">Low</option>
                 </select>
               </div>
             </div>
-            
+
             <div className={styles.formGridTwoCol}>
               <div className={styles.formGroup}>
                 <label>Message <span style={{color: 'red'}}>*</span></label>
@@ -195,11 +373,30 @@ const MemberSupport = () => {
                 <label>Attachment (Optional, Max 5MB)</label>
                 <div 
                   className={styles.uploadBox} 
-                  onClick={() => formFileRef.current.click()}
-                  style={{height: '100%'}}
+                  onClick={() => !filePreview && formFileRef.current.click()}
+                  style={{height: '100%', position: 'relative'}}
                 >
-                  <FiUploadCloud className={styles.uploadIcon} />
-                  <p>Click to upload image or document</p>
+                  {filePreview ? (
+                    <>
+                      {filePreview.type === 'image' ? (
+                        <img src={filePreview.url} alt="preview" className={styles.imgPreviewInside} />
+                      ) : (
+                        <div className={styles.docPreviewInside}><FaFileAlt /> {filePreview.name}</div>
+                      )}
+                      <button 
+                        type="button" 
+                        className={styles.removeFileBtnIcon} 
+                        onClick={(e) => { e.stopPropagation(); setFilePreview(null); }}
+                      >
+                        <FaTimes />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <FiUploadCloud className={styles.uploadIcon} />
+                      <p>Click to upload image or document</p>
+                    </>
+                  )}
                   <input 
                     type="file" 
                     ref={formFileRef} 
@@ -208,16 +405,6 @@ const MemberSupport = () => {
                     accept="image/*,.pdf,.txt"
                   />
                 </div>
-                {filePreview && (
-                  <div className={styles.previewBox}>
-                    {filePreview.type === 'image' ? (
-                      <img src={filePreview.url} alt="preview" className={styles.imgPreview} />
-                    ) : (
-                      <div className={styles.docPreview}><FaFileAlt /> {filePreview.name}</div>
-                    )}
-                    <button type="button" className={styles.removeFileBtn} onClick={() => setFilePreview(null)}>Remove</button>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -245,7 +432,7 @@ const MemberSupport = () => {
             </div>
 
             <button type="submit" className={styles.submitBtn}>
-              Submit Ticket
+              {editingTicketId ? 'Update Ticket' : 'Submit Ticket'}
             </button>
           </form>
         </div>
@@ -266,7 +453,10 @@ const MemberSupport = () => {
             <table className={sharedStyles.table}>
               <thead>
                 <tr>
+                  <th>S.No</th>
+                  <th style={{ width: '80px', textAlign: 'center' }}>Action</th>
                   <th>Ticket ID</th>
+                  <th>Image</th>
                   <th>Service</th>
                   <th>Priority</th>
                   <th>Message</th>
@@ -276,14 +466,112 @@ const MemberSupport = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredTickets.length > 0 ? filteredTickets.map((t) => {
+                {filteredTickets.length > 0 ? filteredTickets.map((t, idx) => {
                   const activeMessages = chatMessages[t.id] || [];
                   const adminReplies = activeMessages.filter(m => m.sender === 'admin');
                   const lastAdminReply = adminReplies.length > 0 ? adminReplies[adminReplies.length - 1].text : '-';
                   
                   return (
                     <tr key={t.id}>
+                      <td>{idx + 1}</td>
+                      <td style={{ textAlign: 'center', position: 'relative' }}>
+                        <button 
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#64748B',
+                            cursor: 'pointer',
+                            padding: '6px',
+                            borderRadius: '4px',
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveActionMenuId(activeActionMenuId === t.id ? null : t.id);
+                          }}
+                        >
+                          <FaEllipsisV />
+                        </button>
+                        
+                        {activeActionMenuId === t.id && (
+                          <div 
+                            style={{
+                              position: 'absolute',
+                              left: '40px',
+                              top: '0px',
+                              background: '#ffffff',
+                              borderRadius: '8px',
+                              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                              border: '1px solid #E2E8F0',
+                              zIndex: 10,
+                              width: '100px',
+                              padding: '4px 0'
+                            }}
+                            onClick={e => e.stopPropagation()}
+                          >
+                            <button
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                width: '100%',
+                                padding: '8px 12px',
+                                border: 'none',
+                                background: 'transparent',
+                                fontSize: '0.8rem',
+                                color: '#1E293B',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                textAlign: 'left'
+                              }}
+                              onClick={() => {
+                                handleEditTicket(t);
+                                setActiveActionMenuId(null);
+                              }}
+                            >
+                              <FaEdit style={{ color: '#3B82F6' }} /> Edit
+                            </button>
+                            <button
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                width: '100%',
+                                padding: '8px 12px',
+                                border: 'none',
+                                background: 'transparent',
+                                fontSize: '0.8rem',
+                                color: '#ef4444',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                textAlign: 'left'
+                              }}
+                              onClick={() => {
+                                setConfirmDeleteId(t.id);
+                                setActiveActionMenuId(null);
+                              }}
+                            >
+                              <FaTrash /> Delete
+                            </button>
+                          </div>
+                        )}
+                      </td>
                       <td style={{fontWeight: 'bold', color: '#1756AA'}}>{t.ticketId}</td>
+                      <td style={{ textAlign: 'center', width: '60px' }}>
+                        {t.attachment ? (
+                          t.attachment.type === 'image' ? (
+                            <img 
+                              src={t.attachment.url} 
+                              alt="thumb" 
+                              style={{ width: '32px', height: '32px', borderRadius: '6px', objectFit: 'cover', border: '1px solid #E2E8F0', cursor: 'pointer' }}
+                              onClick={() => setZoomImage(t.attachment.url)}
+                            />
+                          ) : (
+                            <span title={t.attachment.name} style={{ fontSize: '1.2rem', color: '#64748b' }}><FaFileAlt /></span>
+                          )
+                        ) : (
+                          '-'
+                        )}
+                      </td>
                       <td>{t.service}</td>
                       <td>
                         <span className={`${styles.badge} ${styles['badge' + t.priority]}`}>{t.priority || 'Normal'}</span>
@@ -309,7 +597,7 @@ const MemberSupport = () => {
                   );
                 }) : (
                   <tr>
-                    <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
+                    <td colSpan="10" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                         <FiDatabase style={{ fontSize: '1.5rem', opacity: 0.3 }} />
                         <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No tickets found</span>
@@ -319,6 +607,143 @@ const MemberSupport = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Dynamic Image Zoom Modal */}
+      {zoomImage && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(15, 23, 42, 0.85)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            cursor: 'zoom-out'
+          }}
+          onClick={() => setZoomImage(null)}
+        >
+          <div style={{ position: 'relative', maxWidth: '90%', maxHeight: '90%' }} onClick={e => e.stopPropagation()}>
+            <button 
+              onClick={() => setZoomImage(null)} 
+              style={{
+                position: 'absolute',
+                top: '-40px',
+                right: '0',
+                background: '#ffffff',
+                color: '#0F172A',
+                border: 'none',
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                fontWeight: 'bold'
+              }}
+            >
+              <FaTimes />
+            </button>
+            <img 
+              src={zoomImage} 
+              alt="Zoomed attachment" 
+              style={{ maxWidth: '100%', maxHeight: '80vh', borderRadius: '12px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)' }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {confirmDeleteId && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(15, 23, 42, 0.6)',
+            backdropFilter: 'blur(3px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999
+          }}
+          onClick={() => setConfirmDeleteId(null)}
+        >
+          <div 
+            style={{
+              background: '#ffffff',
+              borderRadius: '16px',
+              padding: '24px',
+              maxWidth: '400px',
+              width: '90%',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+              textAlign: 'center'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div 
+              style={{
+                background: '#fee2e2',
+                color: '#ef4444',
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px auto',
+                fontSize: '1.2rem'
+              }}
+            >
+              <FaExclamationCircle />
+            </div>
+            <h4 style={{ margin: '0 0 8px 0', color: '#0F172A', fontSize: '1.1rem', fontWeight: 800 }}>Confirm Deletion</h4>
+            <p style={{ margin: '0 0 20px 0', color: '#64748B', fontSize: '0.85rem', lineHeight: 1.5 }}>
+              Are you sure you want to delete this support ticket? This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button 
+                onClick={() => setConfirmDeleteId(null)}
+                style={{
+                  background: '#F1F5F9',
+                  color: '#475569',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDeleteTicket}
+                style={{
+                  background: '#ef4444',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Yes, Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

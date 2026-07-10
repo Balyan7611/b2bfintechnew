@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { 
   FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo, 
   FiActivity, FiDatabase, FiAlertCircle, FiXCircle, FiActivity as FiSignal,
-  FiUser, FiSmartphone, FiCpu, FiTrendingUp
+  FiUser, FiSmartphone, FiCpu, FiTrendingUp, FiBarChart2
 } from 'react-icons/fi';
 import { 
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint
@@ -16,8 +16,10 @@ import ActionMenu from '../../../shared/components/common/ActionMenu';
 import ConfirmModal from '../../../shared/components/common/ConfirmModal';
 import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
 import LogModal from '../../../shared/components/common/LogModal';
+import StatsGrid from '../../../shared/components/common/StatsGrid';
 
 const RechargeHistory = () => { 
+  const [showStats, setShowStats] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
   const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
@@ -166,98 +168,30 @@ const RechargeHistory = () => {
           <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', letterSpacing: '0.3px' }}>Recharge Transaction</h3>
           
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            {/* Success Pill Button */}
-          <div 
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: '#eafaf1',
-              color: '#27AE60',
-              padding: '6px 16px',
-              borderRadius: '30px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              border: '1.5px solid #27AE60',
-              gap: '8px',
-              cursor: 'pointer',
-              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-              animation: 'successGlow 2s infinite'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.background = '#dcf7e7';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.background = '#eafaf1';
-            }}
-          >
-            <FiCheckCircle size={15} />
-            <span>Success</span>
-            <span style={{ background: '#27AE60', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{successCount}</span>
-          </div>
-
-          {/* Pending Pill Button */}
-          <div 
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: '#fef5e7',
-              color: '#F39C12',
-              padding: '6px 16px',
-              borderRadius: '30px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              border: '1.5px solid #F39C12',
-              gap: '8px',
-              cursor: 'pointer',
-              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-              animation: 'pendingGlow 2s infinite'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.background = '#fdedd3';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.background = '#fef5e7';
-            }}
-          >
-            <FiAlertCircle size={15} />
-            <span>Pending</span>
-            <span style={{ background: '#F39C12', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{pendingCount}</span>
-          </div>
-
-          {/* Failed Pill Button */}
-          <div 
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: '#fdeaea',
-              color: '#E74C3C',
-              padding: '6px 16px',
-              borderRadius: '30px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              border: '1.5px solid #E74C3C',
-              gap: '8px',
-              cursor: 'pointer',
-              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-              animation: 'failedGlow 2s infinite'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.background = '#fcdada';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.background = '#fdeaea';
-            }}
-          >
-            <FiXCircle size={15} />
-            <span>Failed</span>
-            <span style={{ background: '#E74C3C', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{failedCount}</span>
-          </div>
+            {/* View Stats Button */}
+            <button 
+              style={{
+                background: '#0F172A',
+                color: '#fff',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#1e293b'}
+              onMouseOut={(e) => e.currentTarget.style.background = '#0F172A'}
+              onClick={() => setShowStats(!showStats)}
+            >
+              <FiBarChart2 size={16} /> {showStats ? 'Hide Stats' : 'View Stats'}
+            </button>
           </div>
         </div>
 
@@ -581,8 +515,24 @@ const RechargeHistory = () => {
         </form>
       </div>
 
+      {/* ── STATS CARDS GRID ── */}
+      <StatsGrid stats={{
+        totalTxns: transactions.length,
+        totalAmount: transactions.reduce((acc, curr) => acc + (parseFloat(curr.amount || curr.txnAmount) || 0), 0),
+        successTxns: transactions.filter(t => t.status?.toLowerCase() === 'success').length,
+        failedTxns: transactions.filter(t => t.status?.toLowerCase() === 'failed').length,
+        pendingTxns: transactions.filter(t => t.status?.toLowerCase() === 'pending').length,
+        totalCommission: 0,
+        uplineCommission: 0,
+        adminCommission: 0,
+        totalTds: 0,
+        adminProfit: 0,
+        tdsPayable: 0,
+        netPayable: 0
+      }} showStats={showStats} />
+
       {/* ── DATA TABLE CARD ── */}
-      <div className={styles.cardFullMobile} style={{ padding: 0, marginBottom: '100px' }}>
+      <div className={styles.cardFullMobile} style={{ padding: 0, marginBottom: '100px', boxShadow: '0 8px 24px rgba(0,0,0,0.02)' }}>
         {/* CARD INTERNAL HEADER */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '10px' }}>
           <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#0F172A' }}>Recharge Transaction List</h3>
@@ -644,11 +594,50 @@ const RechargeHistory = () => {
                 </tr>
             </thead>
             <tbody>
-              <tr>
-                <td colSpan="30" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
-                     <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No recharge data found</span>
-                </td>
-              </tr>
+              {transactions.length > 0 ? (
+                transactions.map((txn, index) => (
+                  <tr key={txn.id || index}>
+                    <td>{index + 1}</td>
+                    <td>
+                      <ActionMenu txn={txn} onViewReceipt={setActiveReceipt} onAction={handleMenuAction} alignUp={index >= transactions.length - 2 && transactions.length > 2} />
+                    </td>
+                    <td>{txn.createdDate || txn.date}</td>
+                    <td>{txn.customerName || txn.memberName}</td>
+                    <td>{txn.customerMobile || txn.mobile}</td>
+                    <td>{txn.operatorName || txn.operator}</td>
+                    <td>-</td>
+                    <td>{txn.accountNo || txn.number}</td>
+                    <td><span className={`${styles.statusBadge} ${txn.status?.toLowerCase() === 'success' ? styles.statusSuccess : txn.status?.toLowerCase() === 'failed' ? styles.statusFailed : styles.statusPending}`}>{txn.status || 'PENDING'}</span></td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>₹{txn.amount || txn.txnAmount}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{txn.orderId || txn.txnId || txn.refid}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="30" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
+                       <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No recharge data found</span>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

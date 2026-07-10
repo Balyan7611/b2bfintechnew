@@ -30,6 +30,10 @@ import { BannerTypeService } from './../services/bannerType.service';
 import { BannerImageService } from './../services/bannerImage.service';
 import { UserWalletBalanceService } from '../services/userWalletBalance.service';
 import { TransactionService } from '../services/transaction.service';
+import { SupportTicketService } from '../services/supportTicket.service';
+import { TicketConversationService } from '../services/ticketConversation.service';
+import { MasterApiService } from '../services/masterApi.service';
+import { LogsServiceDatumService } from '../services/logsServiceDatum.service';
 
 // Re-exporting everything exactly as before to maintain backward compatibility
 export const API = {
@@ -70,6 +74,10 @@ export const API = {
     bannerImage: BannerImageService,
     userWalletBalance: UserWalletBalanceService,
     transaction: TransactionService,
+    supportTicket: SupportTicketService,
+    ticketConversation: TicketConversationService,
+    masterApi: MasterApiService,
+    logsServiceDatum: LogsServiceDatumService,
 };
 
 export const fetchCompanyData = CompanyService.fetchCompanyData;
@@ -100,5 +108,9 @@ export {
     BbpsDataDownService,
     BannerTypeService,
     BannerImageService,
-    UserWalletBalanceService
+    UserWalletBalanceService,
+    SupportTicketService,
+    TicketConversationService,
+    MasterApiService,
+    LogsServiceDatumService
 };
