@@ -16,8 +16,12 @@ export const checkAuth = (token, requiredRole) => {
     const decoded = decodeToken(token);
     if (!decoded) return { isAuth: false, redirect: defaultRedirect };
 
-    // Convert roles to strings to prevent type mismatch (e.g. 1 !== '1')
-    const userRole = String(decoded.role);
+    // Convert roles to strings to prevent type mismatch, supporting standard C# Claims role URI
+    const userRole = String(
+        decoded.role || 
+        decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 
+        ''
+    );
     const targetRole = String(requiredRole);
 
     // Role check: Admin (1) or Member (2)

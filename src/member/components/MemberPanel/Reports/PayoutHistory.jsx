@@ -18,10 +18,7 @@ const PayoutHistory = () => {
   const [viewDetailMode, setViewDetailMode] = useState(false);
 
   useEffect(() => {
-    const dummyData = [
-      { id: 1, date: '2026-05-01 12:30', memberId: 'RT1236', name: 'Sachin Balyan', bank: 'HDFC', accNo: '501000123456', amount: '2000.00', charges: '10.00', total: '2010.00', status: 'SUCCESS', txnId: 'TXN847294819', utr: 'HDF102938475', remarks: 'IMPS Payout' },
-    ];
-    dispatch(setPayoutList(dummyData));
+    dispatch(setPayoutList([]));
   }, [dispatch]);
 
   const filteredList = list.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()) || item.accNo.includes(searchQuery));

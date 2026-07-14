@@ -26,7 +26,7 @@ export const LoginResponseModel = (res) => {
         throw new Error(res?.mess || "Login Failed");
     }
     
-    const token = res.data?.token || res.data?.accessToken || res.data?.refreshToken;
+    const token = (typeof res.data === 'string' ? res.data : null) || res.data?.token || res.data?.accessToken || res.data?.refreshToken || res.token || res.accessToken || res.data;
     
     if (token) {
         localStorage.setItem('access_token', token);
@@ -40,6 +40,6 @@ export const LoginResponseModel = (res) => {
         token: token,
         accessToken: token,
         refreshToken: token,
-        ...res.data
+        data: res.data
     };
 };

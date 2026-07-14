@@ -24,11 +24,7 @@ const MainWalletHistory = () => {
   } = useSelector(state => state.report.mainWalletReport);
 
   useEffect(() => {
-    const dummyData = [
-      { id: 1, member: 'RT1236 (Sachin Balyan)', opening: '1000.00', amount: '500.00', factor: 'Credit', surcharge: '0.00', gst: '0.00', tds: '0.00', commission: '10.00', closing: '1510.00', narration: 'Fund Transferred', date: '2026-05-05 10:20' },
-      { id: 2, member: 'RT1236 (Sachin Balyan)', opening: '1510.00', amount: '200.00', factor: 'Debit', surcharge: '0.00', gst: '0.00', tds: '0.00', commission: '0.00', closing: '1310.00', narration: 'Recharge Deduction', date: '2026-05-05 14:15' },
-    ];
-    dispatch(setMainWalletList(dummyData));
+    dispatch(setMainWalletList([]));
   }, [dispatch]);
 
   const filteredList = list.filter(item => 

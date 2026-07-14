@@ -1,16 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { createTicket, sendChatMessage, deleteTicket, updateTicket } from '../../../../store/slices/supportSlice';
+import { createTicket, sendChatMessage, deleteTicket, updateTicket, openChat } from '../../../../store/slices/supportSlice';
 import { showLoader, hideLoader } from '../../../../store/slices/uiSlice';
 import { 
   FaTicketAlt, FaPlus, FaCheck, FaPaperPlane, FaPaperclip, 
   FaSearch, FaChevronLeft, FaFileAlt, FaImage, FaCircle,
-  FaCheckCircle, FaExclamationCircle, FaTimes, FaEdit, FaTrash, FaEllipsisV
+  FaCheckCircle, FaExclamationCircle, FaTimes, FaEdit, FaTrash, FaEllipsisV,
+  FaCommentDots
 } from 'react-icons/fa';
 import { FiDatabase, FiUploadCloud } from 'react-icons/fi';
 import styles from './MemberSupport.module.css';
 import sharedStyles from '../../../../shared/components/common/SharedTable.module.css';
 import { API } from '../../../../api/endpoints';
+import ChatPopup from '../../../../shared/components/SupportList/ChatPopup';
 
 const MemberSupport = () => {
   const dispatch = useDispatch();
@@ -35,55 +37,132 @@ const MemberSupport = () => {
   }, []);
 
   // Parse session dynamically and decode JWT token priorities
-  const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+  const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token')
+    || localStorage.getItem('member_token') || sessionStorage.getItem('member_token');
   let currentLoginId = 'MEM-1001';
-  let currentName = 'John Doe';
+  let currentName = 'Member';
   let currentMobile = '9876543210';
   let currentNumericId = '1';
 
+  // First try bss_current_session (most reliable, set during login)
+  const sessionStr = localStorage.getItem('bss_current_session');
+  if (sessionStr) {
+    try {
+      const session = JSON.parse(sessionStr);
+      if (session?.memberId) currentLoginId = session.memberId;
+      else if (session?.loginId) currentLoginId = session.loginId;
+      else if (session?.username) currentLoginId = session.username;
+
+      if (session?.userId) currentNumericId = String(session.userId);
+      if (session?.name) currentName = session.name;
+      else if (session?.fullName) currentName = session.fullName;
+      if (session?.mobile) currentMobile = session.mobile;
+    } catch (e) {}
+  }
+
+  // Fallback: decode JWT for remaining missing fields
   if (token) {
     try {
       const payloadBase64 = token.split('.')[1];
       if (payloadBase64) {
         const decoded = JSON.parse(atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/')));
-        if (decoded.LoginId) currentLoginId = decoded.LoginId;
-        else if (decoded.sub) currentLoginId = decoded.sub;
-        
-        if (decoded.sub) currentNumericId = decoded.sub;
-        if (decoded.unique_name) currentName = decoded.unique_name;
-        if (decoded.name) currentName = decoded.name;
-        if (decoded.mobile) currentMobile = decoded.mobile;
+        if (!currentLoginId || currentLoginId === 'MEM-1001') {
+          currentLoginId = decoded.LoginId || decoded.loginId || decoded.sub || currentLoginId;
+        }
+        if (!currentNumericId || currentNumericId === '1') {
+          currentNumericId = decoded.sub || currentNumericId;
+        }
+        if (!currentName || currentName === 'Member') {
+          currentName = decoded.unique_name || decoded.name || decoded.Name || currentName;
+        }
+        if (!currentMobile || currentMobile === '9876543210') {
+          currentMobile = decoded.mobile || decoded.Mobile || decoded.phone || currentMobile;
+        }
       }
     } catch (e) {
       console.warn("JWT token decoding failed:", e);
     }
   }
 
-  const sessionStr = localStorage.getItem('bss_current_session');
-  if (sessionStr) {
-    try {
-      const session = JSON.parse(sessionStr);
-      if (session?.memberId || session?.username || session?.loginId) {
-        currentLoginId = session.memberId || session.username || session.loginId;
-      }
-      if (session?.userId) currentNumericId = session.userId;
-      if (session?.name) currentName = session.name;
-      if (session?.mobile) currentMobile = session.mobile;
-    } catch (e) {}
-  }
+
+  const normalizeTicket = (t) => {
+    if (!t) return null;
+    const service = t.service || t.Category || t.category || '';
+    const message = t.message || t.UserMessage || t.userMessage || '';
+    const ticketId = t.ticketId || t.TicketId || '';
+    const priority = t.priority || t.Priority || 'Normal';
+    const status = t.status || t.Status || 'Open';
+    
+    const dateVal = t.CreatedOn || t.createdOn || t.CreatedDate || t.createdDate || t.date || '';
+    const date = dateVal ? new Date(dateVal).toLocaleDateString() : 'N/A';
+    
+    const memberId = t.memberId || t.MemberId || '';
+    const memberName = t.memberName || t.MemberName || '';
+    const contactNumber = t.contactNumber || t.ContactNumber || '';
+    const id = t.id || t.Id;
+
+    let attachment = null;
+    const attachmentUrl = t.AttachmentUrl || t.attachmentUrl || t.attachmentPath || '';
+    const attachmentType = t.AttachmentType || t.attachmentType || '';
+    if (attachmentUrl) {
+      attachment = {
+        url: attachmentUrl,
+        type: (attachmentType.toLowerCase().includes('png') || attachmentType.toLowerCase().includes('jpg') || attachmentType.toLowerCase().includes('jpeg') || attachmentUrl.match(/\.(jpeg|jpg|gif|png)$/i)) ? 'image' : 'file',
+        name: attachmentUrl.substring(attachmentUrl.lastIndexOf('/') + 1)
+      };
+    }
+
+    return {
+      ...t,
+      id,
+      ticketId,
+      memberId,
+      memberName,
+      contactNumber,
+      service,
+      category: service,
+      priority,
+      message,
+      userMessage: message,
+      status,
+      date,
+      createdDate: dateVal,
+      attachment,
+      attachmentPath: attachmentUrl,
+      adminReply: t.adminReply || t.AdminReply || ''
+    };
+  };
 
   // Fetch tickets from database
   const fetchTickets = async () => {
     setLoading(true);
     try {
-      const res = await API.supportTicket.getAll({ memberId: currentLoginId });
+      const res = await API.supportTicket.getAll({ 
+        pageNumber: 1,
+        pageSize: 100 
+      });
+      
+      let rawData = [];
       if (res && Array.isArray(res.data)) {
-        setTickets(res.data);
+        rawData = res.data;
       } else if (Array.isArray(res)) {
-        setTickets(res);
-      } else {
-        setTickets([]);
+        rawData = res;
+      } else if (res && Array.isArray(res.items)) {
+        rawData = res.items;
+      } else if (res && res.data && Array.isArray(res.data.items)) {
+        rawData = res.data.items;
       }
+      
+      // Filter on frontend to bypass backend data type mismatch on MemberID query parameter
+      const myTickets = rawData.filter(t => {
+        if (!t) return false;
+        const mId = t.memberId || t.MemberId || '';
+        const cBy = t.createdBy || t.CreatedBy || '';
+        return String(mId).toLowerCase() === String(currentLoginId).toLowerCase() ||
+               String(cBy) === String(currentNumericId);
+      });
+      
+      setTickets(myTickets.map(normalizeTicket));
     } catch (err) {
       console.error("Failed to fetch support tickets from database:", err);
       setTickets([]);
@@ -467,9 +546,7 @@ const MemberSupport = () => {
               </thead>
               <tbody>
                 {filteredTickets.length > 0 ? filteredTickets.map((t, idx) => {
-                  const activeMessages = chatMessages[t.id] || [];
-                  const adminReplies = activeMessages.filter(m => m.sender === 'admin');
-                  const lastAdminReply = adminReplies.length > 0 ? adminReplies[adminReplies.length - 1].text : '-';
+                  const lastAdminReply = t.adminReply || '-';
                   
                   return (
                     <tr key={t.id}>
@@ -540,6 +617,28 @@ const MemberSupport = () => {
                                 border: 'none',
                                 background: 'transparent',
                                 fontSize: '0.8rem',
+                                color: '#10B981',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                textAlign: 'left'
+                              }}
+                              onClick={() => {
+                                dispatch(openChat(t));
+                                setActiveActionMenuId(null);
+                              }}
+                            >
+                              <FaCommentDots style={{ color: '#10B981' }} /> Chat
+                            </button>
+                            <button
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                width: '100%',
+                                padding: '8px 12px',
+                                border: 'none',
+                                background: 'transparent',
+                                fontSize: '0.8rem',
                                 color: '#ef4444',
                                 fontWeight: 600,
                                 cursor: 'pointer',
@@ -582,7 +681,7 @@ const MemberSupport = () => {
                         </div>
                       </td>
                       <td className={styles.msgCol}>
-                        <div className={styles.messageBox} style={{ color: adminReplies.length > 0 ? '#1756AA' : '#94a3b8' }}>
+                        <div className={styles.messageBox} style={{ color: t.adminReply ? '#1756AA' : '#94a3b8' }}>
                           {lastAdminReply}
                         </div>
                       </td>
@@ -747,6 +846,7 @@ const MemberSupport = () => {
           </div>
         </div>
       )}
+      <ChatPopup isMember={true} />
     </div>
   );
 };

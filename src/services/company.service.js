@@ -11,20 +11,15 @@ export const CompanyService = {
 
     fetchCompanyData: async (url) => {
         try {
-            const res = await apiService.get(`/Company/get-by-url?url=${encodeURIComponent(url)}`);
+            const res = await apiService.get(`/Company/get-by-url?url=${encodeURIComponent(url)}`, { ignoreError: true, hideLoader: true });
             if (res && res.status === true && res.data) {
-                const items = Array.isArray(res.data) ? res.data : [res.data];
-                if (items.length > 0) return items[0];
-            }
-            const allRes = await apiService.get('/Company/get-all?PageNumber=1&PageSize=10000');
-            if (allRes && allRes.status === true && Array.isArray(allRes.data) && allRes.data.length > 0) {
-                return allRes.data[0];
+                return res.data;
             }
             return null;
         } catch (err) {
             console.error('Company fetch error:', err);
             try {
-                const allRes = await apiService.get('/Company/get-all?PageNumber=1&PageSize=10000');
+                const allRes = await apiService.get('/Company/get-all?PageNumber=1&PageSize=10000', { ignoreError: true, hideLoader: true });
                 if (allRes && allRes.status === true && Array.isArray(allRes.data) && allRes.data.length > 0) {
                     return allRes.data[0];
                 }

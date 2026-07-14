@@ -15,10 +15,7 @@ const MATMHistory = () => {
   const { list, filters, searchQuery, rowsPerPage, currentPage } = useSelector(state => state.report.matmReport);
 
   useEffect(() => {
-    const dummyData = [
-      { id: 1, date: '2026-05-01 11:00', memberId: 'RT1236', deviceId: 'MATM882', type: 'Cash Withdrawal', cardNo: 'XXXX XXXX 1122', amount: '1500.00', status: 'SUCCESS', txnId: 'MTM123123' },
-    ];
-    dispatch(setMATMList(dummyData));
+    dispatch(setMATMList([]));
   }, [dispatch]);
 
   const filteredList = list.filter(item => item.txnId.toLowerCase().includes(searchQuery.toLowerCase()) || item.cardNo.includes(searchQuery));

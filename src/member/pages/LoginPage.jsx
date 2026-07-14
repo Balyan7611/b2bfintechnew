@@ -42,6 +42,10 @@ const LoginPage = () => {
   const [forgotModal, setForgotModal] = useState({ isOpen: false, type: '' });
   const [modalLoading, setModalLoading] = useState(false);
   const [forgotStep, setForgotStep] = useState(1);
+  const [forgotLoginId, setForgotLoginId] = useState('');
+  const [forgotAadhar, setForgotAadhar] = useState('');
+  const [forgotPan, setForgotPan] = useState('');
+  const [forgotOtp, setForgotOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [rePassword, setRePassword] = useState('');
   const [modalError, setModalError] = useState('');
@@ -151,6 +155,10 @@ const LoginPage = () => {
   const openForgotModal = (type) => {
     setForgotModal({ isOpen: true, type });
     setForgotStep(1);
+    setForgotLoginId('');
+    setForgotAadhar('');
+    setForgotPan('');
+    setForgotOtp('');
     setNewPassword('');
     setRePassword('');
     setModalError('');
@@ -160,25 +168,76 @@ const LoginPage = () => {
     setForgotModal({ isOpen: false, type: '' });
     setModalLoading(false);
     setForgotStep(1);
+    setForgotLoginId('');
+    setForgotAadhar('');
+    setForgotPan('');
+    setForgotOtp('');
     setNewPassword('');
     setRePassword('');
     setModalError('');
   };
 
-  const handleModalSubmit = (e) => {
+  const handleModalSubmit = async (e) => {
     e.preventDefault();
     setModalError('');
-    if (forgotStep === 3 && newPassword !== rePassword) {
-      setModalError('Passwords do not match. Please try again.');
+
+    if (forgotStep === 1) {
+      if (!forgotLoginId || !forgotAadhar || !forgotPan) {
+        setModalError('All fields are required.');
+        return;
+      }
+      if (forgotAadhar.length !== 4) {
+        setModalError('Aadhar must be exactly last 4 digits.');
+        return;
+      }
+      setForgotStep(2);
       return;
     }
-    setModalLoading(true);
-    setTimeout(() => {
-      setModalLoading(false);
-      if (forgotStep === 1) setForgotStep(2);
-      else if (forgotStep === 2) setForgotStep(3);
-      else if (forgotStep === 3) setForgotStep(4);
-    }, 1200);
+
+    if (forgotStep === 2) {
+      if (forgotOtp !== '1234') {
+        setModalError('Invalid OTP. Please enter 1234.');
+        return;
+      }
+      setForgotStep(3);
+      return;
+    }
+
+    if (forgotStep === 3) {
+      if (newPassword !== rePassword) {
+        setModalError(`${forgotModal.type === 'password' ? 'Passwords' : 'TPINs'} do not match. Please try again.`);
+        return;
+      }
+      
+      setModalLoading(true);
+      try {
+        const isTpin = forgotModal.type === 'tpin';
+        const payload = isTpin ? {
+          LoginId: forgotLoginId,
+          AadharLast4: forgotAadhar,
+          Pan: forgotPan.toUpperCase(),
+          NewPin: newPassword,
+          ConfirmPin: rePassword
+        } : {
+          LoginId: forgotLoginId,
+          AadharLast4: forgotAadhar,
+          Pan: forgotPan.toUpperCase(),
+          NewPassword: newPassword,
+          ConfirmPassword: rePassword
+        };
+        
+        const res = isTpin ? await API.forgetTpin(payload) : await API.forgetPassword(payload);
+        if (res.status === true || res.status === 'success' || res.status === 1) {
+          setForgotStep(4);
+        } else {
+          setModalError(res.mess || res.message || `Failed to reset ${isTpin ? 'T-PIN' : 'password'}.`);
+        }
+      } catch (err) {
+        setModalError(err.message || `Failed to reset ${forgotModal.type === 'tpin' ? 'T-PIN' : 'password'}.`);
+      } finally {
+        setModalLoading(false);
+      }
+    }
   };
 
   const handleContinue = (e) => {
@@ -233,24 +292,7 @@ const LoginPage = () => {
     try {
       await checkLocationBeforeLogin();
 
-      let response;
-      if (userId === '6377749427' && password === '1234') {
-        const mockPayload = {
-          sub: "1",
-          LoginId: "6377749427",
-          role: "2",
-          clcid: "",
-          exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // Expires in 24 hours
-          name: "Sachin Balyan"
-        };
-        const encodedPayload = btoa(JSON.stringify(mockPayload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-        response = {
-          status: true,
-          accessToken: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${encodedPayload}.mock_signature`
-        };
-      } else {
-        response = await API.login({ loginID: userId, password: password });
-      }
+      const response = await API.login({ loginID: userId, password: password });
       
       if (response.status) {
         const token = response.refreshToken || response.accessToken;
@@ -259,25 +301,44 @@ const LoginPage = () => {
         
         const decoded = decodeToken(token);
         
-        if (decoded && (decoded.role === '2' || decoded.role === 2 || decoded.role > 1)) {
-          // Reset brute force counters on success
-          localStorage.removeItem('member_login_attempts');
-          localStorage.removeItem('member_lockout_until');
-          setFailedAttempts(0);
-          setLockoutUntil(0);
-
-          localStorage.setItem('access_token', token);
-          localStorage.setItem('member_token', token);
-          sessionStorage.setItem('access_token', token);
-          sessionStorage.setItem('member_token', token);
-          
-          // Save session
-          saveSession({ mobile: userId, fullName: decoded.name || 'Member', role: 2, msrno: decoded.sub || 0 });
-          
-          navigate('/member/dashboard', { replace: true });
-        } else {
-          throw new Error("Unauthorized access - Member only");
+        // Block pure admin (role===1) from logging in as member
+        const roleNum = decoded ? Number(decoded.role) : -1;
+        if (roleNum === 1 && !decoded?.LoginId?.startsWith('MEM')) {
+          throw new Error("Unauthorized access - Admin cannot login as Member");
         }
+
+        // Reset brute force counters on success
+        localStorage.removeItem('member_login_attempts');
+        localStorage.removeItem('member_lockout_until');
+        setFailedAttempts(0);
+        setLockoutUntil(0);
+
+        // Store token in all keys so every service call picks it up
+        localStorage.setItem('access_token', token);
+        localStorage.setItem('member_token', token);
+        sessionStorage.setItem('access_token', token);
+        sessionStorage.setItem('member_token', token);
+
+        // Extract real user info from JWT decoded payload
+        const loginId = decoded?.LoginId || decoded?.loginId || decoded?.sub || userId;
+        const userName = decoded?.unique_name || decoded?.name || decoded?.Name || 'Member';
+        const mobileNo = decoded?.mobile || decoded?.Mobile || decoded?.phone || userId;
+        const numericId = decoded?.sub || decoded?.id || '0';
+
+        // Save complete session object for MemberSupport and other components
+        saveSession({
+          loginId: loginId,
+          memberId: loginId,
+          username: loginId,
+          mobile: mobileNo,
+          fullName: userName,
+          name: userName,
+          userId: numericId,
+          role: roleNum || 2,
+          msrno: numericId
+        });
+
+        navigate('/member/dashboard', { replace: true });
       } else {
         throw new Error(response.mess || "Login Failed");
       }
@@ -552,7 +613,13 @@ const LoginPage = () => {
                         <label className={styles.fieldLabel}>LOGIN ID</label>
                         <div className={styles.inputWrap}>
                           <div className={styles.inputIconBox}><FaUser /></div>
-                          <input className={styles.input} placeholder="e.g. RT123456" required />
+                          <input 
+                            className={styles.input} 
+                            placeholder="e.g. RT123456" 
+                            value={forgotLoginId}
+                            onChange={(e) => setForgotLoginId(e.target.value)}
+                            required 
+                          />
                         </div>
                       </div>
 
@@ -563,9 +630,10 @@ const LoginPage = () => {
                             className={styles.input} 
                             placeholder="e.g. 8492" 
                             maxLength={4} 
+                            value={forgotAadhar}
+                            onChange={(e) => setForgotAadhar(e.target.value.replace(/[^0-9]/g, ''))}
                             required 
                             style={{ paddingLeft: '16px' }}
-                            onInput={(e) => e.target.value = e.target.value.replace(/[^0-9]/g, '')}
                           />
                         </div>
                       </div>
@@ -573,7 +641,15 @@ const LoginPage = () => {
                       <div className={styles.fieldGroup}>
                         <label className={styles.fieldLabel}>PAN CARD NUMBER</label>
                         <div className={styles.inputWrap}>
-                          <input className={styles.input} placeholder="e.g. ABCDE1234F" maxLength={10} style={{ paddingLeft: '16px', textTransform: 'uppercase' }} required />
+                          <input 
+                            className={styles.input} 
+                            placeholder="e.g. ABCDE1234F" 
+                            maxLength={10} 
+                            style={{ paddingLeft: '16px', textTransform: 'uppercase' }} 
+                            value={forgotPan}
+                            onChange={(e) => setForgotPan(e.target.value)}
+                            required 
+                          />
                         </div>
                       </div>
                     </>
@@ -583,7 +659,15 @@ const LoginPage = () => {
                     <div className={styles.fieldGroup}>
                       <label className={styles.fieldLabel}>ENTER OTP</label>
                       <div className={styles.inputWrap}>
-                        <input className={styles.input} placeholder="Enter 6-digit OTP" maxLength={6} style={{ paddingLeft: '16px' }} onInput={(e) => e.target.value = e.target.value.replace(/[^0-9]/g, '')} required />
+                        <input 
+                          className={styles.input} 
+                          placeholder="Enter 4-digit OTP (1234)" 
+                          maxLength={4} 
+                          style={{ paddingLeft: '16px' }} 
+                          value={forgotOtp}
+                          onChange={(e) => setForgotOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                          required 
+                        />
                       </div>
                     </div>
                   )}

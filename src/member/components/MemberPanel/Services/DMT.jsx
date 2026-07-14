@@ -49,12 +49,7 @@ const POPULAR_BANKS = [
   { id: '9', name: 'Union Bank of India', code: 'UBI', imgSrc: getImagePath('/images/union.png') }
 ];
 
-const MOCK_TRANSACTIONS = [
-  { id: 'TXN1001', amount: 5000, name: 'Sachin Balyan', mobile: '9745556971', bank: 'Kotak Bank', status: 'success', date: '2026-05-15 14:30' },
-  { id: 'TXN1002', amount: 2500, name: 'Rahul Sharma', mobile: '9784905576', bank: 'SBI', status: 'pending', date: '2026-05-16 10:15' },
-  { id: 'TXN1003', amount: 12000, name: 'Amit Verma', mobile: '8387001255', bank: 'HDFC', status: 'failed', date: '2026-05-16 11:45' },
-  { id: 'TXN1004', amount: 1500, name: 'Karanvir', mobile: '10012315254', bank: 'IDFC', status: 'success', date: '2026-05-16 12:20' },
-];
+const MOCK_TRANSACTIONS = [];
 
 const numberToWords = (num) => {
   if (!num || isNaN(num) || num === 0) return '';

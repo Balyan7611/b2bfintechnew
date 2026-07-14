@@ -15,10 +15,7 @@ const RechargeHistory = () => {
   const { list, filters, searchQuery, rowsPerPage, currentPage } = useSelector(state => state.report.rechargeReport);
 
   useEffect(() => {
-    const dummyData = [
-      { id: 1, date: '2026-05-01 15:45', memberId: 'RT1236', number: '9876543210', operator: 'Jio', amount: '249.00', commission: '5.00', status: 'SUCCESS', txnId: 'RECH987234' },
-    ];
-    dispatch(setRechargeList(dummyData));
+    dispatch(setRechargeList([]));
   }, [dispatch]);
 
   const filteredList = list.filter(item => item.number.includes(searchQuery) || item.txnId.toLowerCase().includes(searchQuery.toLowerCase()));

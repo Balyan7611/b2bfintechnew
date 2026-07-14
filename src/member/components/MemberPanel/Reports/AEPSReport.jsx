@@ -12,6 +12,8 @@ import AdminTable from '../../../../shared/components/common/AdminTable';
 import ReceiptModal from '../../../../shared/components/common/ReceiptModal';
 import styles from './AEPSReport.module.css';
 import { useState } from 'react';
+import { API } from '../../../../api/endpoints';
+import { getSession } from '../../../../utils/authUtils';
 
 const AEPSReport = () => {
   const dispatch = useDispatch();
@@ -27,25 +29,82 @@ const AEPSReport = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewDetailMode, setViewDetailMode] = useState(false);
 
-  // Load dummy data for display
+  const fetchAEPSReport = async () => {
+    const session = getSession();
+    const memberMsrNo = session?.msrno || session?.userId || 2;
+    
+    try {
+      // NOTE: Admin panel fetches with empty memberId to get all data.
+      // When memberId is passed as '2', backend returns 0 results because 
+      // transactions may not be linked to memberId in DB. Pass empty to fetch all.
+      const res = await API.transaction.getAll({
+        pageNumber: currentPage,
+        pageSize: rowsPerPage,
+        fromDate: filters.fromDate || '',
+        toDate: filters.toDate || '',
+        serviceId: '8',
+        operatorId: filters.operatorId || '',
+        apiId: '1',
+        memberId: '',   // Pass empty like admin — backend JWT already scopes the result
+        status: filters.status || ''
+      });
+      
+      let rawData = [];
+      if (res && res.status === true) {
+        if (Array.isArray(res.data)) {
+          rawData = res.data;
+        } else if (res.data && Array.isArray(res.data.items)) {
+          rawData = res.data.items;
+        }
+      } else if (res && Array.isArray(res.data)) {
+        rawData = res.data;
+      } else if (Array.isArray(res)) {
+        rawData = res;
+      } else if (res && Array.isArray(res.items)) {
+        rawData = res.items;
+      } else if (res && res.data && Array.isArray(res.data.items)) {
+        rawData = res.data.items;
+      }
+      
+      const mappedList = rawData.map((item, idx) => ({
+        id: item.id || item.transactionId || idx,
+        date: item.createdDate || item.date || item.transactionDate || '-',
+        memberId: item.memberId || item.msrNo || memberMsrNo,
+        memberName: item.memberName || item.name || session?.name || 'Member',
+        aadhar: item.aadhar || item.aadharNo || item.aadharNumber || '-',
+        type: item.transactionType || item.type || 'Withdrawal',
+        amount: item.amount || 0,
+        commission: item.commission || 0,
+        opening: item.openingBalance || item.opening || 0,
+        closing: item.closingBalance || item.closing || 0,
+        status: item.status || 'PENDING',
+        bankTransId: item.bankTransId || item.transactionId || item.txnId || '-',
+        rrn: item.rrn || item.bankRrn || '-'
+      }));
+      
+      dispatch(setAEPSList(mappedList));
+    } catch (error) {
+      console.error("Error in fetchAEPSReport:", error);
+      dispatch(setAEPSList([]));
+    }
+  };
+
+
   useEffect(() => {
-    const dummyData = [
-      { id: 1, date: '2026-05-01 10:20', memberId: 'RT1236', memberName: 'Sachin Balyan', aadhar: 'XXXX XXXX 1234', type: 'Withdrawal', opening: '1000.00', amount: '500.00', commission: '5.00', closing: '505.00', status: 'SUCCESS', bankTransId: 'BETA84920381', rrn: '847291038472' },
-      { id: 2, date: '2026-05-02 14:15', memberId: 'RT1236', memberName: 'Sachin Balyan', aadhar: 'XXXX XXXX 5678', type: 'Balance Inquiry', opening: '505.00', amount: '0.00', commission: '0.00', closing: '505.00', status: 'SUCCESS', bankTransId: 'BETA92837461', rrn: '928374615243' },
-      { id: 3, date: '2026-05-03 09:45', memberId: 'RT1236', memberName: 'Sachin Balyan', aadhar: 'XXXX XXXX 9012', type: 'Withdrawal', opening: '505.00', amount: '100.00', commission: '1.00', closing: '406.00', status: 'FAILED', bankTransId: 'BETA10293847', rrn: '102938475638' },
-    ];
-    dispatch(setAEPSList(dummyData));
-  }, [dispatch]);
+    fetchAEPSReport();
+  }, [dispatch, currentPage, rowsPerPage]);
 
   const filteredList = list.filter(item => {
-    const matchesSearch = item.memberName.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         item.memberId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         item.aadhar.includes(searchQuery);
+    const name = item.memberName || '';
+    const mId = item.memberId || '';
+    const adhr = item.aadhar || '';
+    const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         String(mId).toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         String(adhr).includes(searchQuery);
     
-    const matchesStatus = filters.status ? item.status === filters.status : true;
-    const matchesMember = filters.memberId ? item.memberId === filters.memberId : true;
+    const matchesStatus = filters.status ? String(item.status).toUpperCase() === String(filters.status).toUpperCase() : true;
     
-    return matchesSearch && matchesStatus && matchesMember;
+    return matchesSearch && matchesStatus;
   });
 
   const totalEntries = filteredList.length;
@@ -57,8 +116,7 @@ const AEPSReport = () => {
   };
 
   const handleApplyFilters = () => {
-    // Fetches would go here
-    console.log('Filters applied');
+    fetchAEPSReport();
   };
 
   return (
@@ -102,18 +160,6 @@ const AEPSReport = () => {
                       <option value="SUCCESS">Success</option>
                       <option value="PENDING">Pending</option>
                       <option value="FAILED">Failed</option>
-                    </select>
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label>Member</label>
-                    <select 
-                      className={styles.inputControl}
-                      name="memberId"
-                      value={filters.memberId}
-                      onChange={handleFilterChange}
-                    >
-                      <option value="">All Members</option>
-                      <option value="RT1236">Sachin Balyan (RT1236)</option>
                     </select>
                   </div>
                   <button className={styles.submitBtn} onClick={handleApplyFilters}>

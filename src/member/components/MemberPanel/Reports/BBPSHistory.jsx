@@ -15,10 +15,7 @@ const BBPSHistory = () => {
   const { list, filters, searchQuery, rowsPerPage, currentPage } = useSelector(state => state.report.bbpsReport);
 
   useEffect(() => {
-    const dummyData = [
-      { id: 1, date: '2026-05-01 16:20', memberId: 'RT1236', consumer: 'Rahul Sharma', category: 'Electricity', amount: '1250.00', biller: 'UPPCL', status: 'SUCCESS', txnId: 'BBPS9923' },
-    ];
-    dispatch(setBBPSList(dummyData));
+    dispatch(setBBPSList([]));
   }, [dispatch]);
 
   const filteredList = list.filter(item => item.consumer.toLowerCase().includes(searchQuery.toLowerCase()) || item.txnId.toLowerCase().includes(searchQuery.toLowerCase()));

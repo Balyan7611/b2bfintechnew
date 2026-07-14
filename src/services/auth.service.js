@@ -7,6 +7,14 @@ export const AuthService = {
         return LoginResponseModel(res);
     },
 
+    forgetPassword: async (data) => {
+        return await apiService.post('/UserAuth/forget-password', data);
+    },
+
+    forgetTpin: async (data) => {
+        return await apiService.post('/UserAuth/forget-tpin', data);
+    },
+
     // Standard CRUD placeholders for future scaling
     getAll: async () => {},
     getById: async (id) => {},

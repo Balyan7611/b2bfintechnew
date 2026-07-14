@@ -55,13 +55,16 @@ export const saveSession = (user) => {
   } else {
     sessionId = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
   }
-  const idValue = user?.adminId || user?.email || user?.mobile || 'user';
+  
+  const role = user?.role || 2;
+  const isAdmin = Number(role) === 1;
+  
   const sessionData = JSON.stringify({
-    userId: idValue,
-    adminId: idValue, // Fallback for legacy admin compatibility
+    userId: user?.userId || user?.loginId || user?.memberId || user?.mobile || 'user',
+    adminId: isAdmin ? (user?.adminId || user?.loginId || 'admin') : undefined,
     name: user?.fullName || user?.name || 'User',
     sessionId,
-    role: user?.role || 2,
+    role: role,
     msrno: user?.msrno || 0,
     loggedInAt: new Date().toISOString()
   });

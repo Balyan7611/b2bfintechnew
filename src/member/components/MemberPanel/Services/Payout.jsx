@@ -40,11 +40,7 @@ const POPULAR_BANKS = [
   { id: '9', name: 'Union Bank of India', code: 'UBI', imgSrc: getImagePath('/images/union.png') }
 ];
 
-const MOCK_TRANSACTIONS = [
-  { id: 'PAY100001', amount: 8000, charge: 5, total: 8005, name: 'Vishnu Prajapati', accountNo: '9745556971', bank: 'Kotak Mahindra Bank', ifsc: 'KKBK0000962', status: 'success', date: '2026-05-18 10:30', mode: 'IMPS', customerName: 'Demo Retailer', customerMobile: '8750189025' },
-  { id: 'PAY100002', amount: 15000, charge: 10, total: 15010, name: 'Rahul Sharma', accountNo: '50100643538245', bank: 'HDFC Bank', ifsc: 'HDFC0000001', status: 'success', date: '2026-05-17 15:15', mode: 'IMPS', customerName: 'Demo Retailer', customerMobile: '8750189025' },
-  { id: 'PAY100003', amount: 4500, charge: 5, total: 4505, name: 'Vishnu Prajapati', accountNo: '9745556971', bank: 'Kotak Mahindra Bank', ifsc: 'KKBK0000962', status: 'failed', date: '2026-05-16 09:20', mode: 'IMPS', customerName: 'Demo Retailer', customerMobile: '8750189025' },
-];
+const MOCK_TRANSACTIONS = [];
 
 const Payout = () => {
   const [accounts, setAccounts] = useState(DEFAULT_ACCOUNTS);

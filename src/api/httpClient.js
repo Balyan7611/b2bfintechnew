@@ -79,17 +79,44 @@ httpClient.interceptors.request.use((config) => {
         }
     }
 
-    let token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token');
+    let token = null;
+    const isAdminPath = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+    
+    // Check if the URL is a public endpoint (does not require authentication)
+    const isPublicEndpoint = config.url && (
+        config.url.includes('/UserAuth/LoginUser') || 
+        config.url.includes('/Company/get-by-url') ||
+        config.url.includes('/Company/get-all') ||
+        config.url.includes('/login')
+    );
+
+    if (!isPublicEndpoint) {
+        if (isAdminPath) {
+            token = sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token') || sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+        } else {
+            token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || sessionStorage.getItem('member_token') || localStorage.getItem('member_token') || sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token');
+        }
+    }
+
     if (token === 'undefined' || token === 'null') {
         token = null;
     }
     if (token) {
-        token = token.replace(/^"(.*)"$/, '$1');
-        config.headers.Authorization = `Bearer ${token}`;
+        token = String(token).replace(/^"(.*)"$/, '$1').trim();
+        const cleanToken = token.replace(/^Bearer\s+/i, '').trim();
+        if (config.headers && typeof config.headers.set === 'function') {
+            config.headers.set('Authorization', `Bearer ${cleanToken}`);
+        } else {
+            config.headers = config.headers || {};
+            config.headers['Authorization'] = `Bearer ${cleanToken}`;
+        }
     }
     
     if (config.data instanceof FormData) {
         delete config.headers['Content-Type'];
+        delete config.headers['content-type'];
+        config.headers['Content-Type'] = undefined;
+        config.headers['content-type'] = undefined;
     }
     
     // Start global loader if not hidden
@@ -97,6 +124,7 @@ httpClient.interceptors.request.use((config) => {
         startLoading();
     }
     
+    console.log("Outgoing API Request URL:", config.url, "Authorization Header:", config.headers?.Authorization || config.headers?.get?.('Authorization'));
     return config;
 }, (error) => {
     if (!error.config || !error.config.hideLoader) {
@@ -125,7 +153,9 @@ httpClient.interceptors.response.use((response) => {
             }
         } else if (isError) {
             const msg = resData.mess || resData.message || "Operation failed!";
-            store.dispatch(setNotification({ type: 'error', message: msg }));
+            if (!response.config || (!response.config.hideLoader && !response.config.ignoreError)) {
+                store.dispatch(setNotification({ type: 'error', message: msg }));
+            }
             return Promise.reject(new Error(msg));
         }
     }
@@ -142,7 +172,10 @@ httpClient.interceptors.response.use((response) => {
         
         const isDashboardPath = window.location.pathname.startsWith('/member/dashboard') || window.location.pathname.startsWith('/admin/dashboard');
         
-        if (isDashboardPath) {
+        const isPublicOrBgUrl = error.config?.url && (error.config.url.includes('/Company') || error.config.url.includes('/UserLoginHistory'));
+        const shouldSkipLogout = isPublicOrBgUrl || error.config?.ignoreError || error.config?.hideLoader;
+
+        if (isDashboardPath && !shouldSkipLogout) {
             const hasAdminToken = localStorage.getItem('admin_token') || sessionStorage.getItem('admin_token');
             const hasAccessToken = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
             const isAdmin = window.location.pathname.startsWith('/admin');
@@ -171,11 +204,34 @@ httpClient.interceptors.response.use((response) => {
         }
     }
     
-    const errorMsg = error.response?.data?.message || error.message || 'Network Error';
-    store.dispatch(setNotification({
-        type: 'error',
-        message: errorMsg
-    }));
+    let errorMsg = '';
+    if (error.response && error.response.data) {
+        const data = error.response.data;
+        errorMsg = data.mess || data.message || data.title || (typeof data === 'string' ? data : '');
+        
+        // Handle ASP.NET Core Validation Errors object
+        if (data.errors && typeof data.errors === 'object') {
+            const validationMsg = Object.entries(data.errors)
+                .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
+                .join(' | ');
+            if (validationMsg) {
+                errorMsg = errorMsg ? `${errorMsg} (${validationMsg})` : validationMsg;
+            }
+        }
+    }
+    
+    if (!errorMsg) {
+        errorMsg = error.message || 'Network Error';
+    }
+
+    console.error("HTTP Request Failed. URL:", error.config?.url, "Status:", error.response?.status, "Error Details:", error.response?.data || error.message);
+
+    if (!error.config || (!error.config.hideLoader && !error.config.ignoreError)) {
+        store.dispatch(setNotification({
+            type: 'error',
+            message: errorMsg
+        }));
+    }
     
     return Promise.reject(error);
 });
@@ -284,8 +340,12 @@ export const apiService = {
         const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token') || localStorage.getItem('member_token');
         const headers = { ...(config.headers || {}) };
         delete headers['Content-Type'];
+        delete headers['content-type'];
+        headers['Content-Type'] = undefined;
+        headers['content-type'] = undefined;
         if (token) {
-            const cleanToken = token.replace(/^"(.*)"$/, '$1');
+            let cleanToken = String(token).replace(/^"(.*)"$/, '$1').trim();
+            cleanToken = cleanToken.replace(/^Bearer\s+/i, '').trim();
             headers['Authorization'] = `Bearer ${cleanToken}`;
         }
         const response = await httpClient.post(url, formData, {
@@ -300,8 +360,12 @@ export const apiService = {
         const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token') || localStorage.getItem('member_token');
         const headers = { ...(config.headers || {}) };
         delete headers['Content-Type'];
+        delete headers['content-type'];
+        headers['Content-Type'] = undefined;
+        headers['content-type'] = undefined;
         if (token) {
-            const cleanToken = token.replace(/^"(.*)"$/, '$1');
+            let cleanToken = String(token).replace(/^"(.*)"$/, '$1').trim();
+            cleanToken = cleanToken.replace(/^Bearer\s+/i, '').trim();
             headers['Authorization'] = `Bearer ${cleanToken}`;
         }
         const response = await httpClient.put(url, formData, {

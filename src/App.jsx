@@ -185,7 +185,7 @@ function App() {
 
     const checkConcurrentSession = async (session) => {
       try {
-        const response = await API.userLoginHistory.getAll();
+        const response = await API.userLoginHistory.getAll({ hideLoader: true, ignoreError: true });
         let histories = [];
         if (response && response.data) {
           histories = response.data;

@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { updateTicketStatus, openChat, sendChatMessage } from '../../../store/slices/supportSlice';
+import { openChat } from '../../../store/slices/supportSlice';
 import { FaSearch, FaImage, FaEye, FaCommentDots, FaTimes, FaFileAlt, FaCopy, FaCheck } from 'react-icons/fa';
 import sharedStyles from '../common/SharedTable.module.css';
 import styles from './SupportList.module.css';
 import ChatPopup from './ChatPopup';
+import { API } from '../../../api/endpoints';
 
 const SupportList = () => {
   const dispatch = useDispatch();
-  const { complainList, isChatOpen, chatMessages } = useSelector((s) => s.support);
+  const { isChatOpen } = useSelector((s) => s.support);
   
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPriority, setFilterPriority] = useState('All');
   
@@ -21,9 +24,89 @@ const SupportList = () => {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   
   const [detailTicket, setDetailTicket] = useState(null);
-  const [adminReplyText, setAdminReplyText] = useState('');
   const [copiedField, setCopiedField] = useState(null); // 'request' | 'response'
-  const [showHistoryPopup, setShowHistoryPopup] = useState(false);
+
+  const normalizeTicket = (t) => {
+    if (!t) return null;
+    const service = t.service || t.Category || t.category || '';
+    const message = t.message || t.UserMessage || t.userMessage || '';
+    const ticketId = t.ticketId || t.TicketId || '';
+    const priority = t.priority || t.Priority || 'Normal';
+    const status = t.status || t.Status || 'Open';
+    
+    const dateVal = t.CreatedOn || t.createdOn || t.CreatedDate || t.createdDate || t.date || '';
+    const date = dateVal ? new Date(dateVal).toLocaleDateString() : 'N/A';
+    
+    const memberId = t.memberId || t.MemberId || '';
+    const memberName = t.memberName || t.MemberName || '';
+    const contactNumber = t.contactNumber || t.ContactNumber || '';
+    const id = t.id || t.Id;
+
+    let attachment = null;
+    const attachmentUrl = t.AttachmentUrl || t.attachmentUrl || t.attachmentPath || '';
+    const attachmentType = t.AttachmentType || t.attachmentType || '';
+    if (attachmentUrl) {
+      attachment = {
+        url: attachmentUrl,
+        type: (attachmentType.toLowerCase().includes('png') || attachmentType.toLowerCase().includes('jpg') || attachmentType.toLowerCase().includes('jpeg') || attachmentUrl.match(/\.(jpeg|jpg|gif|png)$/i)) ? 'image' : 'file',
+        name: attachmentUrl.substring(attachmentUrl.lastIndexOf('/') + 1)
+      };
+    }
+
+    return {
+      ...t,
+      id,
+      ticketId,
+      memberId,
+      memberName,
+      contactNumber,
+      service,
+      category: service,
+      priority,
+      message,
+      userMessage: message,
+      status,
+      date,
+      createdDate: dateVal,
+      attachment,
+      attachmentPath: attachmentUrl,
+      adminReply: t.adminReply || t.AdminReply || '',
+      transactionId: t.transactionId || t.TransactionId || '',
+      apiRequest: t.apiRequest || t.ApiRequestPayload || t.apiRequestPayload || '',
+      apiResponse: t.apiResponse || t.ApiResponsePayload || t.apiResponsePayload || ''
+    };
+  };
+
+  const fetchTickets = async () => {
+    setLoading(true);
+    try {
+      const res = await API.supportTicket.getAll({
+        pageNumber: 1,
+        pageSize: 100
+      });
+      
+      let rawData = [];
+      if (res && Array.isArray(res.data)) {
+        rawData = res.data;
+      } else if (Array.isArray(res)) {
+        rawData = res;
+      } else if (res && Array.isArray(res.items)) {
+        rawData = res.items;
+      } else if (res && res.data && Array.isArray(res.data.items)) {
+        rawData = res.data.items;
+      }
+
+      setTickets(rawData.map(normalizeTicket));
+    } catch (err) {
+      console.error("Failed to fetch support tickets in admin:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
 
   const handleCopyText = (text, field) => {
     if (!text) return;
@@ -35,16 +118,39 @@ const SupportList = () => {
   };
 
   // Filter Data
-  const filteredData = complainList.filter(item => {
-    const matchSearch = item.ticketId.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        item.loginId.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredData = tickets.filter(item => {
+    const matchSearch = (item.ticketId || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+                        (item.memberName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        (item.memberId || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchPriority = filterPriority === 'All' || item.priority === filterPriority;
     return matchSearch && matchPriority;
   });
 
-  const handleStatusChange = (id, newStatus) => {
-    dispatch(updateTicketStatus({ id, status: newStatus }));
+  const handleStatusChange = async (ticket, newStatus) => {
+    try {
+      const formData = new FormData();
+      formData.append('Id', ticket.id);
+      formData.append('TicketId', ticket.ticketId);
+      formData.append('MemberId', ticket.memberId);
+      formData.append('MemberName', ticket.memberName);
+      formData.append('ContactNumber', ticket.contactNumber || '');
+      formData.append('Category', ticket.service);
+      if (ticket.transactionId) formData.append('TransactionId', ticket.transactionId);
+      formData.append('Priority', ticket.priority);
+      formData.append('UserMessage', ticket.message);
+      if (ticket.apiRequest) formData.append('ApiRequestPayload', ticket.apiRequest);
+      if (ticket.apiResponse) formData.append('ApiResponsePayload', ticket.apiResponse);
+      formData.append('Status', newStatus);
+      formData.append('ModifiedBy', '1');
+      
+      await API.supportTicket.update(formData);
+      fetchTickets();
+      if (detailTicket && detailTicket.id === ticket.id) {
+        setDetailTicket(prev => ({ ...prev, status: newStatus }));
+      }
+    } catch (err) {
+      console.error("Failed to update ticket status in database:", err);
+    }
   };
 
   const getStatusClass = (status) => {
@@ -75,18 +181,6 @@ const SupportList = () => {
       setIsDragging(true);
       setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
     }
-  };
-
-  const handleSendReply = () => {
-    if (!adminReplyText.trim() || !detailTicket) return;
-    dispatch(sendChatMessage({
-      ticketId: detailTicket.id,
-      text: adminReplyText,
-      sender: 'admin'
-    }));
-    // Auto-update status to Under Process when admin replies
-    dispatch(updateTicketStatus({ id: detailTicket.id, status: 'Under Process' }));
-    setAdminReplyText('');
   };
 
   const handleMouseMove = (e) => {
@@ -173,20 +267,20 @@ const SupportList = () => {
                     </button>
                   </td>
                   <td>
-                    <div style={{fontWeight: 'bold', color: '#1756AA'}}>{t.name}</div>
-                    <div style={{fontSize: '0.75rem', color: '#64748b', marginTop: '2px'}}>{t.loginId}</div>
+                    <div style={{fontWeight: 'bold', color: '#1756AA'}}>{t.memberName}</div>
+                    <div style={{fontSize: '0.75rem', color: '#64748b', marginTop: '2px'}}>{t.memberId}</div>
                   </td>
-                  <td>{t.contact || 'N/A'}</td>
+                  <td>{t.contactNumber || 'N/A'}</td>
                   <td>
                     <div className={styles.messageBox}>
-                      {t.message}
+                      {t.userMessage}
                     </div>
                   </td>
                   <td>
                     <select 
                       className={`${styles.statusSelect} ${getStatusClass(t.status)}`}
                       value={t.status}
-                      onChange={(e) => handleStatusChange(t.id, e.target.value)}
+                      onChange={(e) => handleStatusChange(t, e.target.value)}
                     >
                       <option value="Open">Open</option>
                       <option value="Under Process">Under Process</option>
@@ -224,13 +318,13 @@ const SupportList = () => {
                 </button>
               </div>
               <div className={styles.headerMeta}>
-                <span>{detailTicket.name} <strong style={{color:'#64748b'}}>({detailTicket.loginId})</strong></span>
+                <span>{detailTicket.memberName} <strong style={{color:'#64748b'}}>({detailTicket.memberId})</strong></span>
                 <span className={styles.metaDot}>•</span>
-                <span>{detailTicket.contact}</span>
+                <span>{detailTicket.contactNumber}</span>
                 <span className={styles.metaDot}>•</span>
-                <span>{detailTicket.service}</span>
+                <span>{detailTicket.category}</span>
                 <span className={styles.metaDot}>•</span>
-                <span>{detailTicket.date}</span>
+                <span>{detailTicket.createdDate ? new Date(detailTicket.createdDate).toLocaleDateString() : ''}</span>
               </div>
             </div>
             
@@ -247,25 +341,29 @@ const SupportList = () => {
                     </button>
                   </div>
                   <div className={styles.cleanMessageBox}>
-                    {detailTicket.message}
+                    {detailTicket.userMessage}
                   </div>
                 </div>
 
                 <div className={styles.attachmentSection}>
                   <label className={styles.sectionLabel}>Attachment</label>
                   <div className={styles.smallAttachCard}>
-                    {detailTicket.attachment ? (
-                      detailTicket.attachment.type === 'image' ? (
+                    {detailTicket.attachmentPath ? (
+                      (detailTicket.attachmentPath.toLowerCase().endsWith('.png') ||
+                       detailTicket.attachmentPath.toLowerCase().endsWith('.jpg') ||
+                       detailTicket.attachmentPath.toLowerCase().endsWith('.jpeg') ||
+                       detailTicket.attachmentPath.toLowerCase().endsWith('.gif') ||
+                       detailTicket.attachmentPath.toLowerCase().startsWith('data:image')) ? (
                         <img 
-                          src={detailTicket.attachment.url} 
+                          src={detailTicket.attachmentPath} 
                           alt="Proof" 
                           className={styles.miniImg} 
-                          onClick={() => setViewImage(detailTicket.attachment.url)} 
+                          onClick={() => setViewImage(detailTicket.attachmentPath)} 
                         />
                       ) : (
-                        <div className={styles.miniDoc}>
-                          <FaFileAlt /> {detailTicket.attachment.name}
-                        </div>
+                        <a href={detailTicket.attachmentPath} target="_blank" rel="noreferrer" className={styles.miniDoc}>
+                          <FaFileAlt /> View File
+                        </a>
                       )
                     ) : (
                       <span className={styles.noAttachText}>None</span>

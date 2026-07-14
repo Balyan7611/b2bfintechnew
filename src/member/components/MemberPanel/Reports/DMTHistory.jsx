@@ -22,11 +22,7 @@ const DMTHistory = () => {
   } = useSelector(state => state.report.dmtReport);
 
   useEffect(() => {
-    // Mock data for DMT
-    const dummyData = [
-      { id: 1, date: '2026-05-01 10:20', userName: 'Sachin Balyan', userMobile: '9999999999', senderMobile: '8888888888', senderName: 'Rahul', accNo: '1234567890', beneName: 'Amit', beneBank: 'SBI', reference: 'REF12345', status: 'SUCCESS', opBal: '1000.00', amount: '500.00' },
-    ];
-    dispatch(setDMTList(dummyData));
+    dispatch(setDMTList([]));
   }, [dispatch]);
 
   const filteredList = (list || []).filter(item => {

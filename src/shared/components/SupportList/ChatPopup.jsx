@@ -1,22 +1,58 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  closeChat,
-  sendChatMessage,
-  setChatInput,
-} from '../../../store/slices/supportSlice';
-import {
-  FaTimes, FaPaperPlane, FaPaperclip, FaCheckCircle, FaTimesCircle,
-} from 'react-icons/fa';
+import { closeChat, setChatInput } from '../../../store/slices/supportSlice';
+import { FaTimes, FaPaperPlane, FaPaperclip, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import styles from './ChatPopup.module.css';
+import { API } from '../../../api/endpoints';
 
 const ChatPopup = ({ isMember }) => {
   const dispatch = useDispatch();
-  const { isChatOpen, activeChatTicket, chatMessages, chatInput } = useSelector(s => s.support);
+  const { isChatOpen, activeChatTicket, chatInput } = useSelector(s => s.support);
+  
+  const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  const messages = activeChatTicket ? (chatMessages[activeChatTicket.id] || []) : [];
+  // Parse session dynamically to get senderId
+  const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+  let currentUserId = isMember ? 'MEM-1001' : 'AD1001';
+  if (token) {
+    try {
+      const payloadBase64 = token.split('.')[1];
+      if (payloadBase64) {
+        const decoded = JSON.parse(atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/')));
+        if (decoded.LoginId) currentUserId = decoded.LoginId;
+        else if (decoded.sub) currentUserId = decoded.sub;
+      }
+    } catch (e) {}
+  }
+
+  const normalizeMessage = (m) => {
+    if (!m) return null;
+    return {
+      ...m,
+      message: m.message || m.Message || '',
+      senderType: m.senderType || m.SenderType || '',
+      senderId: m.senderId || m.SenderId || '',
+      createdDate: m.createdDate || m.CreatedDate || m.CreatedOn || ''
+    };
+  };
+
+  const fetchMessages = async () => {
+    if (!activeChatTicket || !activeChatTicket.ticketId) return;
+    try {
+      const res = await API.ticketConversation.getByTicketId(activeChatTicket.ticketId);
+      if (res && res.status && Array.isArray(res.data)) {
+        setMessages(res.data.map(normalizeMessage));
+      } else if (Array.isArray(res)) {
+        setMessages(res.map(normalizeMessage));
+      } else {
+        setMessages([]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch chat messages from DB:", err);
+    }
+  };
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -32,6 +68,15 @@ const ChatPopup = ({ isMember }) => {
     }
   }, [isChatOpen]);
 
+  // Load messages from DB and set polling interval
+  useEffect(() => {
+    if (isChatOpen && activeChatTicket) {
+      fetchMessages();
+      const interval = setInterval(fetchMessages, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [isChatOpen, activeChatTicket]);
+
   // ESC key to close
   useEffect(() => {
     const handler = (e) => {
@@ -41,10 +86,21 @@ const ChatPopup = ({ isMember }) => {
     return () => document.removeEventListener('keydown', handler);
   }, [isChatOpen, dispatch]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const text = chatInput.trim();
     if (!text || !activeChatTicket) return;
-    dispatch(sendChatMessage({ ticketId: activeChatTicket.id, text, sender: isMember ? 'member' : 'admin' }));
+    try {
+      await API.ticketConversation.create({
+        ticketId: activeChatTicket.ticketId,
+        senderType: isMember ? 'Member' : 'Admin',
+        senderId: currentUserId,
+        message: text
+      });
+      dispatch(setChatInput(''));
+      fetchMessages();
+    } catch (err) {
+      console.error("Failed to send reply to DB:", err);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -83,10 +139,10 @@ const ChatPopup = ({ isMember }) => {
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <div className={styles.avatar}>
-              {getInitials(activeChatTicket.name)}
+              {getInitials(isMember ? 'Admin Support' : (activeChatTicket.memberName || activeChatTicket.name))}
             </div>
             <div className={styles.headerInfo}>
-              <span className={styles.headerName}>{isMember ? 'Admin Support' : activeChatTicket.name}</span>
+              <span className={styles.headerName}>{isMember ? 'Admin Support' : (activeChatTicket.memberName || activeChatTicket.name)}</span>
               <span className={styles.headerTicket}>{activeChatTicket.ticketId}</span>
             </div>
           </div>
@@ -103,28 +159,28 @@ const ChatPopup = ({ isMember }) => {
 
         {/* Messages Area */}
         <div className={styles.messagesArea}>
-          {/* Date separator */}
           <div className={styles.dateSeparator}>
-            <span className={styles.datePill}>Today</span>
+            <span className={styles.datePill}>History</span>
           </div>
 
           {messages.map((msg, idx) => {
-            const isMe = msg.sender === (isMember ? 'member' : 'admin');
+            const isMe = (msg.senderType || '').toLowerCase() === (isMember ? 'member' : 'admin');
             return (
               <div
                 key={idx}
                 className={`${styles.messageRow} ${isMe ? styles.messageRowAdmin : styles.messageRowUser}`}
               >
-                {/* Avatar shown only beside other's messages */}
                 {!isMe && (
                   <div className={styles.msgAvatar}>
-                    {getInitials(isMember ? 'Admin' : activeChatTicket.name)}
+                    {getInitials(isMember ? 'Admin' : (activeChatTicket.memberName || activeChatTicket.name))}
                   </div>
                 )}
 
                 <div className={`${styles.bubble} ${isMe ? styles.bubbleAdmin : styles.bubbleUser}`}>
-                  <p className={styles.bubbleText}>{msg.text}</p>
-                  <span className={styles.bubbleTime}>{msg.time}</span>
+                  <p className={styles.bubbleText}>{msg.message}</p>
+                  <span className={styles.bubbleTime}>
+                    {msg.createdDate ? new Date(msg.createdDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                  </span>
                 </div>
               </div>
             );
