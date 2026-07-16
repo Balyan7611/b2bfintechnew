@@ -417,7 +417,7 @@
 
 .benTable th {
   background: linear-gradient(90deg, #1756AA 0%, #0D1B3E 100%);
-  padding: 14px 20px;
+  padding: 9px 14px;
   text-align: left;
   font-size: 0.75rem;
   font-weight: 700;
@@ -429,6 +429,9 @@
 
 .benTable th:first-child {
   border-top-left-radius: 8px;
+  width: 44px;
+  min-width: 44px;
+  text-align: center;
 }
 
 .benTable th:last-child {
@@ -436,11 +439,20 @@
 }
 
 .benTable td {
-  padding: 14px 20px;
+  padding: 9px 14px;
   font-size: 0.85rem;
   color: #1e293b;
   border-bottom: 1px solid #EDF2F7;
   font-weight: 500;
+}
+
+.benTable td:first-child {
+  width: 44px;
+  min-width: 44px;
+  text-align: center;
+  font-weight: 700;
+  color: #64748B;
+  font-size: 0.78rem;
 }
 
 .benTable tr:last-child td {
@@ -1337,9 +1349,10 @@
 
 .confirmGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   padding: 16px;
   gap: 16px;
+  align-items: stretch;
 }
 
 .mobileActionRow {

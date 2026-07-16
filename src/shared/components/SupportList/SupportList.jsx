@@ -141,6 +141,10 @@ const SupportList = () => {
       if (ticket.apiRequest) formData.append('ApiRequestPayload', ticket.apiRequest);
       if (ticket.apiResponse) formData.append('ApiResponsePayload', ticket.apiResponse);
       formData.append('Status', newStatus);
+      
+      const currentReply = ticket.adminReply || ticket.AdminReply || ticket.reply;
+      if (currentReply) formData.append('AdminReply', currentReply);
+      
       formData.append('ModifiedBy', '1');
       
       await API.supportTicket.update(formData);
@@ -348,25 +352,33 @@ const SupportList = () => {
                 <div className={styles.attachmentSection}>
                   <label className={styles.sectionLabel}>Attachment</label>
                   <div className={styles.smallAttachCard}>
-                    {detailTicket.attachmentPath ? (
-                      (detailTicket.attachmentPath.toLowerCase().endsWith('.png') ||
+                    {detailTicket.attachmentPath ? (() => {
+                      const getImageUrl = (url) => {
+                        if (!url) return '';
+                        if (url.startsWith('http') || url.startsWith('data:')) return url;
+                        if (url.startsWith('/')) return `https://api.sahayatamoney.in${url}`;
+                        return `https://api.sahayatamoney.in/${url}`;
+                      };
+                      const imgSrc = getImageUrl(detailTicket.attachmentPath);
+                      return (detailTicket.attachmentPath.toLowerCase().endsWith('.png') ||
                        detailTicket.attachmentPath.toLowerCase().endsWith('.jpg') ||
                        detailTicket.attachmentPath.toLowerCase().endsWith('.jpeg') ||
                        detailTicket.attachmentPath.toLowerCase().endsWith('.gif') ||
                        detailTicket.attachmentPath.toLowerCase().startsWith('data:image')) ? (
                         <img 
-                          src={detailTicket.attachmentPath} 
+                          src={imgSrc} 
                           alt="Proof" 
                           className={styles.miniImg} 
-                          onClick={() => setViewImage(detailTicket.attachmentPath)} 
+                          onClick={() => setViewImage(imgSrc)}
                         />
                       ) : (
-                        <a href={detailTicket.attachmentPath} target="_blank" rel="noreferrer" className={styles.miniDoc}>
-                          <FaFileAlt /> View File
-                        </a>
-                      )
-                    ) : (
-                      <span className={styles.noAttachText}>None</span>
+                        <div className={styles.fileIcon} onClick={() => window.open(imgSrc, '_blank')}>
+                          <FaFileAlt />
+                          <span>View Document</span>
+                        </div>
+                      );
+                    })() : (
+                      <span className={styles.noAttach}>No attachment provided</span>
                     )}
                   </div>
                 </div>

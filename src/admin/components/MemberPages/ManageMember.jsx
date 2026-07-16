@@ -195,6 +195,10 @@ const ManageMember = () => {
   const [filterRoleId, setFilterRoleId] = useState('');
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  // Separate from searchQuery: this holds the exact ID of a member picked from
+  // the "Search Member" dropdown, so it can be sent as its own filter param
+  // instead of overwriting/competing with the free-text quick-search box.
+  const [selectedMemberId, setSelectedMemberId] = useState('');
   const [memberType, setMemberType] = useState('All'); // 'Active', 'DeActive', 'All'
   const [kycStatus, setKycStatus] = useState('All');   // 'KYC', 'Non-KYC', 'All'
   
@@ -205,7 +209,7 @@ const ManageMember = () => {
   const [totalPageNumber, setTotalPageNumber] = useState(1);
 
   // ── FETCH METHOD ──
-  const fetchMembers = async (pg = pageNumber, ps = rowsPerPage, search = searchQuery, roleId = filterRoleId, mType = memberType, kStatus = kycStatus, fDate = fromDate, tDate = toDate) => {
+  const fetchMembers = async (pg = pageNumber, ps = rowsPerPage, search = searchQuery, roleId = filterRoleId, mType = memberType, kStatus = kycStatus, fDate = fromDate, tDate = toDate, mId = selectedMemberId) => {
     setIsFetching(true);
     try {
       let isActive = null;
@@ -220,6 +224,7 @@ const ManageMember = () => {
         pageNumber: pg, 
         pageSize: ps, 
         search, 
+        memberId: mId,
         roleId, 
         isActive, 
         isKycApproved, 
@@ -228,10 +233,25 @@ const ManageMember = () => {
       });
       if (res && res.status === true && res.data) {
         const d = res.data;
-        setMembers(Array.isArray(d.items) ? d.items : []);
-        setTotalItems(d.totalItems || 0);
+        let items = Array.isArray(d.items) ? d.items : [];
+        let itemCount = d.totalItems || 0;
+
+        // Safety-net filter: the backend doesn't reliably filter by memberId
+        // (it was returning the whole role-filtered list regardless), so we
+        // also filter on the client whenever a specific member is selected.
+        if (mId) {
+          const needle = mId.toString().trim().toLowerCase();
+          items = items.filter((it) => {
+            const candidates = [it.loginId, it.mobile, it.memberId, it.id];
+            return candidates.some((c) => c && c.toString().toLowerCase() === needle);
+          });
+          itemCount = items.length;
+        }
+
+        setMembers(items);
+        setTotalItems(itemCount);
         setPageNumber(d.pageNumber || pg);
-        setTotalPageNumber(d.totalPageNumber || d.TotalPageNumber || Math.ceil((d.totalItems || 0) / ps) || 1);
+        setTotalPageNumber(mId ? 1 : (d.totalPageNumber || d.TotalPageNumber || Math.ceil((d.totalItems || 0) / ps) || 1));
       } else {
         setMembers([]);
         setTotalItems(0);
@@ -248,17 +268,17 @@ const ManageMember = () => {
   // ── AUTO-TRIGGER FETCH ON FILTER CHANGE ──
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchMembers(1, rowsPerPage, searchQuery, filterRoleId, memberType, kycStatus, fromDate, toDate);
+      fetchMembers(1, rowsPerPage, searchQuery, filterRoleId, memberType, kycStatus, fromDate, toDate, selectedMemberId);
       setPageNumber(1);
     }, 400);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, filterRoleId, memberType, kycStatus, fromDate, toDate, rowsPerPage]);
+  }, [searchQuery, selectedMemberId, filterRoleId, memberType, kycStatus, fromDate, toDate, rowsPerPage]);
 
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > totalPageNumber) return;
     setPageNumber(newPage);
-    fetchMembers(newPage, rowsPerPage, searchQuery, filterRoleId, memberType, kycStatus, fromDate, toDate);
+    fetchMembers(newPage, rowsPerPage, searchQuery, filterRoleId, memberType, kycStatus, fromDate, toDate, selectedMemberId);
   };
 
   const handleDropdownToggle = (e, mId) => {
@@ -280,7 +300,7 @@ const ManageMember = () => {
 
   const handleSearchClick = () => {
     setIsSearching(true);
-    fetchMembers(1, rowsPerPage, searchQuery, filterRoleId, memberType, kycStatus, fromDate, toDate).then(() => {
+    fetchMembers(1, rowsPerPage, searchQuery, filterRoleId, memberType, kycStatus, fromDate, toDate, selectedMemberId).then(() => {
       setPageNumber(1);
       setIsSearching(false);
     });
@@ -398,8 +418,8 @@ const ManageMember = () => {
           <div className={styles.formGroup} style={{ position: 'relative', zIndex: 99 }}>
             <label className={styles.label} style={{ fontSize: '0.75rem' }}>Search Member</label>
             <MemberSearchSelect 
-              value={searchQuery} 
-              onChange={(m) => setSearchQuery(m ? (m.loginId || m.mobile || m.memberId || m.id) : '')} 
+              value={selectedMemberId} 
+              onChange={(m) => setSelectedMemberId(m ? (m.loginId || m.mobile || m.memberId || m.id) : '')} 
               placeholder="Search Member..." 
               style={{ height: '38px', fontSize: '0.85rem' }}
             />

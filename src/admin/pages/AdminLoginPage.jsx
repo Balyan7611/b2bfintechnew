@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+ import { useState, useEffect } from 'react';
 import {
   FaArrowLeft,
   FaArrowRight,
@@ -94,22 +94,22 @@ const AdminLoginPage = () => {
           let errorMsg = '';
           switch(error.code) {
             case 1:
-              errorMsg = '⚠️ Location access denied. Proceeding with fallback...';
+              errorMsg = '❌ Location access denied. Please enable location to login as Admin.';
               break;
             case 2:
-              errorMsg = '⚠️ Location unavailable. Proceeding with fallback...';
+              errorMsg = '❌ Location unavailable. Please check your device settings.';
               break;
             case 3:
-              errorMsg = '⚠️ Location request timeout. Proceeding with fallback...';
+              errorMsg = '❌ Location request timeout. Please try again.';
               break;
             default:
-              errorMsg = '⚠️ Location access fallback enabled.';
+              errorMsg = '❌ Location access required for Admin login.';
           }
           setLocationStatus({
             status: 'off',
             error: errorMsg
           });
-          resolve({ coords: { latitude: 28.6139, longitude: 77.2090 } }); // Resolve to Delhi coordinates instead of rejecting
+          reject(new Error(errorMsg));
         },
         { timeout: 5000, enableHighAccuracy: true }
       );
@@ -175,7 +175,7 @@ const AdminLoginPage = () => {
           sessionStorage.setItem('access_token', token);
           
           // Save the secure session
-          saveSession({ adminId, fullName: decoded.name || 'Admin', role: 1, msrno: decoded.sub || 0 });
+          saveSession({ adminId, fullName: decoded.name || 'Admin', role: 1 });
           
           navigate('/admin/dashboard', { replace: true });
         } else {

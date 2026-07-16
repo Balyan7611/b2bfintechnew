@@ -96,6 +96,26 @@ const ChatPopup = ({ isMember }) => {
         senderId: currentUserId,
         message: text
       });
+      
+      if (!isMember) {
+        try {
+          const formData = new FormData();
+          formData.append('Id', activeChatTicket.id);
+          formData.append('TicketId', activeChatTicket.ticketId);
+          formData.append('MemberId', activeChatTicket.memberId || '');
+          formData.append('MemberName', activeChatTicket.memberName || '');
+          formData.append('Category', activeChatTicket.category || activeChatTicket.service || '');
+          formData.append('Priority', activeChatTicket.priority || 'Normal');
+          formData.append('UserMessage', activeChatTicket.userMessage || activeChatTicket.message || '');
+          formData.append('Status', activeChatTicket.status || 'Open');
+          formData.append('AdminReply', text);
+          
+          await API.supportTicket.update(formData);
+        } catch(e) {
+          console.error("Failed to update ticket AdminReply:", e);
+        }
+      }
+
       dispatch(setChatInput(''));
       fetchMessages();
     } catch (err) {

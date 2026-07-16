@@ -104,9 +104,16 @@ const MemberSupport = () => {
     let attachment = null;
     const attachmentUrl = t.AttachmentUrl || t.attachmentUrl || t.attachmentPath || '';
     const attachmentType = t.AttachmentType || t.attachmentType || '';
+    const getImageUrl = (url) => {
+      if (!url) return '';
+      if (url.startsWith('http') || url.startsWith('data:')) return url;
+      if (url.startsWith('/')) return `https://api.sahayatamoney.in${url}`;
+      return `https://api.sahayatamoney.in/${url}`;
+    };
+
     if (attachmentUrl) {
       attachment = {
-        url: attachmentUrl,
+        url: getImageUrl(attachmentUrl),
         type: (attachmentType.toLowerCase().includes('png') || attachmentType.toLowerCase().includes('jpg') || attachmentType.toLowerCase().includes('jpeg') || attachmentUrl.match(/\.(jpeg|jpg|gif|png)$/i)) ? 'image' : 'file',
         name: attachmentUrl.substring(attachmentUrl.lastIndexOf('/') + 1)
       };
@@ -129,7 +136,7 @@ const MemberSupport = () => {
       createdDate: dateVal,
       attachment,
       attachmentPath: attachmentUrl,
-      adminReply: t.adminReply || t.AdminReply || ''
+      adminReply: t.AdminReply || t.adminReply || t.reply || ''
     };
   };
 
@@ -677,7 +684,7 @@ const MemberSupport = () => {
                       </td>
                       <td className={styles.msgCol}>
                         <div className={styles.messageBox}>
-                          {t.message}
+                          {t.userMessage || t.message}
                         </div>
                       </td>
                       <td className={styles.msgCol}>
@@ -687,10 +694,16 @@ const MemberSupport = () => {
                       </td>
                       <td>{t.date}</td>
                       <td>
-                        <span className={`${sharedStyles.statusPill} ${sharedStyles[t.status.replace(' ', '').toLowerCase()] || sharedStyles.pending}`}>
-                          {t.status === 'Resolved' || t.status === 'Closed' ? <FaCheckCircle style={{ fontSize: '10px' }} /> : null}
-                          {t.status}
-                        </span>
+                        {(() => {
+                          const displayStatus = t.status === 'Open' ? 'Pending' : t.status;
+                          const statusKey = displayStatus.replace(' ', '').toLowerCase();
+                          return (
+                            <span className={`${sharedStyles.statusPill} ${sharedStyles[statusKey] || sharedStyles.pending}`}>
+                              {displayStatus === 'Resolved' || displayStatus === 'Closed' || displayStatus === 'Complete' ? <FaCheckCircle style={{ fontSize: '10px' }} /> : null}
+                              {displayStatus}
+                            </span>
+                          );
+                        })()}
                       </td>
                     </tr>
                   );

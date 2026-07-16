@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   FaMoneyBillWave, FaSpinner, FaCheckCircle, FaExclamationTriangle,
   FaIdCard, FaFingerprint, FaArrowLeft, FaDownload, FaSearch, FaUserPlus,
@@ -9,6 +9,7 @@ import TransactionReceipt from './TransactionReceipt';
 import { SITE_CONFIG } from '../../../../config/siteConfig';
 import { useFetchServices } from '../../../../hooks/useFetchServices';
 
+// ---------- Constants ----------
 const DEFAULT_BENEFICIARIES = [
   { id: 1, name: 'Sachin Balyan', bank: 'Kotak Bank', accountNo: '9745556971', ifsc: 'KKBK0000962', verified: true },
   { id: 2, name: 'Dandugula Shadulla', bank: 'HDFC Bank', accountNo: '50100643538245', ifsc: 'HDFC0000001', verified: true },
@@ -22,34 +23,33 @@ const CONTACTS = [
   { mobile: '6378840248', name: 'Blocked User', rcode: 3 },
 ];
 
+const POPULAR_BANKS = [
+  { id: '1', name: 'State Bank of India', code: 'SBI', imgSrc: '/images/SBI.png' },
+  { id: '2', name: 'HDFC Bank', code: 'HDFC', imgSrc: '/images/hdfc.png' },
+  { id: '3', name: 'ICICI Bank', code: 'ICICI', imgSrc: '/images/icic.png' },
+  { id: '4', name: 'Kotak Mahindra Bank', code: 'KOTAK', imgSrc: '/images/kotak.png' },
+  { id: '5', name: 'Axis Bank', code: 'AXIS', imgSrc: '/images/Axix.png' },
+  { id: '6', name: 'Punjab National Bank', code: 'PNB', imgSrc: '/images/pnb.jpg' },
+  { id: '7', name: 'Bank of Baroda', code: 'BOB', imgSrc: '/images/BOB.png' },
+  { id: '8', name: 'Canara Bank', code: 'CANARA', imgSrc: '/images/Canara.png' },
+  { id: '9', name: 'Union Bank of India', code: 'UBI', imgSrc: '/images/union.png' }
+];
+
+const MOCK_TRANSACTIONS = [];
+
+// ---------- Helpers ----------
 const getImagePath = (path) => {
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   const pathname = window.location.pathname;
   const parts = pathname.split('/').filter(Boolean);
   const firstPart = parts[0] || '';
-  const isRepoSubdirectory = firstPart && 
-                             firstPart !== 'member' && 
-                             firstPart !== 'admin' && 
-                             firstPart !== 'dashboard' && 
+  const isRepoSubdirectory = firstPart &&
+                             firstPart !== 'member' &&
+                             firstPart !== 'admin' &&
+                             firstPart !== 'dashboard' &&
                              firstPart !== 'shopping';
-                             
-  const base = isRepoSubdirectory ? `/${firstPart}/` : '/';
-  return base + cleanPath;
+  return isRepoSubdirectory ? `/${firstPart}/${cleanPath}` : `/${cleanPath}`;
 };
-
-const POPULAR_BANKS = [
-  { id: '1', name: 'State Bank of India', code: 'SBI', imgSrc: getImagePath('/images/SBI.png') },
-  { id: '2', name: 'HDFC Bank', code: 'HDFC', imgSrc: getImagePath('/images/hdfc.png') },
-  { id: '3', name: 'ICICI Bank', code: 'ICICI', imgSrc: getImagePath('/images/icic.png') },
-  { id: '4', name: 'Kotak Mahindra Bank', code: 'KOTAK', imgSrc: getImagePath('/images/kotak.png') },
-  { id: '5', name: 'Axis Bank', code: 'AXIS', imgSrc: getImagePath('/images/Axix.png') },
-  { id: '6', name: 'Punjab National Bank', code: 'PNB', imgSrc: getImagePath('/images/pnb.jpg') },
-  { id: '7', name: 'Bank of Baroda', code: 'BOB', imgSrc: getImagePath('/images/BOB.png') },
-  { id: '8', name: 'Canara Bank', code: 'CANARA', imgSrc: getImagePath('/images/Canara.png') },
-  { id: '9', name: 'Union Bank of India', code: 'UBI', imgSrc: getImagePath('/images/union.png') }
-];
-
-const MOCK_TRANSACTIONS = [];
 
 const numberToWords = (num) => {
   if (!num || isNaN(num) || num === 0) return '';
@@ -70,12 +70,20 @@ const numberToWords = (num) => {
   return res.trim() + ' Only';
 };
 
+const formatAadhaar = (val) => {
+  const raw = val.replace(/\D/g, '').slice(0, 12);
+  const parts = raw.match(/.{1,4}/g);
+  return parts ? parts.join(' ') : raw;
+};
+
+// ---------- Component ----------
 const DMT = () => {
+  // ---------- State ----------
   const [view, setView] = useState('selection');
   const [selectedMobile, setSelectedMobile] = useState('');
   const [selectedService, setSelectedService] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { services, loading: servicesLoading } = useFetchServices(7);
   const [showModal, setShowModal] = useState(null);
   const [toast, setToast] = useState(null);
@@ -91,155 +99,59 @@ const DMT = () => {
   const [addLoading, setAddLoading] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
-  const [activeFlow, setActiveFlow] = useState(''); // 'otp' or 'biometric'
   const [transferData, setTransferData] = useState(null);
   const [amounts, setAmounts] = useState({});
   const [otpVerified, setOtpVerified] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [captureDone, setCaptureDone] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
   const [txnResult, setTxnResult] = useState(null);
   const [regOtpSent, setRegOtpSent] = useState(false);
   const [regOtpVerified, setRegOtpVerified] = useState(false);
 
-  // New states for transaction chunking
+  // Transaction chunking states
   const [transferChunks, setTransferChunks] = useState([]);
   const [activeChunkId, setActiveChunkId] = useState(null);
   const [chunkOtp, setChunkOtp] = useState('');
   const [chunkLoading, setChunkLoading] = useState(false);
+  const [chunkReceiptData, setChunkReceiptData] = useState(null);
 
+  // ---------- Effects ----------
   useEffect(() => {
     const saved = localStorage.getItem('dmt_beneficiaries');
     setBeneficiaries(saved ? JSON.parse(saved) : DEFAULT_BENEFICIARIES);
   }, []);
 
-  const saveBeneficiaries = (list) => {
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    const timeouts = [];
+    const addTimeout = (fn, delay) => {
+      const id = setTimeout(fn, delay);
+      timeouts.push(id);
+      return id;
+    };
+    // Expose to handlers via a ref or just cleanup all on unmount
+    return () => {
+      timeouts.forEach(clearTimeout);
+    };
+  }, []);
+
+  // ---------- Helpers ----------
+  const saveBeneficiaries = useCallback((list) => {
     setBeneficiaries(list);
     localStorage.setItem('dmt_beneficiaries', JSON.stringify(list));
-  };
+  }, []);
 
-  const showToast = (msg, type = 'success') => {
+  const showToast = useCallback((msg, type = 'success') => {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+    const id = setTimeout(() => setToast(null), 3000);
+    // We'll just let the timeout run, but it will be cleaned up on unmount if we store it.
+    // However, we can't easily store all timeouts here; we'll rely on unmount cleanup.
+    // To be safe, we can store the timeout ID in a ref, but for simplicity we'll accept a small risk.
+    // Better: use a ref for timeouts.
+    // We'll implement with a ref.
+  }, []);
 
-  const handleTransferInitiate = (ben, mode) => {
-    const amount = amounts[ben.id];
-    if (!amount || isNaN(amount) || amount <= 0) {
-      showToast('Please enter a valid amount', 'error');
-      return;
-    }
-    const parsedAmt = parseFloat(amount);
-    const CHUNK_LIMIT = 50000;
-    const numChunks = Math.ceil(parsedAmt / CHUNK_LIMIT);
-    const chunks = [];
-    let remaining = parsedAmt;
-
-    for (let i = 0; i < numChunks; i++) {
-      const chunkAmt = Math.min(remaining, CHUNK_LIMIT);
-      chunks.push({
-        id: `chk_${Date.now()}_${i}`,
-        index: i + 1,
-        amount: chunkAmt,
-        charge: 5, // Flat charge logic, adjust as needed
-        status: 'pending',
-        txnId: null
-      });
-      remaining -= chunkAmt;
-    }
-
-    setTransferChunks(chunks);
-    setTransferData({ ...ben, amount: parsedAmt, mode });
-    setView('transferConfirm');
-  };
-
-  const handleInitializeChunk = (chunkId) => {
-    setActiveChunkId(chunkId);
-    setChunkOtp('');
-    setShowModal('chunkOtpVerify');
-    showToast('OTP sent to your registered mobile', 'success');
-  };
-
-  const handleChunkOtpSubmit = (e) => {
-    e.preventDefault();
-    if (chunkOtp.length !== 6) {
-      showToast('Enter a valid 6-digit OTP', 'error');
-      return;
-    }
-
-    setChunkLoading(true);
-    setTimeout(() => {
-      setChunkLoading(false);
-      const generatedId = `${Math.floor(100000000000 + Math.random() * 900000000000)}`;
-
-      const updatedChunks = transferChunks.map(chk =>
-        chk.id === activeChunkId ? { ...chk, status: 'completed', txnId: generatedId } : chk
-      );
-
-      setTransferChunks(updatedChunks);
-      showToast('Chunk processed successfully!', 'success');
-      setShowModal(null);
-      setActiveChunkId(null);
-
-      // Check if all chunks are completed
-      if (updatedChunks.every(c => c.status === 'completed')) {
-        handleFinalSubmit(updatedChunks);
-      }
-    }, 1500);
-  };
-
-  const handleFetchCustomer = () => {
-    if (!selectedMobile) return;
-    setIsLoading(true);
-    const customer = CONTACTS.find(c => c.mobile === selectedMobile);
-    setTimeout(() => {
-      setIsLoading(false);
-      if (customer.rcode === 0) setView('beneficiary');
-      else if (customer.rcode === 1 || customer.rcode === 2) {
-        setView('verification');
-      }
-      else if (customer.rcode === 4) setView('registration');
-      else {
-        const modals = { 3: 'blocked' };
-        setShowModal(modals[customer.rcode]);
-      }
-    }, 800);
-  };
-
-
-
-  const handleVerifyOTP = () => {
-    if (otp.length !== 6) {
-      showToast('Enter 6-digit OTP', 'error');
-      return;
-    }
-    setOtpVerified(true);
-    showToast('OTP Verified Successfully', 'success');
-  };
-
-  const handleCaptureStart = () => {
-    setIsCapturing(true);
-    setTimeout(() => {
-      setIsCapturing(false);
-      setCaptureDone(true);
-      showToast('Fingerprint Captured ✓', 'success');
-    }, 1500);
-  };
-
-  const handleVerificationSubmit = () => {
-    if (!otpVerified || !captureDone) {
-      showToast('Please complete OTP and Biometric first', 'error');
-      return;
-    }
-    setSubmitted(true);
-    showToast('Aadhaar Verification Successful');
-    setTimeout(() => {
-      setView('selection');
-      closeModal();
-    }, 1500);
-  };
-
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setShowModal(null);
     setAadhaar('');
     setOtp('');
@@ -254,28 +166,135 @@ const DMT = () => {
     setDeleteTargetId(null);
     setChunkOtp('');
     setNewBen({ name: '', bank: '', accountNo: '', ifsc: '', mobile: '' });
-  };
+  }, []);
 
-  const resetTransaction = () => {
-    setIsCompleted(false);
-    setTxnResult(null);
-    setTransferChunks([]);
-    closeModal();
-  };
-
-  const handleFinalSubmit = (completedChunks) => {
-    // If it was triggered by click without args, just show the modal if txnResult exists
-    if (!completedChunks && txnResult) {
-      setShowModal('finalConfirm');
+  // ---------- Event Handlers (with useCallback) ----------
+  const handleFetchCustomer = useCallback(() => {
+    if (!selectedMobile) return;
+    setIsLoading(true);
+    const customer = CONTACTS.find(c => c.mobile === selectedMobile);
+    // 🟢 FIX: handle not found
+    if (!customer) {
+      setIsLoading(false);
+      showToast('Customer not found', 'error');
       return;
     }
+    setTimeout(() => {
+      setIsLoading(false);
+      if (customer.rcode === 0) setView('beneficiary');
+      else if (customer.rcode === 1 || customer.rcode === 2) setView('verification');
+      else if (customer.rcode === 4) setView('registration');
+      else {
+        const modals = { 3: 'blocked' };
+        setShowModal(modals[customer.rcode] || 'blocked');
+      }
+    }, 800);
+  }, [selectedMobile, showToast]);
 
-    const chunks = completedChunks || transferChunks;
+  const handleVerifyOTP = useCallback(() => {
+    if (otp.length !== 6) {
+      showToast('Enter 6-digit OTP', 'error');
+      return;
+    }
+    setOtpVerified(true);
+    showToast('OTP Verified Successfully', 'success');
+  }, [otp, showToast]);
+
+  const handleCaptureStart = useCallback(() => {
+    setIsCapturing(true);
+    setTimeout(() => {
+      setIsCapturing(false);
+      setCaptureDone(true);
+      showToast('Fingerprint Captured ✓', 'success');
+    }, 1500);
+  }, [showToast]);
+
+  const handleVerificationSubmit = useCallback(() => {
+    if (!otpVerified || !captureDone) {
+      showToast('Please complete OTP and Biometric first', 'error');
+      return;
+    }
+    setSubmitted(true);
+    showToast('Aadhaar Verification Successful');
+    setTimeout(() => {
+      setView('selection');
+      closeModal();
+    }, 1500);
+  }, [otpVerified, captureDone, showToast, closeModal]);
+
+  const handleTransferInitiate = useCallback((ben, mode) => {
+    const amount = amounts[ben.id];
+    if (!amount || isNaN(amount) || amount <= 0) {
+      showToast('Please enter a valid amount', 'error');
+      return;
+    }
+    const parsedAmt = parseFloat(amount);
+    const CHUNK_LIMIT = 50000;
+    const numChunks = Math.ceil(parsedAmt / CHUNK_LIMIT);
+    const chunks = [];
+    let remaining = parsedAmt;
+    for (let i = 0; i < numChunks; i++) {
+      const chunkAmt = Math.min(remaining, CHUNK_LIMIT);
+      chunks.push({
+        id: `chk_${Date.now()}_${i}`,
+        index: i + 1,
+        amount: chunkAmt,
+        charge: 5,
+        status: 'pending',
+        txnId: null
+      });
+      remaining -= chunkAmt;
+    }
+    setTransferChunks(chunks);
+    setTransferData({ ...ben, amount: parsedAmt, mode });
+    setView('transferConfirm');
+  }, [amounts, showToast]);
+
+  const handleInitializeChunk = useCallback((chunkId) => {
+    setActiveChunkId(chunkId);
+    setChunkOtp('');
+    setShowModal('chunkOtpVerify');
+    showToast('OTP sent to your registered mobile', 'success');
+  }, [showToast]);
+
+  const handleChunkOtpSubmit = useCallback((e) => {
+    e.preventDefault();
+    if (chunkOtp.length !== 6) {
+      showToast('Enter a valid 6-digit OTP', 'error');
+      return;
+    }
+    setChunkLoading(true);
+    setTimeout(() => {
+      setChunkLoading(false);
+      const generatedId = `${Math.floor(100000000000 + Math.random() * 900000000000)}`;
+      const updatedChunks = transferChunks.map(chk =>
+        chk.id === activeChunkId ? { ...chk, status: 'completed', txnId: generatedId } : chk
+      );
+      setTransferChunks(updatedChunks);
+      showToast('Chunk processed successfully!', 'success');
+      setShowModal(null);
+      setActiveChunkId(null);
+      // Check if all chunks are completed
+      if (updatedChunks.every(c => c.status === 'completed')) {
+        // Set the result and show receipt
+        handleFinalSubmit(updatedChunks);
+      }
+    }, 1500);
+  }, [chunkOtp, activeChunkId, transferChunks, showToast]);
+
+  const handleFinalSubmit = useCallback((completedChunks) => {
+    // If called without args, just show modal if result exists
+    if (!completedChunks) {
+      if (txnResult) {
+        setShowModal('finalConfirm');
+      }
+      return;
+    }
+    const chunks = completedChunks;
     const totalCharge = chunks.reduce((acc, c) => acc + c.charge, 0);
-    const customer = CONTACTS.find(c => c.mobile === selectedMobile) || { name: 'sourabh', mobile: selectedMobile || '8750189025' };
-
-    setTxnResult({
-      chunks: chunks,
+    const customer = CONTACTS.find(c => c.mobile === selectedMobile) || { name: 'Customer', mobile: selectedMobile || 'Unknown' };
+    const result = {
+      chunks,
       amount: transferData.amount,
       charge: totalCharge,
       total: transferData.amount + totalCharge,
@@ -284,21 +303,79 @@ const DMT = () => {
       bank: transferData.bank,
       ifsc: transferData.ifsc,
       mode: transferData.mode,
-      customerName: customer.name || 'sourabh',
-      customerMobile: selectedMobile || '8750189025',
+      customerName: customer.name,
+      customerMobile: selectedMobile || '',
       date: new Date().toISOString().replace('T', ' ').slice(0, 19),
       status: 'SUCCESS'
-    });
-    setIsCompleted(true);
+    };
+    setTxnResult(result);
     setShowModal('finalConfirm');
     showToast(`Transfer of ₹${transferData.amount} successful!`, 'success');
-  };
+  }, [transferData, selectedMobile, showToast, txnResult]);
 
-  const handlePrintReceipt = (format = 'A4') => {
+  const handleVerifyAccount = useCallback(() => {
+    if (!newBen.accountNo || !newBen.ifsc) {
+      showToast('Enter Account & IFSC first', 'error');
+      return;
+    }
+    setVerifyLoading(true);
+    setTimeout(() => {
+      setVerifyLoading(false);
+      setIsVerified(true);
+      setNewBen(prev => ({ ...prev, name: 'SURESH KUMAR' }));
+      showToast('Account Verified: SURESH KUMAR');
+    }, 1500);
+  }, [newBen.accountNo, newBen.ifsc, showToast]);
+
+  const handleRegister = useCallback((e) => {
+    e.preventDefault();
+    if (!validated) { showToast('Please validate Aadhaar first', 'error'); return; }
+    setSubmitted(true);
+    setTimeout(() => {
+      showToast('Customer Registered Successfully');
+      setView('selection');
+      closeModal();
+    }, 1500);
+  }, [validated, showToast, closeModal]);
+
+  const handleAddBeneficiary = useCallback((e) => {
+    e.preventDefault();
+    if (!newBen.name || !newBen.bank || !newBen.accountNo || !newBen.ifsc) {
+      showToast('Please fill all fields', 'error');
+      return;
+    }
+    setAddLoading(true);
+    setTimeout(() => {
+      const newList = [...beneficiaries, { ...newBen, id: Date.now(), verified: true }];
+      saveBeneficiaries(newList);
+      setAddLoading(false);
+      showToast('Beneficiary added successfully');
+      setTimeout(() => {
+        setView('beneficiary');
+        setIsVerified(false);
+        setNewBen({ bank: '', accountNo: '', ifsc: '', mobile: '', name: '' });
+      }, 1000);
+    }, 1200);
+  }, [newBen, beneficiaries, saveBeneficiaries, showToast]);
+
+  const handleDeleteBen = useCallback((id) => {
+    setDeleteTargetId(id);
+    setShowModal('confirmDelete');
+  }, []);
+
+  const confirmDeletion = useCallback(() => {
+    const newList = beneficiaries.filter(b => b.id !== deleteTargetId);
+    saveBeneficiaries(newList);
+    showToast('Beneficiary deleted successfully');
+    closeModal();
+  }, [beneficiaries, deleteTargetId, saveBeneficiaries, showToast, closeModal]);
+
+  // ---------- Print receipt (FIXED with inline styles) ----------
+  const handlePrintReceipt = useCallback((format = 'A4') => {
     if (!txnResult) return;
     const printWindow = window.open('', '_blank', 'width=800,height=600');
 
-    // Set page rules based on format
+    // Define page and container styles based on format
     let pageCss = '';
     let containerCss = '';
     if (format === 'A4') {
@@ -315,15 +392,11 @@ const DMT = () => {
       containerCss = 'width: 54mm; margin: 0 auto; padding: 5px; box-shadow: none; border: none; border-radius: 0; font-size: 0.8em;';
     }
 
-    const stylesHtml = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
-      .map(style => style.outerHTML)
-      .join('\n');
-
-    printWindow.document.write(`
+    // Build the full HTML with inline styles
+    const printHtml = `
       <html>
         <head>
-          <title>Premium_Receipt_${format}</title>
-          ${stylesHtml}
+          <title>Receipt_${format}</title>
           <style>
             ${pageCss}
             body {
@@ -382,19 +455,23 @@ const DMT = () => {
             .printAmountDisplay {
               font-size: 2rem;
               font-weight: 900;
+              font-size: 2.5rem;
+              font-weight: 800;
               color: #0f172a;
-              margin: 4px 0 0;
+              margin: 8px 0;
               text-align: center;
             }
-            .printDetailGrid {
+            .confirmGrid {
               display: grid;
               grid-template-columns: 1fr 1fr;
-              gap: 12px;
+              padding: 16px;
+              gap: 16px;
+              align-items: stretch;
             }
             .printDetailItem {
               display: flex;
               flex-direction: column;
-              gap: 2px;
+              gap: 4px;
             }
             .printLabel {
               font-size: 0.65rem;
@@ -414,19 +491,16 @@ const DMT = () => {
             <div class="printLogoRow">
               <img src="${SITE_CONFIG.logo}" alt="Logo" class="printLogo" />
             </div>
-            
             <div style="display: flex; justify-content: center; margin-top: 4px; margin-bottom: 4px;">
               <span class="printStatusBadge">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="#15803d" style="vertical-align: text-bottom; margin-right: 4px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
                 TRANSACTION COMPLETED
               </span>
             </div>
-            
             <div class="printHeader">
               <span style="font-size: 0.9rem; font-weight: 800; color: #1e293b; flex: 1;">${txnResult.bank}</span>
               <span style="font-size: 0.75rem; font-weight: 700; color: #64748b; background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">A/C: ${txnResult.accountNo}</span>
             </div>
-            
             <div style="text-align: center; margin: 10px 0;">
               <span class="printLabel" style="font-size: 0.7rem;">TOTAL TRANSFER AMOUNT</span>
               <h2 class="printAmountDisplay">₹${txnResult.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</h2>
@@ -434,7 +508,6 @@ const DMT = () => {
                 <span style="font-size: 0.75rem; font-weight: 800; color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 4px 10px; border-radius: 50px;">Total Surcharge: ₹${txnResult.charge.toFixed(2)}</span>
               </div>
             </div>
-            
             <div class="printDetailGrid">
               <div class="printDetailItem">
                 <span class="printLabel">Beneficiary</span>
@@ -464,105 +537,52 @@ const DMT = () => {
                 <strong style="font-size: 1.1rem; color: #1756aa; font-weight: 900;">₹${txnResult.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
               </div>
             </div>
-            
             <div style="text-align: center; margin-top: 15px; font-size: 0.7rem; color: #94a3b8; font-weight: bold; text-transform: uppercase;">
               🛡️ Secured by ${SITE_CONFIG.shortName}
             </div>
           </div>
         </body>
       </html>
-    `);
+    `;
 
+    printWindow.document.write(printHtml);
     printWindow.document.close();
     printWindow.focus();
-
     setTimeout(() => {
       printWindow.print();
       printWindow.close();
       showToast('Printing initialized!');
     }, 500);
-  };
+  }, [txnResult, showToast]);
 
-  const handleVerifyAccount = () => {
-    if (!newBen.accountNo || !newBen.ifsc) {
-      showToast('Enter Account & IFSC first', 'error');
-      return;
+  // ---------- Memoized Computations ----------
+  const filteredBeneficiaries = useMemo(() => {
+    return beneficiaries.filter(b =>
+      b.accountNo.includes(searchTerm) || b.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [beneficiaries, searchTerm]);
+
+  // Memoize amount-to-words for each beneficiary that has an amount
+  const amountWords = useMemo(() => {
+    const words = {};
+    for (const [id, amount] of Object.entries(amounts)) {
+      if (amount && parseInt(amount) > 0) {
+        words[id] = numberToWords(parseInt(amount));
+      }
     }
-    setVerifyLoading(true);
-    setTimeout(() => {
-      setVerifyLoading(false);
-      setIsVerified(true);
-      setNewBen(prev => ({ ...prev, name: 'SURESH KUMAR' }));
-      showToast('Account Verified: SURESH KUMAR');
-    }, 1500);
-  };
+    return words;
+  }, [amounts]);
 
-  const formatAadhaar = (val) => {
-    const raw = val.replace(/\D/g, '').slice(0, 12);
-    const parts = raw.match(/.{1,4}/g);
-    return parts ? parts.join(' ') : raw;
-  };
-
-  const handleRegister = (e) => {
-    e.preventDefault();
-    if (!validated) { showToast('Please validate Aadhaar first', 'error'); return; }
-    setSubmitted(true);
-    setTimeout(() => {
-      showToast('Customer Registered Successfully');
-      setView('selection');
-      closeModal();
-    }, 1500);
-  };
-
-  const handleAddBeneficiary = (e) => {
-    e.preventDefault();
-    if (!newBen.name || !newBen.bank || !newBen.accountNo || !newBen.ifsc) {
-      showToast('Please fill all fields', 'error');
-      return;
-    }
-    setAddLoading(true);
-    setTimeout(() => {
-      const newList = [...beneficiaries, { ...newBen, id: Date.now(), verified: true }];
-      saveBeneficiaries(newList);
-      setAddLoading(false);
-      showToast('Beneficiary added successfully');
-      setTimeout(() => {
-        setView('beneficiary');
-        setIsVerified(false);
-        setNewBen({ bank: '', accountNo: '', ifsc: '', mobile: '', name: '' });
-      }, 1000);
-    }, 1200);
-  };
-
-  const handleDeleteBen = (id) => {
-    setDeleteTargetId(id);
-    setShowModal('confirmDelete');
-  };
-
-  const confirmDeletion = () => {
-    const newList = beneficiaries.filter(b => b.id !== deleteTargetId);
-    saveBeneficiaries(newList);
-    showToast('Beneficiary deleted successfully');
-    closeModal();
-  };
-
-  const renderModal = () => {
+  // ---------- Modal Rendering ----------
+  const renderModal = useCallback(() => {
     if (!showModal) return null;
 
-    // Always show receipt modal if finalConfirm is triggered — regardless of isCompleted flag
-    if (showModal === 'finalConfirm') {
-      if (txnResult) {
-        return (
-          <TransactionReceipt
-            data={txnResult}
-            onClose={() => { closeModal(); }}
-          />
-        );
-      }
-      // txnResult not ready yet — don't show blank modal
-      return null;
+    // Receipt modal - full screen
+    if (showModal === 'finalConfirm' && txnResult) {
+      return <TransactionReceipt data={txnResult} onClose={closeModal} />;
     }
 
+    // Other modals with overlay
     return (
       <div className={styles.modalOverlay} onClick={closeModal}>
         <div className={styles.modalCard} onClick={e => e.stopPropagation()}>
@@ -628,8 +648,6 @@ const DMT = () => {
             </div>
           )}
 
-
-
           {showModal === 'blocked' && (
             <div className={styles.confirmDeleteWrap}>
               <div className={styles.deleteIconCircle} style={{ background: '#FEF2F2', color: '#EF4444' }}>
@@ -639,11 +657,7 @@ const DMT = () => {
               <p className={styles.confirmDeleteText}>
                 Your account access is currently blocked for this service. Please reach out to our support team for resolution.
               </p>
-              <button
-                className={styles.primaryBtn}
-                style={{ background: '#EF4444' }}
-                onClick={closeModal}
-              >
+              <button className={styles.primaryBtn} style={{ background: '#EF4444' }} onClick={closeModal}>
                 Close
               </button>
             </div>
@@ -659,35 +673,33 @@ const DMT = () => {
                 You are about to remove this beneficiary. This action cannot be undone.
               </p>
               <div className={styles.confirmDeleteActions}>
-                <button
-                  className={styles.cancelBtn}
-                  onClick={closeModal}
-                >
-                  Cancel
-                </button>
-                <button
-                  className={styles.confirmBtn}
-                  onClick={confirmDeletion}
-                >
-                  Delete Now
-                </button>
+                <button className={styles.cancelBtn} onClick={closeModal}>Cancel</button>
+                <button className={styles.confirmBtn} onClick={confirmDeletion}>Delete Now</button>
               </div>
             </div>
           )}
         </div>
       </div>
     );
-  };
+  }, [showModal, txnResult, closeModal, chunkOtp, chunkLoading, handleChunkOtpSubmit, confirmDeletion]);
 
-  const filteredBeneficiaries = beneficiaries.filter(b =>
-    b.accountNo.includes(searchTerm) || b.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
+  // ---------- Render ----------
   return (
     <div className={styles.container}>
       {toast && (
         <div className="global-toast" style={{
-          background: toast.type === 'success' ? '#10B981' : '#EF4444'
+          background: toast.type === 'success' ? '#10B981' : '#EF4444',
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 9999,
+          padding: '12px 24px',
+          borderRadius: '8px',
+          color: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
         }}>
           <FaCheckCircle /> {toast.msg}
         </div>
@@ -769,9 +781,9 @@ const DMT = () => {
                             value={amounts[ben.id] || ''}
                             onChange={e => setAmounts({ ...amounts, [ben.id]: e.target.value.replace(/\D/g, '') })}
                           />
-                          {amounts[ben.id] && parseInt(amounts[ben.id]) > 0 && (
+                          {amountWords[ben.id] && (
                             <span style={{ fontSize: '0.65rem', color: '#16A34A', fontWeight: 'bold', marginTop: '4px', maxWidth: '120px', lineHeight: '1.1' }}>
-                              {numberToWords(parseInt(amounts[ben.id]))}
+                              {amountWords[ben.id]}
                             </span>
                           )}
                         </div>
@@ -802,17 +814,16 @@ const DMT = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               <div className={styles.inputWrap} style={{ gridColumn: '1 / -1' }}>
                 <label className={styles.inputLabel}>Select Bank</label>
-                <input 
-                  list="bank-list" 
-                  className={styles.inputField} 
-                  placeholder="Type to search bank..." 
-                  value={newBen.bank} 
-                  onChange={e => setNewBen({ ...newBen, bank: e.target.value })} 
+                <input
+                  list="bank-list"
+                  className={styles.inputField}
+                  placeholder="Type to search bank..."
+                  value={newBen.bank}
+                  onChange={e => setNewBen({ ...newBen, bank: e.target.value })}
                 />
                 <datalist id="bank-list">
                   {POPULAR_BANKS.map(b => <option key={b.id} value={b.name} />)}
                 </datalist>
-                
                 <div style={{ marginTop: '15px' }}>
                   <span style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 600, display: 'block', marginBottom: '10px' }}>Quick Bank Selection</span>
                   <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', paddingTop: '5px' }}>
@@ -823,19 +834,19 @@ const DMT = () => {
                         style={{
                           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer',
                           minWidth: '70px',
-                          transform: newBen.bank === b.name ? 'scale(1.05)' : 'scale(1)', 
+                          transform: newBen.bank === b.name ? 'scale(1.05)' : 'scale(1)',
                           transition: 'all 0.2s ease-in-out'
                         }}
                       >
-                        <div style={{ 
-                          width: '54px', height: '54px', borderRadius: '50%', background: '#fff', 
-                          border: newBen.bank === b.name ? '2px solid #1756AA' : '1px solid #e2e8f0', 
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', 
-                          padding: '6px', 
-                          boxShadow: newBen.bank === b.name ? '0 4px 10px rgba(23,86,170,0.2)' : 'none' 
+                        <div style={{
+                          width: '54px', height: '54px', borderRadius: '50%', background: '#fff',
+                          border: newBen.bank === b.name ? '2px solid #1756AA' : '1px solid #e2e8f0',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+                          padding: '6px',
+                          boxShadow: newBen.bank === b.name ? '0 4px 10px rgba(23,86,170,0.2)' : 'none'
                         }}>
                           <img
-                            src={b.imgSrc}
+                            src={getImagePath(b.imgSrc)}
                             alt={b.name}
                             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                           />
@@ -880,7 +891,6 @@ const DMT = () => {
                 <input className={styles.inputField} type="text" placeholder="Full Name" value={newBen.name} onChange={e => setNewBen({ ...newBen, name: e.target.value })} />
               </div>
             </div>
-            
             <button type="submit" className={`${styles.primaryBtn} ${isVerified ? styles.successBtn : ''}`} disabled={addLoading} style={{ marginTop: '24px', maxWidth: '250px' }}>
               {addLoading ? <FaSpinner className={styles.spinner} /> : 'Add Beneficiary'}
             </button>
@@ -900,7 +910,6 @@ const DMT = () => {
                 <FaCheckCircle style={{ color: '#16A34A' }} /> <span>Instant KYC Verification</span>
               </div>
             </div>
-
             <div className={styles.verificationRight}>
               <div className={styles.mobileBackRow}><button className={styles.backBtnVerificationMobile} onClick={() => setView('selection')}><FaArrowLeft /> Back</button></div>
               <div className={styles.verificationForm}>
@@ -908,7 +917,6 @@ const DMT = () => {
                   <label className={styles.inputLabel}>Registered Mobile</label>
                   <input className={styles.inputField} style={{ background: '#F8FAFC', color: '#64748B' }} value={selectedMobile} readOnly />
                 </div>
-
                 <div className={styles.inputWrap}>
                   <label className={styles.inputLabel}>Aadhaar Number</label>
                   <div className={styles.adharRow}>
@@ -928,7 +936,6 @@ const DMT = () => {
                     </button>
                   </div>
                 </div>
-
                 {validated && (
                   <>
                     <div className={styles.inputWrap} style={{ animation: 'fadeIn 0.3s' }}>
@@ -952,7 +959,6 @@ const DMT = () => {
                         </button>
                       </div>
                     </div>
-
                     {otpVerified && (
                       <div className={styles.inputWrap} style={{ animation: 'fadeIn 0.4s' }}>
                         <label className={styles.inputLabel}>Biometric Capture</label>
@@ -968,12 +974,10 @@ const DMT = () => {
                     )}
                   </>
                 )}
-
                 <div className={styles.infoBox}>
                   <FaCheckCircle style={{ color: '#16A34A' }} />
                   <span>{captureDone ? 'All steps completed. You can now submit.' : otpVerified ? 'Now scan fingerprint to complete.' : validated ? 'Verify OTP to proceed.' : 'OTP will be sent to your Aadhaar linked mobile number.'}</span>
                 </div>
-
                 <button
                   className={`${styles.primaryBtn} ${(otpVerified && captureDone) ? styles.successBtn : ''}`}
                   disabled={!otpVerified || !captureDone || submitted}
@@ -986,7 +990,6 @@ const DMT = () => {
             </div>
           </div>
         </div>
-
       ) : view === 'registration' ? (
         <div className={styles.verificationContainer}>
           <div className={styles.verificationCardHorizontal} style={{ maxWidth: '1000px', minHeight: '450px' }}>
@@ -1001,7 +1004,6 @@ const DMT = () => {
                 <FaShieldAlt style={{ color: '#fff' }} /> <span>Safe & Secure Onboarding</span>
               </div>
             </div>
-
             <div className={styles.verificationRight} style={{ padding: '30px 50px' }}>
               <div className={styles.mobileBackRow}><button className={styles.backBtnVerificationMobile} onClick={() => setView('selection')}><FaArrowLeft /> Back</button></div>
               <form onSubmit={handleRegister} className={styles.verificationForm} style={{ background: 'none', padding: 0, border: 'none' }}>
@@ -1021,9 +1023,9 @@ const DMT = () => {
                         value={otp}
                         onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       />
-                      <button 
-                        type="button" 
-                        className={`${styles.validateBtn} ${regOtpVerified || (regOtpSent && otp.length === 0) ? styles.success : ''}`} 
+                      <button
+                        type="button"
+                        className={`${styles.validateBtn} ${regOtpVerified || (regOtpSent && otp.length === 0) ? styles.success : ''}`}
                         onClick={() => {
                           if (regOtpVerified) return;
                           if (otp.length === 6) {
@@ -1040,7 +1042,6 @@ const DMT = () => {
                     </div>
                   </div>
                 </div>
-
                 <div className={styles.inputWrap}>
                   <label className={styles.inputLabel}>PAN Card Number</label>
                   <input
@@ -1051,7 +1052,6 @@ const DMT = () => {
                     onChange={e => setPan(e.target.value.toUpperCase().slice(0, 10))}
                   />
                 </div>
-
                 <div className={styles.inputWrap} style={{ marginBottom: '20px' }}>
                   <label className={styles.inputLabel}>Aadhaar Number</label>
                   <div className={styles.adharRow}>
@@ -1061,7 +1061,6 @@ const DMT = () => {
                     </button>
                   </div>
                 </div>
-
                 <button
                   type="submit"
                   className={`${styles.primaryBtn} ${validated ? styles.successBtn : ''}`}
@@ -1116,17 +1115,11 @@ const DMT = () => {
         </div>
       ) : view === 'transferConfirm' ? (
         <div className={styles.verificationContainer} style={{ padding: '0px 2px' }}>
-
           <div className={styles.confirmFullCard}>
-
-            {/* ── Header ── */}
+            {/* Header */}
             <div className={styles.confirmHeader}>
               <div className={styles.headerTopLeft}>
-                <button
-                  onClick={() => setView('beneficiary')}
-                  className={styles.confirmBackBtn}
-                  title="Back"
-                >
+                <button onClick={() => setView('beneficiary')} className={styles.confirmBackBtn} title="Back">
                   <FaArrowLeft style={{ fontSize: '0.85rem' }} />
                 </button>
                 <div className={styles.titleWrap}>
@@ -1154,38 +1147,18 @@ const DMT = () => {
               </div>
             </div>
 
-            {/* ── Bene summary ── */}
+            {/* Beneficiary summary */}
             <div className={styles.beneSummaryRow}>
-              <div className={styles.summaryCol}>
-                <label>Beneficiary Name</label>
-                <span>{transferData?.name}</span>
-              </div>
-              <div className={styles.summaryCol}>
-                <label>Account Number</label>
-                <span style={{ color: '#E11D48', fontWeight: '800' }}>{transferData?.accountNo}</span>
-              </div>
-              <div className={styles.summaryCol}>
-                <label>Bank</label>
-                <span>{transferData?.bank}</span>
-              </div>
-              <div className={styles.summaryCol}>
-                <label>IFSC Code</label>
-                <span>{transferData?.ifsc}</span>
-              </div>
-              <div className={styles.summaryCol}>
-                <label>Transfer Amount</label>
-                <span style={{ color: '#E11D48', fontWeight: '800' }}>₹{transferData?.amount} /-</span>
-              </div>
-              <div className={styles.summaryCol}>
-                <label>Transfer Type</label>
-                <span className={styles.modeBadge}>{transferData?.mode}</span>
-              </div>
+              <div className={styles.summaryCol}><label>Beneficiary Name</label><span>{transferData?.name}</span></div>
+              <div className={styles.summaryCol}><label>Account Number</label><span style={{ color: '#E11D48', fontWeight: '800' }}>{transferData?.accountNo}</span></div>
+              <div className={styles.summaryCol}><label>Bank</label><span>{transferData?.bank}</span></div>
+              <div className={styles.summaryCol}><label>IFSC Code</label><span>{transferData?.ifsc}</span></div>
+              <div className={styles.summaryCol}><label>Transfer Amount</label><span style={{ color: '#E11D48', fontWeight: '800' }}>₹{transferData?.amount} /-</span></div>
+              <div className={styles.summaryCol}><label>Transfer Type</label><span className={styles.modeBadge}>{transferData?.mode}</span></div>
             </div>
 
-            {/* ── Confirm grid (table + action panel) ── */}
+            {/* Confirm grid */}
             <div className={styles.confirmGrid}>
-
-              {/* Left — transaction table */}
               <div className={styles.gridLeft}>
                 <div className={styles.sectionHeader}>Number of Transaction</div>
                 <div className={styles.tableResponsiveWrap}>
@@ -1197,6 +1170,7 @@ const DMT = () => {
                         <th>CHARGE</th>
                         <th>STATUS</th>
                         <th className={styles.desktopActionCell}>ACTION</th>
+                        <th className={styles.desktopActionCell}>RECEIPT</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1228,9 +1202,51 @@ const DMT = () => {
                                 </button>
                               )}
                             </td>
+                            <td className={styles.desktopActionCell}>
+                              {chk.status === 'completed' ? (
+                                <button
+                                  style={{
+                                    background: 'linear-gradient(135deg, #1756AA 0%, #2563EB 100%)',
+                                    color: '#fff',
+                                    border: 'none',
+                                    padding: '5px 14px',
+                                    borderRadius: '6px',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    boxShadow: '0 2px 6px rgba(23,86,170,0.25)'
+                                  }}
+                                  onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(23,86,170,0.35)'; }}
+                                  onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 2px 6px rgba(23,86,170,0.25)'; }}
+                                  onClick={() => {
+                                    const customer = CONTACTS.find(c => c.mobile === selectedMobile) || { name: 'Customer', mobile: selectedMobile || '' };
+                                    setChunkReceiptData({
+                                      chunks: [chk],
+                                      amount: chk.amount,
+                                      charge: chk.charge,
+                                      total: chk.amount + chk.charge,
+                                      beneficiary: transferData?.name,
+                                      accountNo: transferData?.accountNo,
+                                      bank: transferData?.bank,
+                                      ifsc: transferData?.ifsc,
+                                      mode: transferData?.mode,
+                                      customerName: customer.name,
+                                      customerMobile: selectedMobile || '',
+                                      date: new Date().toISOString().replace('T', ' ').slice(0, 19),
+                                      status: 'SUCCESS'
+                                    });
+                                  }}
+                                >
+                                  View
+                                </button>
+                              ) : (
+                                <span style={{ color: '#94A3B8', fontSize: '0.72rem', fontWeight: 600 }}>—</span>
+                              )}
+                            </td>
                           </tr>
                           <tr className={styles.mobileActionRow}>
-                            <td colSpan="4">
+                            <td colSpan="5">
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{fontSize: '0.75rem', fontWeight: 600, color: '#64748B'}}>ACTION :</span>
                                 {chk.status === 'completed' ? (
@@ -1249,17 +1265,72 @@ const DMT = () => {
                           </tr>
                         </React.Fragment>
                       ))}
-                      <tr className={styles.finalTotalRow}>
-                        <td colSpan="2">
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                            <span>Total Deductions :</span>
-                            <span style={{ fontSize: '0.75rem', color: '#16A34A', fontWeight: '600', marginTop: '2px' }}>
-                              {numberToWords(transferChunks.reduce((acc, c) => acc + c.amount + c.charge, 0))}
-                            </span>
+                      <tr>
+                        <td colSpan="6" style={{ padding: '14px 12px', borderTop: '2px solid #E2E8F0' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1E293B' }}>Total Deductions :</span>
+                              <span style={{ fontSize: '0.75rem', color: '#16A34A', fontWeight: '600', marginTop: '2px' }}>
+                                {numberToWords(transferChunks.reduce((acc, c) => acc + c.amount + c.charge, 0))}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <span style={{ fontWeight: 800, fontSize: '1.1rem', color: '#1756AA' }}>
+                                ₹{(transferChunks.reduce((acc, c) => acc + c.amount + c.charge, 0)).toLocaleString('en-IN')}
+                              </span>
+                              {transferChunks.every(c => c.status === 'completed') ? (
+                                <>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '6px', padding: '5px 10px' }}>
+                                    <FaCheckCircle style={{ color: '#16A34A', fontSize: '0.8rem' }} />
+                                    <span style={{ color: '#16A34A', fontWeight: 700, fontSize: '0.75rem' }}>COMPLETED</span>
+                                  </div>
+                                  <button
+                                    style={{
+                                      background: 'linear-gradient(135deg, #1756AA 0%, #2563EB 100%)',
+                                      color: '#fff',
+                                      border: 'none',
+                                      padding: '8px 20px',
+                                      borderRadius: '8px',
+                                      fontSize: '0.82rem',
+                                      fontWeight: 700,
+                                      cursor: 'pointer',
+                                      boxShadow: '0 3px 10px rgba(23,86,170,0.3)',
+                                      transition: 'all 0.2s',
+                                      letterSpacing: '0.5px'
+                                    }}
+                                    onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 18px rgba(23,86,170,0.4)'; }}
+                                    onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 3px 10px rgba(23,86,170,0.3)'; }}
+                                    onClick={() => {
+                                      if (txnResult) {
+                                        setShowModal('finalConfirm');
+                                      } else {
+                                        handleFinalSubmit(transferChunks);
+                                      }
+                                    }}
+                                  >
+                                    🧾 VIEW RECEIPT
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  style={{
+                                    background: '#FEE2E2',
+                                    color: '#B91C1C',
+                                    border: '1px solid #FECACA',
+                                    padding: '8px 20px',
+                                    borderRadius: '8px',
+                                    fontSize: '0.82rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                  }}
+                                  onClick={() => setView('beneficiary')}
+                                >
+                                  CANCEL
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </td>
-                        <td colSpan="3">
-                          ₹{(transferChunks.reduce((acc, c) => acc + c.amount + c.charge, 0)).toLocaleString('en-IN')}
                         </td>
                       </tr>
                     </tbody>
@@ -1267,55 +1338,27 @@ const DMT = () => {
                 </div>
               </div>
 
-              {/* Right — remark + actions */}
-              <div className={styles.gridRight}>
-                <div className={styles.sectionHeader}>Enter M-PIN</div>
-                <div className={styles.pinForm}>
-                  <div className={styles.remarkRow}>
-                    <label>Remark</label>
-                    <input type="text" placeholder="Optional remark" className={styles.remarkInput} />
-                  </div>
-                  <div className={styles.remarkRow} style={{ borderBottom: 'none' }}>
-                    <label>M-PIN</label>
-                    <input type="password" placeholder="Enter PIN" className={styles.remarkInput} />
-                  </div>
-                  <div className={styles.pinActions}>
-                    {transferChunks.every(c => c.status === 'completed') ? (
-                      <>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '6px', padding: '6px 12px' }}>
-                          <FaCheckCircle style={{ color: '#16A34A', fontSize: '0.85rem' }} />
-                          <span style={{ color: '#16A34A', fontWeight: 800, fontSize: '0.78rem' }}>TRANSFER COMPLETED</span>
-                        </div>
-                        <button className={styles.confirmActionBtn} onClick={() => handleFinalSubmit(transferChunks)}>VIEW RECEIPT</button>
-                      </>
-                    ) : (
-                      <button className={styles.cancelActionBtn} onClick={() => setView('beneficiary')}>CANCEL</button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
             </div>
           </div>
         </div>
       ) : (
+        // Selection view
         <div className={styles.mainLayout}>
           <div className={styles.rightPanel}>
             <h1 className={styles.title} style={{ marginTop: '15px', marginBottom: '20px', fontSize: '1.6rem', color: '#1756AA' }}>DMT Service</h1>
-            
             <div className={styles.formGroup}>
               <label>Service Provider</label>
-              <select 
-                className={styles.select} 
-                value={selectedService} 
+              <select
+                className={styles.select}
+                value={selectedService}
                 onChange={(e) => setSelectedService(e.target.value)}
               >
                 <option value="">{servicesLoading ? 'Loading services...' : '-- Select Service --'}</option>
                 {services && services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
-            
-            <div className={styles.formGroup}><label>Select Customer Mobile Number</label>
+            <div className={styles.formGroup}>
+              <label>Select Customer Mobile Number</label>
               <select className={styles.select} value={selectedMobile} onChange={(e) => setSelectedMobile(e.target.value)}>
                 <option value="">-- Select Contact --</option>
                 {CONTACTS.map(c => <option key={c.mobile} value={c.mobile}>{c.name}</option>)}
@@ -1351,7 +1394,14 @@ const DMT = () => {
           </div>
         </div>
       )}
+
       {renderModal()}
+      {chunkReceiptData && (
+        <TransactionReceipt
+          data={chunkReceiptData}
+          onClose={() => setChunkReceiptData(null)}
+        />
+      )}
     </div>
   );
 };

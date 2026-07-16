@@ -304,9 +304,22 @@ const MemberHome = () => {
         />
       )}
 
-      <div className={styles.dashboardGrid}>
-        <div className={styles.leftCol}>
-          <div className={`${styles.servicesCard} member-services-card`} ref={servicesRef}>
+      {/* ========== MAIN GRID WITH HEIGHT FIX ========== */}
+      <div 
+        className={styles.dashboardGrid} 
+        style={{ 
+          display: 'flex', 
+          gap: '20px', 
+          alignItems: 'stretch' 
+        }}
+      >
+        {/* Left column: Services Overview */}
+        <div className={styles.leftCol} style={{ flex: 1, display: 'flex' }}>
+          <div 
+            className={`${styles.servicesCard} member-services-card`} 
+            ref={servicesRef}
+            style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+          >
             <div className={styles.cardHeaderArea}>
               <h3 className={styles.cardTitle}>Services Overview</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -331,7 +344,7 @@ const MemberHome = () => {
                 </button>
               </div>
             </div>
-            <div className={styles.servicesList}>
+            <div className={styles.servicesList} style={{ flex: 1 }}>
               {filteredServices.length > 0 ? (
                 filteredServices.map((card, index) => (
                   <ServiceRow 
@@ -349,135 +362,137 @@ const MemberHome = () => {
           </div>
         </div>
 
-        <div className={styles.rightCol}>
-           <div className={`${styles.performanceCard} member-chart-section`}>
-              <div className={styles.performanceHeader}>
-                <div className={styles.performanceTitleRow}>
-                  <h3 className={styles.performanceTitle}><FaChartBar /> Today's Performance</h3>
-                </div>
-                
-                <div className={styles.chartControlsWrapper}>
-
-
-                  <div className={styles.chartFilterWrapper}>
-                    <button 
-                      className={styles.chartFilterBtn}
-                      onClick={() => setIsFilterOpen(!isFilterOpen)}
-                    >
-                      <FaCalendarAlt /> {selectedFilter} <FaCaretDown />
-                    </button>
-                    
-                    {isFilterOpen && (
-                      <div className={styles.filterDropdown}>
-                        <div className={styles.filterOptionsList}>
-                          {filterOptions.map(option => (
-                            <div 
-                              key={option} 
-                              className={`${styles.filterOption} ${selectedFilter === option ? styles.activeOption : ''}`}
-                              onClick={() => {
-                                setSelectedFilter(option);
-                                setIsFilterOpen(false);
-                              }}
-                            >
-                              {option}
-                            </div>
-                          ))}
-                        </div>
-                        <button 
-                          className={styles.clearFilterBtn}
-                          onClick={() => {
-                            setSelectedFilter('Today');
-                            setIsFilterOpen(false);
-                          }}
-                        >
-                          Clear Filters
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+        {/* Right column: Today's Performance */}
+        <div className={styles.rightCol} style={{ flex: 1, display: 'flex' }}>
+          <div 
+            className={`${styles.performanceCard} member-chart-section`}
+            style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+          >
+            <div className={styles.performanceHeader}>
+              <div className={styles.performanceTitleRow}>
+                <h3 className={styles.performanceTitle}><FaChartBar /> Today's Performance</h3>
               </div>
               
-              <div className={styles.performanceChartWrapper}>
-                <ResponsiveContainer width="100%" height={240}>
-                  <LineChart data={chartData} margin={{ top: 20, right: 15, left: -15, bottom: 10 }}>
-                    <CartesianGrid strokeDasharray="8 8" vertical={false} stroke="#E2E8F0" />
-                    <XAxis 
-                      dataKey="time" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: '#718096', fontSize: 12, fontWeight: 500 }}
-                      dy={10}
-                    />
-                    <YAxis 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: '#718096', fontSize: 12 }}
-                      tickFormatter={(val) => val >= 1000 ? `${(val/1000).toFixed(0)}k` : val}
-                    />
-                    <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'url(#colorPerfHover)', strokeWidth: 30, opacity: 0.15 }} />
-                    <defs>
-                      <linearGradient id="colorPerfHover" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#6366F1" stopOpacity={1}/>
-                        <stop offset="100%" stopColor="#6366F1" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <Line 
-                      type="monotone" 
-                      dataKey="baseline" 
-                      stroke="#E2E8F0" 
-                      strokeWidth={3} 
-                      dot={false}
-                      activeDot={false}
-                      animationDuration={1500}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="amount" 
-                      stroke="#6366F1" 
-                      strokeWidth={4} 
-                      dot={false}
-                      animationDuration={1500}
-                      activeDot={{ r: 8, stroke: '#818CF8', strokeWidth: 4, fill: '#ffffff' }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className={`${styles.performanceGrid} member-perf-cards`}>
-                <div className={`${styles.insightCard} ${styles.blueInsight}`}>
-                   <div className={styles.insightIconWrap}><FaMoneyBillWave /></div>
-                   <div className={styles.insightText}>
-                      <span className={styles.insightLabel}>Business</span>
-                      <strong className={styles.insightValue}>₹{stats.business}</strong>
-                   </div>
-                </div>
-                
-                <div className={`${styles.insightCard} ${styles.greenInsight}`}>
-                   <div className={styles.insightIconWrap}><FaCheckCircle /></div>
-                   <div className={styles.insightText}>
-                      <span className={styles.insightLabel}>Earning</span>
-                      <strong className={styles.insightValue}>₹{stats.earning}</strong>
-                   </div>
-                </div>
-
-                <div className={`${styles.insightCard} ${styles.purpleInsight}`}>
-                   <div className={styles.insightIconWrap}><FaExchangeAlt /></div>
-                   <div className={styles.insightText}>
-                      <span className={styles.insightLabel}>Today TXNS</span>
-                      <strong className={styles.insightValue}>{stats.txns}</strong>
-                   </div>
-                </div>
-
-                <div className={`${styles.insightCard} ${styles.orangeInsight}`}>
-                   <div className={styles.insightIconWrap}><FaWallet /></div>
-                   <div className={styles.insightText}>
-                      <span className={styles.insightLabel}>Wallet Balance</span>
-                      <strong className={styles.insightValue}>₹{stats.balance}</strong>
-                   </div>
+              <div className={styles.chartControlsWrapper}>
+                <div className={styles.chartFilterWrapper}>
+                  <button 
+                    className={styles.chartFilterBtn}
+                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                  >
+                    <FaCalendarAlt /> {selectedFilter} <FaCaretDown />
+                  </button>
+                  
+                  {isFilterOpen && (
+                    <div className={styles.filterDropdown}>
+                      <div className={styles.filterOptionsList}>
+                        {filterOptions.map(option => (
+                          <div 
+                            key={option} 
+                            className={`${styles.filterOption} ${selectedFilter === option ? styles.activeOption : ''}`}
+                            onClick={() => {
+                              setSelectedFilter(option);
+                              setIsFilterOpen(false);
+                            }}
+                          >
+                            {option}
+                          </div>
+                        ))}
+                      </div>
+                      <button 
+                        className={styles.clearFilterBtn}
+                        onClick={() => {
+                          setSelectedFilter('Today');
+                          setIsFilterOpen(false);
+                        }}
+                      >
+                        Clear Filters
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
-           </div>
+            </div>
+            
+            <div className={styles.performanceChartWrapper}>
+              <ResponsiveContainer width="100%" height={240}>
+                <LineChart data={chartData} margin={{ top: 20, right: 15, left: -15, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="8 8" vertical={false} stroke="#E2E8F0" />
+                  <XAxis 
+                    dataKey="time" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#718096', fontSize: 12, fontWeight: 500 }}
+                    dy={10}
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#718096', fontSize: 12 }}
+                    tickFormatter={(val) => val >= 1000 ? `${(val/1000).toFixed(0)}k` : val}
+                  />
+                  <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'url(#colorPerfHover)', strokeWidth: 30, opacity: 0.15 }} />
+                  <defs>
+                    <linearGradient id="colorPerfHover" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#6366F1" stopOpacity={1}/>
+                      <stop offset="100%" stopColor="#6366F1" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <Line 
+                    type="monotone" 
+                    dataKey="baseline" 
+                    stroke="#E2E8F0" 
+                    strokeWidth={3} 
+                    dot={false}
+                    activeDot={false}
+                    animationDuration={1500}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="amount" 
+                    stroke="#6366F1" 
+                    strokeWidth={4} 
+                    dot={false}
+                    animationDuration={1500}
+                    activeDot={{ r: 8, stroke: '#818CF8', strokeWidth: 4, fill: '#ffffff' }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className={`${styles.performanceGrid} member-perf-cards`}>
+              <div className={`${styles.insightCard} ${styles.blueInsight}`}>
+                 <div className={styles.insightIconWrap}><FaMoneyBillWave /></div>
+                 <div className={styles.insightText}>
+                    <span className={styles.insightLabel}>Business</span>
+                    <strong className={styles.insightValue}>₹{stats.business}</strong>
+                 </div>
+              </div>
+              
+              <div className={`${styles.insightCard} ${styles.greenInsight}`}>
+                 <div className={styles.insightIconWrap}><FaCheckCircle /></div>
+                 <div className={styles.insightText}>
+                    <span className={styles.insightLabel}>Earning</span>
+                    <strong className={styles.insightValue}>₹{stats.earning}</strong>
+                 </div>
+              </div>
+
+              <div className={`${styles.insightCard} ${styles.purpleInsight}`}>
+                 <div className={styles.insightIconWrap}><FaExchangeAlt /></div>
+                 <div className={styles.insightText}>
+                    <span className={styles.insightLabel}>Today TXNS</span>
+                    <strong className={styles.insightValue}>{stats.txns}</strong>
+                 </div>
+              </div>
+
+              <div className={`${styles.insightCard} ${styles.orangeInsight}`}>
+                 <div className={styles.insightIconWrap}><FaWallet /></div>
+                 <div className={styles.insightText}>
+                    <span className={styles.insightLabel}>Wallet Balance</span>
+                    <strong className={styles.insightValue}>₹{stats.balance}</strong>
+                 </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -588,7 +603,7 @@ const MemberHome = () => {
 
       </section>
 
-      {/* REVERTING TABLE SECTION TO ORIGINAL STABLE VERSION */}
+      {/* TRANSACTION TABLE SECTION */}
       <section className={`${styles.transactionSection} ${isLoaded ? styles.animateIn : ''} member-txn-table`}>
         <div className={styles.tableHeaderArea}>
           <div className={styles.tableHeaderTitle}>

@@ -1542,7 +1542,7 @@
 }
 
 .premiumTable th {
-  padding: 14px 16px;
+  padding: 9px 12px;
   background: linear-gradient(90deg, #1756AA 0%, #0d1b3e 100%);
   color: #ffffff;
   font-size: 0.72rem;
@@ -1554,6 +1554,9 @@
 
 .premiumTable th:first-child {
   border-top-left-radius: 12px;
+  width: 44px;
+  min-width: 44px;
+  text-align: center;
 }
 
 .premiumTable th:last-child {
@@ -1561,11 +1564,20 @@
 }
 
 .premiumTable td {
-  padding: 14px 16px;
+  padding: 9px 12px;
   border-bottom: 1px solid #f1f5f9;
   font-size: 0.85rem;
   font-weight: 650;
   color: #1e293b;
+}
+
+.premiumTable td:first-child {
+  width: 44px;
+  min-width: 44px;
+  text-align: center;
+  font-weight: 700;
+  color: #64748B;
+  font-size: 0.78rem;
 }
 
 .premiumTable tr:last-child td {

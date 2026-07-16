@@ -69,7 +69,7 @@ export const SupportTicketService = {
             const token = raw.replace(/^"(.*)"$/, '$1').replace(/^Bearer\s+/i, '');
             headers['Authorization'] = `Bearer ${token}`;
         }
-        return await apiService.putForm('/SupportTicket/update', formData, { headers });
+        return await apiService.postForm('/SupportTicket/update', formData, { headers });
     },
 
     delete: async (id) => {
