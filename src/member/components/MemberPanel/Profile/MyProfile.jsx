@@ -12,7 +12,7 @@ const MyProfile = () => {
   const { isDarkMode } = useSelector(state => state.memberPanel);
   const [activeTab, setActiveTab] = useState('Profile');
   const [isEditing, setIsEditing] = useState(false);
-  const [profileImg, setProfileImg] = useState("https://api.dicebear.com/7.x/avataaars/svg?seed=Sachin");
+  const [profileImg, setProfileImg] = useState(""); // ✅ removed dummy image – empty by default
   
   // Modal & File States
   const [showCropModal, setShowCropModal] = useState(false);
@@ -23,17 +23,18 @@ const MyProfile = () => {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const fileInputRef = useRef(null);
 
+  // ✅ All profile fields start empty
   const [formData, setFormData] = useState({
-    name: 'Sachin Balyan',
-    address: 'Jaipur, Rajasthan, India',
-    mobile: '6377487868',
-    email: 'user1@gmail.com',
-    aadhar: '999999999991',
-    pan: 'ZXCVB0123N',
-    shopName: 'Sachin Digital Store',
-    state: 'Rajasthan',
-    city: 'Jaipur',
-    pincode: '302001'
+    name: '',
+    address: '',
+    mobile: '',
+    email: '',
+    aadhar: '',
+    pan: '',
+    shopName: '',
+    state: '',
+    city: '',
+    pincode: ''
   });
 
   // Reset Password State
@@ -90,7 +91,7 @@ const MyProfile = () => {
   };
 
   const handleSaveCrop = () => {
-    // Note: In a real production app, we would use a canvas to crop the image based on x, y, and zoom.
+    // In a real production app, we would use a canvas to crop the image based on x, y, and zoom.
     // For this UI demonstration, we simulate by saving the result.
     setProfileImg(tempImg);
     setShowCropModal(false);
@@ -138,7 +139,7 @@ const MyProfile = () => {
                   alt="Crop Preview" 
                   style={{ 
                     transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
-                    pointerEvents: 'none' // Ensures drag events go to parent cropCircle
+                    pointerEvents: 'none'
                   }}
                 />
                 <div className={styles.dragIndicator}><FaArrowsAlt /></div>
@@ -173,11 +174,11 @@ const MyProfile = () => {
           <div className={styles.avatarSection}>
             <div className={styles.avatarContainer}>
               <img 
-                src={profileImg} 
+                src={profileImg || "https://api.dicebear.com/7.x/avataaars/svg?seed=default"} 
                 alt="Profile" 
                 className={styles.profileImg}
                 style={profileImg === tempImg ? {
-                  transform: `translate(${position.x/2}px, ${position.y/2}px) scale(${zoom})`, // Scale down for preview
+                  transform: `translate(${position.x/2}px, ${position.y/2}px) scale(${zoom})`,
                   width: '100%', height: '100%', objectFit: 'cover'
                 } : {}}
               />
@@ -186,7 +187,7 @@ const MyProfile = () => {
               </button>
             </div>
             <div className={styles.userBasicInfo}>
-              <h1>{formData.name}</h1>
+              <h1>{formData.name || 'Member'}</h1>
               <p>Retailer (RT1236)</p>
               <div className={styles.statusBadge}>
                 <FaCheckCircle /> Verified Merchant
@@ -254,7 +255,7 @@ const MyProfile = () => {
                           className={styles.editInput}
                         />
                       ) : (
-                        <span className={styles.value}>{value}</span>
+                        <span className={styles.value}>{value || '—'}</span>
                       )}
                     </div>
                   ))}
@@ -262,8 +263,6 @@ const MyProfile = () => {
               </div>
             )}
             
-
-
             {activeTab === 'ResetPassword' && (
               <div className={styles.resetSection}>
                 <div className={styles.sectionHeader}>

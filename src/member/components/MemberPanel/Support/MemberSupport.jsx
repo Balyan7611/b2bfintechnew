@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { createTicket, sendChatMessage, deleteTicket, updateTicket, openChat } from '../../../../store/slices/supportSlice';
+import { createTicket, sendChatMessage, deleteTicket, updateTicket } from '../../../../store/slices/supportSlice';
 import { showLoader, hideLoader } from '../../../../store/slices/uiSlice';
 import { 
   FaTicketAlt, FaPlus, FaCheck, FaPaperPlane, FaPaperclip, 
@@ -614,28 +614,7 @@ const MemberSupport = () => {
                             >
                               <FaEdit style={{ color: '#3B82F6' }} /> Edit
                             </button>
-                            <button
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                width: '100%',
-                                padding: '8px 12px',
-                                border: 'none',
-                                background: 'transparent',
-                                fontSize: '0.8rem',
-                                color: '#10B981',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                textAlign: 'left'
-                              }}
-                              onClick={() => {
-                                dispatch(openChat(t));
-                                setActiveActionMenuId(null);
-                              }}
-                            >
-                              <FaCommentDots style={{ color: '#10B981' }} /> Chat
-                            </button>
+                            {/* Chat button removed for member users */}
                             <button
                               style={{
                                 display: 'flex',
@@ -696,10 +675,23 @@ const MemberSupport = () => {
                       <td>
                         {(() => {
                           const displayStatus = t.status === 'Open' ? 'Pending' : t.status;
-                          const statusKey = displayStatus.replace(' ', '').toLowerCase();
+                          const isComplete = displayStatus === 'Resolved' || displayStatus === 'Closed' || displayStatus === 'Complete';
                           return (
-                            <span className={`${sharedStyles.statusPill} ${sharedStyles[statusKey] || sharedStyles.pending}`}>
-                              {displayStatus === 'Resolved' || displayStatus === 'Closed' || displayStatus === 'Complete' ? <FaCheckCircle style={{ fontSize: '10px' }} /> : null}
+                            <span 
+                              className={sharedStyles.statusPill} 
+                              style={{
+                                background: isComplete ? '#27AE60' : (displayStatus === 'Pending' ? '#F59E0B' : '#EF4444'),
+                                color: '#fff',
+                                fontWeight: 600,
+                                padding: '4px 10px',
+                                borderRadius: '20px',
+                                fontSize: '0.75rem',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              {isComplete && <FaCheckCircle style={{ fontSize: '10px' }} />}
                               {displayStatus}
                             </span>
                           );

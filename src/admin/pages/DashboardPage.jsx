@@ -127,6 +127,7 @@ import ApiUser from '../components/MemberPages/ApiUser';
 import Unique from '../components/MemberPages/Unique';
 import PipeMasterNew from '../../member/components/MemberPanel/Pipe/PipeMasterNew';
 import PipeModuleSettings from '../../member/components/MemberPanel/Pipe/PipeModuleSettings';
+import Attendance from '../components/AttendancePages/Attendance';
 import styles from './DashboardPage.module.css';
 
 // --- DATA ---
@@ -300,6 +301,7 @@ const SIDEBAR_LINKS = [
       { id: 'pipe_module_settings', label: 'Pipe Module Settings' }
     ]
   },
+  { id: 'attendance', label: 'Attendance', icon: FaCalendarAlt },
 ];
 
 const ACTION_ICONS = [
@@ -360,13 +362,8 @@ const STAT_CARDS = [
   { id: 4, title: 'Net Flow', value: '₹ 0.00', icon: FaChartPie, color: 'yellow' },
 ];
 
-const RECENT_TXNS = [
-  { id: '1', txnId: 'TXN8472', date: '2026-05-01 10:30', service: 'AEPS', memberId: 'MEM8472', amount: '5000.00', commission: '15.00', status: 'Success', change: '+5000' },
-  { id: '2', txnId: 'TXN8473', date: '2026-05-01 11:15', service: 'DMT', memberId: 'MEM8473', amount: '2000.00', commission: '8.00', status: 'Pending', change: '-2000' },
-  { id: '3', txnId: 'TXN8474', date: '2026-05-01 11:45', service: 'Recharge', memberId: 'MEM8474', amount: '399.00', commission: '5.00', status: 'Failed', change: '0' },
-  { id: '4', txnId: 'TXN8475', date: '2026-05-01 12:00', service: 'Payout', memberId: 'MEM8475', amount: '10000.00', commission: '0.00', status: 'Success', change: '-10000' },
-  { id: '5', txnId: 'TXN8476', date: '2026-05-01 12:10', service: 'UPI', memberId: 'MEM8476', amount: '1500.00', commission: '2.00', status: 'Success', change: '+1500' },
-];
+// ✅ Removed dummy transaction data – table will be empty
+const RECENT_TXNS = [];
 
 const ServiceRow = ({ card, index }) => {
   const [width, setWidth] = useState(0);
@@ -1282,6 +1279,8 @@ const DashboardPage = () => {
             <PipeMasterNew />
           ) : activeTab === 'pipe_module_settings' ? (
             <PipeModuleSettings />
+          ) : activeTab === 'attendance' ? (
+            <Attendance />
           ) : activeTab === 'admin_view' ? (
             <Admin onBack={() => setActiveTab('dashboard')} />
           ) : activeTab === 'master_distributor_view' ? (
@@ -1691,28 +1690,36 @@ const DashboardPage = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {RECENT_TXNS.map((txn, i) => (
-                          <tr key={txn.id}>
-                            <td>{i + 1}</td>
-                            <td>{txn.date}</td>
-                            <td>
-                              <span className={`${styles.servicePill} ${styles[`service_${txn.service.toLowerCase()}`] || ''}`}>
-                                {txn.service}
-                              </span>
-                            </td>
-                            <td>{txn.memberId}</td>
-                            <td>₹ {txn.amount}</td>
-                            <td>₹ {txn.commission}</td>
-                            <td>
-                              <span className={`${styles.statusBadge} ${styles[`status_${txn.status.toLowerCase()}`]}`}>
-                                {txn.status}
-                              </span>
-                            </td>
-                            <td className={txn.change.startsWith('+') ? styles.changePositive : txn.change.startsWith('-') ? styles.changeNegative : styles.changeNeutral}>
-                              {txn.change}
+                        {RECENT_TXNS.length === 0 ? (
+                          <tr>
+                            <td colSpan="8" style={{ textAlign: 'center', padding: '24px 0', color: '#64748b' }}>
+                              No recent transactions found.
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          RECENT_TXNS.map((txn, i) => (
+                            <tr key={txn.id}>
+                              <td>{i + 1}</td>
+                              <td>{txn.date}</td>
+                              <td>
+                                <span className={`${styles.servicePill} ${styles[`service_${txn.service.toLowerCase()}`] || ''}`}>
+                                  {txn.service}
+                                </span>
+                              </td>
+                              <td>{txn.memberId}</td>
+                              <td>₹ {txn.amount}</td>
+                              <td>₹ {txn.commission}</td>
+                              <td>
+                                <span className={`${styles.statusBadge} ${styles[`status_${txn.status.toLowerCase()}`]}`}>
+                                  {txn.status}
+                                </span>
+                              </td>
+                              <td className={txn.change.startsWith('+') ? styles.changePositive : txn.change.startsWith('-') ? styles.changeNegative : styles.changeNeutral}>
+                                {txn.change}
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>

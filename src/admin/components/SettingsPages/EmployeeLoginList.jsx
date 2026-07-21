@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FiSearch, FiEdit, FiTrash2, FiPlus, FiChevronLeft, FiChevronRight, FiDatabase, FiX, FiCheck, FiMonitor, FiClock, FiMapPin, FiUser
@@ -13,25 +13,42 @@ const EmployeeLoginList = () => {
   const dispatch = useDispatch();
 
   const [loginList, setLoginList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const response = await API.userLoginHistory.getAll();
-        if (response && response.data) {
-          setLoginList(response.data);
-        } else if (Array.isArray(response)) {
-          setLoginList(response);
+        
+        // Robust array extraction – handles various response shapes
+        let dataArray = [];
+        if (response) {
+          if (Array.isArray(response.data)) {
+            dataArray = response.data;
+          } else if (Array.isArray(response)) {
+            dataArray = response;
+          } else if (typeof response === 'object') {
+            dataArray = response.items || response.results || response.list || response.records || [];
+          }
         }
+        
+        setLoginList(dataArray);
       } catch (err) {
         console.error("Failed to fetch login history", err);
+        setError('Unable to load login activity. Please try again later.');
+        setLoginList([]);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
   }, []);
 
   return (
-    <div className={styles.container} style={{ padding: '5px 2px 0px 2px', maxWidth: '100%' }}>
+    <div className={styles.container} style={{ padding: '5px 16px 0px 16px', maxWidth: '100%' }}>
       {/* ── MAIN REPOSITORY CARD ── */}
       <div className={styles.cardFullMobile}>
         {/* CARD INTERNAL HEADER */}
@@ -83,7 +100,19 @@ const EmployeeLoginList = () => {
               </tr>
             </thead>
             <tbody>
-              {loginList.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '30px 0', color: '#718096' }}>
+                    Loading login activity...
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '30px 0', color: '#EF4444' }}>
+                    {error}
+                  </td>
+                </tr>
+              ) : loginList.length === 0 ? (
                 <tr>
                   <td colSpan="6" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
                     No login activity found.
@@ -91,7 +120,7 @@ const EmployeeLoginList = () => {
                 </tr>
               ) : (
                 loginList.map((item, idx) => (
-                  <tr key={item.id} className={styles.hoverRow}>
+                  <tr key={item.id || idx} className={styles.hoverRow}>
                     <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{idx + 1}</td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -101,7 +130,9 @@ const EmployeeLoginList = () => {
                          <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <span style={{ color: '#1756AA', fontSize: '0.95rem', fontWeight: 800 }}>{item.loginType || 'Employee'}</span>
                             <small style={{ color: '#718096', fontWeight: 600 }}>MSRNO: {item.msrno || '-'}</small>
-                         </div></div></td>
+                         </div>
+                      </div>
+                    </td>
                     <td>
                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#4E6080', fontSize: '0.85rem', fontWeight: 600 }}>
                           <FiMonitor style={{ color: '#A0AEC0' }} />

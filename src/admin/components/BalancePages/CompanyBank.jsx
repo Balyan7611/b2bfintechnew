@@ -25,6 +25,9 @@ const CompanyBank = () => {
   const [qrLogoFile, setQrLogoFile] = useState(null);
   const [bankLogoFile, setBankLogoFile] = useState(null);
 
+  // ✅ Image preview state
+  const [previewImage, setPreviewImage] = useState(null);
+
   const [formState, setFormState] = useState({
     id: 0,
     msrno: 1,
@@ -221,6 +224,12 @@ const CompanyBank = () => {
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const currentData = filteredData.slice(startIndex, startIndex + rowsPerPage);
+
+  // Image URL helper
+  const getImageUrl = (filename, folder) => {
+    if (!filename) return '';
+    return `https://api.sahayatamoney.in/UploadedFiles/${folder}/${filename}`;
+  };
 
   return (
     <div className={styles.container}>
@@ -586,9 +595,10 @@ const CompanyBank = () => {
                     <td>
                       {row.qrlogo ? (
                         <img 
-                          src={`https://api.sahayatamoney.in/UploadedFiles/qrlogos/${row.qrlogo}`} 
+                          src={getImageUrl(row.qrlogo, 'qrlogos')} 
                           alt="QR Code" 
-                          style={{ width: '45px', height: '45px', objectFit: 'contain', borderRadius: '4px', display: 'block', margin: '0 auto' }} 
+                          style={{ width: '45px', height: '45px', objectFit: 'contain', borderRadius: '4px', display: 'block', margin: '0 auto', cursor: 'pointer' }} 
+                          onClick={() => setPreviewImage(getImageUrl(row.qrlogo, 'qrlogos'))}
                           onError={(e) => {
                             e.target.onerror = null;
                             e.target.src = 'https://placehold.co/100x100?text=No+QR';
@@ -603,9 +613,10 @@ const CompanyBank = () => {
                     <td>
                       {row.banklogo ? (
                         <img 
-                          src={`https://api.sahayatamoney.in/UploadedFiles/banklogos/${row.banklogo}`} 
+                          src={getImageUrl(row.banklogo, 'banklogos')} 
                           alt="Bank Logo" 
-                          style={{ width: '45px', height: '45px', objectFit: 'contain', borderRadius: '4px', display: 'block', margin: '0 auto' }} 
+                          style={{ width: '45px', height: '45px', objectFit: 'contain', borderRadius: '4px', display: 'block', margin: '0 auto', cursor: 'pointer' }} 
+                          onClick={() => setPreviewImage(getImageUrl(row.banklogo, 'banklogos'))}
                           onError={(e) => {
                             e.target.onerror = null;
                             e.target.src = 'https://placehold.co/100x100?text=No+Logo';
@@ -622,8 +633,8 @@ const CompanyBank = () => {
               ) : (
                 <tr>
                   <td colSpan="12" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
-                    
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span></td>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span>
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -756,6 +767,81 @@ const CompanyBank = () => {
             <div style={{ display: 'flex', gap: '12px' }}>
               <button onClick={() => setConfirmDeleteId(null)} style={{ flex: 1, padding: '10px', background: '#F1F5F9', border: 'none', borderRadius: '8px', color: '#4E6080', fontWeight: '600', cursor: 'pointer' }}>Cancel</button>
               <button onClick={handleDelete} style={{ flex: 1, padding: '10px', background: '#E53E3E', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: '600', cursor: 'pointer' }}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── IMAGE PREVIEW MODAL ── */}
+      {previewImage && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(15, 23, 42, 0.85)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            cursor: 'pointer'
+          }}
+          onClick={() => setPreviewImage(null)}
+        >
+          <div 
+            style={{
+              position: 'relative',
+              maxWidth: '90%',
+              maxHeight: '90%',
+              background: '#fff',
+              borderRadius: '12px',
+              padding: '16px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              style={{
+                position: 'absolute',
+                top: '-12px',
+                right: '-12px',
+                width: '36px',
+                height: '36px',
+                background: '#fff',
+                border: 'none',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                color: '#0F172A',
+                fontSize: '1.1rem'
+              }}
+              onClick={() => setPreviewImage(null)}
+            >
+              <FaTimes />
+            </button>
+            <img
+              src={previewImage}
+              alt="Preview"
+              style={{
+                maxWidth: '100%',
+                maxHeight: '80vh',
+                objectFit: 'contain',
+                borderRadius: '4px',
+                display: 'block'
+              }}
+              onError={(e) => {
+                e.target.src = 'https://placehold.co/400x400?text=Image+Not+Found';
+                e.target.style.objectFit = 'contain';
+              }}
+            />
+            <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '0.85rem', color: '#64748B' }}>
+              Click outside or the X button to close
             </div>
           </div>
         </div>

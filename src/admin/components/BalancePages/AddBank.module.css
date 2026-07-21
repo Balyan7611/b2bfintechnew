@@ -310,6 +310,16 @@ input:checked + .slider:before { transform: translateX(24px); }
 .ifscText { color: #718096; font-family: 'Inter', monospace; }
 .badgeActive { background: rgba(39, 174, 96, 0.1); color: #27AE60; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
 
+/* ── NEW: Inactive status badge ── */
+.badgeInactive {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94A3B8;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .actionRow {
   display: flex;
   gap: 10px;
@@ -349,6 +359,35 @@ input:checked + .slider:before { transform: translateX(24px); }
   background: #E53E3E;
   color: #fff;
   transform: translateY(-2px);
+}
+
+/* ── NEW: Bank name wrapper with dot badge ── */
+.bankNameWrapper {
+  display: flex;
+  align-items: center;
+}
+
+/* The dot badge – light colour (green for active, grey for inactive) */
+.statusDot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 10px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+/* ── NEW: S.No cell styling for better alignment ── */
+.snoCell {
+  text-align: center;
+  font-weight: 600;
+  color: #A0AEC0;
+}
+
+/* ── NEW: Center alignment for action column ── */
+.centerAlign {
+  text-align: center;
 }
 
 /* Modal */

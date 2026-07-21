@@ -1659,7 +1659,7 @@ const MemberOnboardingWizard = () => {
                   setErrorMessage('');
                   setSuccessMessage('');
                   setCurrentStep(prev => prev + 1);
-                }}
+                }} 
               >
                 Next <FiChevronRight />
               </button>

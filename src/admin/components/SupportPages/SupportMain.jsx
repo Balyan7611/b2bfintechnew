@@ -116,8 +116,7 @@ const SupportMain = () => {
   const pageData = filtered.slice((addSupportPage - 1) * addSupportRows, addSupportPage * addSupportRows);
 
   return (
-    <div className={styles.page}>
-
+    <div className={styles.page} style={{ padding: '0 10px', maxWidth: '100%' }}>
       {/* ── TOAST ── */}
       {toast && (
         <div className={`global-toast ${toast.type === 'error' ? 'global-toast-error' : 'global-toast-success'}`}>
@@ -126,8 +125,15 @@ const SupportMain = () => {
       )}
 
       {/* ── TABLE CARD ── */}
-      <div className={styles.card}>
-
+      <div
+        className={styles.card}
+        style={{
+          width: '95%',
+          maxWidth: '1400px',
+          margin: '0 auto',
+          boxSizing: 'border-box',
+        }}
+      >
         {/* Card Header */}
         <div className={styles.cardHeader}>
           <div className={styles.cardHeaderLeft}>
@@ -178,7 +184,7 @@ const SupportMain = () => {
         </div>
 
         {/* Table */}
-        <div className={styles.tableWrapper}>
+        <div className={styles.tableWrapper} style={{ overflowX: 'auto' }}>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -224,7 +230,9 @@ const SupportMain = () => {
                   <td colSpan="6">
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 20px', gap: '12px' }}>
                       <FaInfoCircle style={{ fontSize: '2rem', color: '#CBD5E0' }} />
-                      <span style={{ color: '#A0AEC0', fontWeight: 500, fontSize: '0.9rem' }}>No support entries found.</span></div></td>
+                      <span style={{ color: '#A0AEC0', fontWeight: 500, fontSize: '0.9rem' }}>No support entries found.</span>
+                    </div>
+                  </td>
                 </tr>
               )}
             </tbody>

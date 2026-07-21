@@ -10,7 +10,7 @@ import {
 import { 
   FaSearch, FaFileExcel, FaFilePdf, FaPrint, FaCopy, FaFileCsv,
   FaChevronLeft, FaChevronRight, FaPlus, FaTimes, FaEdit, FaTrash,
-  FaCheck, FaSpinner
+  FaCheck, FaSpinner, FaCircle
 } from 'react-icons/fa';
 import { FiDatabase } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
@@ -62,14 +62,14 @@ const AddBank = () => {
   // Local State
   const [manualBankName, setManualBankName] = useState('');
   const [manualIfsc, setManualIfsc] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // NEW dedicated state
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingBank, setEditingBank] = useState(null);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [tableSearch, setTableSearch] = useState('');
   const [showSmartPanel, setShowSmartPanel] = useState(false);
-  const [deleteModal, setDeleteModal] = useState({ open: false, id: null }); // Local panel control
+  const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
 
   // Bank master configurations
   const [dailyLimit, setDailyLimit] = useState(1000000.00);
@@ -135,7 +135,6 @@ const AddBank = () => {
     setManualBankName(val);
     dispatch(setAddBankSearchQuery(val));
     if (!showSmartPanel) setShowSmartPanel(true);
-    // Clear selection if typing manually to allow custom bank
     if (addBankSelectedBank && val !== addBankSelectedBank.name) {
       dispatch(setAddBankSelectedBank(null));
       setManualIfsc('');
@@ -177,7 +176,6 @@ const AddBank = () => {
       fetchBanks();
     } catch (err) {
       console.error("Error registering bank:", err);
-      // Fallback local logic
       if (editingBank) {
         const updatedList = localBankList.map(b => 
           b.id === editingBank.id ? { ...b, name: manualBankName, ifsc: manualIfsc } : b
@@ -217,8 +215,6 @@ const AddBank = () => {
     setManualBankName('');
     setManualIfsc('');
     dispatch(setAddBankSelectedBank(null));
-    
-    // Reset configs to defaults
     setDailyLimit(1000000.00);
     setPerTransactionLimit(200000.00);
     setIsRbirestricted(false);
@@ -231,7 +227,6 @@ const AddBank = () => {
     setIsHighSpeedEnabled(true);
     setMaxTpsallowed(10);
     setPriorityOrder(1);
-
     setIsAddModalOpen(true);
   };
 
@@ -260,7 +255,6 @@ const AddBank = () => {
             
             <div className={styles.modalBody}>
               <div className={styles.modalGrid}>
-                {/* Bank Name Input */}
                 <div className={styles.formGroup}>
                   <label><FaSearch className={styles.labelIcon} /> Bank Name</label>
                   <input 
@@ -273,7 +267,6 @@ const AddBank = () => {
                   />
                 </div>
 
-                {/* IFSC Code */}
                 <div className={styles.formGroup}>
                   <label><FaSpinner className={styles.labelIcon} /> IFSC Code</label>
                   <input 
@@ -286,7 +279,6 @@ const AddBank = () => {
                   />
                 </div>
 
-                {/* Priority Order */}
                 <div className={styles.formGroup}>
                   <label>Priority Order</label>
                   <input 
@@ -297,7 +289,6 @@ const AddBank = () => {
                   />
                 </div>
 
-                {/* Max TPS Allowed */}
                 <div className={styles.formGroup}>
                   <label>Max TPS Allowed</label>
                   <input 
@@ -308,7 +299,6 @@ const AddBank = () => {
                   />
                 </div>
 
-                {/* Daily Limit */}
                 <div className={styles.formGroup}>
                   <label>Daily Limit (₹)</label>
                   <input 
@@ -319,7 +309,6 @@ const AddBank = () => {
                   />
                 </div>
 
-                {/* Per Transaction Limit */}
                 <div className={styles.formGroup}>
                   <label>Per Transaction Limit (₹)</label>
                   <input 
@@ -488,12 +477,20 @@ const AddBank = () => {
             </thead>
             <tbody>
               {currentData.length > 0 ? currentData.map((row, index) => (
-                <tr key={row.id} className={index % 2 === 0 ? styles.rowEven : styles.rowOdd}>
-                  <td>{startIndex + index + 1}</td>
-                  <td className={styles.fwBold}>{row.name}</td>
+                <tr key={row.id} className={`${styles.tableRow} ${index % 2 === 0 ? styles.rowEven : styles.rowOdd}`}>
+                  <td className={styles.snoCell}>{startIndex + index + 1}</td>
+                  <td>
+                    <div className={styles.bankNameWrapper}>
+                      {/* ✅ LIGHT-COLORED BADGE (DOT) BEFORE BANK NAME */}
+                      <span className={styles.statusDot} style={{ backgroundColor: row.isActive ? '#22C55E' : '#94A3B8' }}></span>
+                      <span className={styles.fwBold}>{row.name}</span>
+                    </div>
+                  </td>
                   <td className={styles.ifscText}>{row.ifsc}</td>
                   <td>
-                    <span className={styles.badgeActive}>Active</span>
+                    <span className={row.isActive ? styles.badgeActive : styles.badgeInactive}>
+                      {row.isActive ? 'Active' : 'InActive'}
+                    </span>
                   </td>
                   <td className={styles.centerAlign}>
                     <div className={styles.actionRow}>
@@ -536,8 +533,8 @@ const AddBank = () => {
               )) : (
                 <tr>
                   <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
-                    
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span></td>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span>
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -582,4 +579,3 @@ const AddBank = () => {
 };
 
 export default AddBank;
-

@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fa';
 import styles from './AadharPay.module.css';
 import ReceiptModal from '../../../../shared/components/common/ReceiptModal';
+
 const getImagePath = (path) => {
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   const pathname = window.location.pathname;
@@ -16,7 +17,6 @@ const getImagePath = (path) => {
                              firstPart !== 'admin' && 
                              firstPart !== 'dashboard' && 
                              firstPart !== 'shopping';
-                             
   const base = isRepoSubdirectory ? `/${firstPart}/` : '/';
   return base + cleanPath;
 };
@@ -35,13 +35,6 @@ const POPULAR_BANKS = [
 
 const PRESETS = [500, 1000, 2000, 3000, 5000, 10000];
 
-const INITIAL_TRANSACTIONS = [
-  { sNo: 1, date: '2026-05-19 11:20', orderId: 'AP2026051911', type: 'AadharPay', amount: 3500.00, status: 'success' },
-  { sNo: 2, date: '2026-05-18 15:40', orderId: 'AP2026051804', type: 'AadharPay', amount: 1000.00, status: 'success' },
-  { sNo: 3, date: '2026-05-18 09:12', orderId: 'AP2026051801', type: 'AadharPay', amount: 5000.00, status: 'failed' },
-  { sNo: 4, date: '2026-05-17 17:30', orderId: 'AP2026051709', type: 'AadharPay', amount: 800.00, status: 'success' },
-];
-
 const AadharPay = () => {
   const [activeTab, setActiveTab] = useState('AADHARPAY');
   const [mobileNumber, setMobileNumber] = useState('');
@@ -53,7 +46,7 @@ const AadharPay = () => {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+  const [transactions, setTransactions] = useState([]); // ✅ No dummy data
   const [receiptData, setReceiptData] = useState(null);
 
   const showToast = (msg, type = 'success') => {
@@ -203,7 +196,6 @@ const AadharPay = () => {
           {toast.msg}
         </div>
       )}
-
 
       {/* Main Grid: Form + Biometric Widget */}
       <div className={styles.mainLayout}>
@@ -434,7 +426,7 @@ const AadharPay = () => {
               {filteredTxns.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
-                    No recent AePS transactions matching filters.
+                    No transactions found.
                   </td>
                 </tr>
               ) : (

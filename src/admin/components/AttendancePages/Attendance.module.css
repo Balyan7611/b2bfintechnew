@@ -1,0 +1,645 @@
+/* Attendance.module.css */
+
+.attendanceContainer {
+    padding: 20px;
+    max-width: 100%;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f0f4f8;
+    min-height: 100vh;
+}
+
+/* ─── Banner ─────────────────────────────────────────────── */
+.banner {
+    background: linear-gradient(135deg, #0F2554 0%, #1A3A7A 50%, #1E4DB7 100%);
+    border-radius: 16px;
+    padding: 24px 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 32px rgba(15, 37, 84, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+
+.banner::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    pointer-events: none;
+}
+
+.banner::after {
+    content: '';
+    position: absolute;
+    bottom: -40px;
+    left: -40px;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.03);
+    pointer-events: none;
+}
+
+.bannerContent {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.bannerLeft {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.bannerIcon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: #FFC107;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.bannerLeft h1 {
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.3px;
+}
+
+.bannerLeft p {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 4px 0 0;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bannerRight {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.dateDisplay {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 8px 16px;
+    border-radius: 50px;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dateDisplay button {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.dateDisplay button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.dateDisplay span {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    min-width: 140px;
+    text-align: center;
+}
+
+.todayBtn {
+    background: #FFC107;
+    color: #0F2554;
+    border: none;
+    padding: 4px 14px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.todayBtn:hover {
+    background: #FFB300;
+}
+
+/* ─── Main Table ──────────────────────────────────────────── */
+.attendanceTableWrapper {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    margin-bottom: 24px;
+}
+
+.tableHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.tableHeader h3 {
+    font-size: 1.1rem;
+    color: #1a2332;
+    margin: 0;
+}
+
+.tableFilters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.searchBox {
+    display: flex;
+    align-items: center;
+    background: #f0f4f8;
+    border-radius: 50px;
+    padding: 6px 16px;
+    gap: 8px;
+}
+
+.searchBox input {
+    border: none;
+    background: transparent;
+    padding: 8px 0;
+    font-size: 0.9rem;
+    outline: none;
+    min-width: 160px;
+}
+
+.searchBox svg {
+    color: #6b7a8f;
+}
+
+.filterSelect {
+    padding: 8px 16px;
+    border-radius: 50px;
+    border: 1px solid #dce3ec;
+    background: #fff;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+    height: 42px;
+}
+
+/* ─── Icon Buttons ────────────────────────────────────────── */
+.iconBtn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid #dce3ec;
+    background: #fff;
+    color: #4a5a6e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+}
+
+.iconBtn:hover {
+    background: #f0f4f8;
+    border-color: #0F2554;
+    color: #0F2554;
+}
+
+.iconBtn.activeIcon {
+    background: #0F2554;
+    color: #fff;
+    border-color: #0F2554;
+}
+
+/* ─── Table ───────────────────────────────────────────────── */
+.tableWrapper {
+    overflow-x: auto;
+}
+
+.attendanceTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.attendanceTable thead {
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.attendanceTable th {
+    text-align: left;
+    padding: 12px 16px;
+    font-weight: 600;
+    color: #4a5a6e;
+    border-bottom: 2px solid #eef2f7;
+    white-space: nowrap;
+}
+
+.attendanceTable td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f4f8;
+    color: #1a2332;
+}
+
+.attendanceTable tbody tr:hover {
+    background: #f8fafc;
+}
+
+.emptyRow {
+    text-align: center;
+    color: #9aa8b9;
+    padding: 30px 0;
+}
+
+.statusSelect {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #dce3ec;
+    background: #fff;
+    font-size: 0.85rem;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+.statusSelect:focus {
+    outline: none;
+    border-color: #0F2554;
+}
+
+.actionIcons {
+    display: flex;
+    gap: 6px;
+}
+
+.actionIcons button {
+    background: none;
+    border: none;
+    color: #6b7a8f;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 6px;
+    border-radius: 4px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.actionIcons button:hover {
+    background: #f0f4f8;
+    color: #0F2554;
+}
+
+.actionIcons button:last-child:hover {
+    color: #f44336;
+}
+
+/* ─── Summary Row ──────────────────────────────────────── */
+.summaryRow {
+    display: flex;
+    gap: 24px;
+    padding: 16px 0 0;
+    margin-top: 16px;
+    border-top: 1px solid #eef2f7;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+    color: #4a5a6e;
+    font-weight: 500;
+}
+
+.summaryRow span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ─── Status Badge ──────────────────────────────────────── */
+.statusBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.present {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.absent {
+    background: #fce4ec;
+    color: #c62828;
+}
+
+.halfday {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.notMarked {
+    background: #e3f2fd;
+    color: #0d47a1;
+}
+
+/* ─── History Section ──────────────────────────────────── */
+.historySection {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    margin-bottom: 24px;
+}
+
+.historyHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.historyHeader h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+    color: #1a2332;
+    margin: 0;
+    flex-wrap: wrap;
+}
+
+.filterChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #e8f0fe;
+    color: #0F2554;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.chipClose {
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.chipClose:hover {
+    color: #f44336;
+}
+
+.historyControls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.monthNavigator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.monthNavigator button {
+    background: #f0f4f8;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #1a2332;
+    transition: background 0.2s;
+}
+
+.monthNavigator button:hover {
+    background: #e2e8f0;
+}
+
+.monthNavigator span {
+    font-weight: 600;
+    color: #1a2332;
+    min-width: 140px;
+    text-align: center;
+}
+
+.historyTableWrapper {
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.historyTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.historyTable thead {
+    background: #f8fafc;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.historyTable th {
+    text-align: left;
+    padding: 10px 16px;
+    font-weight: 600;
+    color: #4a5a6e;
+    border-bottom: 2px solid #eef2f7;
+}
+
+.historyTable td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #f0f4f8;
+}
+
+/* ─── Modal ────────────────────────────────────────────── */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 520px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.modalHeader h3 {
+    font-size: 1.3rem;
+    color: #1a2332;
+    margin: 0;
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    color: #6b7a8f;
+    cursor: pointer;
+    padding: 0 8px;
+}
+
+.closeBtn:hover {
+    color: #1a2332;
+}
+
+.employeeForm {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.formGroup label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #1a2332;
+}
+
+.formGroup input,
+.formGroup select {
+    padding: 10px 14px;
+    border: 1px solid #dce3ec;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    background: #fafbfc;
+}
+
+.formGroup input:focus,
+.formGroup select:focus {
+    outline: none;
+    border-color: #0F2554;
+    box-shadow: 0 0 0 3px rgba(15, 37, 84, 0.1);
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 480px) {
+    .formRow {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ─── Responsive tweaks ────────────────────────────────── */
+@media (max-width: 768px) {
+    .bannerContent {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .bannerRight {
+        width: 100%;
+    }
+    .dateDisplay {
+        width: 100%;
+        justify-content: center;
+    }
+    .tableHeader {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .tableFilters {
+        justify-content: center;
+    }
+    .searchBox input {
+        min-width: 120px;
+    }
+    .historyHeader {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .historyControls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .summaryRow {
+        justify-content: center;
+    }
+}

@@ -6,13 +6,7 @@ import {
 } from 'react-icons/fi';
 import styles from '../MemberPages/MemberPages.module.css';
 
-// ─── ACCORDION SECTION (moved OUTSIDE the parent component) ───────────
-// This was the root cause of every glitch: when a component is defined
-// INSIDE another component's function body, React treats it as a brand
-// new component type on every re-render (every keystroke, every state
-// change). That forces React to unmount + remount the whole subtree —
-// which is why fields "jumped"/scrolled and why opening a dropdown wiped
-// out data in other fields. Defining it here, once, fixes all of that.
+// ─── ACCORDION SECTION ────────────────────────────────────────────────
 const Section = ({ id, label, icon, isOpen, onToggle, sectionRef, children }) => {
   const contentRef = useRef(null);
   const [height, setHeight] = useState('0px');
@@ -77,7 +71,7 @@ const Section = ({ id, label, icon, isOpen, onToggle, sectionRef, children }) =>
   );
 };
 
-// ─── TOAST (also moved outside) ────────────────────────────────────────
+// ─── TOAST ────────────────────────────────────────────────────────────
 const Toast = ({ show, message }) =>
   show && (
     <div
@@ -93,7 +87,7 @@ const Toast = ({ show, message }) =>
     </div>
   );
 
-// ─── CONFIRM MODAL (also moved outside) ────────────────────────────────
+// ─── CONFIRM MODAL ────────────────────────────────────────────────────
 const ConfirmModal = ({ show, onCancel, onConfirm }) =>
   show && (
     <div
@@ -152,6 +146,7 @@ const ConfirmModal = ({ show, onCancel, onConfirm }) =>
     </div>
   );
 
+// ─── INITIAL STATE (with new XML fields) ─────────────────────────────
 const initialFormState = {
   apiType: '',
   apiName: '',
@@ -171,10 +166,12 @@ const initialFormState = {
   successMsg: '',
   failedMsg: '',
   pendingMsg: '',
+  xmlKeyRecharge: '',       // NEW
   balanceUrl: '',
   balanceUid: '',
   balancePin: '',
   balancePos: '',
+  xmlKeyBalance: '',        // NEW
   statusUrl: '',
   statusUid: '',
   statusPin: '',
@@ -183,17 +180,17 @@ const initialFormState = {
   opRefPosStatus: '',
   statusParam3: '',
   statusParam4: '',
+  xmlKeyStatus: '',         // NEW
 };
 
+// ─── MAIN COMPONENT ───────────────────────────────────────────────────
 const AddAPI = () => {
-  // ─── ALL FORM STATE ──────────────────────────────
   const [form, setForm] = useState(initialFormState);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showToast, setShowToast] = useState({ show: false, message: '' });
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // ─── ACCORDION STATE ──────────────────────────────
+  // ─── ACCORDION ──────────────────────────────────────────────────────
   const [open, setOpen] = useState({
     general: true,
     recharge: false,
@@ -205,13 +202,11 @@ const AddAPI = () => {
   const rechargeRef = useRef(null);
   const balanceRef = useRef(null);
   const statusRef = useRef(null);
-
   const sectionRefs = { general: generalRef, recharge: rechargeRef, balance: balanceRef, status: statusRef };
 
   const prevOpen = useRef(open);
   const firstRender = useRef(true);
 
-  // ─── AUTO-SCROLL ON OPEN ──────────────────────────
   useEffect(() => {
     if (firstRender.current) {
       firstRender.current = false;
@@ -221,10 +216,7 @@ const AddAPI = () => {
     const prev = prevOpen.current;
     const opened = Object.keys(open).find((k) => open[k] === true && prev[k] === false);
     if (opened && sectionRefs[opened]?.current) {
-      sectionRefs[opened].current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
+      sectionRefs[opened].current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     prevOpen.current = open;
   }, [open]);
@@ -233,7 +225,7 @@ const AddAPI = () => {
     setOpen((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  // ─── HANDLERS ──────────────────────────────────────
+  // ─── HANDLERS ──────────────────────────────────────────────────────
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -250,9 +242,7 @@ const AddAPI = () => {
     }, 1500);
   };
 
-  const handleReset = () => {
-    setShowConfirm(true);
-  };
+  const handleReset = () => setShowConfirm(true);
 
   const confirmReset = () => {
     setForm(initialFormState);
@@ -285,7 +275,7 @@ const AddAPI = () => {
 
         <form onSubmit={handleSubmit} style={{ padding: '0 25px 30px 25px' }}>
 
-          {/* ─── GENERAL ──────────────────────────── */}
+          {/* ─── GENERAL ────────────────────────────────────────────── */}
           <Section id="general" label="General Information" icon={<FiSettings />} isOpen={open.general} onToggle={toggle} sectionRef={generalRef}>
             <div className={styles.formGrid3} style={{ marginBottom: '20px' }}>
               <div className={styles.formGroup}>
@@ -324,7 +314,7 @@ const AddAPI = () => {
             </div>
           </Section>
 
-          {/* ─── RECHARGE ─────────────────────────── */}
+          {/* ─── RECHARGE ────────────────────────────────────────────── */}
           <Section id="recharge" label="Recharge API Parameters" icon={<FiZap />} isOpen={open.recharge} onToggle={toggle} sectionRef={rechargeRef}>
             <div className={styles.formGrid3} style={{ marginBottom: '20px' }}>
               {[3, 4, 5, 6, 7, 8].map((num) => (
@@ -348,7 +338,7 @@ const AddAPI = () => {
                 <input type="text" name="opRefPos" value={form.opRefPos} onChange={handleChange} className={styles.inputControl} style={{ height: '42px' }} />
               </div>
             </div>
-            <div className={styles.formGrid3}>
+            <div className={styles.formGrid3} style={{ marginBottom: '20px' }}>
               <div className={styles.formGroup}>
                 <label className={styles.label}><FiCheckCircle color="#27AE60" /> Status Msg (Success)</label>
                 <input type="text" name="successMsg" value={form.successMsg} onChange={handleChange} className={styles.inputControl} style={{ height: '42px' }} />
@@ -362,9 +352,21 @@ const AddAPI = () => {
                 <input type="text" name="pendingMsg" value={form.pendingMsg} onChange={handleChange} className={styles.inputControl} style={{ height: '42px' }} />
               </div>
             </div>
+            {/* NEW XML Key for Recharge */}
+            <div className={styles.formGroup}>
+              <label className={styles.label}>XML Key (Recharge)</label>
+              <input
+                type="text"
+                name="xmlKeyRecharge"
+                value={form.xmlKeyRecharge}
+                onChange={handleChange}
+                className={styles.inputControl}
+                style={{ height: '42px', width: '100%' }}
+              />
+            </div>
           </Section>
 
-        {/* ─── BALANCE ──────────────────────────── */}
+          {/* ─── BALANCE ────────────────────────────────────────────── */}
           <Section
             id="balance"
             label="Balance API Parameters"
@@ -382,11 +384,26 @@ const AddAPI = () => {
                 <div className={styles.formGroup}><label className={styles.label}>UID</label><input type="text" name="balanceUid" value={form.balanceUid} onChange={handleChange} className={styles.inputControl} style={{ height: '40px' }} /></div>
                 <div className={styles.formGroup}><label className={styles.label}>PIN</label><input type="text" name="balancePin" value={form.balancePin} onChange={handleChange} className={styles.inputControl} style={{ height: '40px' }} /></div>
               </div>
-              <div className={styles.formGroup}><label className={styles.label}>Balance Position</label><input type="text" name="balancePos" value={form.balancePos} onChange={handleChange} className={styles.inputControl} style={{ height: '40px', width: '100%' }} /></div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Balance Position</label>
+                <input type="text" name="balancePos" value={form.balancePos} onChange={handleChange} className={styles.inputControl} style={{ height: '40px', width: '100%' }} />
+              </div>
+              {/* NEW XML Key for Balance */}
+              <div className={styles.formGroup}>
+                <label className={styles.label}>XML Key (Balance)</label>
+                <input
+                  type="text"
+                  name="xmlKeyBalance"
+                  value={form.xmlKeyBalance}
+                  onChange={handleChange}
+                  className={styles.inputControl}
+                  style={{ height: '40px', width: '100%' }}
+                />
+              </div>
             </div>
           </Section>
 
-          {/* ─── STATUS ───────────────────────────── */}
+          {/* ─── STATUS ──────────────────────────────────────────────── */}
           <Section id="status" label="Status API Parameters" icon={<FiBarChart2 />} isOpen={open.status} onToggle={toggle} sectionRef={statusRef}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div className={styles.formGroup}>
@@ -406,10 +423,22 @@ const AddAPI = () => {
                 <div className={styles.formGroup}><label className={styles.label}>Parameter 3</label><input type="text" name="statusParam3" value={form.statusParam3} onChange={handleChange} className={styles.inputControl} style={{ height: '40px' }} /></div>
                 <div className={styles.formGroup}><label className={styles.label}>Parameter 4</label><input type="text" name="statusParam4" value={form.statusParam4} onChange={handleChange} className={styles.inputControl} style={{ height: '40px' }} /></div>
               </div>
+              {/* NEW XML Key for Status */}
+              <div className={styles.formGroup}>
+                <label className={styles.label}>XML Key (Status)</label>
+                <input
+                  type="text"
+                  name="xmlKeyStatus"
+                  value={form.xmlKeyStatus}
+                  onChange={handleChange}
+                  className={styles.inputControl}
+                  style={{ height: '40px', width: '100%' }}
+                />
+              </div>
             </div>
           </Section>
 
-          {/* ─── BUTTONS ───────────────────────────── */}
+          {/* ─── BUTTONS ────────────────────────────────────────────── */}
           <div style={{ display: 'flex', gap: '15px', marginTop: '25px' }}>
             <button
               type="submit"

@@ -47,13 +47,8 @@ const COMPANY_BANKS = [
   }
 ];
 
-const INITIAL_REQUESTS = [
-  { sNo: 1, requestId: 'FR9871625', date: '2026-05-19', payMode: 'IMPS', companyBank: 'ICICI Bank', amount: 15000, remark: 'Immediate main wallet load', refId: 'UTR9837162541', addDate: '2026-05-19 11:20', approveDate: '2026-05-19 12:00', compRemarks: 'Approved instantly', slip: 'slip1.jpg', status: 'approved', reason: 'N/A' },
-  { sNo: 2, requestId: 'FR9871104', date: '2026-05-18', payMode: 'NEFT', companyBank: 'State Bank of India', amount: 50000, remark: 'Bulk load for AEPS release', refId: 'UTR7827361521', addDate: '2026-05-18 09:15', approveDate: 'Pending', compRemarks: 'Pending verification', slip: 'slip2.jpg', status: 'pending', reason: 'N/A' },
-  { sNo: 3, requestId: 'FR9870912', date: '2026-05-17', payMode: 'UPI Transfer', companyBank: 'Punjab National Bank', amount: 5000, remark: 'Test load', refId: 'UTR3615273641', addDate: '2026-05-17 15:40', approveDate: '2026-05-17 16:10', compRemarks: 'Incorrect UTR details', slip: 'slip3.jpg', status: 'rejected', reason: 'UTR mismatch' }
-];
+// ✅ Removed INITIAL_REQUESTS — now the list starts empty
 
-// Formats number into blocks of 4 digits to look like real credit/ATM card numbers
 const formatCardNumber = (accNo) => {
   return accNo.replace(/(\d{4})/g, '$1 ').trim();
 };
@@ -70,8 +65,8 @@ const FundRequest = () => {
   const [remark, setRemark] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   
-  // List states
-  const [requests, setRequests] = useState(INITIAL_REQUESTS);
+  // List states – now starts with an empty array ✅
+  const [requests, setRequests] = useState([]);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -190,9 +185,7 @@ const FundRequest = () => {
         </div>
       )}
 
-
-
-      {/* SECTION 1: Submit New Request (Polished & Beautiful formCard) */}
+      {/* SECTION 1: Submit New Request */}
       {!isApiPanel && (
       <div className={`${styles.premiumSectionCard} ${styles.formCard}`}>
         <div className={styles.sectionHeader}>
@@ -298,7 +291,6 @@ const FundRequest = () => {
           </div>
 
           <div className={styles.uploadSubmitRow}>
-            {/* Styled custom upload label wrapper */}
             <div className={styles.compactUploadZone}>
               <input 
                 type="file" 
@@ -323,7 +315,7 @@ const FundRequest = () => {
       </div>
       )}
 
-      {/* SECTION 2: Company Bank Cards (Styled to look like real light ATM / Credit Cards) */}
+      {/* SECTION 2: Company Bank Cards */}
       {!isApiPanel && (
       <div className={styles.premiumSectionCard}>
         <div className={styles.sectionHeader}>
@@ -342,14 +334,12 @@ const FundRequest = () => {
               key={bank.id} 
               className={`${styles.bankCardItem} ${styles['cardTheme' + bank.id]}`}
             >
-              {/* Card top banner */}
               <div className={styles.cardHeader}>
                 <div className={styles.cardBankLogo}>{bank.logo}</div>
                 <div className={styles.cardBankIdentity}>
                   <span className={styles.cardBankName}>{bank.name}</span>
                   <span className={styles.cardType}>PLATINUM</span>
                 </div>
-                {/* Contactless payment icon */}
                 <div className={styles.contactlessIcon}>
                   <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                     <path d="M12 3a9 9 0 0 1 9 9v1a1 1 0 0 1-2 0v-1a7 7 0 0 0-7-7H9a1 1 0 0 1 0-2h3zm-3 4a6 6 0 0 1 6 6v1a1 1 0 0 1-2 0v-1a4 4 0 0 0-4-4H7a1 1 0 0 1 0-2h2zm-3 4a3 3 0 0 1 3 3v1a1 1 0 0 1-2 0v-1a1 1 0 0 0-1-1H3a1 1 0 0 1 0-2h3z"/>
@@ -357,14 +347,12 @@ const FundRequest = () => {
                 </div>
               </div>
 
-              {/* EMV Card Smart Chip */}
               <div className={styles.emvChip}>
                 <div className={styles.chipLine}></div>
                 <div className={styles.chipLine}></div>
                 <div className={styles.chipLine}></div>
               </div>
 
-              {/* Card Account details formatted like card digits */}
               <div className={styles.cardBody}>
                 <div className={styles.cardAccBlock}>
                   <span className={styles.cardMetaLabel}>Account Number</span>
@@ -406,7 +394,6 @@ const FundRequest = () => {
                 </div>
               </div>
 
-              {/* Card footer/branch */}
               <div className={styles.cardFooter}>
                 <span className={styles.cardBranchText}>📍 {bank.branch}</span>
                 <button 
@@ -423,7 +410,7 @@ const FundRequest = () => {
       </div>
       )}
 
-      {/* SECTION 3: Fund Request History (Styled identically to AEPS Report) */}
+      {/* SECTION 3: Fund Request History */}
       <div className={styles.tableCard}>
         <div className={styles.tableHeaderRow}>
           <h2 className={styles.sectionTitle}><FaFileInvoiceDollar /> Fund Request List</h2>
@@ -443,7 +430,6 @@ const FundRequest = () => {
           </div>
         </div>
 
-        {/* Table Toolbar controls */}
         <div className={styles.toolbarControls}>
           <div className={styles.rowLimiter}>
             <span>Show</span>
@@ -455,7 +441,6 @@ const FundRequest = () => {
             <span>entries</span>
           </div>
 
-          {/* Export Buttons matching standard global classes & colors */}
           <div className={styles.toolbarExportActions}>
             <button className="global-export-btn btn-copy" title="Copy Table" onClick={() => showToast('Copied to clipboard!', 'success')}><FaCopy /></button>
             <button className="global-export-btn btn-excel" title="Download Excel" onClick={() => showToast('Excel exported!', 'success')}><FaFileExcel /></button>
@@ -474,7 +459,6 @@ const FundRequest = () => {
           </div>
         </div>
 
-        {/* Responsive Table Wrapper */}
         <div className={styles.tableWrapper}>
           <table className={styles.premiumTable}>
             <thead>
@@ -533,7 +517,6 @@ const FundRequest = () => {
           </table>
         </div>
 
-        {/* Pagination Section */}
         <div className={styles.paginationSection}>
           <div className={styles.showingText}>
             Showing {filteredRequests.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, filteredRequests.length)} of {filteredRequests.length} entries
@@ -631,4 +614,3 @@ const FundRequest = () => {
 };
 
 export default FundRequest;
-

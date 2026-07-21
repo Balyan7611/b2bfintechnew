@@ -6,12 +6,6 @@ import {
 import styles from './UpiTransfer.module.css';
 import TransactionReceipt from './TransactionReceipt';
 
-const INITIAL_TRANSACTIONS = [
-  { sNo: 1, date: '2026-05-19 12:45', name: 'Vishnu Prajapat', upiId: '6377749427@ybl', amount: 500, status: 'success' },
-  { sNo: 2, date: '2026-05-19 11:20', name: 'Rajesh Verma', upiId: 'rajesh@oksbi', amount: 2000, status: 'success' },
-  { sNo: 3, date: '2026-05-18 17:10', name: 'Karan Malhotra', upiId: 'karan@ybl', amount: 1000, status: 'failed' }
-];
-
 const UPI_TAGS = [
   ['@paytm', '@okaxis', '@apl'],
   ['@okicici', '@oksbi', '@kotak'],
@@ -31,7 +25,7 @@ const UpiTransfer = () => {
   const [lastTxn, setLastTxn] = useState(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+  const [transactions, setTransactions] = useState([]); // ✅ No dummy data
   const [toast, setToast] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -206,8 +200,6 @@ const UpiTransfer = () => {
           {toast.message}
         </div>
       )}
-
-
 
       {/* Main Flow Section (Form / Confirm / Success) */}
       <div className={styles.formCard}>
@@ -394,8 +386,6 @@ const UpiTransfer = () => {
             </div>
           </form>
         )}
-
-
       </div>
 
       {/* Confirmation Modal Popup */}
@@ -462,8 +452,8 @@ const UpiTransfer = () => {
             <tbody>
               {filteredTxns.length === 0 ? (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '40px 0', color: '#64748b' }}>
-                    No recent UPI transfer logs found.
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '40px 0', color: '#64748b' }}>
+                    No UPI transfer logs found.
                   </td>
                 </tr>
               ) : (

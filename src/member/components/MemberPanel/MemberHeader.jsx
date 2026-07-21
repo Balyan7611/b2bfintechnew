@@ -9,10 +9,8 @@ import {
   FaEnvelope,
   FaExpand,
   FaHistory, FaMobileAlt,
-  FaMoon,
   FaPaperclip,
   FaPowerOff,
-  FaSun,
   FaUser,
   FaWallet
 } from 'react-icons/fa';
@@ -40,7 +38,6 @@ import {
   setNotifOpen,
   setProfileDropdown,
   syncNotifications,
-  toggleDarkMode,
   toggleMailOpen,
   toggleNotifOpen,
   toggleProfileDropdown,
@@ -270,8 +267,6 @@ const MemberHeader = () => {
           ))}
         </div>
 
-
-
         <div className={styles.verticalDivider}></div>
 
         <div className={styles.actionIcons}>
@@ -279,11 +274,7 @@ const MemberHeader = () => {
             <FaExpand />
           </button>
 
-
-
-          <button className={`${styles.iconBtn} ${styles.mobileHide}`} onClick={() => dispatch(toggleDarkMode())}>
-            {isDarkMode ? <FaSun /> : <FaMoon />}
-          </button>
+          {/* 🔥 Dark/Light Toggle Button Removed */}
 
           <div className={styles.dropdownWrap} ref={notifRef}>
             <button className={styles.iconBtn} onClick={() => {
