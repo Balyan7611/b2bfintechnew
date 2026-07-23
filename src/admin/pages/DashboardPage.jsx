@@ -712,6 +712,9 @@ const DashboardPage = () => {
   };
 
   const confirmLogout = () => {
+    // Best-effort: mark this session's login-history record as logged out.
+    // Not awaited so it never delays the actual logout/navigation.
+    API.userLoginHistory.closeActiveSession();
     clearSession();
     navigate('/admin/login');
   };

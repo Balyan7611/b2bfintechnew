@@ -66,6 +66,11 @@ export const saveSession = (user) => {
     sessionId,
     role: role,
     msrno: user?.msrno || 0,
+    // Coordinates captured on the login page (see AdminLoginPage.jsx /
+    // member LoginPage.jsx) - carried through so App.jsx can send the real
+    // location to /UserLoginHistory/Create instead of hardcoded 0,0.
+    latitude: typeof user?.latitude === 'number' ? user.latitude : 0,
+    longitude: typeof user?.longitude === 'number' ? user.longitude : 0,
     loggedInAt: new Date().toISOString()
   });
   localStorage.setItem(SESSION_KEY, sessionData);

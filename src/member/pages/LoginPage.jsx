@@ -7,6 +7,7 @@ import {
   FaExclamationTriangle,
   FaEye, FaEyeSlash,
   FaGooglePlay,
+  FaKey,
   FaLock,
   FaMobileAlt,
   FaShieldAlt,
@@ -46,10 +47,21 @@ const LoginPage = () => {
   const [forgotAadhar, setForgotAadhar] = useState('');
   const [forgotPan, setForgotPan] = useState('');
   const [forgotOtp, setForgotOtp] = useState('');
+  const [forgotToken, setForgotToken] = useState(''); // token returned by /UserAuth/forget-password
   const [newPassword, setNewPassword] = useState('');
   const [rePassword, setRePassword] = useState('');
   const [modalError, setModalError] = useState('');
   const [locationStatus, setLocationStatus] = useState(null);
+
+  // Step 3: OTP / T-PIN verification (LoginUser can respond with
+  // data.status === "OTP" or "TPIN" instead of logging in directly)
+  const [showVerifyStep, setShowVerifyStep] = useState(false);
+  const [authMode, setAuthMode] = useState(null); // 'OTP' | 'TPIN' | null
+  const [verifyToken, setVerifyToken] = useState('');
+  const [otpValue, setOtpValue] = useState('');
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
+  const [loginLocation, setLoginLocation] = useState(null); // coords captured at password step, reused for OTP/TPIN verify
 
   // Brute force protection
   const [failedAttempts, setFailedAttempts] = useState(() => {
@@ -159,11 +171,12 @@ const LoginPage = () => {
     setForgotAadhar('');
     setForgotPan('');
     setForgotOtp('');
+    setForgotToken('');
     setNewPassword('');
     setRePassword('');
     setModalError('');
   };
-  
+
   const closeForgotModal = () => {
     setForgotModal({ isOpen: false, type: '' });
     setModalLoading(false);
@@ -172,6 +185,7 @@ const LoginPage = () => {
     setForgotAadhar('');
     setForgotPan('');
     setForgotOtp('');
+    setForgotToken('');
     setNewPassword('');
     setRePassword('');
     setModalError('');
@@ -180,6 +194,8 @@ const LoginPage = () => {
   const handleModalSubmit = async (e) => {
     e.preventDefault();
     setModalError('');
+
+    const isTpin = forgotModal.type === 'tpin';
 
     if (forgotStep === 1) {
       if (!forgotLoginId || !forgotAadhar || !forgotPan) {
@@ -190,13 +206,42 @@ const LoginPage = () => {
         setModalError('Aadhar must be exactly last 4 digits.');
         return;
       }
-      setForgotStep(2);
+
+      // Both password and T-PIN reset now call the real backend right away so
+      // the OTP actually gets sent, and we get back the token needed for step 3.
+      setModalLoading(true);
+      try {
+        const res = isTpin
+          ? await API.forgetTpin({
+              loginId: forgotLoginId,
+              aadharLast4: forgotAadhar,
+              pan: forgotPan.toUpperCase()
+            })
+          : await API.forgetPassword({
+              loginId: forgotLoginId,
+              aadharLast4: forgotAadhar,
+              pan: forgotPan.toUpperCase()
+            });
+
+        const token = res?.data?.token || res?.data?.refreshToken || res?.token || res?.data;
+        if (!token) throw new Error("Verification token missing from server");
+
+        setForgotToken(token);
+        setForgotStep(2);
+      } catch (err) {
+        setModalError(err.message || 'Failed to verify details. Please check and try again.');
+      } finally {
+        setModalLoading(false);
+      }
       return;
     }
 
     if (forgotStep === 2) {
-      if (forgotOtp !== '1234') {
-        setModalError('Invalid OTP. Please enter 1234.');
+      // Real OTP was sent by forget-password/forget-tpin above - just require
+      // it here, the actual verification happens together with the new
+      // password/T-PIN below.
+      if (!forgotOtp || forgotOtp.trim().length < 4) {
+        setModalError('Please enter a valid OTP.');
         return;
       }
       setForgotStep(3);
@@ -205,35 +250,33 @@ const LoginPage = () => {
 
     if (forgotStep === 3) {
       if (newPassword !== rePassword) {
-        setModalError(`${forgotModal.type === 'password' ? 'Passwords' : 'TPINs'} do not match. Please try again.`);
+        setModalError(`${isTpin ? 'TPINs' : 'Passwords'} do not match. Please try again.`);
         return;
       }
-      
+
       setModalLoading(true);
       try {
-        const isTpin = forgotModal.type === 'tpin';
-        const payload = isTpin ? {
-          LoginId: forgotLoginId,
-          AadharLast4: forgotAadhar,
-          Pan: forgotPan.toUpperCase(),
-          NewPin: newPassword,
-          ConfirmPin: rePassword
-        } : {
-          LoginId: forgotLoginId,
-          AadharLast4: forgotAadhar,
-          Pan: forgotPan.toUpperCase(),
-          NewPassword: newPassword,
-          ConfirmPassword: rePassword
-        };
-        
-        const res = isTpin ? await API.forgetTpin(payload) : await API.forgetPassword(payload);
+        const res = isTpin
+          ? await API.verifyForgetPin({
+              token: forgotToken,
+              otp: forgotOtp,
+              newPin: newPassword,
+              confirmPin: rePassword
+            })
+          : await API.verifyForgetPassword({
+              token: forgotToken,
+              otp: forgotOtp,
+              newPassword: newPassword,
+              confirmPassword: rePassword
+            });
+
         if (res.status === true || res.status === 'success' || res.status === 1) {
           setForgotStep(4);
         } else {
           setModalError(res.mess || res.message || `Failed to reset ${isTpin ? 'T-PIN' : 'password'}.`);
         }
       } catch (err) {
-        setModalError(err.message || `Failed to reset ${forgotModal.type === 'tpin' ? 'T-PIN' : 'password'}.`);
+        setModalError(err.message || `Failed to reset ${isTpin ? 'T-PIN' : 'password'}.`);
       } finally {
         setModalLoading(false);
       }
@@ -255,6 +298,54 @@ const LoginPage = () => {
     setLocationStatus(null);
   };
 
+  // Shared "final success" handler used both when LoginUser logs in directly
+  // and when VerifyLoginOTP / VerifyLoginTPIN completes the login.
+  // `location` = the coordinates captured on the password step, so they can
+  // be carried into the session and, from there, into the UserLoginHistory
+  // record created in App.jsx (instead of hardcoded 0,0).
+  const completeMemberLogin = (decoded, token, location) => {
+    // Block pure admin (role===1) from logging in as member
+    const roleNum = decoded ? Number(decoded.role) : -1;
+    if (roleNum === 1 && !decoded?.LoginId?.startsWith('MEM')) {
+      throw new Error("Unauthorized access - Admin cannot login as Member");
+    }
+
+    // Reset brute force counters on success
+    localStorage.removeItem('member_login_attempts');
+    localStorage.removeItem('member_lockout_until');
+    setFailedAttempts(0);
+    setLockoutUntil(0);
+
+    // Store token in all keys so every service call picks it up
+    localStorage.setItem('access_token', token);
+    localStorage.setItem('member_token', token);
+    sessionStorage.setItem('access_token', token);
+    sessionStorage.setItem('member_token', token);
+
+    // Extract real user info from JWT decoded payload
+    const loginId = decoded?.LoginId || decoded?.loginId || decoded?.sub || userId;
+    const userName = decoded?.unique_name || decoded?.name || decoded?.Name || 'Member';
+    const mobileNo = decoded?.mobile || decoded?.Mobile || decoded?.phone || userId;
+    const numericId = decoded?.sub || decoded?.id || '0';
+
+    // Save complete session object for MemberSupport and other components
+    saveSession({
+      loginId: loginId,
+      memberId: loginId,
+      username: loginId,
+      mobile: mobileNo,
+      fullName: userName,
+      name: userName,
+      userId: numericId,
+      role: roleNum || 2,
+      msrno: numericId,
+      latitude: location?.latitude,
+      longitude: location?.longitude
+    });
+
+    navigate('/member/dashboard', { replace: true });
+  };
+
   const handleLogin = async (e) => {
     if (e) e.preventDefault();
     setErrorMessage('');
@@ -272,7 +363,7 @@ const LoginPage = () => {
       setLoginError(true);
       return;
     }
-    
+
     if (!password.trim()) {
       setLoginError(true);
       setErrorMessage('Password is required');
@@ -286,59 +377,51 @@ const LoginPage = () => {
       setLoginError(true);
       return;
     }
-    
+
     setLoading(true);
 
     try {
-      await checkLocationBeforeLogin();
+      const position = await checkLocationBeforeLogin();
 
-      const response = await API.login({ loginID: userId, password: password });
-      
+      // Reuse the coordinates we just captured above instead of letting the
+      // API layer fire a second, separate geolocation request - that second
+      // request was what silently dropped lat/long from the login payload.
+      const capturedLocation = {
+        latitude: position?.coords?.latitude ?? 0,
+        longitude: position?.coords?.longitude ?? 0,
+        accuracy: position?.coords?.accuracy ?? 0,
+        allowed: true
+      };
+
+      const response = await API.login({
+        loginID: userId,
+        password: password,
+        __presetLocation: capturedLocation
+      });
+
       if (response.status) {
-        const token = response.refreshToken || response.accessToken;
-        
-        if (!token) throw new Error("Token missing from server");
-        
-        const decoded = decodeToken(token);
-        
-        // Block pure admin (role===1) from logging in as member
-        const roleNum = decoded ? Number(decoded.role) : -1;
-        if (roleNum === 1 && !decoded?.LoginId?.startsWith('MEM')) {
-          throw new Error("Unauthorized access - Admin cannot login as Member");
+        // Backend wants a second factor before granting access
+        if (response.authStatus === 'OTP' || response.authStatus === 'TPIN') {
+          const pendingToken = response.data?.refreshToken || response.refreshToken;
+          if (!pendingToken) throw new Error("Verification token missing from server");
+
+          // Keep the same coordinates for the verify step below, instead of
+          // asking the browser for location a third time.
+          setLoginLocation(capturedLocation);
+          setVerifyToken(pendingToken);
+          setAuthMode(response.authStatus);
+          setOtpValue('');
+          setVerifyError('');
+          setShowVerifyStep(true);
+          return;
         }
 
-        // Reset brute force counters on success
-        localStorage.removeItem('member_login_attempts');
-        localStorage.removeItem('member_lockout_until');
-        setFailedAttempts(0);
-        setLockoutUntil(0);
+        const token = response.refreshToken || response.accessToken;
 
-        // Store token in all keys so every service call picks it up
-        localStorage.setItem('access_token', token);
-        localStorage.setItem('member_token', token);
-        sessionStorage.setItem('access_token', token);
-        sessionStorage.setItem('member_token', token);
+        if (!token) throw new Error("Token missing from server");
 
-        // Extract real user info from JWT decoded payload
-        const loginId = decoded?.LoginId || decoded?.loginId || decoded?.sub || userId;
-        const userName = decoded?.unique_name || decoded?.name || decoded?.Name || 'Member';
-        const mobileNo = decoded?.mobile || decoded?.Mobile || decoded?.phone || userId;
-        const numericId = decoded?.sub || decoded?.id || '0';
-
-        // Save complete session object for MemberSupport and other components
-        saveSession({
-          loginId: loginId,
-          memberId: loginId,
-          username: loginId,
-          mobile: mobileNo,
-          fullName: userName,
-          name: userName,
-          userId: numericId,
-          role: roleNum || 2,
-          msrno: numericId
-        });
-
-        navigate('/member/dashboard', { replace: true });
+        const decoded = decodeToken(token);
+        completeMemberLogin(decoded, token, capturedLocation);
       } else {
         throw new Error(response.mess || "Login Failed");
       }
@@ -373,8 +456,60 @@ const LoginPage = () => {
     }
   };
 
+  const handleVerify = async (e) => {
+    if (e) e.preventDefault();
+    setVerifyError('');
+
+    if (!otpValue.trim()) {
+      setVerifyError(authMode === 'TPIN' ? 'T-PIN is required' : 'OTP is required');
+      return;
+    }
+
+    if (!verifyToken) {
+      setVerifyError('Verification session expired. Please login again.');
+      setShowVerifyStep(false);
+      dispatch(backToStep1());
+      return;
+    }
+
+    setVerifyLoading(true);
+
+    try {
+      const response = authMode === 'TPIN'
+        ? await API.verifyLoginTpin({ token: verifyToken, tpin: otpValue, __presetLocation: loginLocation })
+        : await API.verifyLoginOtp({ token: verifyToken, otp: otpValue, __presetLocation: loginLocation });
+
+      if (response.status) {
+        const token = response.accessToken || response.refreshToken;
+        if (!token) throw new Error("Token missing from server");
+
+        const decoded = decodeToken(token);
+        completeMemberLogin(decoded, token, loginLocation);
+      } else {
+        throw new Error(response.mess || "Verification Failed");
+      }
+    } catch (err) {
+      setVerifyError(err.message || (authMode === 'TPIN' ? "Invalid T-PIN. Please try again." : "Invalid OTP. Please try again."));
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
+  const handleBackToPassword = () => {
+    setShowVerifyStep(false);
+    setAuthMode(null);
+    setVerifyToken('');
+    setOtpValue('');
+    setVerifyError('');
+  };
+
   const handleBack = () => {
     dispatch(backToStep1());
+    setShowVerifyStep(false);
+    setAuthMode(null);
+    setVerifyToken('');
+    setOtpValue('');
+    setVerifyError('');
     setLocationStatus(null);
     setLoginError(false);
     setErrorMessage('');
@@ -428,19 +563,26 @@ const LoginPage = () => {
              </div>
 
              <div className={styles.formHeader}>
-               <h2 className={styles.welcomeTitle}>{isStep1Done ? 'Enter Password' : 'Sign In'}</h2>
+               <h2 className={styles.welcomeTitle}>
+                 {showVerifyStep ? (authMode === 'TPIN' ? 'Enter T-PIN' : 'Enter OTP') : isStep1Done ? 'Enter Password' : 'Sign In'}
+               </h2>
                <p className={styles.welcomeSub}>
-                 {isStep1Done ? `Continue as ${userId}` : 'Enter your credentials to continue'}
+                 {showVerifyStep
+                   ? (authMode === 'TPIN' ? 'Enter the T-PIN to complete login' : 'Enter the OTP sent to your registered email/mobile')
+                   : isStep1Done ? `Continue as ${userId}` : 'Enter your credentials to continue'}
                </p>
              </div>
 
              {/* Progress Bar */}
              <div className={styles.progressTrack}>
-                <div className={`${styles.progressFill} ${isStep1Done ? styles.progressHalf : ''}`}></div>
+                <div
+                  className={`${styles.progressFill} ${isStep1Done ? styles.progressHalf : ''}`}
+                  style={showVerifyStep ? { width: '100%' } : undefined}
+                ></div>
              </div>
 
              {/* Location Error Display */}
-             {locationStatus && locationStatus.status === 'off' && isStep1Done && (
+             {locationStatus && locationStatus.status === 'off' && isStep1Done && !showVerifyStep && (
               <div style={{ 
                 background: '#f8d7da', 
                 color: '#721c24', 
@@ -470,10 +612,16 @@ const LoginPage = () => {
             )}
 
              <div className={styles.formContent}>
-                {loginError && (
+                {loginError && !showVerifyStep && (
                   <div className={styles.errorAlert}>
                      <FaExclamationTriangle />
                      <span>{errorMessage || "Invalid password. Please try again."}</span>
+                  </div>
+                )}
+                {showVerifyStep && verifyError && (
+                  <div className={styles.errorAlert}>
+                     <FaExclamationTriangle />
+                     <span>{verifyError}</span>
                   </div>
                 )}
                 {!isStep1Done ? (
@@ -510,6 +658,42 @@ const LoginPage = () => {
                        <span>New to the platform?</span>
                        <Link to="/register" className={styles.textLink}>Create an Account</Link>
                     </div>
+                  </form>
+                ) : showVerifyStep ? (
+                  <form onSubmit={handleVerify} className={styles.animatedStep}>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>{authMode === 'TPIN' ? 'T-PIN' : 'ONE-TIME PASSWORD'}</label>
+                      <div className={styles.inputWrap}>
+                        <div className={styles.inputIconBox}><FaKey /></div>
+                        <input
+                          className={styles.input}
+                          type="text"
+                          inputMode="numeric"
+                          placeholder={authMode === 'TPIN' ? 'Enter T-PIN' : 'Enter OTP'}
+                          value={otpValue}
+                          onChange={(e) => setOtpValue(e.target.value.replace(/[^0-9]/g, ''))}
+                          maxLength={6}
+                          autoFocus
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className={`${styles.primaryBtn} ${verifyLoading ? styles.btnLoading : ''}`}
+                      disabled={verifyLoading}
+                    >
+                      {verifyLoading ? (
+                        <div className={styles.spinner}></div>
+                      ) : (
+                        <>Verify &amp; Login <FaShieldAlt /></>
+                      )}
+                    </button>
+
+                    <button type="button" className={styles.backBtn} onClick={handleBackToPassword}>
+                       <FaArrowLeft /> Back
+                    </button>
                   </form>
                 ) : (
                   <form onSubmit={handleLogin} className={styles.animatedStep}>
@@ -659,14 +843,14 @@ const LoginPage = () => {
                     <div className={styles.fieldGroup}>
                       <label className={styles.fieldLabel}>ENTER OTP</label>
                       <div className={styles.inputWrap}>
-                        <input 
-                          className={styles.input} 
-                          placeholder="Enter 4-digit OTP (1234)" 
-                          maxLength={4} 
-                          style={{ paddingLeft: '16px' }} 
+                        <input
+                          className={styles.input}
+                          placeholder="Enter OTP"
+                          maxLength={6}
+                          style={{ paddingLeft: '16px' }}
                           value={forgotOtp}
                           onChange={(e) => setForgotOtp(e.target.value.replace(/[^0-9]/g, ''))}
-                          required 
+                          required
                         />
                       </div>
                     </div>

@@ -2,14 +2,18 @@
 import {
   FaArrowLeft,
   FaArrowRight,
+  FaCheck,
   FaCogs,
   FaDatabase,
   FaExclamationTriangle,
   FaEye, FaEyeSlash,
+  FaKey,
   FaLock,
   FaServer,
   FaShieldAlt,
+  FaTimes,
   FaTools,
+  FaUser,
   FaUserShield
 } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
@@ -29,6 +33,26 @@ const AdminLoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [locationStatus, setLocationStatus] = useState(null);
+
+  // Step 3: OTP / T-PIN verification (LoginUser can respond with
+  // data.status === "OTP" or "TPIN" instead of logging in directly)
+  const [authMode, setAuthMode] = useState(null); // 'OTP' | 'TPIN' | null
+  const [verifyToken, setVerifyToken] = useState('');
+  const [otpValue, setOtpValue] = useState('');
+  const [loginLocation, setLoginLocation] = useState(null); // coords captured at password step, reused for OTP/TPIN verify
+
+  // Forgot password modal (real 2-step API: forget-password -> verify-forget-password)
+  const [forgotModalOpen, setForgotModalOpen] = useState(false);
+  const [forgotStep, setForgotStep] = useState(1);
+  const [forgotModalLoading, setForgotModalLoading] = useState(false);
+  const [forgotModalError, setForgotModalError] = useState('');
+  const [forgotLoginId, setForgotLoginId] = useState('');
+  const [forgotAadhar, setForgotAadhar] = useState('');
+  const [forgotPan, setForgotPan] = useState('');
+  const [forgotOtp, setForgotOtp] = useState('');
+  const [forgotToken, setForgotToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [rePassword, setRePassword] = useState('');
 
   // Brute-force protection: Lockout after 5 failed attempts
   const [failedAttempts, setFailedAttempts] = useState(() => {
@@ -127,10 +151,39 @@ const AdminLoginPage = () => {
     if (adminId.trim().length >= 3) setStep(2);
   };
 
+  // Shared "final success" handler used both when LoginUser logs in directly
+  // and when VerifyLoginOTP / VerifyLoginTPIN completes the login.
+  // `location` = the coordinates captured on the password step, so they can
+  // be carried into the session and, from there, into the UserLoginHistory
+  // record created in App.jsx (instead of hardcoded 0,0).
+  const completeAdminLogin = (decoded, token, location) => {
+    // Reset brute force counters on success
+    localStorage.removeItem('admin_login_attempts');
+    localStorage.removeItem('admin_lockout_until');
+    setFailedAttempts(0);
+    setLockoutUntil(0);
+
+    localStorage.setItem('admin_token', token);
+    localStorage.setItem('access_token', token);
+    sessionStorage.setItem('admin_token', token);
+    sessionStorage.setItem('access_token', token);
+
+    // Save the secure session
+    saveSession({
+      adminId,
+      fullName: decoded.name || 'Admin',
+      role: 1,
+      latitude: location?.latitude,
+      longitude: location?.longitude
+    });
+
+    navigate('/admin/dashboard', { replace: true });
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     if (remainingTime > 0) {
       setError(`Too many failed attempts. Try again in ${remainingTime} seconds.`);
       return;
@@ -151,33 +204,48 @@ const AdminLoginPage = () => {
     setLoading(true);
 
     try {
-      await checkLocationBeforeLogin();
+      const position = await checkLocationBeforeLogin();
 
-      const response = await API.login({ loginID: adminId, password: password });
-      
+      // Reuse the coordinates we just captured above instead of letting the
+      // API layer fire a second, separate geolocation request - that second
+      // request was what silently dropped lat/long from the login payload.
+      const capturedLocation = {
+        latitude: position?.coords?.latitude ?? 0,
+        longitude: position?.coords?.longitude ?? 0,
+        accuracy: position?.coords?.accuracy ?? 0,
+        allowed: true
+      };
+
+      const response = await API.login({
+        loginID: adminId,
+        password: password,
+        __presetLocation: capturedLocation
+      });
+
       if (response.status) {
+        // Backend wants a second factor before granting access
+        if (response.authStatus === 'OTP' || response.authStatus === 'TPIN') {
+          const pendingToken = response.data?.refreshToken || response.refreshToken;
+          if (!pendingToken) throw new Error("Verification token missing from server");
+
+          // Keep the same coordinates for the verify step below, instead of
+          // asking the browser for location a third time.
+          setLoginLocation(capturedLocation);
+          setVerifyToken(pendingToken);
+          setAuthMode(response.authStatus);
+          setOtpValue('');
+          setStep(3);
+          return;
+        }
+
         const token = response.refreshToken || response.accessToken;
-        
+
         if (!token) throw new Error("Token missing from server");
-        
+
         const decoded = decodeToken(token);
-        
+
         if (decoded && (decoded.role === '1' || decoded.role === 1)) {
-          // Reset brute force counters on success
-          localStorage.removeItem('admin_login_attempts');
-          localStorage.removeItem('admin_lockout_until');
-          setFailedAttempts(0);
-          setLockoutUntil(0);
-          
-          localStorage.setItem('admin_token', token);
-          localStorage.setItem('access_token', token);
-          sessionStorage.setItem('admin_token', token);
-          sessionStorage.setItem('access_token', token);
-          
-          // Save the secure session
-          saveSession({ adminId, fullName: decoded.name || 'Admin', role: 1 });
-          
-          navigate('/admin/dashboard', { replace: true });
+          completeAdminLogin(decoded, token, capturedLocation);
         } else {
           throw new Error("Unauthorized access - Admin only");
         }
@@ -188,10 +256,10 @@ const AdminLoginPage = () => {
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);
       localStorage.setItem('admin_login_attempts', newAttempts);
-      
+
       // Generic auth error to prevent credential enumeration
       let errorMsg = "Invalid Login Credentials.";
-      
+
       if (err.message && (err.message.toLowerCase().includes('location') || err.message.toLowerCase().includes('unauthorized'))) {
         errorMsg = err.message;
       }
@@ -213,9 +281,159 @@ const AdminLoginPage = () => {
     }
   };
 
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!otpValue.trim()) {
+      setError(authMode === 'TPIN' ? 'T-PIN is required' : 'OTP is required');
+      return;
+    }
+
+    if (!verifyToken) {
+      setError('Verification session expired. Please login again.');
+      setStep(1);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = authMode === 'TPIN'
+        ? await API.verifyLoginTpin({ token: verifyToken, tpin: otpValue, __presetLocation: loginLocation })
+        : await API.verifyLoginOtp({ token: verifyToken, otp: otpValue, __presetLocation: loginLocation });
+
+      if (response.status) {
+        const token = response.accessToken || response.refreshToken;
+        if (!token) throw new Error("Token missing from server");
+
+        const decoded = decodeToken(token);
+
+        if (decoded && (decoded.role === '1' || decoded.role === 1)) {
+          completeAdminLogin(decoded, token, loginLocation);
+        } else {
+          throw new Error("Unauthorized access - Admin only");
+        }
+      } else {
+        throw new Error(response.mess || "Verification Failed");
+      }
+    } catch (err) {
+      setError(err.message || (authMode === 'TPIN' ? "Invalid T-PIN. Please try again." : "Invalid OTP. Please try again."));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBackToPassword = () => {
+    setStep(2);
+    setAuthMode(null);
+    setVerifyToken('');
+    setOtpValue('');
+    setError('');
+  };
+
   const requestLocationAgain = () => {
     setLocationStatus(null);
     setError('');
+  };
+
+  const openForgotModal = () => {
+    setForgotModalOpen(true);
+    setForgotStep(1);
+    setForgotModalError('');
+    setForgotLoginId(adminId || '');
+    setForgotAadhar('');
+    setForgotPan('');
+    setForgotOtp('');
+    setForgotToken('');
+    setNewPassword('');
+    setRePassword('');
+  };
+
+  const closeForgotModal = () => {
+    setForgotModalOpen(false);
+    setForgotModalLoading(false);
+    setForgotStep(1);
+    setForgotModalError('');
+    setForgotLoginId('');
+    setForgotAadhar('');
+    setForgotPan('');
+    setForgotOtp('');
+    setForgotToken('');
+    setNewPassword('');
+    setRePassword('');
+  };
+
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    setForgotModalError('');
+
+    if (forgotStep === 1) {
+      if (!forgotLoginId || !forgotAadhar || !forgotPan) {
+        setForgotModalError('All fields are required.');
+        return;
+      }
+      if (forgotAadhar.length !== 4) {
+        setForgotModalError('Aadhar must be exactly last 4 digits.');
+        return;
+      }
+
+      setForgotModalLoading(true);
+      try {
+        const res = await API.forgetPassword({
+          loginId: forgotLoginId,
+          aadharLast4: forgotAadhar,
+          pan: forgotPan.toUpperCase()
+        });
+
+        const token = res?.data?.token || res?.data?.refreshToken || res?.token || res?.data;
+        if (!token) throw new Error("Verification token missing from server");
+
+        setForgotToken(token);
+        setForgotStep(2);
+      } catch (err) {
+        setForgotModalError(err.message || 'Failed to verify details. Please check and try again.');
+      } finally {
+        setForgotModalLoading(false);
+      }
+      return;
+    }
+
+    if (forgotStep === 2) {
+      if (!forgotOtp || forgotOtp.trim().length < 4) {
+        setForgotModalError('Please enter a valid OTP.');
+        return;
+      }
+      setForgotStep(3);
+      return;
+    }
+
+    if (forgotStep === 3) {
+      if (newPassword !== rePassword) {
+        setForgotModalError('Passwords do not match. Please try again.');
+        return;
+      }
+
+      setForgotModalLoading(true);
+      try {
+        const res = await API.verifyForgetPassword({
+          token: forgotToken,
+          otp: forgotOtp,
+          newPassword: newPassword,
+          confirmPassword: rePassword
+        });
+
+        if (res.status === true || res.status === 'success' || res.status === 1) {
+          setForgotStep(4);
+        } else {
+          setForgotModalError(res.mess || res.message || 'Failed to reset password.');
+        }
+      } catch (err) {
+        setForgotModalError(err.message || 'Failed to reset password.');
+      } finally {
+        setForgotModalLoading(false);
+      }
+    }
   };
 
   return (
@@ -266,14 +484,21 @@ const AdminLoginPage = () => {
              </div>
 
              <div className={styles.formHeader}>
-               <h2 className={styles.welcomeTitle}>{step === 2 ? 'Security Key' : 'Admin Access'}</h2>
+               <h2 className={styles.welcomeTitle}>
+                 {step === 3 ? (authMode === 'TPIN' ? 'Enter T-PIN' : 'Enter OTP') : step === 2 ? 'Security Key' : 'Admin Access'}
+               </h2>
                <p className={styles.welcomeSub}>
-                 {step === 2 ? `Verifying Admin: ${adminId}` : 'Restricted area. Please authenticate.'}
+                 {step === 3
+                   ? (authMode === 'TPIN' ? 'Enter the T-PIN to complete login' : 'Enter the OTP sent to your registered email/mobile')
+                   : step === 2 ? `Verifying Admin: ${adminId}` : 'Restricted area. Please authenticate.'}
                </p>
              </div>
 
              <div className={styles.progressTrack}>
-                <div className={`${styles.progressFill} ${step === 2 ? styles.progressHalf : ''}`}></div>
+                <div
+                  className={`${styles.progressFill} ${step === 2 ? styles.progressHalf : ''}`}
+                  style={step === 3 ? { width: '100%' } : undefined}
+                ></div>
              </div>
 
              {locationStatus && locationStatus.status === 'off' && step === 2 && (
@@ -337,10 +562,13 @@ const AdminLoginPage = () => {
                        <Link to="/member/login" className={styles.textLink}>← Back to Member Login</Link>
                     </div>
                   </form>
-                ) : (
+                ) : step === 2 ? (
                   <form onSubmit={handleLogin} className={styles.animatedStep}>
                     <div className={styles.fieldGroup}>
-                      <label className={styles.fieldLabel}>PRIVATE SECURITY KEY</label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <label className={styles.fieldLabel}>PRIVATE SECURITY KEY</label>
+                        <button type="button" className={styles.forgotBtn} onClick={openForgotModal}>Forgot Password?</button>
+                      </div>
                       <div className={styles.inputWrap}>
                         <div className={styles.inputIconBox}><FaLock /></div>
                         <input
@@ -377,6 +605,42 @@ const AdminLoginPage = () => {
                        <FaArrowLeft /> Switch Admin Account
                     </button>
                   </form>
+                ) : (
+                  <form onSubmit={handleVerify} className={styles.animatedStep}>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>{authMode === 'TPIN' ? 'T-PIN' : 'ONE-TIME PASSWORD'}</label>
+                      <div className={styles.inputWrap}>
+                        <div className={styles.inputIconBox}><FaKey /></div>
+                        <input
+                          className={styles.input}
+                          type="text"
+                          inputMode="numeric"
+                          placeholder={authMode === 'TPIN' ? 'Enter T-PIN' : 'Enter OTP'}
+                          value={otpValue}
+                          onChange={(e) => setOtpValue(e.target.value.replace(/[^0-9]/g, ''))}
+                          maxLength={6}
+                          autoFocus
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className={`${styles.primaryBtn} ${loading ? styles.btnLoading : ''}`}
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <div className={styles.spinner}></div>
+                      ) : (
+                        <>Verify &amp; Login <FaShieldAlt /></>
+                      )}
+                    </button>
+
+                    <button type="button" className={styles.backBtn} onClick={handleBackToPassword}>
+                       <FaArrowLeft /> Back
+                    </button>
+                  </form>
                 )}
              </div>
 
@@ -389,6 +653,153 @@ const AdminLoginPage = () => {
           </div>
         </div>
       </div>
+
+      {/* FORGOT PASSWORD MODAL */}
+      {forgotModalOpen && (
+        <div className={styles.modalOverlay} onClick={closeForgotModal}>
+          <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+            <button className={styles.closeModalBtn} onClick={closeForgotModal}><FaTimes /></button>
+            <div className={styles.modalIconWrap}>
+              {forgotStep === 4 ? <FaCheck className={styles.modalIcon} style={{ color: '#10B981' }} /> : <FaShieldAlt className={styles.modalIcon} />}
+            </div>
+
+            {forgotStep === 4 ? (
+              <div style={{ textAlign: 'center' }}>
+                <h3 className={styles.modalTitle}>Success!</h3>
+                <p className={styles.modalSub} style={{ marginBottom: '10px' }}>
+                  Your password has been changed successfully.
+                </p>
+                <button type="button" className={styles.primaryBtn} onClick={closeForgotModal}>
+                  Close & Login
+                </button>
+              </div>
+            ) : (
+              <>
+                <h3 className={styles.modalTitle}>
+                  {forgotStep === 1 ? `Verify Details` : forgotStep === 2 ? `Verify OTP` : `Reset Password`}
+                </h3>
+                <p className={styles.modalSub}>
+                  {forgotStep === 1 ? `Enter your details to verify your identity.` : forgotStep === 2 ? `Enter the OTP sent to your registered email/mobile.` : `Enter your new password.`}
+                </p>
+
+                <form onSubmit={handleForgotSubmit}>
+                  {forgotStep === 1 && (
+                    <>
+                      <div className={styles.fieldGroup}>
+                        <label className={styles.fieldLabel}>ADMINISTRATOR ID</label>
+                        <div className={styles.inputWrap}>
+                          <div className={styles.inputIconBox}><FaUser /></div>
+                          <input
+                            className={styles.input}
+                            placeholder="e.g. ADMIN_001"
+                            value={forgotLoginId}
+                            onChange={(e) => setForgotLoginId(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.fieldGroup}>
+                        <label className={styles.fieldLabel}>AADHAR (LAST 4 DIGITS)</label>
+                        <div className={styles.inputWrap}>
+                          <input
+                            className={styles.input}
+                            placeholder="e.g. 8492"
+                            maxLength={4}
+                            value={forgotAadhar}
+                            onChange={(e) => setForgotAadhar(e.target.value.replace(/[^0-9]/g, ''))}
+                            required
+                            style={{ paddingLeft: '16px' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.fieldGroup}>
+                        <label className={styles.fieldLabel}>PAN CARD NUMBER</label>
+                        <div className={styles.inputWrap}>
+                          <input
+                            className={styles.input}
+                            placeholder="e.g. ABCDE1234F"
+                            maxLength={10}
+                            style={{ paddingLeft: '16px', textTransform: 'uppercase' }}
+                            value={forgotPan}
+                            onChange={(e) => setForgotPan(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {forgotStep === 2 && (
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>ENTER OTP</label>
+                      <div className={styles.inputWrap}>
+                        <input
+                          className={styles.input}
+                          placeholder="Enter OTP"
+                          maxLength={6}
+                          style={{ paddingLeft: '16px' }}
+                          value={forgotOtp}
+                          onChange={(e) => setForgotOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {forgotStep === 3 && (
+                    <>
+                      <div className={styles.fieldGroup}>
+                        <label className={styles.fieldLabel}>NEW PASSWORD</label>
+                        <div className={styles.inputWrap}>
+                          <input
+                            className={styles.input}
+                            type="password"
+                            placeholder="Enter new password"
+                            style={{ paddingLeft: '16px' }}
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className={styles.fieldGroup}>
+                        <label className={styles.fieldLabel}>RE-ENTER PASSWORD</label>
+                        <div className={styles.inputWrap}>
+                          <input
+                            className={styles.input}
+                            type="password"
+                            placeholder="Re-enter new password"
+                            style={{ paddingLeft: '16px' }}
+                            value={rePassword}
+                            onChange={(e) => setRePassword(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {forgotModalError && (
+                    <div style={{ color: '#ef4444', fontSize: '0.85rem', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px', background: '#fef2f2', padding: '10px', borderRadius: '8px', border: '1px solid #fca5a5' }}>
+                      <FaExclamationTriangle /> {forgotModalError}
+                    </div>
+                  )}
+
+                  <button type="submit" className={`${styles.primaryBtn} ${forgotModalLoading ? styles.btnLoading : ''}`} style={{ marginTop: '20px' }} disabled={forgotModalLoading}>
+                    {forgotModalLoading ? <div className={styles.spinner}></div> : (
+                      <>
+                        {forgotStep === 1 ? 'Verify' : forgotStep === 2 ? 'Verify OTP' : 'Save'} <FaArrowRight />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

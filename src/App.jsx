@@ -68,8 +68,8 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
-    // 15 minutes of inactivity limit (900,000 ms)
-    const INACTIVITY_LIMIT = 15 * 60 * 1000;
+    // 1 hour of inactivity limit (3,600,000 ms)
+    const INACTIVITY_LIMIT = 60 * 60 * 1000;
     let timeoutId;
 
     const resetTimer = () => {
@@ -120,7 +120,7 @@ function App() {
       const isAdminPath = location.pathname.startsWith('/admin');
       const isApiPath = location.pathname.startsWith('/api-panel');
       clearSession();
-      sessionStorage.removeItem('bss_session_registered');
+      sessionStorage.removeItem('bss_session_registered_id');
       setSessionExpiredModal({
         show: true,
         message: "Your session has expired. Please log in again.",
@@ -136,7 +136,7 @@ function App() {
       const isAdminPath = location.pathname.startsWith('/admin');
       const isApiPath = location.pathname.startsWith('/api-panel');
       clearSession();
-      sessionStorage.removeItem('bss_session_registered');
+      sessionStorage.removeItem('bss_session_registered_id');
       setSessionExpiredModal({
         show: true,
         message: "You have been logged out because your account was logged in from another device or PC.",
@@ -145,8 +145,17 @@ function App() {
     };
 
     const registerSessionOnBackend = async (session) => {
-      if (sessionStorage.getItem('bss_session_registered') === 'true') return;
-      
+      // NOTE: this used to be a single boolean flag ('bss_session_registered'
+      // === 'true'). That meant if a member logged in, then later an admin
+      // logged in on the SAME browser tab without a full logout in between
+      // (e.g. navigating straight to /admin/login), the leftover flag from
+      // the member session would silently block the admin's own
+      // registration call - so the admin's login (and its lat/long) never
+      // made it into UserLoginHistory at all. Keying the flag by the actual
+      // sessionId fixes that: every distinct login always gets registered.
+      if (!session?.sessionId) return;
+      if (sessionStorage.getItem('bss_session_registered_id') === session.sessionId) return;
+
       try {
         const userAgent = navigator.userAgent;
         let browserName = "Browser";
@@ -161,30 +170,88 @@ function App() {
         else if (userAgent.indexOf("Android") > -1) osName = "Android";
         else if (userAgent.indexOf("iPhone") > -1) osName = "iOS";
 
-        await API.userLoginHistory.create({
-          loginType: session.role === 1 ? "Admin" : "Member",
+        // Real coordinates were captured on the login page and carried
+        // through via saveSession() -> session.latitude/session.longitude.
+        // Previously this was hardcoded to 0,0, which is why lat/long never
+        // reached the database even after the login API itself got fixed.
+        const sessionLat = typeof session.latitude === 'number' ? session.latitude : 0;
+        const sessionLng = typeof session.longitude === 'number' ? session.longitude : 0;
+
+        const isAdminSession = session.role === 1;
+
+        // The 500 ("error occurred while saving the entity changes") admins
+        // were hitting is a database-side failure, not a frontend one - most
+        // likely msrno:0 being treated as a foreign key to a Member row that
+        // doesn't exist (admins have no Member record, unlike real members
+        // whose msrno always points at a real row). Sending null for admins
+        // avoids handing the DB an FK value that can never resolve.
+        const createRes = await API.userLoginHistory.create({
+          loginType: isAdminSession ? "Admin" : "Member",
           loginStatus: "Success",
           loginIpaddress: "127.0.0.1",
           deviceId: "Web-Browser",
           deviceName: `${osName} - ${browserName}`,
           os: osName,
           browser: browserName,
-          location: "Web Session",
-          latitude: 0,
-          longitude: 0,
+          location: (sessionLat || sessionLng) ? `${sessionLat}, ${sessionLng}` : "Web Session",
+          latitude: sessionLat,
+          longitude: sessionLng,
           sessionId: session.sessionId,
-          msrno: session.msrno || 0,
+          msrno: isAdminSession ? null : (session.msrno || 0),
           isActiveSession: true
         }, { hideLoader: true });
 
-        sessionStorage.setItem('bss_session_registered', 'true');
+        // Remember which record this session created so logout can close it
+        // out properly (isActiveSession:false, logoutTime set).
+        const newId = createRes?.data?.id || (typeof createRes?.data === 'number' ? createRes.data : null);
+        if (newId) {
+          sessionStorage.setItem('bss_login_history_id', newId);
+        }
+
+        // Visible confirmation in the browser console that the record was
+        // actually created (or wasn't) - check this after logging in as
+        // admin if records still aren't showing up in the DB.
+        console.log(
+          `[UserLoginHistory] Create ${createRes?.status === false ? 'REJECTED by backend' : 'OK'} for ${session.role === 1 ? 'Admin' : 'Member'} (sessionId=${session.sessionId}):`,
+          createRes
+        );
+
+        sessionStorage.setItem('bss_session_registered_id', session.sessionId);
       } catch (err) {
-        console.error("Concurrent login registration failed:", err);
+        // Previously this call used ignoreError:true internally, which
+        // suppresses the toast notification on failure - meaning if the
+        // backend rejected the admin's record (e.g. a validation/FK issue
+        // tied to msrno being 0 for admins, since admins have no member
+        // record), it would fail completely silently with nothing visible
+        // to the user. Logging the real HTTP status + response body here so
+        // the actual backend rejection reason is visible in DevTools.
+        console.error(
+          `[UserLoginHistory] Create FAILED for ${session.role === 1 ? 'Admin' : 'Member'} (sessionId=${session.sessionId}). Status:`,
+          err?.response?.status,
+          'Response:',
+          err?.response?.data || err?.message
+        );
       }
     };
 
     const checkConcurrentSession = async (session) => {
       try {
+        // Admins were being force-logged-out (and their fresh session wiped,
+        // including the login-history record that had just been created a
+        // moment earlier) almost immediately after login. Root cause: this
+        // check used to treat "latest record where loginType === 'Admin'"
+        // as if it meant "the same admin" - but UserLoginHistory has no
+        // adminId/loginID field, and every admin's msrno is 0, so there is
+        // no way to tell one admin account apart from another here. In
+        // practice ANY admin login (yours or someone else's, even old test
+        // data) counted as "someone else logged in", triggering an instant
+        // false concurrent-logout that cleared everything right after
+        // registration. Members are unaffected - they're correctly scoped
+        // by their own msrno below. Until the API exposes a real per-admin
+        // identifier on these records, this check is skipped for admins
+        // rather than firing false positives.
+        if (session.role === 1) return;
+
         const response = await API.userLoginHistory.getAll({ hideLoader: true, ignoreError: true });
         let histories = [];
         if (response && response.data) {
@@ -194,12 +261,7 @@ function App() {
         }
 
         if (histories && histories.length > 0) {
-          let myHistories = [];
-          if (session.role === 1) {
-            myHistories = histories.filter(h => h.loginType === 'Admin');
-          } else {
-            myHistories = histories.filter(h => String(h.msrno) === String(session.msrno) && h.loginType !== 'Admin');
-          }
+          const myHistories = histories.filter(h => String(h.msrno) === String(session.msrno) && h.loginType !== 'Admin');
 
           if (myHistories.length > 0) {
             myHistories.sort((a, b) => b.id - a.id);
@@ -253,8 +315,8 @@ function App() {
               if (!isNaN(loginTime)) {
                 const elapsedMs = Date.now() - loginTime;
                 
-                // Dynamic absolute 15 minutes session limit
-                if (elapsedMs >= 15 * 60 * 1000) {
+                // Dynamic absolute 1 hour session limit
+                if (elapsedMs >= 60 * 60 * 1000) {
                   handleTokenExpirationLogout();
                   return;
                 }

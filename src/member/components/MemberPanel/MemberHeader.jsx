@@ -27,6 +27,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { clearSession } from '../../../utils/authUtils';
+import { API } from '../../../api/endpoints';
 import { SITE_CONFIG } from '../../../config/siteConfig';
 import { requestForToken, setupForegroundListener } from '../../../firebase';
 import {
@@ -98,6 +99,9 @@ const MemberHeader = () => {
   };
 
   const confirmLogout = () => {
+    // Best-effort: mark this session's login-history record as logged out.
+    // Not awaited so it never delays the actual logout/navigation.
+    API.userLoginHistory.closeActiveSession();
     clearSession();
     navigate('/member/login');
   };

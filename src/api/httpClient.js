@@ -236,10 +236,21 @@ httpClient.interceptors.response.use((response) => {
     return Promise.reject(error);
 });
 
-const getSecurityData = async () => {
-    const ipRes = await fetch('https://api.ipify.org?format=json').catch(() => ({ ip: '0.0.0.0' }));
-    const ipData = await ipRes.json();
-    
+const getSecurityData = async (presetLocation) => {
+    // NOTE: previously this did `.catch(() => ({ ip: '0.0.0.0' }))` and then
+    // unconditionally called `ipRes.json()` on the result. When the ipify
+    // fetch actually failed, ipRes became a plain object (no .json method),
+    // so `.json()` threw and the WHOLE security payload (including
+    // latitude/longitude) silently failed to build - that's why lat/long
+    // sometimes never made it into the request at all.
+    let ipData = { ip: '0.0.0.0' };
+    try {
+        const ipRes = await fetch('https://api.ipify.org?format=json');
+        ipData = await ipRes.json();
+    } catch (e) {
+        // keep the 0.0.0.0 fallback, don't let an IP lookup failure block login
+    }
+
     const getLocation = () => {
         return new Promise((resolve) => {
             if (!navigator.geolocation) {
@@ -287,7 +298,15 @@ const getSecurityData = async () => {
         });
     };
 
-    const loc = await getLocation();
+    // If the page already grabbed a real position (e.g. the login form asked
+    // for location permission up front and showed it on screen), reuse that
+    // instead of firing a second geolocation request here. Two separate
+    // getCurrentPosition() calls back-to-back is what made lat/long flaky -
+    // the second call would sometimes silently time out even though the
+    // first one already had the real coordinates in hand.
+    const loc = (presetLocation && presetLocation.allowed && typeof presetLocation.latitude === 'number' && typeof presetLocation.longitude === 'number')
+        ? presetLocation
+        : await getLocation();
 
     return {
         ip: ipData.ip || '0.0.0.0',
@@ -307,10 +326,16 @@ export const apiService = {
         const response = await httpClient.post(url, data, config);
         return response.data;
     },
-    
+
     postWithSecurity: async (url, data, Mapper, config = {}) => {
-        const securityData = await getSecurityData();
-        const payload = Mapper ? Mapper(data, securityData) : { ...data, ...securityData };
+        // Optional pre-fetched location (see LoginPage.jsx / AdminLoginPage.jsx)
+        // so we don't ask the browser for geolocation twice in a row.
+        const presetLocation = data && data.__presetLocation;
+        const cleanData = presetLocation ? { ...data } : data;
+        if (presetLocation) delete cleanData.__presetLocation;
+
+        const securityData = await getSecurityData(presetLocation);
+        const payload = Mapper ? Mapper(cleanData, securityData) : { ...cleanData, ...securityData };
         const response = await httpClient.post(url, payload, config);
         return response.data;
     },

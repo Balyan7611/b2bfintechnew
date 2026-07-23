@@ -38,8 +38,12 @@ import { LogsServiceDatumService } from '../services/logsServiceDatum.service';
 // Re-exporting everything exactly as before to maintain backward compatibility
 export const API = {
     login: AuthService.login,
+    verifyLoginOtp: AuthService.verifyLoginOtp,
+    verifyLoginTpin: AuthService.verifyLoginTpin,
     forgetPassword: AuthService.forgetPassword,
+    verifyForgetPassword: AuthService.verifyForgetPassword,
     forgetTpin: AuthService.forgetTpin,
+    verifyForgetPin: AuthService.verifyForgetPin,
     getRoles: RoleService.getRoles,
     getMasterRoles: RoleService.getMasterRoles,
     getCompanyDetails: CompanyService.getCompanyDetails,
