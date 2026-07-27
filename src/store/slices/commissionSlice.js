@@ -117,6 +117,25 @@ const commissionSlice = createSlice({
     deleteCommission: (state, action) => {
       state.list = state.list.filter(item => item.id !== action.payload);
     },
+    saveMatrix: (state, action) => {
+      const { package: pkg, service, operator, slabs } = action.payload;
+      state.list = state.list.filter(item => 
+        !(item.package === pkg && item.service === service && item.operator === operator)
+      );
+      slabs.forEach((slab, index) => {
+        state.list.unshift({
+          id: Date.now().toString() + '-' + index,
+          package: pkg,
+          service: service,
+          operator: operator,
+          startValue: slab.startValue,
+          endValue: slab.endValue,
+          details: slab.details || '',
+          slabs: slab.slabs,
+          isActive: true
+        });
+      });
+    },
     // ── API COMMISSION RANGE reducers ──
     updateApiCommForm: (state, action) => {
       const { name, value } = action.payload;
@@ -207,6 +226,7 @@ export const {
   updateCommission,
   toggleCommissionStatus, 
   deleteCommission,
+  saveMatrix,
   updateApiCommForm,
   addApiCommEntry,
   setApiCommForm,

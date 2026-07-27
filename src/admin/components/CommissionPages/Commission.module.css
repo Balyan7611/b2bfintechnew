@@ -601,3 +601,292 @@
 .cancelUpdateBtn:hover {
   background: #E2E8F0;
 }
+
+/* ---- Dynamic Commission Matrix CSS Module Extensions ---- */
+.dmCard {
+  background: #fff;
+  border: 1px solid #e7e8f2;
+  border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(24,27,46,.06);
+  overflow: hidden;
+  margin-top: 20px;
+  --dm-bg: #f4f5fb;
+  --dm-ink: #181b2e;
+  --dm-ink-soft: #565a73;
+  --dm-muted: #9497ac;
+  --dm-border: #e7e8f2;
+  --dm-brand: #1756AA;
+  --dm-brand-dark: #103b75;
+  --dm-brand-light: #e8f0fa;
+  --dm-commission: #0f9d74;
+  --dm-commission-light: #e3f8f1;
+  --dm-commission-dark: #0b7a5b;
+  --dm-surcharge: #dd8a1f;
+  --dm-slab: #0a94ab;
+  --dm-shadow-sm: 0 1px 2px rgba(24,27,46,.06);
+  --dm-shadow-md: 0 6px 20px rgba(24,27,46,.08);
+}
+.dmCardPad { padding: 24px 26px; }
+.dmTitle {
+  font-family: 'Manrope', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--dm-ink);
+  margin: 0;
+}
+.dmTitleSub { font-weight: 400; color: var(--dm-ink-soft); font-size: 13.5px; }
+.dmHeaderBar {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px; padding: 20px 26px 4px;
+}
+.dmCountChip {
+  font-family: 'Manrope', sans-serif; font-size: 11.5px; font-weight: 700;
+  background: var(--dm-ink); color: #fff; padding: 5px 13px; border-radius: 99px;
+}
+.dmToolbar { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+.dmField { display: flex; flex-direction: column; gap: 7px; min-width: 190px; flex: 1; }
+.dmField label {
+  font-family: 'Manrope', sans-serif; font-size: 11.5px; font-weight: 700;
+  color: var(--dm-ink-soft); letter-spacing: .2px;
+}
+.dmField select, .dmField input {
+  border: 1.5px solid var(--dm-border); border-radius: 11px; padding: 11px 13px;
+  font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 500;
+  color: var(--dm-ink); background: #fff; width: 100%; transition: all .15s ease;
+}
+.dmField select:focus, .dmField input:focus {
+  outline: none; border-color: var(--dm-brand); box-shadow: 0 0 0 4px rgba(91,79,224,.12);
+}
+.dmActions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+.dmBtn {
+  font-family: 'Manrope', sans-serif; border: none; border-radius: 11px; padding: 11px 20px;
+  font-size: 13.5px; font-weight: 700; cursor: pointer; transition: all .15s ease;
+}
+.dmBtnBrand { background: var(--dm-brand); color: #fff; box-shadow: 0 4px 14px rgba(91,79,224,.32); }
+.dmBtn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+.dmBtnBrand:hover { background: var(--dm-brand-dark); transform: translateY(-1px); }
+.dmBtnOutline { background: var(--dm-brand-light); color: var(--dm-brand-dark); }
+.dmBtnOutline:hover { background: #e2ddfc; }
+
+.dmLegend { display: flex; gap: 20px; flex-wrap: wrap; padding: 16px 26px; border-top: 1px solid var(--dm-border); background: #fbfbfe; }
+.dmLegendItem { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--dm-ink-soft); font-weight: 500; }
+.dmSwatch { width: 14px; height: 14px; border-radius: 5px; display: inline-block; }
+.dmSwatchCom { background: var(--dm-commission); }
+.dmSwatchSur { background: var(--dm-surcharge); }
+.dmSwatchSlab { background: var(--dm-slab); }
+
+.dmScroll { overflow-x: auto; padding: 18px 26px 26px; }
+.dmGrid {
+  display: grid;
+  grid-auto-rows: min-content;
+  gap: 14px;
+  align-items: stretch;
+  width: max-content;
+}
+
+.dmSlabHead, .dmSurchargeHead, .dmLevelHead {
+  background: #f8fafc;
+  border: 1px solid var(--dm-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 52px;
+}
+.dmSlabHead {
+  background: var(--dm-brand);
+  color: #fff;
+  border-color: var(--dm-brand);
+}
+.dmSlabHead .t1 {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  color: #fff;
+}
+.dmSlabHead .t2 {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 1px;
+}
+.dmSurchargeHead {
+  background: #0f9d74;
+  color: #fff;
+  border-color: #0f9d74;
+}
+.dmSurchargeHead .t1 {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  color: #fff;
+}
+.dmSurchargeHead .t2 {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 1px;
+}
+.dmLevelHead {
+  background: #fff;
+  color: var(--dm-ink);
+  font-weight: 700;
+}
+.dmLevelHead .t1 {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--dm-ink);
+}
+.dmRemoveChip {
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.dmRemoveChip:hover {
+  background: #fecaca;
+  color: #dc2626;
+}
+.dmAddLevelCol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--dm-brand-light);
+  border: 1.5px dashed var(--dm-brand);
+  border-radius: 12px;
+  min-height: 52px;
+  padding: 4px;
+}
+.dmAddLevelBtn {
+  border: none;
+  background: transparent;
+  color: var(--dm-brand);
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dmSlabRangeCell {
+  background: #fbfbfe; border: 1.5px solid var(--dm-border); border-radius: 14px;
+  padding: 14px; display: flex; flex-direction: column; gap: 8px; justify-content: center;
+  transition: all .15s ease;
+}
+.dmSlabRangeCell.dmOverlap {
+  background: #fdeeee; border-color: #e0524a; box-shadow: 0 0 0 3px rgba(224,82,74,.12);
+}
+.dmOverlapWarning {
+  font-family: 'Manrope', sans-serif; font-size: 10.5px; font-weight: 700;
+  color: #c33a32; display: flex; align-items: center; gap: 4px;
+}
+.dmRangeInputs { display: flex; align-items: center; gap: 6px; }
+.dmRangeInputs input {
+  width: 78px; border: 1px solid var(--dm-border); border-radius: 7px; padding: 7px 4px;
+  font-weight: 600; font-family: 'Inter', sans-serif; font-size: 12.5px; text-align: center;
+}
+.dmSlabRangeCell.dmOverlap .dmRangeInputs input { border-color: #e0524a; }
+.dmRangeInputs span { color: var(--dm-muted); font-weight: 700; }
+.dmRemoveSlabBtn {
+  font-family: 'Manrope', sans-serif; font-size: 10.5px; font-weight: 700;
+  color: var(--dm-muted); background: transparent; border: none; cursor: pointer; text-align: left; padding: 0;
+}
+.dmRemoveSlabBtn:hover:not(:disabled) { color: #c94b4b; }
+.dmRemoveSlabBtn:disabled { opacity: .35; cursor: not-allowed; }
+
+.dmValueCard {
+  background: #fff;
+  border: 1px solid var(--dm-border);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: var(--dm-shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s ease;
+  min-width: 100px;
+}
+.dmValueCard.dmModeSur {
+  border-left: 4px solid var(--dm-surcharge);
+}
+.dmValueCard:not(.dmModeSur) {
+  border-left: 4px solid var(--dm-commission);
+}
+.dmValueCard:hover {
+  box-shadow: var(--dm-shadow-md);
+  transform: translateY(-1px);
+}
+.dmValueInputWrapper {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--dm-border);
+  border-radius: 8px;
+  padding: 2px 6px;
+  background: #fff;
+  width: 100%;
+}
+.dmValueInputWrapper:focus-within {
+  border-color: var(--dm-brand);
+  box-shadow: 0 0 0 3px rgba(23,86,170,.12);
+}
+.dmValueInputInline {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--dm-ink);
+  padding: 4px 2px;
+  min-width: 40px;
+}
+.dmInlineBadges {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.dmInlineBadge {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 3px 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  font-family: 'Manrope', sans-serif;
+}
+.comActive {
+  background: #e3f8f1;
+  color: #0f9d74;
+}
+.surActive {
+  background: #fff3e0;
+  color: #dd8a1f;
+}
+.unitActive {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.dmAddSlabRow {
+  border: 2px dashed var(--dm-border); border-radius: 14px; background: #fbfbfe;
+  display: flex; align-items: center; justify-content: center; padding: 14px;
+  min-height: 52px; cursor: pointer; transition: all .15s ease;
+}
+.dmAddSlabRow:hover { background: var(--dm-commission-light); border-color: var(--dm-commission); }
+.dmAddSlabRow span {
+  font-family: 'Manrope', sans-serif; font-weight: 700; color: var(--dm-commission-dark); font-size: 13px;
+}
+
+.dmSummaryBar {
+  display: flex; gap: 28px; flex-wrap: wrap; padding: 16px 26px; border-top: 1px solid var(--dm-border);
+  background: #fbfbfe; font-size: 12.5px; color: var(--dm-ink-soft);
+}
+.dmSummaryBar b { color: var(--dm-ink); font-family: 'Manrope', sans-serif; }
