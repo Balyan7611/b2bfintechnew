@@ -169,7 +169,7 @@ const ApiWhitelisting = () => {
   const paginatedData = filteredHistory.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   const tableColumns = [
-    'IP ADDRESS', 'STATUS', 'USER ID', 'DATE ADDED', 'ACTION'
+    'IP ADDRESS', 'STATUS', 'DATE ADDED', 'ACTION'
   ];
 
   return (
@@ -272,7 +272,6 @@ const ApiWhitelisting = () => {
                     {isAct ? 'ACTIVE' : 'INACTIVE'}
                   </span>
                 </td>
-                <td style={{ fontWeight: 600, color: '#475569' }}>{item.userId || item.UserId || currentUserId}</td>
                 <td style={{ fontSize: '0.85rem', color: '#475569', fontWeight: 600 }}>
                   {typeof itemDate === 'string' && itemDate.includes('T') ? itemDate.replace('T', ' ').split('.')[0] : itemDate}
                 </td>

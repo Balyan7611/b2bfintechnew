@@ -24,12 +24,11 @@
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
   border: 1px solid #e2e8f0;
   flex: 1;
-  transition: box-shadow 0.25s ease, transform 0.25s ease;
+  transition: box-shadow 0.25s ease;
 }
 
 .configCard:hover {
   box-shadow: 0 14px 34px rgba(15, 23, 42, 0.09);
-  transform: translateY(-2px);
 }
 
 .cardHeader {
