@@ -148,8 +148,8 @@ const ApiHeader = () => {
   };
 
   const walletData = [
-    { name: 'AEPS WALLET', value: '320242.53', color: '#10B981' },
-    { name: 'MAIN WALLET', value: '111379.00', color: 'var(--color-primary)' },
+    { name: 'AEPS WALLET', value: '0.00', color: '#10B981' },
+    { name: 'MAIN WALLET', value: '0.00', color: 'var(--color-primary)' },
     { name: 'PROFIT WALLET', value: '0.00', color: '#F59E0B' }
   ];
 
