@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FaShieldAlt, FaServer, FaCheckCircle, FaExclamationTriangle, FaPaperPlane, FaLock, FaGlobe, FaNetworkWired, FaHistory, FaTrash, FaToggleOn, FaToggleOff, FaTimes } from 'react-icons/fa';
+import { FaShieldAlt, FaServer, FaCheckCircle, FaExclamationTriangle, FaPaperPlane, FaGlobe, FaNetworkWired, FaHistory, FaTrash, FaToggleOn, FaToggleOff, FaTimes } from 'react-icons/fa';
 import AdminTable from '../../shared/components/common/AdminTable';
 import { API } from '../../api/endpoints';
 import { getSession } from '../../utils/authUtils';
+import ApiCredentials from './ApiCredentials';
 import styles from './ApiWhitelisting.module.css';
 
 const ApiWhitelisting = () => {
@@ -40,6 +41,7 @@ const ApiWhitelisting = () => {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchIpList();
   }, []);
@@ -173,77 +175,77 @@ const ApiWhitelisting = () => {
   return (
     <div className={styles.container}>
 
-
-      <div className={styles.formSection}>
-        <div className={styles.policyAlert}>
-          <div className={styles.policyTitle}>
-            <FaExclamationTriangle /> Security Policy:
+      <div className={styles.topCards}>
+        <div className={styles.configCard}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>
+              <span className={styles.cardIconBox}><FaNetworkWired /></span>
+              IP Whitelisting
+            </div>
+            <span className={styles.stepBadge}>2-Step Verification</span>
           </div>
-          <ul className={styles.policyList}>
-            <li>IP Whitelisting requires 2-Step OTP Verification for security.</li>
-            <li>Step 1 sends an OTP to your registered mobile. Duplicate IPs are automatically blocked.</li>
-            <li>Step 2 verifies the OTP, registers the IP in DB, and sends Category 18 Security Notification.</li>
-          </ul>
-        </div>
 
-        {errorMessage && (
-          <div style={{ background: '#FEE2E2', color: '#B91C1C', padding: '12px 16px', borderRadius: '8px', marginBottom: '15px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid #FCA5A5', fontWeight: 600 }}>
-            <FaExclamationTriangle /> {errorMessage}
-          </div>
-        )}
+          {errorMessage && (
+            <div style={{ background: '#FEE2E2', color: '#B91C1C', padding: '12px 16px', borderRadius: '8px', marginBottom: '15px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid #FCA5A5', fontWeight: 600 }}>
+              <FaExclamationTriangle /> {errorMessage}
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit} className={styles.formGrid}>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>IP Address</label>
-            <div className={styles.inputWrap}>
-              <div className={styles.iconWrap}>
-                <FaNetworkWired />
+          <form onSubmit={handleSubmit} className={styles.formGrid}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>IP Address</label>
+              <div className={styles.inputWrap}>
+                <div className={styles.iconWrap}>
+                  <FaNetworkWired />
+                </div>
+                <input
+                  className={styles.input}
+                  placeholder="e.g. 48.43.181.120"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  required
+                />
               </div>
-              <input 
-                className={styles.input}
-                placeholder="e.g. 48.43.181.120"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                required
+              {inputValue && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className={`${styles.statusIndicator} ${styles.valid}`}>
+                    <FaCheckCircle /> Valid IP Format
+                  </div>
+                  <span className={styles.hintText}>Enter Server IP to Whitelist</span>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Reason / Remarks</label>
+              <textarea
+                className={styles.textarea}
+                placeholder="e.g. Production API Gateway server IP"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={3}
               />
             </div>
-            {inputValue && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div className={`${styles.statusIndicator} ${styles.valid}`}>
-                  <FaCheckCircle /> Valid IP Format
-                </div>
-                <span className={styles.hintText}>Enter Server IP to Whitelist</span>
-              </div>
-            )}
-          </div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Reason / Remarks</label>
-            <textarea 
-              className={styles.textarea}
-              placeholder="e.g. Production API Gateway server IP"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              rows={3}
-            />
-          </div>
+            <div className={styles.submitWrap} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <button
+                type="submit"
+                className={styles.submitBtn}
+                style={{ width: '100%', margin: 0, whiteSpace: 'nowrap' }}
+                disabled={isSubmitting || !inputValue.trim()}
+              >
+                {isSubmitting ? 'Sending OTP...' : 'Send OTP & Whitelist'} <FaPaperPlane />
+              </button>
+            </div>
+          </form>
+        </div>
 
-          <div className={styles.submitWrap} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <button 
-              type="submit" 
-              className={styles.submitBtn} 
-              disabled={isSubmitting || !inputValue.trim()}
-            >
-              {isSubmitting ? 'Sending OTP...' : 'Send OTP & Whitelist IP'} <FaPaperPlane />
-            </button>
-            <p className={styles.helpText}>
-              <FaLock /> Automated 2-Step OTP Security Active
-            </p>
-          </div>
-        </form>
+        <div className={styles.configCard} style={{ minWidth: 0 }}>
+          <ApiCredentials compact />
+        </div>
       </div>
 
-      <div className={styles.historySection} style={{ padding: 0, border: 'none', boxShadow: 'none', background: 'transparent' }}>
+      <div className={styles.historySection} style={{ padding: 0, border: 'none', boxShadow: 'none', background: 'transparent', marginBottom: '24px' }}>
         <AdminTable
           title="YOUR WHITELISTED IPS"
           icon={<FaHistory />}
@@ -304,6 +306,20 @@ const ApiWhitelisting = () => {
           totalEntries={totalEntries}
           totalPages={totalPages}
         />
+      </div>
+
+      <div className={styles.configCard}>
+        <div className={styles.policyAlert} style={{ margin: 0 }}>
+          <div className={styles.policyTitle}>
+            <FaExclamationTriangle /> Security Policy — API Credentials &amp; IP Whitelisting:
+          </div>
+          <ul className={styles.policyList}>
+            <li>IP Whitelisting requires 2-Step OTP Verification. Duplicate IPs are automatically blocked.</li>
+            <li>Verifying the OTP registers the IP in DB and sends a Category 18 Security Notification.</li>
+            <li>Generating or revealing your API Client Secret also requires OTP verification for security.</li>
+            <li>Rolling (regenerating) API Keys replaces the current credentials — old integrations will stop working.</li>
+          </ul>
+        </div>
       </div>
 
       {/* OTP Verification Modal */}

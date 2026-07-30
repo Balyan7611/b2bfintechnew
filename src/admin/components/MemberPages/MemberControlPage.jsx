@@ -84,6 +84,34 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
     fetchGenders();
   }, []);
 
+  // State dropdown - was previously hardcoded to just 5 states, and stateId
+  // was guessed from the name via a hardcoded ternary chain (Delhi=2,
+  // Rajasthan=3, Haryana=4, Maharashtra=5, else 1) that had nothing to do
+  // with the real State IDs from the backend. Now pulled live from
+  // GET /State so every real state shows up and the id sent to the server
+  // is the actual one, not a guess.
+  const [stateOptions, setStateOptions] = useState([]);
+
+  useEffect(() => {
+    const fetchStates = async () => {
+      try {
+        const res = await API.state.getAll();
+        if (Array.isArray(res) && res.length > 0) {
+          setStateOptions(res);
+        }
+      } catch (err) {
+        console.error("Error fetching states:", err);
+      }
+    };
+    fetchStates();
+  }, []);
+
+  // Look up the real backend id for a state selected by name in the dropdown
+  const getStateIdByName = (stateName) => {
+    const match = stateOptions.find(s => s.name === stateName);
+    return match ? match.id : undefined;
+  };
+
   const [activeActionType, setActiveActionType] = useState(null); // null | 'addFund' | 'deductFund' | 'addAeps' | 'deductAeps' | 'creditLimit' | 'holdAmt'
   const [actionAmount, setActionAmount] = useState('');
   const [pendingTransaction, setPendingTransaction] = useState(null);
@@ -250,13 +278,13 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
       pan: profileForm.pan,
       address: profileForm.address,
       pinCode: profileForm.pincode,
-      stateId: profileForm.state === 'Delhi' ? 2 : profileForm.state === 'Rajasthan' ? 3 : profileForm.state === 'Haryana' ? 4 : profileForm.state === 'Maharashtra' ? 5 : 1,
+      stateId: getStateIdByName(profileForm.state) ?? (parseInt(activeMemberData.stateId) || 1),
       cityId: parseInt(activeMemberData.cityId) || 1,
       parentStr: activeMemberData.parentStr || "",
       shopName: profileForm.businessName,
       shopAddress: profileForm.businessAddress,
       shopPinCode: profileForm.businessPincode,
-      shopStateId: profileForm.businessState === 'Delhi' ? 2 : profileForm.businessState === 'Rajasthan' ? 3 : profileForm.businessState === 'Haryana' ? 4 : profileForm.businessState === 'Maharashtra' ? 5 : 1,
+      shopStateId: getStateIdByName(profileForm.businessState) ?? (parseInt(activeMemberData.shopStateId) || 1),
       shopCityId: parseInt(activeMemberData.shopCityId) || 1,
       postOffice: profileForm.postOffice,
       businessPostOffice: profileForm.businessPostOffice
@@ -487,19 +515,20 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* State Dropdown */}
+              {/* State Dropdown - live from GET /State */}
               <div className={styles.formGroup}>
                 <label>State</label>
-                <select 
-                  value={profileForm.state} 
+                <select
+                  value={profileForm.state}
                   onChange={e => setProfileForm({ ...profileForm, state: e.target.value })}
                   className={styles.formInput}
                 >
-                  <option value="Uttar Pradesh">Uttar Pradesh</option>
-                  <option value="Delhi">Delhi</option>
-                  <option value="Rajasthan">Rajasthan</option>
-                  <option value="Haryana">Haryana</option>
-                  <option value="Maharashtra">Maharashtra</option>
+                  {profileForm.state && !stateOptions.some(s => s.name === profileForm.state) && (
+                    <option value={profileForm.state}>{profileForm.state}</option>
+                  )}
+                  {stateOptions.map(s => (
+                    <option key={s.id} value={s.name}>{s.name}</option>
+                  ))}
                 </select>
               </div>
 
@@ -606,19 +635,20 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* State Dropdown */}
+              {/* State Dropdown - live from GET /State */}
               <div className={styles.formGroup}>
                 <label>State</label>
-                <select 
-                  value={profileForm.businessState} 
+                <select
+                  value={profileForm.businessState}
                   onChange={e => setProfileForm({ ...profileForm, businessState: e.target.value })}
                   className={styles.formInput}
                 >
-                  <option value="Uttar Pradesh">Uttar Pradesh</option>
-                  <option value="Delhi">Delhi</option>
-                  <option value="Rajasthan">Rajasthan</option>
-                  <option value="Haryana">Haryana</option>
-                  <option value="Maharashtra">Maharashtra</option>
+                  {profileForm.businessState && !stateOptions.some(s => s.name === profileForm.businessState) && (
+                    <option value={profileForm.businessState}>{profileForm.businessState}</option>
+                  )}
+                  {stateOptions.map(s => (
+                    <option key={s.id} value={s.name}>{s.name}</option>
+                  ))}
                 </select>
               </div>
 

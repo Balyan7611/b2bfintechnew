@@ -48,7 +48,9 @@ import ApiLoginPage from './api_panel/pages/ApiLoginPage';
 import ApiDashboardLayout from './api_panel/pages/ApiDashboardLayout';
 import ApiHome from './api_panel/components/ApiHome';
 import ApiSettings from './api_panel/components/ApiSettings';
+import ApiSecurityPage from './api_panel/pages/ApiSecurityPage';
 import ApiWhitelisting from './api_panel/pages/ApiWhitelisting';
+import WebhookCallbacks from './api_panel/pages/WebhookCallbacks';
 import ContactPage from './public/pages/ContactPage';
 import HomePage from './public/pages/HomePage';
 import PrivacyPolicyPage from './public/pages/PrivacyPolicyPage';
@@ -625,9 +627,13 @@ function App() {
                 <ApiDashboardLayout />
             </AuthGuard>}>
             <Route index element={<ApiHome />} />
-            <Route path="settings" element={<ApiSettings />} />
+            <Route path="settings" element={<Navigate to="/api-panel/dashboard/whitelist" replace />} />
+            <Route path="credentials" element={<Navigate to="/api-panel/dashboard/whitelist" replace />} />
+            <Route path="security" element={<ApiSecurityPage />} />
             <Route path="whitelist" element={<ApiWhitelisting />} />
+            <Route path="webhook" element={<WebhookCallbacks />} />
             <Route path="profile" element={<MyProfile />} />
+            <Route path="kyc" element={<UploadKYC />} />
             <Route path="wallet/w2w" element={<WalletToWallet />} />
             <Route path="wallet/fund-request" element={<FundRequest />} />
             <Route path="wallet/aeps" element={<AEPSWalletHistory />} />

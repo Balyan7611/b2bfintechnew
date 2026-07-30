@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  FaTachometerAlt, FaWallet, FaShieldAlt
+import {
+  FaTachometerAlt, FaWallet, FaShieldAlt, FaIdCard, FaLink, FaCog, FaKey, FaNetworkWired
 } from 'react-icons/fa';
 import { FiChevronRight, FiChevronLeft, FiX } from 'react-icons/fi';
 import { toggleSidebar, setSidebarOpen } from '../../store/slices/memberPanelSlice';
@@ -36,23 +36,30 @@ const ApiSidebar = () => {
 
   const menuItems = [
     { name: 'Dashboard', icon: <FaTachometerAlt />, path: '/api-panel/dashboard' },
-    { 
-      name: 'Security Settings', 
-      icon: <FaShieldAlt />, 
-      hasChildren: true,
-      children: [
-        { name: 'API Whitelisting', path: '/api-panel/dashboard/whitelist' },
-      ]
-    },
-    { 
-      name: 'Wallet Report', 
-      icon: <FaWallet />, 
+    {
+      name: 'Wallet Report',
+      icon: <FaWallet />,
       hasChildren: true,
       children: [
         { name: 'Wallet to Wallet', path: '/api-panel/dashboard/wallet/w2w' },
         { name: 'Fund Request', path: '/api-panel/dashboard/wallet/fund-request' },
         { name: 'Main Wallet', path: '/api-panel/dashboard/wallet/main' },
         { name: 'AEPS Wallet', path: '/api-panel/dashboard/wallet/aeps' },
+      ]
+    },
+    {
+      name: 'KYC',
+      icon: <FaIdCard />,
+      path: '/api-panel/dashboard/kyc'
+    },
+    {
+      name: 'Security Settings',
+      icon: <FaCog />,
+      hasChildren: true,
+      children: [
+        { name: 'Webhook Settings', icon: <FaLink />, path: '/api-panel/dashboard/webhook' },
+        { name: 'API Credentials & Whitelisting', icon: <FaNetworkWired />, path: '/api-panel/dashboard/whitelist' },
+        { name: 'Security', icon: <FaShieldAlt />, path: '/api-panel/dashboard/security' },
       ]
     },
   ];

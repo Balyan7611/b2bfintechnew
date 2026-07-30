@@ -36,6 +36,7 @@ import { MasterApiService } from '../services/masterApi.service';
 import { LogsServiceDatumService } from '../services/logsServiceDatum.service';
 import { MemberServiceService } from '../services/memberService.service';
 import { IpAuthanticateService } from '../services/ipAuthanticate.service';
+import { ClientCredentialService } from '../services/clientCredential.service';
 
 // Re-exporting everything exactly as before to maintain backward compatibility
 export const API = {
@@ -88,6 +89,7 @@ export const API = {
     masterApi: MasterApiService,
     logsServiceDatum: LogsServiceDatumService,
     ipAuthanticate: IpAuthanticateService,
+    clientCredential: ClientCredentialService,
 };
 
 export const fetchCompanyData = CompanyService.fetchCompanyData;

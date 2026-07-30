@@ -99,6 +99,7 @@ const SetCommission = () => {
   };
 
   // Reload report list on pagination/search changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchList();
   }, [pageNumber, pageSize, searchQuery, dynPackage, dynService, dynOperator]);
@@ -178,6 +179,7 @@ const SetCommission = () => {
   };
 
   // Trigger matrix load on selection change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     handleLoadMatrix();
   }, [dynPackage, dynService, dynOperator]);

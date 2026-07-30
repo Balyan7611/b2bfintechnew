@@ -176,6 +176,7 @@ const MyProfile = () => {
   };
 
   // 2. Fetch Tab Specific Data
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const memberId = sessionUser?.msrno || sessionUser?.userId || formData.id;
     if (activeTab === 'AccountDetails') {

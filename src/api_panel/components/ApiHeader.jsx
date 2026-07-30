@@ -20,7 +20,7 @@ import {
 import {
   FaBars, FaMoon, FaSun, FaExpand,
   FaEnvelope, FaBell, FaChartBar, FaHeadset, FaPowerOff, FaWallet,
-  FaUser, FaEdit, FaHistory, FaMobileAlt, FaCog, FaCertificate, FaBullhorn, FaCommentDots, FaPaperclip
+  FaUser, FaEdit, FaHistory, FaMobileAlt, FaCog, FaCertificate, FaBullhorn, FaCommentDots, FaPaperclip, FaKey
 } from 'react-icons/fa';
 import { 
   FiX, FiChevronRight, FiChevronLeft, FiShoppingBag, FiUsers, FiCheckCircle, FiFileText, FiStar, FiSearch 
@@ -284,41 +284,57 @@ const ApiHeader = () => {
             )}
           </div>
 
-          <div className={styles.profileContainer} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className={styles.profileContainer} ref={dropdownRef}>
             {(() => {
               const session = getSession();
               const displayName = session?.name || session?.fullName || user?.name || 'API Partner';
               const displayId = session?.loginId || session?.username || 'API User';
+
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginRight: '4px' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: '700', color: isDarkMode ? '#F3F4F6' : '#1F2937' }}>{displayName}</span>
-                  <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: '600' }}>{displayId}</span>
-                </div>
+                <>
+                  <div className={styles.avatarWrapper} onClick={() => dispatch(toggleProfileDropdown())}>
+                    <img
+                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${displayName}`}
+                      alt="Avatar"
+                      className={styles.avatarImage}
+                    />
+                  </div>
+                  {isProfileDropdownOpen && (
+                    <div className={styles.dropdown}>
+                      <div className={styles.dropdownHeader}>
+                        <div className={styles.dropdownAvatarWrapper}>
+                          <img
+                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${displayName}`}
+                            alt="User"
+                            className={styles.dropdownAvatar}
+                          />
+                        </div>
+                        <div className={styles.dropdownUserInfo}>
+                          <div className={styles.dropdownUserName}>{displayName}</div>
+                          <div className={styles.dropdownUserRole}>{displayId}</div>
+                        </div>
+                      </div>
+                      <div className={styles.divider}></div>
+                      <div className={styles.dropdownMenu}>
+                        <div className={styles.menuItem} onClick={() => handleNavigate('/api-panel/dashboard/profile')}>
+                          <div className={`${styles.menuIcon} ${styles.iconNavy}`}><FaUser /></div>
+                          <span>My Profile</span>
+                        </div>
+                        <div className={styles.menuItem} onClick={() => handleNavigate('/api-panel/dashboard/whitelist')}>
+                          <div className={`${styles.menuIcon} ${styles.iconNavy}`}><FaKey /></div>
+                          <span>API Credentials</span>
+                        </div>
+                        <div className={styles.divider}></div>
+                        <div className={`${styles.menuItem} ${styles.logoutItem}`} onClick={handleLogout}>
+                          <div className={`${styles.menuIcon} ${styles.iconRed}`}><FaPowerOff /></div>
+                          <span>Logout</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               );
             })()}
-            <button 
-              className={styles.logoutHeaderBtn} 
-              onClick={handleLogout}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: '#FEE2E2',
-                color: '#EF4444',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#FCA5A5'}
-              onMouseLeave={(e) => e.currentTarget.style.background = '#FEE2E2'}
-            >
-              <FaPowerOff />
-              <span style={{ fontSize: '0.9rem' }}>Logout</span>
-            </button>
           </div>
         </div>
       </div>
