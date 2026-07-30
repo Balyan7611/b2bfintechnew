@@ -151,12 +151,30 @@ const AdminLoginPage = () => {
     if (adminId.trim().length >= 3) setStep(2);
   };
 
+  const fetchClientIp = async () => {
+    const endpoints = [
+      'https://api.ipify.org?format=json',
+      'https://ipapi.co/json/',
+      'https://ipinfo.io/json'
+    ];
+    for (const endpoint of endpoints) {
+      try {
+        const res = await fetch(endpoint);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ip && data.ip !== '0.0.0.0') return data.ip;
+        }
+      } catch (e) {}
+    }
+    return '127.0.0.1';
+  };
+
   // Shared "final success" handler used both when LoginUser logs in directly
   // and when VerifyLoginOTP / VerifyLoginTPIN completes the login.
   // `location` = the coordinates captured on the password step, so they can
   // be carried into the session and, from there, into the UserLoginHistory
   // record created in App.jsx (instead of hardcoded 0,0).
-  const completeAdminLogin = (decoded, token, location) => {
+  const completeAdminLogin = (decoded, token, location, clientIp) => {
     // Reset brute force counters on success
     localStorage.removeItem('admin_login_attempts');
     localStorage.removeItem('admin_lockout_until');
@@ -174,7 +192,8 @@ const AdminLoginPage = () => {
       fullName: decoded.name || 'Admin',
       role: 1,
       latitude: location?.latitude,
-      longitude: location?.longitude
+      longitude: location?.longitude,
+      ip: clientIp || '127.0.0.1'
     });
 
     navigate('/admin/dashboard', { replace: true });
@@ -245,7 +264,8 @@ const AdminLoginPage = () => {
         const decoded = decodeToken(token);
 
         if (decoded && (decoded.role === '1' || decoded.role === 1)) {
-          completeAdminLogin(decoded, token, capturedLocation);
+          const clientIp = await fetchClientIp();
+          completeAdminLogin(decoded, token, capturedLocation, clientIp);
         } else {
           throw new Error("Unauthorized access - Admin only");
         }
@@ -310,7 +330,8 @@ const AdminLoginPage = () => {
         const decoded = decodeToken(token);
 
         if (decoded && (decoded.role === '1' || decoded.role === 1)) {
-          completeAdminLogin(decoded, token, loginLocation);
+          const clientIp = await fetchClientIp();
+          completeAdminLogin(decoded, token, loginLocation, clientIp);
         } else {
           throw new Error("Unauthorized access - Admin only");
         }

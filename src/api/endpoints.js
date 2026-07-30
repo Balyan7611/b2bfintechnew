@@ -34,6 +34,8 @@ import { SupportTicketService } from '../services/supportTicket.service';
 import { TicketConversationService } from '../services/ticketConversation.service';
 import { MasterApiService } from '../services/masterApi.service';
 import { LogsServiceDatumService } from '../services/logsServiceDatum.service';
+import { MemberServiceService } from '../services/memberService.service';
+import { IpAuthanticateService } from '../services/ipAuthanticate.service';
 
 // Re-exporting everything exactly as before to maintain backward compatibility
 export const API = {
@@ -61,6 +63,7 @@ export const API = {
     sectionType: SectionTypeService,
     state: StateService,
     member: MemberService,
+    memberService: MemberServiceService,
     privacyPolicy: PrivacyPolicyService,
     refundPolicy: RefundPolicyService,
     termsCondition: TermsConditionService,
@@ -84,6 +87,7 @@ export const API = {
     ticketConversation: TicketConversationService,
     masterApi: MasterApiService,
     logsServiceDatum: LogsServiceDatumService,
+    ipAuthanticate: IpAuthanticateService,
 };
 
 export const fetchCompanyData = CompanyService.fetchCompanyData;

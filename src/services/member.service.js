@@ -3,6 +3,10 @@ import { MemberRequestModel } from '../models/memberModel';
 import { MemberSearchResponseModel } from '../models/memberSearchModel';
 
 export const MemberService = {
+    getById: async (id) => {
+        return await apiService.get(`/Member/get-member-by-id/${id}`);
+    },
+
     createMember: async (data) => {
         const payload = MemberRequestModel(data);
         return await apiService.post('/Member/create-member', payload);

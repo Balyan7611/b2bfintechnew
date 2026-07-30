@@ -4,7 +4,7 @@ const storedNotifs = JSON.parse(localStorage.getItem('local_notifications')) || 
 
 const initialState = {
   isDarkMode: false,
-  user: { name: 'Sachin Balyan', role: 'Retailer (RT1236)', id: 'RT1236', avatar: '/avatar.png' },
+  user: { name: 'Member User', role: 'Retailer (RT1001)', id: 'RT1001', avatar: '/avatar.png' },
   wallets: { main: 1000.00, aeps: 0.00, testDemo: 0.00 },
   selectedDate: new Date().toISOString().split('T')[0],
   activeTab: 'Recharge',

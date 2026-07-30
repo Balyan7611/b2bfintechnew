@@ -25,9 +25,9 @@ import {
 import { 
   FiX, FiChevronRight, FiChevronLeft, FiShoppingBag, FiUsers, FiCheckCircle, FiFileText, FiStar, FiSearch 
 } from 'react-icons/fi';
-import { MdAttachMoney } from 'react-icons/md';
 import { SITE_CONFIG } from '../../config/siteConfig';
 import { requestForToken, setupForegroundListener } from '../../firebase';
+import { clearSession, getSession } from '../../utils/authUtils';
 import styles from './ApiHeader.module.css';
 
 const ApiHeader = () => {
@@ -67,6 +67,9 @@ const ApiHeader = () => {
   };
 
   const confirmLogout = () => {
+    clearSession();
+    localStorage.removeItem('api_token');
+    sessionStorage.removeItem('api_token');
     navigate('/api-panel/login');
   };
 
@@ -281,7 +284,18 @@ const ApiHeader = () => {
             )}
           </div>
 
-          <div className={styles.profileContainer}>
+          <div className={styles.profileContainer} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {(() => {
+              const session = getSession();
+              const displayName = session?.name || session?.fullName || user?.name || 'API Partner';
+              const displayId = session?.loginId || session?.username || 'API User';
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginRight: '4px' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: '700', color: isDarkMode ? '#F3F4F6' : '#1F2937' }}>{displayName}</span>
+                  <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: '600' }}>{displayId}</span>
+                </div>
+              );
+            })()}
             <button 
               className={styles.logoutHeaderBtn} 
               onClick={handleLogout}

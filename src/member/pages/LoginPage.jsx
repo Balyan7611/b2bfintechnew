@@ -298,12 +298,30 @@ const LoginPage = () => {
     setLocationStatus(null);
   };
 
+  const fetchClientIp = async () => {
+    const endpoints = [
+      'https://api.ipify.org?format=json',
+      'https://ipapi.co/json/',
+      'https://ipinfo.io/json'
+    ];
+    for (const endpoint of endpoints) {
+      try {
+        const res = await fetch(endpoint);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ip && data.ip !== '0.0.0.0') return data.ip;
+        }
+      } catch (e) {}
+    }
+    return '127.0.0.1';
+  };
+
   // Shared "final success" handler used both when LoginUser logs in directly
   // and when VerifyLoginOTP / VerifyLoginTPIN completes the login.
   // `location` = the coordinates captured on the password step, so they can
   // be carried into the session and, from there, into the UserLoginHistory
   // record created in App.jsx (instead of hardcoded 0,0).
-  const completeMemberLogin = (decoded, token, location) => {
+  const completeMemberLogin = (decoded, token, location, clientIp) => {
     // Block pure admin (role===1) from logging in as member
     const roleNum = decoded ? Number(decoded.role) : -1;
     if (roleNum === 1 && !decoded?.LoginId?.startsWith('MEM')) {
@@ -340,7 +358,8 @@ const LoginPage = () => {
       role: roleNum || 2,
       msrno: numericId,
       latitude: location?.latitude,
-      longitude: location?.longitude
+      longitude: location?.longitude,
+      ip: clientIp || '127.0.0.1'
     });
 
     navigate('/member/dashboard', { replace: true });
@@ -421,7 +440,8 @@ const LoginPage = () => {
         if (!token) throw new Error("Token missing from server");
 
         const decoded = decodeToken(token);
-        completeMemberLogin(decoded, token, capturedLocation);
+        const clientIp = await fetchClientIp();
+        completeMemberLogin(decoded, token, capturedLocation, clientIp);
       } else {
         throw new Error(response.mess || "Login Failed");
       }
@@ -484,7 +504,8 @@ const LoginPage = () => {
         if (!token) throw new Error("Token missing from server");
 
         const decoded = decodeToken(token);
-        completeMemberLogin(decoded, token, loginLocation);
+        const clientIp = await fetchClientIp();
+        completeMemberLogin(decoded, token, loginLocation, clientIp);
       } else {
         throw new Error(response.mess || "Verification Failed");
       }

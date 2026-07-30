@@ -145,93 +145,16 @@ function App() {
     };
 
     const registerSessionOnBackend = async (session) => {
-      // NOTE: this used to be a single boolean flag ('bss_session_registered'
-      // === 'true'). That meant if a member logged in, then later an admin
-      // logged in on the SAME browser tab without a full logout in between
-      // (e.g. navigating straight to /admin/login), the leftover flag from
-      // the member session would silently block the admin's own
-      // registration call - so the admin's login (and its lat/long) never
-      // made it into UserLoginHistory at all. Keying the flag by the actual
-      // sessionId fixes that: every distinct login always gets registered.
+      // Backend already records login history with the correct client IP
+      // during LoginUser / VerifyLoginOTP (via RecordLoginHistoryAsync).
+      // Creating a second frontend record here was overwriting that with
+      // 127.0.0.1, which caused the IP-same check to always fail on the
+      // next login → OTP every single time. So we now only track the
+      // sessionId in sessionStorage (needed by logout to mark session as
+      // inactive), without creating a duplicate DB entry.
       if (!session?.sessionId) return;
       if (sessionStorage.getItem('bss_session_registered_id') === session.sessionId) return;
-
-      try {
-        const userAgent = navigator.userAgent;
-        let browserName = "Browser";
-        let osName = "OS";
-        if (userAgent.indexOf("Chrome") > -1) browserName = "Chrome";
-        else if (userAgent.indexOf("Safari") > -1) browserName = "Safari";
-        else if (userAgent.indexOf("Firefox") > -1) browserName = "Firefox";
-
-        if (userAgent.indexOf("Windows") > -1) osName = "Windows";
-        else if (userAgent.indexOf("Mac") > -1) osName = "MacOS";
-        else if (userAgent.indexOf("Linux") > -1) osName = "Linux";
-        else if (userAgent.indexOf("Android") > -1) osName = "Android";
-        else if (userAgent.indexOf("iPhone") > -1) osName = "iOS";
-
-        // Real coordinates were captured on the login page and carried
-        // through via saveSession() -> session.latitude/session.longitude.
-        // Previously this was hardcoded to 0,0, which is why lat/long never
-        // reached the database even after the login API itself got fixed.
-        const sessionLat = typeof session.latitude === 'number' ? session.latitude : 0;
-        const sessionLng = typeof session.longitude === 'number' ? session.longitude : 0;
-
-        const isAdminSession = session.role === 1;
-
-        // The 500 ("error occurred while saving the entity changes") admins
-        // were hitting is a database-side failure, not a frontend one - most
-        // likely msrno:0 being treated as a foreign key to a Member row that
-        // doesn't exist (admins have no Member record, unlike real members
-        // whose msrno always points at a real row). Sending null for admins
-        // avoids handing the DB an FK value that can never resolve.
-        const createRes = await API.userLoginHistory.create({
-          loginType: isAdminSession ? "Admin" : "Member",
-          loginStatus: "Success",
-          loginIpaddress: "127.0.0.1",
-          deviceId: "Web-Browser",
-          deviceName: `${osName} - ${browserName}`,
-          os: osName,
-          browser: browserName,
-          location: (sessionLat || sessionLng) ? `${sessionLat}, ${sessionLng}` : "Web Session",
-          latitude: sessionLat,
-          longitude: sessionLng,
-          sessionId: session.sessionId,
-          msrno: isAdminSession ? null : (session.msrno || 0),
-          isActiveSession: true
-        }, { hideLoader: true });
-
-        // Remember which record this session created so logout can close it
-        // out properly (isActiveSession:false, logoutTime set).
-        const newId = createRes?.data?.id || (typeof createRes?.data === 'number' ? createRes.data : null);
-        if (newId) {
-          sessionStorage.setItem('bss_login_history_id', newId);
-        }
-
-        // Visible confirmation in the browser console that the record was
-        // actually created (or wasn't) - check this after logging in as
-        // admin if records still aren't showing up in the DB.
-        console.log(
-          `[UserLoginHistory] Create ${createRes?.status === false ? 'REJECTED by backend' : 'OK'} for ${session.role === 1 ? 'Admin' : 'Member'} (sessionId=${session.sessionId}):`,
-          createRes
-        );
-
-        sessionStorage.setItem('bss_session_registered_id', session.sessionId);
-      } catch (err) {
-        // Previously this call used ignoreError:true internally, which
-        // suppresses the toast notification on failure - meaning if the
-        // backend rejected the admin's record (e.g. a validation/FK issue
-        // tied to msrno being 0 for admins, since admins have no member
-        // record), it would fail completely silently with nothing visible
-        // to the user. Logging the real HTTP status + response body here so
-        // the actual backend rejection reason is visible in DevTools.
-        console.error(
-          `[UserLoginHistory] Create FAILED for ${session.role === 1 ? 'Admin' : 'Member'} (sessionId=${session.sessionId}). Status:`,
-          err?.response?.status,
-          'Response:',
-          err?.response?.data || err?.message
-        );
-      }
+      sessionStorage.setItem('bss_session_registered_id', session.sessionId);
     };
 
     const checkConcurrentSession = async (session) => {
@@ -698,7 +621,7 @@ function App() {
           <Route path="/api-panel" element={<Navigate to="/api-panel/login" replace />} />
           <Route path="/api-panel/" element={<ApiLoginPage />} />
           <Route path="/api-panel/login" element={<ApiLoginPage />} />
-          <Route path="/api-panel/dashboard" element={<AuthGuard role="2">
+          <Route path="/api-panel/dashboard" element={<AuthGuard role="api">
                 <ApiDashboardLayout />
             </AuthGuard>}>
             <Route index element={<ApiHome />} />
@@ -709,7 +632,17 @@ function App() {
             <Route path="wallet/fund-request" element={<FundRequest />} />
             <Route path="wallet/aeps" element={<AEPSWalletHistory />} />
             <Route path="wallet/main" element={<MainWalletHistory />} />
+            <Route path="service/dmt" element={<DMT />} />
+            <Route path="service/mobile-recharge" element={<MobileRecharge />} />
+            <Route path="service/aeps" element={<Aeps />} />
+            <Route path="service/payout" element={<Payout />} />
+            <Route path="service/upitransfer" element={<UpiTransfer />} />
+            <Route path="service/aadharpay" element={<AadharPay />} />
+            <Route path="service/pan" element={<PanCard />} />
+            <Route path="support" element={<MemberSupport />} />
+            <Route path="certificate" element={<MemberCertificate />} />
           </Route>
+
 
           {/* --- ADMIN ROUTES --- */}
           <Route path="/admin/" element={<AdminLoginPage />} />

@@ -237,19 +237,27 @@ httpClient.interceptors.response.use((response) => {
 });
 
 const getSecurityData = async (presetLocation) => {
-    // NOTE: previously this did `.catch(() => ({ ip: '0.0.0.0' }))` and then
-    // unconditionally called `ipRes.json()` on the result. When the ipify
-    // fetch actually failed, ipRes became a plain object (no .json method),
-    // so `.json()` threw and the WHOLE security payload (including
-    // latitude/longitude) silently failed to build - that's why lat/long
-    // sometimes never made it into the request at all.
-    let ipData = { ip: '0.0.0.0' };
-    try {
-        const ipRes = await fetch('https://api.ipify.org?format=json');
-        ipData = await ipRes.json();
-    } catch (e) {
-        // keep the 0.0.0.0 fallback, don't let an IP lookup failure block login
+    let clientIp = '0.0.0.0';
+    const ipEndpoints = [
+        'https://api.ipify.org?format=json',
+        'https://ipapi.co/json/',
+        'https://ipinfo.io/json'
+    ];
+    for (const endpoint of ipEndpoints) {
+        try {
+            const ipRes = await fetch(endpoint);
+            if (ipRes.ok) {
+                const data = await ipRes.json();
+                if (data.ip && data.ip !== '0.0.0.0') {
+                    clientIp = data.ip;
+                    break;
+                }
+            }
+        } catch (e) {
+            // try next endpoint
+        }
     }
+    const ipData = { ip: clientIp };
 
     const getLocation = () => {
         return new Promise((resolve) => {
@@ -308,13 +316,24 @@ const getSecurityData = async (presetLocation) => {
         ? presetLocation
         : await getLocation();
 
+    // Safely parse short browser name and limit string lengths to match DB constraints
+    let browserName = 'Unknown';
+    const ua = navigator.userAgent;
+    if (ua.includes("Firefox")) browserName = "Firefox";
+    else if (ua.includes("SamsungBrowser")) browserName = "SamsungBrowser";
+    else if (ua.includes("Opera") || ua.includes("OPR")) browserName = "Opera";
+    else if (ua.includes("Trident")) browserName = "Internet Explorer";
+    else if (ua.includes("Edge")) browserName = "Edge";
+    else if (ua.includes("Chrome")) browserName = "Chrome";
+    else if (ua.includes("Safari")) browserName = "Safari";
+
     return {
         ip: ipData.ip || '0.0.0.0',
         deviceInfo: {
-            browser: navigator.userAgent,
-            os: navigator.platform,
+            browser: browserName.substring(0, 49),
+            os: String(navigator.platform || 'Unknown').substring(0, 49),
             device: 'Web',
-            userAgent: navigator.userAgent
+            userAgent: String(navigator.userAgent || 'Unknown').substring(0, 99)
         },
         location: loc
     };

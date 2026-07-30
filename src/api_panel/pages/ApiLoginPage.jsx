@@ -1,20 +1,37 @@
 import { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
-import { setUserId, proceedToStep2, setPassword, backToStep1, resetLogin } from '../../store/slices/loginSlice';
-import { findUserByCredentials, saveSession } from '../../utils/authUtils';
 import {
-  FaShieldAlt, FaMobileAlt, FaChartLine, FaUsers, FaHistory,
-  FaExclamationTriangle, FaUser, FaLock, FaEye, FaEyeSlash,
-  FaArrowRight, FaGooglePlay, FaCheck, FaTimes, FaGlobe, FaArrowLeft
+  FaArrowLeft,
+  FaArrowRight,
+  FaChartLine,
+  FaCheck,
+  FaExclamationTriangle,
+  FaEye, FaEyeSlash,
+  FaGooglePlay,
+  FaKey,
+  FaLock,
+  FaMobileAlt,
+  FaShieldAlt,
+  FaTimes,
+  FaUser
 } from 'react-icons/fa';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
+import { API } from '../../api/endpoints';
 import { SITE_CONFIG } from '../../config/siteConfig';
 import styles from '../../pages/LoginPage.module.css';
+import { backToStep1, proceedToStep2, setPassword, setUserId, resetLogin } from '../../store/slices/loginSlice';
+import { decodeToken, saveSession, getSession } from '../../utils/authUtils';
+import { checkMaliciousInput } from '../../utils/securityUtils';
+
+// FOR FUTURE CONFIGURATION:
+// When the specific Role ID for API User is provided by admin, set it below (e.g., const ALLOWED_API_ROLE_ID = 5;)
+// Currently set to null to allow all non-admin roles (Role ID !== 1).
+const ALLOWED_API_ROLE_ID = null;
 
 const FEATURES = [
-  { icon: FaShieldAlt,  label: 'Bank-Grade Security' },
-  { icon: FaMobileAlt,  label: 'Instant Settlements' },
-  { icon: FaChartLine,  label: 'Real-time Reporting' },
+  { icon: FaShieldAlt,  label: 'Bank-Grade API Security' },
+  { icon: FaMobileAlt,  label: 'High-Speed REST & SOAP Endpoints' },
+  { icon: FaChartLine,  label: 'Real-Time Transaction Analytics' },
 ];
 
 const ApiLoginPage = () => {
@@ -24,19 +41,121 @@ const ApiLoginPage = () => {
 
   useEffect(() => {
     dispatch(resetLogin());
-    setPasswordLocal('');
   }, [dispatch]);
 
   const [password, setPasswordLocal] = useState(reduxPassword || '');
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [forgotModal, setForgotModal] = useState({ isOpen: false, type: '' });
   const [modalLoading, setModalLoading] = useState(false);
   const [forgotStep, setForgotStep] = useState(1);
+  const [forgotLoginId, setForgotLoginId] = useState('');
+  const [forgotAadhar, setForgotAadhar] = useState('');
+  const [forgotPan, setForgotPan] = useState('');
+  const [forgotOtp, setForgotOtp] = useState('');
+  const [forgotToken, setForgotToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [rePassword, setRePassword] = useState('');
   const [modalError, setModalError] = useState('');
+  const [locationStatus, setLocationStatus] = useState(null);
+
+  // Step 3: OTP / T-PIN verification
+  const [showVerifyStep, setShowVerifyStep] = useState(false);
+  const [authMode, setAuthMode] = useState(null); // 'OTP' | 'TPIN' | null
+  const [verifyToken, setVerifyToken] = useState('');
+  const [otpValue, setOtpValue] = useState('');
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
+  const [loginLocation, setLoginLocation] = useState(null);
+
+  // Brute force protection
+  const [failedAttempts, setFailedAttempts] = useState(() => {
+    const attempts = localStorage.getItem('api_login_attempts');
+    return attempts ? parseInt(attempts, 10) : 0;
+  });
+  const [lockoutUntil, setLockoutUntil] = useState(() => {
+    const until = localStorage.getItem('api_lockout_until');
+    return until ? parseInt(until, 10) : 0;
+  });
+  const [remainingTime, setRemainingTime] = useState(0);
+
+  // Auto-redirect if already logged in as non-admin
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    const session = getSession();
+    if (token && session && session.sessionId) {
+      const decoded = decodeToken(token);
+      const roleNum = decoded ? Number(decoded.role) : -1;
+      if (decoded && roleNum !== 1 && (ALLOWED_API_ROLE_ID === null || roleNum === ALLOWED_API_ROLE_ID)) {
+        navigate('/api-panel/dashboard', { replace: true });
+      }
+    }
+  }, [navigate]);
+
+  // Lockout countdown timer
+  useEffect(() => {
+    if (lockoutUntil > Date.now()) {
+      setRemainingTime(Math.ceil((lockoutUntil - Date.now()) / 1000));
+      const interval = setInterval(() => {
+        const diff = lockoutUntil - Date.now();
+        if (diff <= 0) {
+          setLockoutUntil(0);
+          setFailedAttempts(0);
+          localStorage.removeItem('api_login_attempts');
+          localStorage.removeItem('api_lockout_until');
+          setRemainingTime(0);
+          clearInterval(interval);
+        } else {
+          setRemainingTime(Math.ceil(diff / 1000));
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [lockoutUntil]);
+
+  const checkLocationBeforeLogin = () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Browser does not support geolocation'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocationStatus({
+            status: 'on',
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+          resolve(position);
+        },
+        (error) => {
+          let errorMsg = '';
+          switch(error.code) {
+            case 1:
+              errorMsg = '⚠️ Location access denied. Proceeding with fallback...';
+              break;
+            case 2:
+              errorMsg = '⚠️ Location unavailable. Proceeding with fallback...';
+              break;
+            case 3:
+              errorMsg = '⚠️ Location request timeout. Proceeding with fallback...';
+              break;
+            default:
+              errorMsg = '⚠️ Location access fallback enabled.';
+          }
+          setLocationStatus({
+            status: 'off',
+            error: errorMsg
+          });
+          resolve({ coords: { latitude: 28.6139, longitude: 77.2090 } });
+        },
+        { timeout: 5000, enableHighAccuracy: true }
+      );
+    });
+  };
 
   const calculateStrength = (pwd) => {
     let score = 0;
@@ -56,88 +175,368 @@ const ApiLoginPage = () => {
   const openForgotModal = (type) => {
     setForgotModal({ isOpen: true, type });
     setForgotStep(1);
+    setForgotLoginId('');
+    setForgotAadhar('');
+    setForgotPan('');
+    setForgotOtp('');
+    setForgotToken('');
     setNewPassword('');
     setRePassword('');
     setModalError('');
   };
+
   const closeForgotModal = () => {
     setForgotModal({ isOpen: false, type: '' });
     setModalLoading(false);
     setForgotStep(1);
+    setForgotLoginId('');
+    setForgotAadhar('');
+    setForgotPan('');
+    setForgotOtp('');
+    setForgotToken('');
     setNewPassword('');
     setRePassword('');
     setModalError('');
   };
 
-  const handleModalSubmit = (e) => {
+  const handleModalSubmit = async (e) => {
     e.preventDefault();
     setModalError('');
-    if (forgotStep === 3 && newPassword !== rePassword) {
-      setModalError('Passwords do not match. Please try again.');
+
+    const isTpin = forgotModal.type === 'tpin';
+
+    if (forgotStep === 1) {
+      if (!forgotLoginId || !forgotAadhar || !forgotPan) {
+        setModalError('All fields are required.');
+        return;
+      }
+      if (forgotAadhar.length !== 4) {
+        setModalError('Aadhar must be exactly last 4 digits.');
+        return;
+      }
+
+      setModalLoading(true);
+      try {
+        const res = isTpin
+          ? await API.forgetTpin({
+              loginId: forgotLoginId,
+              aadharLast4: forgotAadhar,
+              pan: forgotPan.toUpperCase()
+            })
+          : await API.forgetPassword({
+              loginId: forgotLoginId,
+              aadharLast4: forgotAadhar,
+              pan: forgotPan.toUpperCase()
+            });
+
+        const token = res?.data?.token || res?.data?.refreshToken || res?.token || res?.data;
+        if (!token) throw new Error("Verification token missing from server");
+
+        setForgotToken(token);
+        setForgotStep(2);
+      } catch (err) {
+        setModalError(err.message || 'Failed to verify details. Please check and try again.');
+      } finally {
+        setModalLoading(false);
+      }
       return;
     }
-    setModalLoading(true);
-    setTimeout(() => {
-      setModalLoading(false);
-      if (forgotStep === 1) setForgotStep(2);
-      else if (forgotStep === 2) setForgotStep(3);
-      else if (forgotStep === 3) setForgotStep(4);
-    }, 1200);
+
+    if (forgotStep === 2) {
+      if (!forgotOtp || forgotOtp.trim().length < 4) {
+        setModalError('Please enter a valid OTP.');
+        return;
+      }
+      setForgotStep(3);
+      return;
+    }
+
+    if (forgotStep === 3) {
+      if (newPassword !== rePassword) {
+        setModalError(`${isTpin ? 'TPINs' : 'Passwords'} do not match. Please try again.`);
+        return;
+      }
+
+      setModalLoading(true);
+      try {
+        const res = isTpin
+          ? await API.verifyForgetPin({
+              token: forgotToken,
+              otp: forgotOtp,
+              newPin: newPassword,
+              confirmPin: rePassword
+            })
+          : await API.verifyForgetPassword({
+              token: forgotToken,
+              otp: forgotOtp,
+              newPassword: newPassword,
+              confirmPassword: rePassword
+            });
+
+        if (res.status === true || res.status === 'success' || res.status === 1) {
+          setForgotStep(4);
+        } else {
+          setModalError(res.mess || res.message || `Failed to reset ${isTpin ? 'T-PIN' : 'password'}.`);
+        }
+      } catch (err) {
+        setModalError(err.message || `Failed to reset ${isTpin ? 'T-PIN' : 'password'}.`);
+      } finally {
+        setModalLoading(false);
+      }
+    }
   };
 
   const handleContinue = (e) => {
     if (e) e.preventDefault();
-    if (userId.trim().length < 3) return;
-    dispatch(proceedToStep2());
-  };
-
-  const handleLogin = (e) => {
-    if (e) e.preventDefault();
-    if (!password.trim()) {
+    setErrorMessage('');
+    setLoginError(false);
+    const validation = checkMaliciousInput(userId, 'User ID / Mobile');
+    if (!validation.isValid) {
+      setErrorMessage(validation.reason);
       setLoginError(true);
-      setTimeout(() => setLoginError(false), 800);
       return;
     }
+    if (userId.trim().length < 3) return;
+    dispatch(proceedToStep2());
+    setLocationStatus(null);
+  };
+
+  const fetchClientIp = async () => {
+    const endpoints = [
+      'https://api.ipify.org?format=json',
+      'https://ipapi.co/json/',
+      'https://ipinfo.io/json'
+    ];
+    for (const endpoint of endpoints) {
+      try {
+        const res = await fetch(endpoint);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ip && data.ip !== '0.0.0.0') return data.ip;
+        }
+      } catch (e) {}
+    }
+    return '127.0.0.1';
+  };
+
+  const completeApiUserLogin = (decoded, token, location, clientIp) => {
+    const roleNum = decoded ? Number(decoded.role) : -1;
     
+    // Block pure admin (role === 1) from logging in as API User
+    if (roleNum === 1) {
+      throw new Error("Access Denied: Admin accounts cannot login to the API User Panel.");
+    }
+
+    // When the specific Role ID is configured later, check it here:
+    if (ALLOWED_API_ROLE_ID !== null && roleNum !== ALLOWED_API_ROLE_ID) {
+      throw new Error(`Access Denied: Only designated API User roles can login to this panel.`);
+    }
+
+    // Reset brute force counters on success
+    localStorage.removeItem('api_login_attempts');
+    localStorage.removeItem('api_lockout_until');
+    setFailedAttempts(0);
+    setLockoutUntil(0);
+
+    // Store tokens
+    localStorage.setItem('access_token', token);
+    localStorage.setItem('api_token', token);
+    localStorage.setItem('member_token', token); // compatibility for shared API services
+    sessionStorage.setItem('access_token', token);
+    sessionStorage.setItem('api_token', token);
+    sessionStorage.setItem('member_token', token);
+
+    // Extract real user info from JWT payload
+    const loginId = decoded?.LoginId || decoded?.loginId || decoded?.sub || userId;
+    const userName = decoded?.unique_name || decoded?.name || decoded?.Name || 'API User';
+    const mobileNo = decoded?.mobile || decoded?.Mobile || decoded?.phone || userId;
+    const numericId = decoded?.sub || decoded?.id || '0';
+
+    saveSession({
+      loginId: loginId,
+      memberId: loginId,
+      username: loginId,
+      mobile: mobileNo,
+      fullName: userName,
+      name: userName,
+      userId: numericId,
+      role: roleNum || 2,
+      msrno: numericId,
+      latitude: location?.latitude,
+      longitude: location?.longitude,
+      ip: clientIp || '127.0.0.1',
+      isApiUser: true
+    });
+
+    navigate('/api-panel/dashboard', { replace: true });
+  };
+
+  const handleLogin = async (e) => {
+    if (e) e.preventDefault();
+    setErrorMessage('');
+    setLoginError(false);
+
+    if (remainingTime > 0) {
+      setErrorMessage(`Too many failed attempts. Try again in ${remainingTime} seconds.`);
+      setLoginError(true);
+      return;
+    }
+
+    const validation = checkMaliciousInput(userId, 'User ID / Mobile');
+    if (!validation.isValid) {
+      setErrorMessage(validation.reason);
+      setLoginError(true);
+      return;
+    }
+
+    if (!password.trim()) {
+      setLoginError(true);
+      setErrorMessage('Password is required');
+      setTimeout(() => setLoginError(false), 2000);
+      return;
+    }
+
+    const pwdValidation = checkMaliciousInput(password, 'Password', true);
+    if (!pwdValidation.isValid) {
+      setErrorMessage(pwdValidation.reason);
+      setLoginError(true);
+      return;
+    }
+
     setLoading(true);
-    // Simulating API check
-    setTimeout(() => {
-      let user = findUserByCredentials(userId, password);
+
+    try {
+      const position = await checkLocationBeforeLogin();
+
+      const capturedLocation = {
+        latitude: position?.coords?.latitude ?? 0,
+        longitude: position?.coords?.longitude ?? 0,
+        accuracy: position?.coords?.accuracy ?? 0,
+        allowed: true
+      };
+
+      const response = await API.login({
+        loginID: userId,
+        password: password,
+        __presetLocation: capturedLocation
+      });
+
+      if (response.status) {
+        if (response.authStatus === 'OTP' || response.authStatus === 'TPIN') {
+          const pendingToken = response.data?.refreshToken || response.refreshToken;
+          if (!pendingToken) throw new Error("Verification token missing from server");
+
+          setLoginLocation(capturedLocation);
+          setVerifyToken(pendingToken);
+          setAuthMode(response.authStatus);
+          setOtpValue('');
+          setVerifyError('');
+          setShowVerifyStep(true);
+          return;
+        }
+
+        const token = response.refreshToken || response.accessToken;
+        if (!token) throw new Error("Token missing from server");
+
+        const decoded = decodeToken(token);
+        const clientIp = await fetchClientIp();
+        completeApiUserLogin(decoded, token, capturedLocation, clientIp);
+      } else {
+        throw new Error(response.mess || "Login Failed");
+      }
+    } catch (err) {
+      const newAttempts = failedAttempts + 1;
+      setFailedAttempts(newAttempts);
+      localStorage.setItem('api_login_attempts', newAttempts);
+
+      let errorMsg = "Invalid Login Credentials.";
       
-      // Fallback for user's requested test credentials
-      if (!user && (
-        (userId.toLowerCase().trim() === '6377749427' && password === '1234') ||
-        (userId.toLowerCase().trim() === 'api@gmail.com' && password === 'api@123')
-      )) {
-         user = { 
-           adminId: userId, 
-           fullName: 'API User', 
-           mobile: '6377749427', 
-           role: 'Retailer' 
-         };
+      if (err.message && (err.message.toLowerCase().includes('location') || err.message.toLowerCase().includes('unauthorized') || err.message.toLowerCase().includes('access denied'))) {
+        errorMsg = err.message;
       }
 
-      if (!user) {
-        setLoginError(true);
-        setLoading(false);
-        setTimeout(() => setLoginError(false), 2000);
-        return;
+      if (newAttempts >= 5) {
+        const lockoutTime = Date.now() + 5 * 60 * 1000;
+        setLockoutUntil(lockoutTime);
+        localStorage.setItem('api_lockout_until', lockoutTime);
+        errorMsg = "Too many failed attempts. Account locked out for 5 minutes.";
+      } else {
+        if (!errorMsg.toLowerCase().includes('location') && !errorMsg.toLowerCase().includes('access denied')) {
+          errorMsg = `${errorMsg} (Attempt ${newAttempts}/5)`;
+        }
       }
-      
-      const fakeToken = "header.eyJyb2xlIjoiMiIsIm5hbWUiOiJBUEkgVXNlciIsImV4cCI6OTk5OTk5OTk5OX0=.signature";
-      localStorage.setItem('access_token', fakeToken);
-      localStorage.setItem('member_token', fakeToken);
-      sessionStorage.setItem('access_token', fakeToken);
-      sessionStorage.setItem('member_token', fakeToken);
 
-      saveSession(user);
+      setErrorMessage(errorMsg);
+      setLoginError(true);
+    } finally {
       setLoading(false);
-      navigate('/api-panel/dashboard');
-    }, 1500);
+    }
+  };
+
+  const handleVerify = async (e) => {
+    if (e) e.preventDefault();
+    setVerifyError('');
+
+    if (!otpValue.trim()) {
+      setVerifyError(authMode === 'TPIN' ? 'T-PIN is required' : 'OTP is required');
+      return;
+    }
+
+    if (!verifyToken) {
+      setVerifyError('Verification session expired. Please login again.');
+      setShowVerifyStep(false);
+      dispatch(backToStep1());
+      return;
+    }
+
+    setVerifyLoading(true);
+
+    try {
+      const response = authMode === 'TPIN'
+        ? await API.verifyLoginTpin({ token: verifyToken, tpin: otpValue, __presetLocation: loginLocation })
+        : await API.verifyLoginOtp({ token: verifyToken, otp: otpValue, __presetLocation: loginLocation });
+
+      if (response.status) {
+        const token = response.accessToken || response.refreshToken;
+        if (!token) throw new Error("Token missing from server");
+
+        const decoded = decodeToken(token);
+        const clientIp = await fetchClientIp();
+        completeApiUserLogin(decoded, token, loginLocation, clientIp);
+      } else {
+        throw new Error(response.mess || "Verification Failed");
+      }
+    } catch (err) {
+      setVerifyError(err.message || (authMode === 'TPIN' ? "Invalid T-PIN. Please try again." : "Invalid OTP. Please try again."));
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
+  const handleBackToPassword = () => {
+    setShowVerifyStep(false);
+    setAuthMode(null);
+    setVerifyToken('');
+    setOtpValue('');
+    setVerifyError('');
   };
 
   const handleBack = () => {
-    dispatch(backToStep1()); 
+    dispatch(backToStep1());
+    setShowVerifyStep(false);
+    setAuthMode(null);
+    setVerifyToken('');
+    setOtpValue('');
+    setVerifyError('');
+    setLocationStatus(null);
+    setLoginError(false);
+    setErrorMessage('');
+  };
+
+  const requestLocationAgain = () => {
+    setLocationStatus(null);
+    setLoginError(false);
+    setErrorMessage('');
   };
 
   return (
@@ -150,8 +549,8 @@ const ApiLoginPage = () => {
               <img src={SITE_CONFIG.logo} alt="Logo" className={styles.logoImg} />
             </Link>
             <div className={styles.heroText}>
-              <h1 className={styles.mainTitle}>Access Your Portal</h1>
-              <p className={styles.mainSub}>Manage your business with India's most trusted retail platform.</p>
+              <h1 className={styles.mainTitle}>API Partner Portal</h1>
+              <p className={styles.mainSub}>High-performance FinTech APIs for seamless enterprise integration & instant processing.</p>
             </div>
 
             <div className={styles.featureGrid}>
@@ -166,8 +565,8 @@ const ApiLoginPage = () => {
             <div className={styles.trustBadge}>
               <FaShieldAlt className={styles.trustIcon} />
               <div>
-                <p className={styles.trustTitle}>ISO 27001 Certified</p>
-                <p className={styles.trustSub}>100% Data Protection Guaranteed</p>
+                <p className={styles.trustTitle}>Bank-Grade Encryption</p>
+                <p className={styles.trustSub}>Secure OAuth & IP Whitelisting Protection</p>
               </div>
             </div>
           </div>
@@ -176,120 +575,202 @@ const ApiLoginPage = () => {
         {/* RIGHT PANEL: Authentication Form */}
         <div className={styles.authPanel}>
           <div className={styles.formCard}>
-             {/* Mobile Logo */}
-             <div className={styles.mobileLogoBox}>
-               <img src={SITE_CONFIG.logo} alt="Logo" className={styles.mobileLogo} />
-             </div>
+            <div className={styles.mobileLogoBox}>
+              <img src={SITE_CONFIG.logo} alt="Logo" className={styles.mobileLogo} />
+            </div>
 
-             <div className={styles.formHeader}>
-               <h2 className={styles.welcomeTitle}>{isStep1Done ? 'Enter Password' : 'Sign In'}</h2>
-               <p className={styles.welcomeSub}>
-                 {isStep1Done ? `Continue as ${userId}` : 'Enter your credentials to continue'}
-               </p>
-             </div>
+            <div className={styles.formHeader}>
+              <h2 className={styles.welcomeTitle}>
+                {showVerifyStep ? (authMode === 'TPIN' ? 'Enter T-PIN' : 'Enter OTP') : isStep1Done ? 'Enter Password' : 'API Sign In'}
+              </h2>
+              <p className={styles.welcomeSub}>
+                {showVerifyStep
+                  ? (authMode === 'TPIN' ? 'Enter your T-PIN to verify API partner identity' : 'Enter the verification OTP sent to your registered mobile/email')
+                  : isStep1Done ? `Continue as ${userId}` : 'Enter your API Partner credentials to access the console'}
+              </p>
+            </div>
 
-             {/* Progress Bar */}
-             <div className={styles.progressTrack}>
-                <div className={`${styles.progressFill} ${isStep1Done ? styles.progressHalf : ''}`}></div>
-             </div>
+            {/* Progress Bar */}
+            <div className={styles.progressTrack}>
+              <div
+                className={`${styles.progressFill} ${isStep1Done ? styles.progressHalf : ''}`}
+                style={showVerifyStep ? { width: '100%' } : undefined}
+              ></div>
+            </div>
 
-             <div className={styles.formContent}>
-                {!isStep1Done ? (
-                  <form onSubmit={handleContinue} className={styles.animatedStep}>
-                    <div className={styles.fieldGroup}>
-                      <label className={styles.fieldLabel}>USER ID / REGISTERED MOBILE</label>
-                      <div className={styles.inputWrap}>
-                        <div className={styles.inputIconBox}><FaUser /></div>
-                        <input
-                          className={styles.input}
-                          placeholder="e.g. RT123456"
-                          value={userId}
-                          onChange={(e) => dispatch(setUserId(e.target.value))}
-                          autoFocus
-                          required
-                        />
-                      </div>
-                    </div>
+            {/* Location Error Display */}
+            {locationStatus && locationStatus.status === 'off' && isStep1Done && !showVerifyStep && (
+              <div style={{ 
+                background: '#f8d7da', 
+                color: '#721c24', 
+                padding: '12px', 
+                borderRadius: '8px', 
+                margin: '15px 0',
+                textAlign: 'center',
+                fontSize: '14px'
+              }}>
+                <FaExclamationTriangle style={{ marginRight: '8px' }} />
+                {locationStatus.error}
+                <button 
+                  onClick={requestLocationAgain}
+                  style={{ 
+                    marginLeft: '10px', 
+                    padding: '5px 10px', 
+                    background: '#dc3545',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Try Again
+                </button>
+              </div>
+            )}
 
-                    <button
-                      type="submit"
-                      className={`${styles.primaryBtn} ${userId.trim().length < 3 ? styles.btnDisabled : ''}`}
-                      disabled={userId.trim().length < 3}
-                    >
-                      Continue <FaArrowRight />
-                    </button>
-
-                    <button type="button" className={styles.backBtn} onClick={() => navigate('/')} style={{ marginTop: '10px' }}>
-                       <FaArrowLeft /> Back to Home
-                    </button>
-
-                    <div className={styles.registerLinkRow}>
-                       <span>New to the platform?</span>
-                       <Link to="/register" className={styles.textLink}>Create an Account</Link>
-                    </div>
-                  </form>
-                ) : (
-                  <form onSubmit={handleLogin} className={styles.animatedStep}>
-                    {loginError && (
-                      <div className={styles.errorAlert}>
-                         <FaExclamationTriangle />
-                         <span>Invalid password. Please try again.</span>
-                      </div>
-                    )}
-
-                    <div className={styles.fieldGroup}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <label className={styles.fieldLabel}>PASSWORD</label>
-                        <div className={styles.forgotActions}>
-                          <button type="button" className={styles.forgotBtn} onClick={() => openForgotModal('password')}>Forgot Pwd?</button>
-                          <span className={styles.forgotDivider}>|</span>
-                          <button type="button" className={styles.forgotBtn} onClick={() => openForgotModal('tpin')}>Forgot T-PIN?</button>
-                        </div>
-                      </div>
-                      <div className={styles.inputWrap}>
-                        <div className={styles.inputIconBox}><FaLock /></div>
-                        <input
-                          className={styles.input}
-                          type={showPwd ? 'text' : 'password'}
-                          placeholder="••••••••"
-                          value={password}
-                          onChange={(e) => { setPasswordLocal(e.target.value); dispatch(setPassword(e.target.value)); }}
-                          autoFocus
-                          required
-                        />
-                        <button className={styles.eyeBtn} type="button" onClick={() => setShowPwd(!showPwd)}>
-                          {showPwd ? <FaEyeSlash /> : <FaEye />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className={`${styles.primaryBtn} ${loading ? styles.btnLoading : ''}`}
-                      disabled={loading}
-                    >
-                      {loading ? <div className={styles.spinner}></div> : <>Login Securely <FaShieldAlt /></>}
-                    </button>
-
-                    <button type="button" className={styles.backBtn} onClick={handleBack}>
-                       <FaArrowLeft /> Switch Account
-                    </button>
-                  </form>
-                )}
-             </div>
-
-             <div className={styles.formFooter}>
-                <div className={styles.appDownload}>
-                   <div className={styles.appInfo}>
-                      <FaMobileAlt className={styles.mobileIcon} />
-                      <span>Get the Mobile App</span>
-                   </div>
-                   <button className={styles.playStoreBtn}>
-                      <FaGooglePlay /> Google Play
-                   </button>
+            <div className={styles.formContent}>
+              {loginError && !showVerifyStep && (
+                <div className={styles.errorAlert}>
+                   <FaExclamationTriangle />
+                   <span>{errorMessage || "Invalid password. Please try again."}</span>
                 </div>
-                <p className={styles.copyright}>© 2025 BETASOURCESOFTWARE. All rights reserved.</p>
-             </div>
+              )}
+              {showVerifyStep && verifyError && (
+                <div className={styles.errorAlert}>
+                   <FaExclamationTriangle />
+                   <span>{verifyError}</span>
+                </div>
+              )}
+              {!isStep1Done ? (
+                <form onSubmit={handleContinue} className={styles.animatedStep}>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>API USER ID / REGISTERED MOBILE</label>
+                    <div className={styles.inputWrap}>
+                      <div className={styles.inputIconBox}><FaUser /></div>
+                      <input
+                        className={styles.input}
+                        placeholder="e.g. API123456"
+                        value={userId}
+                        onChange={(e) => dispatch(setUserId(e.target.value))}
+                        maxLength={20}
+                        autoFocus
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className={`${styles.primaryBtn} ${userId.trim().length < 3 ? styles.btnDisabled : ''}`}
+                    disabled={userId.trim().length < 3}
+                  >
+                    Continue <FaArrowRight />
+                  </button>
+
+                  <button type="button" className={styles.backBtn} onClick={() => navigate('/')} style={{ marginTop: '10px' }}>
+                     <FaArrowLeft /> Back to Home
+                  </button>
+
+                  <div className={styles.registerLinkRow}>
+                     <span>Need API Integration Access?</span>
+                     <Link to="/contact" className={styles.textLink}>Contact Sales</Link>
+                  </div>
+                </form>
+              ) : showVerifyStep ? (
+                <form onSubmit={handleVerify} className={styles.animatedStep}>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>{authMode === 'TPIN' ? 'T-PIN' : 'ONE-TIME PASSWORD'}</label>
+                    <div className={styles.inputWrap}>
+                      <div className={styles.inputIconBox}><FaKey /></div>
+                      <input
+                        className={styles.input}
+                        type="text"
+                        inputMode="numeric"
+                        placeholder={authMode === 'TPIN' ? 'Enter T-PIN' : 'Enter OTP'}
+                        value={otpValue}
+                        onChange={(e) => setOtpValue(e.target.value.replace(/[^0-9]/g, ''))}
+                        maxLength={6}
+                        autoFocus
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className={`${styles.primaryBtn} ${verifyLoading ? styles.btnLoading : ''}`}
+                    disabled={verifyLoading}
+                  >
+                    {verifyLoading ? (
+                      <div className={styles.spinner}></div>
+                    ) : (
+                      <>Verify &amp; Login <FaShieldAlt /></>
+                    )}
+                  </button>
+
+                  <button type="button" className={styles.backBtn} onClick={handleBackToPassword}>
+                     <FaArrowLeft /> Back
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleLogin} className={styles.animatedStep}>
+                  <div className={styles.fieldGroup}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <label className={styles.fieldLabel}>PASSWORD</label>
+                      <div className={styles.forgotActions}>
+                        <button type="button" className={styles.forgotBtn} onClick={() => openForgotModal('password')}>Forgot Pwd?</button>
+                        <span className={styles.forgotDivider}>|</span>
+                        <button type="button" className={styles.forgotBtn} onClick={() => openForgotModal('tpin')}>Forgot T-PIN?</button>
+                      </div>
+                    </div>
+                    <div className={styles.inputWrap}>
+                      <div className={styles.inputIconBox}><FaLock /></div>
+                      <input
+                        className={styles.input}
+                        type={showPwd ? 'text' : 'password'}
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => { setPasswordLocal(e.target.value); dispatch(setPassword(e.target.value)); }}
+                        maxLength={20}
+                        autoFocus
+                        required
+                      />
+                      <button className={styles.eyeBtn} type="button" onClick={() => setShowPwd(!showPwd)}>
+                        {showPwd ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className={`${styles.primaryBtn} ${loading ? styles.btnLoading : ''}`}
+                    disabled={loading || (locationStatus?.status === 'off') || (remainingTime > 0)}
+                  >
+                    {loading ? (
+                      <div className={styles.spinner}></div>
+                    ) : remainingTime > 0 ? (
+                      `Locked out (${remainingTime}s)`
+                    ) : (
+                      <>Login Securely <FaShieldAlt /></>
+                    )}
+                  </button>
+
+                  <button type="button" className={styles.backBtn} onClick={handleBack}>
+                     <FaArrowLeft /> Switch Account
+                  </button>
+                </form>
+              )}
+            </div>
+
+            <div className={styles.formFooter}>
+              <div className={styles.appDownload}>
+                <div className={styles.appInfo}>
+                  <FaMobileAlt className={styles.mobileIcon} />
+                  <span>Developer Sandbox & API Docs Available</span>
+                </div>
+              </div>
+              <p className={styles.copyright}>© {new Date().getFullYear()} {SITE_CONFIG.companyName || 'BETASOURCESOFTWARE'}. All rights reserved.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -307,7 +788,7 @@ const ApiLoginPage = () => {
               <div style={{ textAlign: 'center' }}>
                 <h3 className={styles.modalTitle}>Success!</h3>
                 <p className={styles.modalSub} style={{ marginBottom: '10px' }}>
-                  Your {forgotModal.type === 'password' ? 'password' : 'T-PIN'} has been changed successfully.
+                  Your API {forgotModal.type === 'password' ? 'password' : 'T-PIN'} has been changed successfully.
                 </p>
                 <button type="button" className={styles.primaryBtn} onClick={closeForgotModal}>
                   Close & Login
@@ -316,20 +797,26 @@ const ApiLoginPage = () => {
             ) : (
               <>
                 <h3 className={styles.modalTitle}>
-                  {forgotStep === 1 ? `Verify Details` : forgotStep === 2 ? `Verify OTP` : `Reset ${forgotModal.type === 'password' ? 'Password' : 'T-PIN'}`}
+                  {forgotStep === 1 ? `Verify API Partner Details` : forgotStep === 2 ? `Verify OTP` : `Reset ${forgotModal.type === 'password' ? 'Password' : 'T-PIN'}`}
                 </h3>
                 <p className={styles.modalSub}>
-                  {forgotStep === 1 ? `Enter your details to verify your identity.` : forgotStep === 2 ? `Enter the OTP sent to your registered mobile.` : `Enter your new ${forgotModal.type === 'password' ? 'password' : 'T-PIN'}.`}
+                  {forgotStep === 1 ? `Enter your details to verify your identity.` : forgotStep === 2 ? `Enter the OTP sent to your registered mobile/email.` : `Enter your new ${forgotModal.type === 'password' ? 'password' : 'T-PIN'}.`}
                 </p>
 
                 <form onSubmit={handleModalSubmit}>
                   {forgotStep === 1 && (
                     <>
                       <div className={styles.fieldGroup}>
-                        <label className={styles.fieldLabel}>LOGIN ID</label>
+                        <label className={styles.fieldLabel}>API LOGIN ID</label>
                         <div className={styles.inputWrap}>
                           <div className={styles.inputIconBox}><FaUser /></div>
-                          <input className={styles.input} placeholder="e.g. RT123456" required />
+                          <input 
+                            className={styles.input} 
+                            placeholder="e.g. API123456" 
+                            value={forgotLoginId}
+                            onChange={(e) => setForgotLoginId(e.target.value)}
+                            required 
+                          />
                         </div>
                       </div>
 
@@ -340,9 +827,10 @@ const ApiLoginPage = () => {
                             className={styles.input} 
                             placeholder="e.g. 8492" 
                             maxLength={4} 
+                            value={forgotAadhar}
+                            onChange={(e) => setForgotAadhar(e.target.value.replace(/[^0-9]/g, ''))}
                             required 
                             style={{ paddingLeft: '16px' }}
-                            onInput={(e) => e.target.value = e.target.value.replace(/[^0-9]/g, '')}
                           />
                         </div>
                       </div>
@@ -350,7 +838,15 @@ const ApiLoginPage = () => {
                       <div className={styles.fieldGroup}>
                         <label className={styles.fieldLabel}>PAN CARD NUMBER</label>
                         <div className={styles.inputWrap}>
-                          <input className={styles.input} placeholder="e.g. ABCDE1234F" maxLength={10} style={{ paddingLeft: '16px', textTransform: 'uppercase' }} required />
+                          <input 
+                            className={styles.input} 
+                            placeholder="e.g. ABCDE1234F" 
+                            maxLength={10} 
+                            style={{ paddingLeft: '16px', textTransform: 'uppercase' }} 
+                            value={forgotPan}
+                            onChange={(e) => setForgotPan(e.target.value)}
+                            required 
+                          />
                         </div>
                       </div>
                     </>
@@ -360,7 +856,15 @@ const ApiLoginPage = () => {
                     <div className={styles.fieldGroup}>
                       <label className={styles.fieldLabel}>ENTER OTP</label>
                       <div className={styles.inputWrap}>
-                        <input className={styles.input} placeholder="Enter 6-digit OTP" maxLength={6} style={{ paddingLeft: '16px' }} onInput={(e) => e.target.value = e.target.value.replace(/[^0-9]/g, '')} required />
+                        <input
+                          className={styles.input}
+                          placeholder="Enter OTP"
+                          maxLength={6}
+                          style={{ paddingLeft: '16px' }}
+                          value={forgotOtp}
+                          onChange={(e) => setForgotOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                          required
+                        />
                       </div>
                     </div>
                   )}
@@ -418,7 +922,7 @@ const ApiLoginPage = () => {
                   <button type="submit" className={`${styles.primaryBtn} ${modalLoading ? styles.btnLoading : ''}`} style={{ marginTop: '20px' }} disabled={modalLoading}>
                     {modalLoading ? <div className={styles.spinner}></div> : (
                       <>
-                        {forgotStep === 1 ? 'Verify' : forgotStep === 2 ? 'Verify OTP' : 'Save'} <FaArrowRight />
+                        {forgotStep === 1 ? 'Verify Details' : forgotStep === 2 ? 'Verify OTP' : 'Save New ' + (forgotModal.type === 'password' ? 'Password' : 'T-PIN')} <FaArrowRight />
                       </>
                     )}
                   </button>
@@ -433,4 +937,3 @@ const ApiLoginPage = () => {
 };
 
 export default ApiLoginPage;
-

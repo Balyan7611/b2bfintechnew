@@ -178,6 +178,27 @@
   box-shadow: 0 0 0 3px rgba(23, 86, 170, 0.1);
 }
 
+.textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #1e293b;
+  transition: all 0.2s ease;
+  background: #f8fafc;
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #1756AA;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(23, 86, 170, 0.1);
+}
+
 .select {
   padding-left: 16px;
   appearance: none;

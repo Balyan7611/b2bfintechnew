@@ -205,7 +205,22 @@ const SetCommission = () => {
 
   const handleAddSlab = () => {
     const roleIdsOnly = dynLevels.filter(lvl => lvl !== 'slabCharges');
-    setDynSlabs(prev => [...prev, createEmptySlab(roleIdsOnly)]);
+    const lastSlab = dynSlabs[dynSlabs.length - 1];
+    const nextStart = lastSlab ? (Number(lastSlab.endValue) + 1) : 0;
+
+    const slabsObj = {
+      slabCharges: { id: 0, general: 0, amountType: 'COM', valueType: 'PER' }
+    };
+    roleIdsOnly.forEach(lvlId => {
+      slabsObj[lvlId] = { id: 0, general: 0, amountType: 'COM', valueType: 'PER' };
+    });
+
+    setDynSlabs(prev => [...prev, {
+      id: 0,
+      startValue: nextStart,
+      endValue: nextStart + 999999,
+      slabs: slabsObj
+    }]);
   };
 
   const handleRemoveSlab = (index) => {

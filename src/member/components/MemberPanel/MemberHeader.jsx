@@ -26,7 +26,7 @@ import {
 } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { clearSession } from '../../../utils/authUtils';
+import { clearSession, getSession, saveSession } from '../../../utils/authUtils';
 import { API } from '../../../api/endpoints';
 import { SITE_CONFIG } from '../../../config/siteConfig';
 import { requestForToken, setupForegroundListener } from '../../../firebase';
@@ -53,6 +53,16 @@ const MemberHeader = () => {
   const mailRef = useRef(null);
   const notifRef = useRef(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  
+  const [headerUserInfo, setHeaderUserInfo] = useState(() => {
+    const s = getSession();
+    const defaultName = s?.name || s?.fullName || 'Member';
+    return {
+      name: defaultName === 'Member' || defaultName === 'User' ? (s?.loginId || s?.username || 'Member') : defaultName,
+      loginId: s?.loginId || s?.username || s?.userId || 'RT1001',
+      role: s?.role === 1 ? 'Admin' : 'Retailer'
+    };
+  });
   
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -110,6 +120,54 @@ const MemberHeader = () => {
     navigate(path);
     dispatch(setProfileDropdown(false));
   };
+
+  useEffect(() => {
+    const syncMemberHeaderInfo = async () => {
+      const session = getSession();
+      if (!session) return;
+      
+      const targetMsrno = parseInt(session.msrno || session.userId || 0);
+      const targetLoginId = String(session.loginId || session.username || '').trim();
+      let memberData = null;
+
+      if (targetMsrno > 0 && API.member?.getById) {
+        try {
+          const res = await API.member.getById(targetMsrno);
+          memberData = res?.data?.data || res?.data || res;
+        } catch (_) {}
+      }
+
+      if (!memberData && targetLoginId && API.member?.getAll) {
+        try {
+          const res = await API.member.getAll({ search: targetLoginId });
+          const items = res?.data?.items || res?.data?.data || res?.data || (Array.isArray(res) ? res : []);
+          memberData = items.find(m => String(m.loginId || m.loginID || m.LoginID || '').toLowerCase() === targetLoginId.toLowerCase());
+        } catch (_) {}
+      }
+
+      if (memberData && (memberData.name || memberData.Name || memberData.fullName)) {
+        const realName = memberData.name || memberData.Name || memberData.fullName;
+        const realLoginId = memberData.loginId || memberData.loginID || memberData.LoginID || targetLoginId;
+        
+        setHeaderUserInfo({
+          name: realName,
+          loginId: realLoginId,
+          role: session.role === 1 ? 'Admin' : 'Retailer'
+        });
+
+        if (realName !== session.name || realName !== session.fullName) {
+          saveSession({
+            ...session,
+            name: realName,
+            fullName: realName,
+            loginId: realLoginId
+          });
+        }
+      }
+    };
+
+    syncMemberHeaderInfo();
+  }, []);
 
   useEffect(() => {
     // 1. Request Firebase Push Notification Permission
@@ -352,62 +410,73 @@ const MemberHeader = () => {
           </div>
 
           <div className={styles.profileContainer} ref={dropdownRef}>
-            <div className={styles.avatarWrapper} onClick={() => dispatch(toggleProfileDropdown())}>
-              <img
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sachin"
-                alt="Avatar"
-                className={styles.avatarImage}
-              />
-            </div>
-            {isProfileDropdownOpen && (
-              <div className={styles.dropdown}>
-                <div className={styles.dropdownHeader}>
-                  <div className={styles.dropdownAvatarWrapper}>
+            {(() => {
+              const session = getSession();
+              let currentName = headerUserInfo.name !== 'Member' ? headerUserInfo.name : (session?.name && session.name !== 'Member' ? session.name : (session?.fullName !== 'Member' && session?.fullName ? session.fullName : (user?.name !== 'Member' && user?.name ? user.name : (headerUserInfo.loginId || 'Member'))));
+              const currentLoginId = headerUserInfo.loginId || session?.loginId || session?.username || session?.userId || 'RT1001';
+              const currentRole = `${headerUserInfo.role} (${currentLoginId})`;
+
+              return (
+                <>
+                  <div className={styles.avatarWrapper} onClick={() => dispatch(toggleProfileDropdown())}>
                     <img
-                      src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sachin"
-                      alt="User"
-                      className={styles.dropdownAvatar}
+                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentName}`}
+                      alt="Avatar"
+                      className={styles.avatarImage}
                     />
                   </div>
-                  <div className={styles.dropdownUserInfo}>
-                    <div className={styles.dropdownUserName}>{user?.name}</div>
-                    <div className={styles.dropdownUserRole}>{user?.role}</div>
-                  </div>
-                </div>
-                <div className={styles.divider}></div>
-                <div className={styles.dropdownMenu}>
-                  <div className={styles.menuItem} onClick={() => handleNavigate('/member/dashboard/profile')}>
-                    <div className={`${styles.menuIcon} ${styles.iconNavy}`}><FaUser /></div>
-                    <span>My Profile</span>
-                  </div>
-                  <div className={styles.menuItem} onClick={() => handleNavigate('/member/profile/edit')}>
-                    <div className={`${styles.menuIcon} ${styles.iconChart}`}><FaEdit /></div>
-                    <span>Edit Profile</span>
-                  </div>
-                  <div className={styles.menuItem} onClick={() => handleNavigate('/member/logs/activity')}>
-                    <div className={`${styles.menuIcon} ${styles.iconSupport}`}><FaHistory /></div>
-                    <span>Activity Logs</span>
-                  </div>
-                  <div className={styles.menuItem} onClick={() => handleNavigate('/member/logs/mobile')}>
-                    <div className={`${styles.menuIcon} ${styles.iconNavy}`}><FaMobileAlt /></div>
-                    <span>Mobile Logs</span>
-                  </div>
-                  <div className={styles.menuItem} onClick={() => handleNavigate('/member/settings')}>
-                    <div className={`${styles.menuIcon} ${styles.iconChart}`}><FaCog /></div>
-                    <span>Account Setting</span>
-                  </div>
-                  <div className={styles.menuItem} onClick={() => handleNavigate('/member/certificate')}>
-                    <div className={`${styles.menuIcon} ${styles.iconSupport}`}><FaCertificate /></div>
-                    <span>Certificate</span>
-                  </div>
-                  <div className={styles.divider}></div>
-                  <div className={`${styles.menuItem} ${styles.logoutItem}`} onClick={handleLogout}>
-                    <div className={`${styles.menuIcon} ${styles.iconRed}`}><FaPowerOff /></div>
-                    <span>Logout</span>
-                  </div>
-                </div>
-              </div>
-            )}
+                  {isProfileDropdownOpen && (
+                    <div className={styles.dropdown}>
+                      <div className={styles.dropdownHeader}>
+                        <div className={styles.dropdownAvatarWrapper}>
+                          <img
+                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentName}`}
+                            alt="User"
+                            className={styles.dropdownAvatar}
+                          />
+                        </div>
+                        <div className={styles.dropdownUserInfo}>
+                          <div className={styles.dropdownUserName}>{currentName}</div>
+                          <div className={styles.dropdownUserRole}>{currentRole}</div>
+                        </div>
+                      </div>
+                      <div className={styles.divider}></div>
+                      <div className={styles.dropdownMenu}>
+                        <div className={styles.menuItem} onClick={() => handleNavigate('/member/dashboard/profile')}>
+                          <div className={`${styles.menuIcon} ${styles.iconNavy}`}><FaUser /></div>
+                          <span>My Profile</span>
+                        </div>
+                        <div className={styles.menuItem} onClick={() => handleNavigate('/member/dashboard/profile')}>
+                          <div className={`${styles.menuIcon} ${styles.iconChart}`}><FaEdit /></div>
+                          <span>Edit Profile</span>
+                        </div>
+                        <div className={styles.menuItem} onClick={() => handleNavigate('/member/logs/activity')}>
+                          <div className={`${styles.menuIcon} ${styles.iconSupport}`}><FaHistory /></div>
+                          <span>Activity Logs</span>
+                        </div>
+                        <div className={styles.menuItem} onClick={() => handleNavigate('/member/logs/mobile')}>
+                          <div className={`${styles.menuIcon} ${styles.iconNavy}`}><FaMobileAlt /></div>
+                          <span>Mobile Logs</span>
+                        </div>
+                        <div className={styles.menuItem} onClick={() => handleNavigate('/member/dashboard/profile')}>
+                          <div className={`${styles.menuIcon} ${styles.iconChart}`}><FaCog /></div>
+                          <span>Account Setting</span>
+                        </div>
+                        <div className={styles.menuItem} onClick={() => handleNavigate('/member/dashboard/profile')}>
+                          <div className={`${styles.menuIcon} ${styles.iconSupport}`}><FaCertificate /></div>
+                          <span>Certificate</span>
+                        </div>
+                        <div className={styles.divider}></div>
+                        <div className={`${styles.menuItem} ${styles.logoutItem}`} onClick={handleLogout}>
+                          <div className={`${styles.menuIcon} ${styles.iconRed}`}><FaPowerOff /></div>
+                          <span>Logout</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </div>
       </div>

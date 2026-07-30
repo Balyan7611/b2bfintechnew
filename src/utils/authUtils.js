@@ -60,15 +60,16 @@ export const saveSession = (user) => {
   const isAdmin = Number(role) === 1;
   
   const sessionData = JSON.stringify({
+    ...user,
     userId: user?.userId || user?.loginId || user?.memberId || user?.mobile || 'user',
+    loginId: user?.loginId || user?.username || user?.memberId || user?.adminId || '',
+    username: user?.username || user?.loginId || user?.memberId || '',
     adminId: isAdmin ? (user?.adminId || user?.loginId || 'admin') : undefined,
-    name: user?.fullName || user?.name || 'User',
+    name: user?.fullName || user?.name || user?.userName || 'Member',
+    fullName: user?.fullName || user?.name || user?.userName || 'Member',
     sessionId,
     role: role,
-    msrno: user?.msrno || 0,
-    // Coordinates captured on the login page (see AdminLoginPage.jsx /
-    // member LoginPage.jsx) - carried through so App.jsx can send the real
-    // location to /UserLoginHistory/Create instead of hardcoded 0,0.
+    msrno: user?.msrno || user?.userId || 0,
     latitude: typeof user?.latitude === 'number' ? user.latitude : 0,
     longitude: typeof user?.longitude === 'number' ? user.longitude : 0,
     loggedInAt: new Date().toISOString()

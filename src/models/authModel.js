@@ -12,6 +12,7 @@ export const LoginRequestModel = (data, security) => {
         loginID: data.loginID,
         password: data.password,
         ip: security.ip,
+        Ip: security.ip,
         deviceInfo: security.deviceInfo,
         location: {
             latitude: security.location.latitude,
@@ -63,6 +64,7 @@ export const VerifyOtpRequestModel = (data, security) => {
         token: data.token,
         otp: data.otp,
         ip: security.ip,
+        Ip: security.ip,
         deviceInfo: security.deviceInfo,
         location: {
             latitude: security.location.latitude,
@@ -82,6 +84,7 @@ export const VerifyTpinRequestModel = (data, security) => {
         token: data.token,
         tpin: data.tpin,
         ip: security.ip,
+        Ip: security.ip,
         deviceInfo: security.deviceInfo,
         location: {
             latitude: security.location.latitude,

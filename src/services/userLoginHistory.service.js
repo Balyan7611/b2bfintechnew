@@ -62,23 +62,27 @@ export const UserLoginHistoryService = {
         return await apiService.delete(`/UserLoginHistory/Delete/${id}`, getAuthConfig({ ignoreError: true }));
     },
 
-    // Best-effort: marks the current session's login-history record as
-    // logged out (isActiveSession:false, logoutTime:now). The record id is
-    // captured at login time in sessionStorage (see App.jsx registerSessionOnBackend).
+    // Best-effort: calls the backend LogoutUser endpoint which marks the
+    // session record as logged-out (isActiveSession:false, logoutTime:now)
+    // using the sessionId stored in bss_current_session.
+    // NOTE: We no longer store bss_login_history_id because App.jsx stopped
+    // creating a duplicate UserLoginHistory record. The backend's own
+    // RecordLoginHistoryAsync already saved the record with the correct IP -
+    // so we use the sessionId-based logout endpoint instead.
     closeActiveSession: async () => {
         try {
-            const id = sessionStorage.getItem('bss_login_history_id');
-            if (!id) return;
+            const raw = sessionStorage.getItem('bss_current_session') || localStorage.getItem('bss_current_session');
+            if (!raw) return;
 
-            const res = await apiService.get(`/UserLoginHistory/GetByID/${id}`, getAuthConfig({ hideLoader: true, ignoreError: true }));
-            const record = res?.data || res;
-            if (!record || !record.id) return;
+            let sessionId = null;
+            try {
+                const parsed = JSON.parse(raw);
+                sessionId = parsed?.sessionId;
+            } catch (_) { }
 
-            await apiService.put('/UserLoginHistory/Update', {
-                ...record,
-                isActiveSession: false,
-                logoutTime: new Date().toISOString()
-            }, getAuthConfig({ hideLoader: true, ignoreError: true }));
+            if (!sessionId) return;
+
+            await apiService.post('/UserAuth/LogoutUser', { sessionId }, getAuthConfig({ hideLoader: true, ignoreError: true }));
         } catch (err) {
             console.error('Failed to close login history session:', err);
         } finally {
