@@ -17,6 +17,7 @@ import { TermsConditionService } from '../services/termsCondition.service';
 import { PipeMasterService } from '../services/pipeMaster.service';
 import { PipeModuleSettingService } from '../services/pipeModuleSetting.service';
 import { CompanyBankDetailService } from '../services/companyBankDetail.service';
+import { FundRequestService } from '../services/fundRequest.service';
 import { MemberBankDetailService } from '../services/memberBankDetail.service';
 import { SmsCategoryService } from '../services/smsCategory.service';
 import { SmsSettingService } from '../services/smsSetting.service';
@@ -29,6 +30,7 @@ import { BbpsDataDownService } from '../services/bbpsDataDown.service';
 import { BannerTypeService } from './../services/bannerType.service';
 import { BannerImageService } from './../services/bannerImage.service';
 import { UserWalletBalanceService } from '../services/userWalletBalance.service';
+import { WalletLedgerService } from '../services/walletLedger.service';
 import { TransactionService } from '../services/transaction.service';
 import { SupportTicketService } from '../services/supportTicket.service';
 import { TicketConversationService } from '../services/ticketConversation.service';
@@ -73,6 +75,7 @@ export const API = {
     pipeMaster: PipeMasterService,
     pipeModuleSetting: PipeModuleSettingService,
     companyBankDetail: CompanyBankDetailService,
+    fundRequest: FundRequestService,
     memberBankDetail: MemberBankDetailService,
     smsCategory: SmsCategoryService,
     smsSetting: SmsSettingService,
@@ -85,6 +88,7 @@ export const API = {
     bannerType: BannerTypeService,
     bannerImage: BannerImageService,
     userWalletBalance: UserWalletBalanceService,
+    walletLedger: WalletLedgerService,
     transaction: TransactionService,
     supportTicket: SupportTicketService,
     ticketConversation: TicketConversationService,
@@ -111,6 +115,7 @@ export {
     PipeMasterService,
     PipeModuleSettingService,
     CompanyBankDetailService,
+    FundRequestService,
     MemberBankDetailService,
     SmsCategoryService,
     SmsSettingService,
@@ -123,6 +128,7 @@ export {
     BannerTypeService,
     BannerImageService,
     UserWalletBalanceService,
+    WalletLedgerService,
     SupportTicketService,
     TicketConversationService,
     MasterApiService,

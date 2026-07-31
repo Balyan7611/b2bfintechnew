@@ -9,27 +9,88 @@ import {
   setMainWalletCurrentPage 
 } from '../../../../store/slices/reportSlice';
 import AdminTable from '../../../../shared/components/common/AdminTable';
+import { API } from '../../../../api/endpoints';
+import { resolveMemberId, getLoginId } from '../../../../utils/memberIdentity';
+import { getSession } from '../../../../utils/authUtils';
+import { formatLedgerDate } from '../../../../models/walletLedgerModel';
 import styles from './AEPSReport.module.css';
 
 const MainWalletHistory = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const isApiPanel = location.pathname.startsWith('/api-panel');
-  const { 
-    list, 
+  const [isLoading, setIsLoading] = React.useState(false);
+  const {
+    list,
     filters,
-    searchQuery, 
-    rowsPerPage, 
-    currentPage 
+    searchQuery,
+    rowsPerPage,
+    currentPage
   } = useSelector(state => state.report.mainWalletReport);
 
-  useEffect(() => {
-    dispatch(setMainWalletList([]));
+  // Loads the logged-in member's own Main wallet movements.
+  const loadHistory = React.useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const memberId = await resolveMemberId();
+      if (!memberId) {
+        console.warn('MainWalletHistory: could not resolve member id');
+        dispatch(setMainWalletList([]));
+        return;
+      }
+      // WalletTypeId 1 = Main wallet ledger.
+      const { items } = await API.walletLedger.getMainLedger({
+        memberId,
+        pageNumber: 1,
+        pageSize: 500,
+        fromDate: filters.fromDate || '',
+        toDate: filters.toDate || ''
+      });
+      console.log('[MainWalletHistory] memberId', memberId, '->', items.length, 'ledger row(s)', items);
+
+      // This is always the logged-in member's own ledger, so when the API
+      // doesn't echo the member back, use the session's own name/login id
+      // instead of showing a bare "Member #2".
+      const session = getSession();
+      const myName = session?.name || session?.fullName || '';
+      const myLoginId = getLoginId();
+      const meLabel = myName && myLoginId ? `${myName} (${myLoginId})`
+        : myName || myLoginId || `Member #${memberId}`;
+
+      dispatch(setMainWalletList(items.map(r => ({
+        id: r.id,
+        member: r.memberName
+          ? `${r.memberName}${r.loginId ? ` (${r.loginId})` : ''}`
+          : (r.loginId || meLabel),
+        opening: r.openingBalance.toFixed(2),
+        amount: r.amount.toFixed(2),
+        factor: r.isCredit ? 'Credit' : 'Debit',
+        surcharge: r.surcharge.toFixed(2),
+        gst: r.gst.toFixed(2),
+        tds: r.tds.toFixed(2),
+        commission: r.commission.toFixed(2),
+        closing: r.balance.toFixed(2),
+        narration: r.narration || r.description || '-',
+        date: formatLedgerDate(r.createdDate)
+      }))));
+    } catch (err) {
+      console.error('MainWalletHistory: failed to load', err);
+      dispatch(setMainWalletList([]));
+    } finally {
+      setIsLoading(false);
+    }
+    // filters are read on demand via the Search button, not as deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
-  const filteredList = list.filter(item => 
-    item.narration.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.member.toLowerCase().includes(searchQuery.toLowerCase())
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+
+  const lower = (v) => String(v ?? '').toLowerCase();
+  const filteredList = list.filter(item =>
+    lower(item.narration).includes(lower(searchQuery)) ||
+    lower(item.member).includes(lower(searchQuery))
   );
 
   const columns = [
@@ -61,7 +122,9 @@ const MainWalletHistory = () => {
                   <option value="RT1236">Sachin Balyan (RT1236)</option>
                 </select>
               </div>
-              <button className={styles.submitBtn}>Search History</button>
+              <button className={styles.submitBtn} disabled={isLoading} onClick={loadHistory}>
+                {isLoading ? 'Loading...' : 'Search History'}
+              </button>
             </div>
           </div>
           ) : null
@@ -78,7 +141,7 @@ const MainWalletHistory = () => {
             </td>
             <td>
                <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700, background: item.factor === 'Credit' ? '#DCFCE7' : '#FEE2E2', color: item.factor === 'Credit' ? '#16A34A' : '#DC2626' }}>
-                {item.factor.toUpperCase()}
+                {String(item.factor || '').toUpperCase()}
                </span>
             </td>
             <td>₹{item.surcharge}</td>

@@ -34,6 +34,9 @@ export const UserWalletBalanceResponseModel = (res) => {
     return dataArray.map(item => ({
         id: item.id || 0,
         msrno: item.msrno || 0,
+        // Kept so callers can verify a row really belongs to the current user
+        // instead of trusting the server-side MemberID filter.
+        memberId: item.memberId ?? item.MemberId ?? item.msrno ?? 0,
         mainBalanceCr: item.mainBalanceCr || 0,
         mainBalanceDr: item.mainBalanceDr || 0,
         mainBalance: item.mainBalance || 0,
@@ -45,7 +48,15 @@ export const UserWalletBalanceResponseModel = (res) => {
         commissionBalance: item.commissionBalance || 0,
         isActive: !!item.isActive,
         createdBy: item.createdBy || 0,
-        modifiedBy: item.modifiedBy || 0
+        modifiedBy: item.modifiedBy || 0,
+        // Needed by the wallet history screens.
+        createdDate: item.createdDate || item.CreatedDate || item.transactionDate || null,
+        modifiedDate: item.modifiedDate || item.ModifiedDate || null,
+        description: item.description || item.narration || item.remark || '',
+        transactionType: item.transactionType || '',
+        walletType: item.walletType || '',
+        memberName: item.memberName || item.name || '',
+        loginId: item.loginId || item.LoginId || ''
     }));
 };
 

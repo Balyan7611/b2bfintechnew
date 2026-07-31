@@ -14,6 +14,18 @@ export const MemberBankDetailService = {
         return MemberBankDetailResponseModel(res);
     },
 
+    // One member's own accounts, verified client-side so a server that ignores
+    // the MemberID filter can't leak another member's bank rows into the panel.
+    // Soft-deleted rows are dropped.
+    getMine: async (memberId) => {
+        if (!memberId) return [];
+        const rows = await MemberBankDetailService.getAll({ MemberID: memberId });
+        const mine = rows.filter(r => Number(r.msrno) === Number(memberId) && !r.isDelete);
+        console.log('[memberBankDetail] msrno', memberId, '-> server sent', rows.length,
+            'row(s), matched', mine.length);
+        return mine;
+    },
+
     create: async (data) => {
         const payload = MemberBankDetailRequestModel(data);
         return await apiService.post('/MemberBankDetail/Create', payload);

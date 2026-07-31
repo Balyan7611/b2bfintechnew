@@ -48,6 +48,43 @@ export const UserWalletBalanceService = {
         return await apiService.get(`/UserWalletBalance/GetByID/${id}`);
     },
 
+    // Returns ONE member's balances, verified client-side.
+    //
+    // Why: GetUserWalletBalances was being called with PageSize=1 and a MemberID
+    // filter. If the server ignores/mismatches that filter it simply returns the
+    // first row of the whole table — which is how another user's balance
+    // (e.g. an API user's 10,000) ended up rendering in the member header.
+    // Here we pull a page and only accept a row whose msrno/memberId actually
+    // matches; anything else yields zeros.
+    getForMember: async (memberId, { silent = true } = {}) => {
+        const zero = { mainBalance: 0, aepsBalance: 0, commissionBalance: 0 };
+        if (!memberId) return zero;
+
+        const res = await UserWalletBalanceService.getAll({
+            pageNumber: 1,
+            pageSize: 200,
+            memberId,
+            silent
+        });
+
+        const rows = Array.isArray(res?.data) ? res.data : [];
+        const mine = rows.find(r =>
+            Number(r.msrno) === Number(memberId) || Number(r.memberId) === Number(memberId)
+        );
+
+        if (!mine) {
+            console.warn('[wallet] no balance row for member', memberId,
+                '- server returned', rows.length, 'row(s):', rows.map(r => r.msrno));
+            return zero;
+        }
+
+        return {
+            mainBalance: parseFloat(mine.mainBalance) || 0,
+            aepsBalance: parseFloat(mine.aepsBalance) || 0,
+            commissionBalance: parseFloat(mine.commissionBalance) || 0
+        };
+    },
+
     getAll: async ({ pageNumber = 1, pageSize = 10, fromDate = '', toDate = '', status = '', memberId = '', silent = false } = {}) => {
         let url = `/UserWalletBalance/GetUserWalletBalances?PageNumber=${pageNumber}&PageSize=${pageSize}`;
         if (fromDate) url += `&FromDate=${encodeURIComponent(fromDate)}`;

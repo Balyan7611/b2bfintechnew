@@ -27,6 +27,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { clearSession, getSession, saveSession } from '../../../utils/authUtils';
+import { resolveMemberId } from '../../../utils/memberIdentity';
 import { API } from '../../../api/endpoints';
 import { SITE_CONFIG } from '../../../config/siteConfig';
 import { requestForToken, setupForegroundListener } from '../../../firebase';
@@ -249,14 +250,28 @@ const MemberHeader = () => {
 
   const fetchWalletHeaderData = async () => {
     try {
-      const session = getSession();
-      const memberId = session?.msrno || session?.userId || '';
-      if (!memberId) return;
+      // Must be the real numeric Member.Id — a LoginId string here makes the
+      // balance API return someone else's row (or nothing at all).
+      const memberId = await resolveMemberId();
+      if (!memberId) {
+        console.warn('MemberHeader: no member id resolved, showing zero balances');
+        setWalletBalances({ mainBalance: 0, aepsBalance: 0, commissionBalance: 0 });
+        return;
+      }
 
-      const [typesRes, balancesRes] = await Promise.all([
+      // Balances come straight off the member record:
+      // GET /Member/GetByID/{id} -> data.mainWallet / data.aepsWallet
+      const [typesRes, memberRes] = await Promise.all([
         API.walletType.getActive({ pageNumber: 1, pageSize: 10000 }),
-        API.userWalletBalance.getAll({ pageNumber: 1, pageSize: 1, memberId, silent: true })
+        API.member.getByIdRaw(memberId)
       ]);
+
+      const m = memberRes?.data?.data || memberRes?.data || memberRes || {};
+      const balances = {
+        mainBalance: parseFloat(m.mainWallet ?? m.MainWallet) || 0,
+        aepsBalance: parseFloat(m.aepsWallet ?? m.AepsWallet) || 0,
+        commissionBalance: parseFloat(m.commissionWallet ?? m.CommissionWallet) || 0
+      };
 
       // Only overwrite when the API actually returned wallet types - keeps last
       // known list instead of hiding everything if this call ever fails.
@@ -264,14 +279,8 @@ const MemberHeader = () => {
         setWalletTypes(typesRes);
       }
 
-      const row = Array.isArray(balancesRes?.data) ? balancesRes.data[0] : null;
-      if (row) {
-        setWalletBalances({
-          mainBalance: parseFloat(row.mainBalance) || 0,
-          aepsBalance: parseFloat(row.aepsBalance) || 0,
-          commissionBalance: parseFloat(row.commissionBalance) || 0
-        });
-      }
+      console.log('[MemberHeader] memberId:', memberId, 'balances:', balances);
+      setWalletBalances(balances);
     } catch (err) {
       console.error('MemberHeader: Failed to fetch wallet header data:', err);
     }

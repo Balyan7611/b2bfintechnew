@@ -11,6 +11,7 @@ import {
 import { setNotification } from '../../../../store/slices/uiSlice';
 import { getSession, saveSession } from '../../../../utils/authUtils';
 import { resolveMemberId, getLoginId } from '../../../../utils/memberIdentity';
+import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 import { API } from '../../../../api/endpoints';
 import styles from './MyProfile.module.css';
 
@@ -73,7 +74,11 @@ const MyProfile = () => {
   const [isLoadingBanks, setIsLoadingBanks] = useState(false);
   const [showAddBankModal, setShowAddBankModal] = useState(false);
   const [isSubmittingBank, setIsSubmittingBank] = useState(false);
+  // Bank master list drives the searchable dropdown and IFSC auto-fill,
+  // exactly like the admin "Add Member Bank Detail" form does.
+  const [bankMasterList, setBankMasterList] = useState([]);
   const [newBank, setNewBank] = useState({
+    bankId: '',
     bankName: '',
     accountNumber: '',
     ifscCode: '',
@@ -196,15 +201,25 @@ const MyProfile = () => {
     }
   }, [activeTab, sessionUser, formData.id]);
 
-  // Fetch Member Bank Accounts
+  // Fetch Member Bank Accounts (+ the bank master list for the dropdown)
   const fetchBankAccounts = async (memberId) => {
     setIsLoadingBanks(true);
     try {
-      if (API.memberBankDetail?.getAll) {
-        const res = await API.memberBankDetail.getAll({ MemberID: memberId });
-        const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
-        setBankAccounts(list);
-      }
+      const realId = (await resolveMemberId()) || memberId;
+
+      const [accounts, banks] = await Promise.all([
+        API.memberBankDetail.getMine(realId),
+        // Same source the admin form uses: BankMaster/AllBankMaster.
+        API.bank?.getAll
+          ? API.bank.getAll({ pageNumber: 1, pageSize: 1000 }).catch(() => [])
+          : Promise.resolve([])
+      ]);
+
+      setBankAccounts(Array.isArray(accounts) ? accounts : []);
+
+      const activeBanks = (Array.isArray(banks) ? banks : []).filter(b => b.isActive !== false);
+      setBankMasterList(activeBanks);
+      console.log('[MyProfile] bank master loaded:', activeBanks.length);
     } catch (err) {
       console.error('Error fetching bank accounts:', err);
     } finally {
@@ -385,32 +400,42 @@ const MyProfile = () => {
   // Submit New Bank Account
   const handleSaveBank = async (e) => {
     e.preventDefault();
-    if (!newBank.bankName || !newBank.accountNumber || !newBank.ifscCode) {
-      dispatch(setNotification({ type: 'error', message: 'Please fill Bank Name, Account Number, and IFSC Code' }));
+    if (!newBank.bankId || !newBank.accountNumber || !newBank.ifscCode) {
+      dispatch(setNotification({ type: 'error', message: 'Please select a Bank and fill Account Number & IFSC Code' }));
       return;
     }
 
     setIsSubmittingBank(true);
     try {
-      const memberId = formData.id || sessionUser?.msrno;
-      if (API.memberBankDetail?.create) {
-        await API.memberBankDetail.create({
-          msrno: parseInt(memberId),
-          bankName: newBank.bankName,
-          accountNumber: newBank.accountNumber,
-          ifscCode: newBank.ifscCode,
-          accountHolderName: newBank.accountHolderName || formData.name,
-          branchName: newBank.branchName || 'Main',
-          isActive: true
-        });
-        dispatch(setNotification({ type: 'success', message: 'Bank account added successfully!' }));
-        setShowAddBankModal(false);
-        setNewBank({ bankName: '', accountNumber: '', ifscCode: '', accountHolderName: '', branchName: '' });
-        fetchBankAccounts(memberId);
+      const memberId = (await resolveMemberId()) || formData.id || sessionUser?.msrno;
+      if (!memberId) {
+        dispatch(setNotification({ type: 'error', message: 'Could not identify your member account. Please re-login.' }));
+        return;
       }
+
+      // Field names must match MemberBankDetailRequestModel: bankId / name /
+      // ifsccode. The old payload sent bankName/ifscCode, which the model
+      // dropped — so every saved row had bankId 0 and an empty IFSC.
+      await API.memberBankDetail.create({
+        msrno: parseInt(memberId),
+        bankId: parseInt(newBank.bankId),
+        name: newBank.bankName,
+        ifsccode: newBank.ifscCode,
+        accountNumber: newBank.accountNumber,
+        accountHolderName: newBank.accountHolderName || formData.name,
+        branchName: newBank.branchName || 'Main',
+        isActive: true,
+        isDelete: false,
+        documentVerify: false
+      });
+
+      dispatch(setNotification({ type: 'success', message: 'Bank account added successfully!' }));
+      setShowAddBankModal(false);
+      setNewBank({ bankId: '', bankName: '', accountNumber: '', ifscCode: '', accountHolderName: '', branchName: '' });
+      fetchBankAccounts(memberId);
     } catch (err) {
       console.error('Add bank error:', err);
-      dispatch(setNotification({ type: 'error', message: 'Failed to add bank account' }));
+      dispatch(setNotification({ type: 'error', message: err.message || 'Failed to add bank account' }));
     } finally {
       setIsSubmittingBank(false);
     }
@@ -635,14 +660,29 @@ const MyProfile = () => {
             </div>
             <form onSubmit={handleSaveBank} className={styles.modalForm}>
               <div className={styles.inputGroup}>
-                <label>Bank Name *</label>
-                <input 
-                  type="text"
+                <label>Select Bank *</label>
+                {/* Bound to BankMaster, searchable, and auto-fills the IFSC —
+                    same behaviour as the admin Add Member Bank Detail form. */}
+                <SearchableSelect
                   required
-                  placeholder="e.g. State Bank of India, HDFC Bank"
-                  value={newBank.bankName}
-                  onChange={(e) => setNewBank({ ...newBank, bankName: e.target.value })}
-                  className={styles.editInput}
+                  placeholder={bankMasterList.length ? 'Search & choose your bank' : 'Loading banks...'}
+                  value={newBank.bankId}
+                  options={bankMasterList.map(b => ({
+                    value: b.id,
+                    label: b.bankName || b.name,
+                    meta: b.ifscCode ? `IFSC: ${b.ifscCode}` : (b.bankCode || '')
+                  }))}
+                  onChange={(val) => {
+                    const selected = bankMasterList.find(b => String(b.id) === String(val));
+                    setNewBank(prev => ({
+                      ...prev,
+                      bankId: val,
+                      bankName: selected ? (selected.bankName || selected.name || '') : '',
+                      // Auto-fetched from the master; still editable below since
+                      // the branch-level IFSC often differs.
+                      ifscCode: selected?.ifscCode ? selected.ifscCode.toUpperCase() : prev.ifscCode
+                    }));
+                  }}
                 />
               </div>
               <div className={styles.inputGroup}>
@@ -1183,7 +1223,13 @@ const MyProfile = () => {
                           <div className={styles.cardTitleInfo}>
                             <div className={styles.cardIcon}><FaUniversity /></div>
                             <div>
-                              <h4 className={styles.cardTitle}>{b.bankName || b.bank_name || 'Bank Account'}</h4>
+                              {/* API returns the bank name in `name`; fall back
+                                  to the master list when only bankId is set. */}
+                              <h4 className={styles.cardTitle}>
+                                {b.name || b.bankName || b.bank_name
+                                  || bankMasterList.find(m => Number(m.id) === Number(b.bankId))?.bankName
+                                  || 'Bank Account'}
+                              </h4>
                               <p className={styles.cardSub}>{b.accountHolderName || b.account_holder_name || formData.name}</p>
                             </div>
                           </div>
@@ -1198,7 +1244,7 @@ const MyProfile = () => {
                           </div>
                           <div className={styles.detailRow}>
                             <span className={styles.detailLabel}>IFSC Code:</span>
-                            <span className={styles.detailVal}>{b.ifscCode || b.ifsc_code || '—'}</span>
+                            <span className={styles.detailVal}>{b.ifsccode || b.ifscCode || b.ifsc_code || '—'}</span>
                           </div>
                           <div className={styles.detailRow}>
                             <span className={styles.detailLabel}>Branch:</span>

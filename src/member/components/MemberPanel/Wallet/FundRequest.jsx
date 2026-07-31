@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { API } from '../../../../api/endpoints';
+import { resolveMemberId } from '../../../../utils/memberIdentity';
+import { normalizeStatus } from '../../../../models/fundRequestModel';
 import { 
   FaUniversity, FaMoneyBillWave, FaClock, FaCheckCircle, FaTimesCircle, 
   FaUpload, FaFileInvoiceDollar, FaQrcode, FaSearch, FaFilter,
@@ -8,6 +10,9 @@ import {
 } from 'react-icons/fa';
 import styles from './FundRequest.module.css';
 
+// Fallback only — the live list comes from CompanyBankDetail/GetCompanyBankDetail.
+// Kept so the cards aren't blank while the first fetch is in flight or if the
+// endpoint is unreachable.
 const COMPANY_BANKS = [
   { 
     id: 1, 
@@ -54,9 +59,15 @@ const formatCardNumber = (accNo) => {
 };
 
 const FundRequest = () => {
-  const location = useLocation();
-  const isApiPanel = location.pathname.startsWith('/api-panel');
-  // Form states
+  // NOTE: the Submit form and Company Bank cards used to be hidden on the API
+  // panel. Both panels now show the full page, so no panel check is needed.
+
+  // Live data
+  const [memberId, setMemberId] = useState(null);
+  const [companyBanks, setCompanyBanks] = useState(COMPANY_BANKS);
+  const [isLoadingList, setIsLoadingList] = useState(false);
+
+  // Form states — selectedBank holds the CompanyBankDetail Id, not the name.
   const [selectedBank, setSelectedBank] = useState('');
   const [amount, setAmount] = useState('');
   const [refNo, setRefNo] = useState('');
@@ -85,6 +96,72 @@ const FundRequest = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
+  // Maps a FundRequest row from the API into the shape this table renders.
+  const toRow = useCallback((r, banks) => {
+    const bank = (banks || []).find(b => Number(b.id) === Number(r.companyBankId));
+    return {
+      id: r.id,
+      requestId: `FR${String(r.id).padStart(6, '0')}`,
+      date: (r.createdDate || '').slice(0, 10),
+      payMode: r.paymentMode || '-',
+      companyBank: r.companyBankName || bank?.name || `Bank #${r.companyBankId}`,
+      amount: r.amount,
+      remark: r.remark || '-',
+      refId: r.bankRefId || '-',
+      addDate: (r.createdDate || '').replace('T', ' ').slice(0, 16) || '-',
+      approveDate: r.approveDate ? r.approveDate.replace('T', ' ').slice(0, 16) : 'Pending',
+      compRemarks: r.remark || '-',
+      slip: 'attached_receipt.png',
+      status: normalizeStatus(r.status),
+      reason: normalizeStatus(r.status) === 'rejected' ? (r.reason || r.remark || 'N/A') : 'N/A'
+    };
+  }, []);
+
+  const loadRequests = useCallback(async (id, banks) => {
+    if (!id) return;
+    setIsLoadingList(true);
+    try {
+      const rows = await API.fundRequest.getMine(id);
+      console.log('[FundRequest] msrno:', id, '| my requests:', rows.length, rows);
+      setRequests(rows.map(r => toRow(r, banks)));
+    } catch (err) {
+      console.error('FundRequest: failed to load list', err);
+    } finally {
+      setIsLoadingList(false);
+    }
+  }, [toRow]);
+
+  useEffect(() => {
+    const init = async () => {
+      const id = await resolveMemberId();
+      setMemberId(id);
+
+      let banks = COMPANY_BANKS;
+      try {
+        const res = await API.companyBankDetail.getAll({ pageNumber: 1, pageSize: 200 });
+        const live = (Array.isArray(res) ? res : []).filter(b => b.isActive && !b.isDelete);
+        if (live.length > 0) {
+          banks = live.map(b => ({
+            id: b.id,
+            name: b.bankName,
+            branch: b.branchName,
+            holder: b.accountHolderName,
+            accNo: b.accountNumber,
+            ifsc: b.ifsccode,
+            logo: '🏦',
+            qrlogo: b.qrlogo
+          }));
+          setCompanyBanks(banks);
+        }
+      } catch (err) {
+        console.error('FundRequest: failed to load company banks, using fallback', err);
+      }
+
+      loadRequests(id, banks);
+    };
+    init();
+  }, [loadRequests]);
+
   const handleCopy = (text, label) => {
     navigator.clipboard.writeText(text);
     setCopiedText(text);
@@ -106,7 +183,7 @@ const FundRequest = () => {
     }
   };
 
-  const handleSaveRequest = (e) => {
+  const handleSaveRequest = async (e) => {
     e.preventDefault();
     if (!selectedBank) return showToast('Please select a company bank', 'error');
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) return showToast('Please enter a valid amount', 'error');
@@ -115,41 +192,42 @@ const FundRequest = () => {
     if (!payMode) return showToast('Please select payment mode', 'error');
     if (!payDate) return showToast('Please select payment date', 'error');
 
+    const msrno = memberId || (await resolveMemberId());
+    if (!msrno) return showToast('Could not identify your member account. Please re-login.', 'error');
+
     setLoading(true);
-    showToast('Submitting request...', 'info');
-
-    setTimeout(() => {
-      setLoading(false);
-      
-      const newRequest = {
-        sNo: requests.length + 1,
-        requestId: `FR${Math.floor(1000000 + Math.random() * 9000000)}`,
-        date: payDate,
-        payMode: payMode,
-        companyBank: selectedBank,
+    try {
+      // POST /api/FundRequest/Create — status Pending, isApprove false.
+      const res = await API.fundRequest.create({
+        msrno,
+        companyBankId: parseInt(selectedBank),
         amount: parseFloat(amount),
-        remark: remark || 'Wallet loading',
-        refId: refNo,
-        addDate: new Date().toISOString().replace('T', ' ').slice(0, 16),
-        approveDate: 'Pending',
-        compRemarks: 'Verifying with bank',
-        slip: selectedFile ? selectedFile.name : 'attached_receipt.png',
-        status: 'pending',
-        reason: 'N/A'
-      };
+        bankRefId: refNo,
+        // No payment gateway involved here, so the UTR doubles as the txn id.
+        transactionId: `TXN_${refNo}`,
+        paymentMode: payMode,
+        remark: remark || 'Wallet loading'
+      });
 
-      setRequests([newRequest, ...requests]);
-      showToast('Fund request saved successfully!', 'success');
-
-      // Clear form
-      setSelectedBank('');
-      setAmount('');
-      setRefNo('');
-      setPayMode('');
-      setPayDate('');
-      setRemark('');
-      setSelectedFile(null);
-    }, 1200);
+      if (res && (res.status === true || res.code === 'TXN')) {
+        showToast('Fund request submitted successfully!', 'success');
+        setSelectedBank('');
+        setAmount('');
+        setRefNo('');
+        setPayMode('');
+        setPayDate('');
+        setRemark('');
+        setSelectedFile(null);
+        await loadRequests(msrno, companyBanks);
+      } else {
+        showToast(res?.message || res?.mess || 'Could not submit request.', 'error');
+      }
+    } catch (err) {
+      console.error('FundRequest: create failed', err);
+      showToast(err.message || 'Could not submit request.', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filteredRequests = requests.filter(req => {
@@ -186,7 +264,6 @@ const FundRequest = () => {
       )}
 
       {/* SECTION 1: Submit New Request */}
-      {!isApiPanel && (
       <div className={`${styles.premiumSectionCard} ${styles.formCard}`}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionTitleWrap}>
@@ -207,8 +284,8 @@ const FundRequest = () => {
                   onChange={e => setSelectedBank(e.target.value)}
                 >
                   <option value="">Select Bank</option>
-                  {COMPANY_BANKS.map(b => (
-                    <option key={b.id} value={b.name}>{b.name}</option>
+                  {companyBanks.map(b => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
                   ))}
                 </select>
               </div>
@@ -313,10 +390,8 @@ const FundRequest = () => {
           </div>
         </form>
       </div>
-      )}
 
       {/* SECTION 2: Company Bank Cards */}
-      {!isApiPanel && (
       <div className={styles.premiumSectionCard}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionTitleWrap}>
@@ -329,10 +404,12 @@ const FundRequest = () => {
         </div>
 
         <div className={styles.bankCardsGrid}>
-          {COMPANY_BANKS.map(bank => (
-            <div 
-              key={bank.id} 
-              className={`${styles.bankCardItem} ${styles['cardTheme' + bank.id]}`}
+          {companyBanks.map((bank, bankIdx) => (
+            <div
+              key={bank.id}
+              // Themes are defined for cardTheme1..4 — cycle so live banks
+              // beyond the fourth still get a colour instead of no class.
+              className={`${styles.bankCardItem} ${styles['cardTheme' + ((bankIdx % 4) + 1)]}`}
             >
               <div className={styles.cardHeader}>
                 <div className={styles.cardBankLogo}>{bank.logo}</div>
@@ -408,7 +485,6 @@ const FundRequest = () => {
           ))}
         </div>
       </div>
-      )}
 
       {/* SECTION 3: Fund Request History */}
       <div className={styles.tableCard}>
@@ -424,8 +500,12 @@ const FundRequest = () => {
               <label>To Date:</label>
               <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
             </div>
-            <button className={styles.btnFilterSubmit} onClick={() => showToast('Date filters applied!', 'success')}>
-              Submit
+            <button
+              className={styles.btnFilterSubmit}
+              disabled={isLoadingList}
+              onClick={() => loadRequests(memberId, companyBanks)}
+            >
+              {isLoadingList ? 'Loading...' : 'Submit'}
             </button>
           </div>
         </div>

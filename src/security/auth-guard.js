@@ -33,6 +33,11 @@ export const checkAuth = (token, requiredRole, isApiPanel = false) => {
         if (userRole === '1') {
             return { isAuth: false, redirect: '/admin/dashboard' };
         }
+        // Member and API panel share one session key, so a member login would
+        // otherwise leave the API panel rendering that member's wallet/reports.
+        if (session.isApiUser !== true) {
+            return { isAuth: false, redirect: '/api-panel/login' };
+        }
         if (ALLOWED_API_ROLE_ID !== null && userRole !== String(ALLOWED_API_ROLE_ID)) {
             return { isAuth: false, redirect: '/member/dashboard' };
         }
@@ -56,6 +61,12 @@ export const checkAuth = (token, requiredRole, isApiPanel = false) => {
     // dashboard for every other role (3, 4, 5...).
     if (userRole === '1') {
         return { isAuth: false, redirect: '/admin/dashboard' };
+    }
+
+    // Same guard in reverse: an API-panel login must not carry over into the
+    // member dashboard, or the member panel shows the API user's balances.
+    if (session.isApiUser === true) {
+        return { isAuth: false, redirect: '/member/login' };
     }
 
     return { isAuth: true };

@@ -28,6 +28,7 @@ import {
 import { SITE_CONFIG } from '../../config/siteConfig';
 import { requestForToken, setupForegroundListener } from '../../firebase';
 import { clearSession, getSession } from '../../utils/authUtils';
+import { resolveMemberId } from '../../utils/memberIdentity';
 import { API } from '../../api/endpoints';
 import styles from './ApiHeader.module.css';
 
@@ -167,15 +168,28 @@ const ApiHeader = () => {
 
   const fetchWalletHeaderData = async () => {
     try {
-      const session = getSession();
-      const memberId = session?.msrno || session?.userId || '';
-      const fromDate = new Date('2000-01-01').toISOString();
-      const toDate = new Date().toISOString();
+      // Real numeric Member.Id only — a LoginId string here returns the wrong
+      // row (or none), which is how balances leaked across panels.
+      const memberId = await resolveMemberId();
+      if (!memberId) {
+        console.warn('ApiHeader: no member id resolved, showing zero balances');
+        setWalletBalances({ mainBalance: 0, aepsBalance: 0, commissionBalance: 0 });
+        return;
+      }
 
-      const [typesRes, balancesRes] = await Promise.all([
+      // Balances come straight off the member record:
+      // GET /Member/GetByID/{id} -> data.mainWallet / data.aepsWallet
+      const [typesRes, memberRes] = await Promise.all([
         API.walletType.getActive({ pageNumber: 1, pageSize: 10000 }),
-        memberId ? API.userWalletBalance.getAll({ pageNumber: 1, pageSize: 1, fromDate, toDate, memberId, silent: true }) : Promise.resolve(null)
+        API.member.getByIdRaw(memberId)
       ]);
+
+      const m = memberRes?.data?.data || memberRes?.data || memberRes || {};
+      const balances = {
+        mainBalance: parseFloat(m.mainWallet ?? m.MainWallet) || 0,
+        aepsBalance: parseFloat(m.aepsWallet ?? m.AepsWallet) || 0,
+        commissionBalance: parseFloat(m.commissionWallet ?? m.CommissionWallet) || 0
+      };
 
       // Only overwrite the list when the API actually returned wallet types.
       // If the request fails/returns empty (e.g. transient network issue), keep
@@ -184,14 +198,8 @@ const ApiHeader = () => {
         setWalletTypes(typesRes);
       }
 
-      const row = Array.isArray(balancesRes?.data) ? balancesRes.data[0] : null;
-      if (row) {
-        setWalletBalances({
-          mainBalance: parseFloat(row.mainBalance) || 0,
-          aepsBalance: parseFloat(row.aepsBalance) || 0,
-          commissionBalance: parseFloat(row.commissionBalance) || 0
-        });
-      }
+      console.log('[ApiHeader] memberId:', memberId, 'balances:', balances);
+      setWalletBalances(balances);
     } catch (err) {
       console.error('ApiHeader: Failed to fetch wallet header data:', err);
     }

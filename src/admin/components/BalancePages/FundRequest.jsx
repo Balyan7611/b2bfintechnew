@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { updateFundRequestStatus } from '../../../store/slices/balanceSlice';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useDispatch } from 'react-redux';
+import { setNotification } from '../../../store/slices/uiSlice';
+import { API } from '../../../api/endpoints';
+import { normalizeStatus } from '../../../models/fundRequestModel';
 import { 
   FaSearch, FaFileExcel, FaFilePdf, FaPrint, FaCopy, FaFileCsv,
   FaChevronLeft, FaChevronRight, FaFilter, FaClock, FaCheckCircle, FaTimesCircle,
@@ -11,9 +13,17 @@ import ExportButtons from '../../../shared/components/common/ExportButtons';
 import ReceiptModal from '../../../shared/components/common/ReceiptModal';
 import styles from './FundRequest.module.css';
 
+// Which wallet an approved top-up lands in. Main is the default for fund
+// requests; change here if the business wants AEPS/Commission instead.
+const CREDIT_WALLET_TYPE = 'Main';
+// Admin's own Member.Id, used as the "byMsrno" (source) on the transfer.
+const ADMIN_MSRNO = 1;
+
 const FundRequest = () => {
   const dispatch = useDispatch();
-  const { fundRequestList } = useSelector((s) => s.balance);
+  const [fundRequestList, setFundRequestList] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [busyId, setBusyId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -26,35 +36,111 @@ const FundRequest = () => {
   });
   const [tempFilters, setTempFilters] = useState(filters);
 
-  const handleActionSubmit = () => {
-    const today = new Date();
-    const dateStr = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
-    dispatch(updateFundRequestStatus({
-      id: actionModal.row.id,
-      status: actionModal.type === 'Approve' ? 'Approved' : 'Rejected',
-      reason: actionModal.reason,
-      date: dateStr
-    }));
-    setActionModal({ open: false, row: null, type: '', reason: '' });
+  // Shapes a FundRequest API row for this table.
+  const toRow = (r) => ({
+    ...r,
+    // Always a string — msrno is numeric, and the filters below call
+    // .toLowerCase() on this.
+    memberId: String(r.loginId || r.memberName || r.msrno || ''),
+    msrno: r.msrno,
+    companyBankName: r.companyBankName || `Bank #${r.companyBankId}`,
+    paymentDate: (r.createdDate || '').slice(0, 10),
+    addDate: (r.createdDate || '').replace('T', ' ').slice(0, 16) || '-',
+    approveRejectDate: r.approveDate ? r.approveDate.replace('T', ' ').slice(0, 16) : '-',
+    status: normalizeStatus(r.status) === 'approved' ? 'Approved'
+      : normalizeStatus(r.status) === 'rejected' ? 'Rejected' : 'Pending',
+    reason: normalizeStatus(r.status) === 'rejected' ? (r.reason || r.remark || '-') : '-',
+    cashSlip: null,
+    indemnityBond: null
+  });
+
+  const loadRequests = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const rows = await API.fundRequest.getAll({ pageNumber: 1, pageSize: 500 });
+      console.log('[Admin FundRequest] loaded', rows.length, 'request(s)', rows);
+      setFundRequestList(rows.map(toRow));
+    } catch (err) {
+      console.error('Admin FundRequest: failed to load list', err);
+      setFundRequestList([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadRequests(); }, [loadRequests]);
+
+  // Approve = mark the request approved, THEN credit the member's wallet.
+  // The credit is deliberately a separate call so a failed transfer is visible
+  // rather than silently leaving an "approved" request with no money moved.
+  const handleActionSubmit = async () => {
+    const row = actionModal.row;
+    if (!row) return;
+    const isApprove = actionModal.type === 'Approve';
+
+    if (!isApprove && !actionModal.reason.trim()) {
+      dispatch(setNotification({ type: 'error', message: 'Please enter a reason for rejection.' }));
+      return;
+    }
+
+    setBusyId(row.id);
+    try {
+      if (isApprove) {
+        await API.fundRequest.approve(row, { remark: actionModal.reason || 'Approved, amount received' });
+
+        try {
+          await API.userWalletBalance.transfer({
+            msrno: row.msrno,
+            byMsrno: ADMIN_MSRNO,
+            amount: row.amount,
+            transactionType: 'Credit',
+            walletType: CREDIT_WALLET_TYPE,
+            description: `Fund Request Approved (Ref: ${row.bankRefId || row.id})`
+          });
+          dispatch(setNotification({ type: 'success', message: `Approved — ₹${row.amount} credited to ${CREDIT_WALLET_TYPE} wallet.` }));
+        } catch (transferErr) {
+          console.error('Admin FundRequest: wallet transfer failed', transferErr);
+          dispatch(setNotification({
+            type: 'error',
+            message: 'Request approved but the wallet credit FAILED. Please transfer manually.'
+          }));
+        }
+      } else {
+        await API.fundRequest.reject(row, actionModal.reason);
+        dispatch(setNotification({ type: 'success', message: 'Fund request rejected.' }));
+      }
+
+      await loadRequests();
+    } catch (err) {
+      console.error('Admin FundRequest: action failed', err);
+      dispatch(setNotification({ type: 'error', message: err.message || 'Action failed.' }));
+    } finally {
+      setBusyId(null);
+      setActionModal({ open: false, row: null, type: '', reason: '' });
+    }
   };
 
-  // Filter Data
+  // Filter Data. API values can be numbers (msrno) or null, so everything is
+  // coerced to a string before any string method is called on it.
+  const lower = (v) => String(v ?? '').toLowerCase();
+
   const filteredData = fundRequestList.filter(item => {
-    // Basic search text
-    const matchesSearch = (item.memberId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          (item.bankRefId || '').toLowerCase().includes(searchQuery.toLowerCase());
-                          
+    const q = lower(searchQuery);
+    const matchesSearch = lower(item.memberId).includes(q) || lower(item.bankRefId).includes(q);
+
     // Advanced Filters
     let matchesFilters = true;
-    if (filters.memberId && item.memberId !== filters.memberId) matchesFilters = false;
-    if (filters.status && (item.status || '').toLowerCase() !== filters.status.toLowerCase()) matchesFilters = false;
-    if (filters.paymentMode && (item.paymentMode || '').toLowerCase() !== filters.paymentMode.toLowerCase()) matchesFilters = false;
-    if (filters.bankName && !(item.companyBankName || '').toLowerCase().includes(filters.bankName.toLowerCase())) matchesFilters = false;
+    if (filters.memberId && lower(item.memberId) !== lower(filters.memberId)) matchesFilters = false;
+    if (filters.status && lower(item.status) !== lower(filters.status)) matchesFilters = false;
+    if (filters.paymentMode && lower(item.paymentMode) !== lower(filters.paymentMode)) matchesFilters = false;
+    if (filters.bankName && !lower(item.companyBankName).includes(lower(filters.bankName))) matchesFilters = false;
     
     // Date Filters
+    // The API gives YYYY-MM-DD; legacy rows used DD/MM/YYYY. Normalise both.
     const parseDate = (dateStr) => {
       if (!dateStr) return null;
-      const [d, m, y] = dateStr.split('/');
+      if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) return dateStr.slice(0, 10);
+      const [d, m, y] = String(dateStr).split('/');
       return d && m && y ? `${y}-${m}-${d}` : null;
     };
     const itemDate = parseDate(item.paymentDate);
@@ -238,10 +324,24 @@ const FundRequest = () => {
                 <tr key={row.id} className={index % 2 === 0 ? styles.rowEven : styles.rowOdd}>
                   <td>{startIndex + index + 1}</td>
                   <td>
-                    <div className={styles.actionBtns}>
-                      <button className={styles.approveBtn} title="Approve" onClick={() => setActionModal({ open: true, row, type: 'Approve', reason: '' })}><FaCheckCircle /></button>
-                      <button className={styles.rejectBtn} title="Reject" onClick={() => setActionModal({ open: true, row, type: 'Reject', reason: '' })}><FaTimesCircle /></button>
-                    </div>
+                    {row.status === 'Pending' ? (
+                      <div className={styles.actionBtns}>
+                        <button
+                          className={styles.approveBtn}
+                          title="Approve"
+                          disabled={busyId === row.id}
+                          onClick={() => setActionModal({ open: true, row, type: 'Approve', reason: '' })}
+                        ><FaCheckCircle /></button>
+                        <button
+                          className={styles.rejectBtn}
+                          title="Reject"
+                          disabled={busyId === row.id}
+                          onClick={() => setActionModal({ open: true, row, type: 'Reject', reason: '' })}
+                        ><FaTimesCircle /></button>
+                      </div>
+                    ) : (
+                      <span style={{ color: '#94A3B8', fontSize: '0.75rem' }}>—</span>
+                    )}
                   </td>
                   <td className={styles.fwBold}>{row.memberId}</td>
                   <td className={styles.amountText}>₹ {row.amount}</td>
@@ -277,7 +377,9 @@ const FundRequest = () => {
                 <tr>
                   <td colSpan="15" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
                     
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span></td>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+                        {isLoading ? 'Loading fund requests...' : 'No data available in table'}
+                      </span></td>
                 </tr>
               )}
             </tbody>
@@ -343,9 +445,10 @@ const FundRequest = () => {
               <button 
                 className={styles.submitBtn} 
                 style={{ background: actionModal.type === 'Approve' ? '#27AE60' : '#E53E3E', boxShadow: 'none' }}
+                disabled={busyId !== null}
                 onClick={handleActionSubmit}
               >
-                Confirm {actionModal.type}
+                {busyId !== null ? 'Processing...' : `Confirm ${actionModal.type}`}
               </button>
             </div>
           </div>

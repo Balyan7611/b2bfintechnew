@@ -218,7 +218,10 @@ const SIDEBAR_LINKS = [
       { id: 'money_wallet_load_history', label: 'Money Wallet Load History' },
       { id: 'wallet_ppi_registration', label: 'Wallet PPI Registration' },
       { id: 'quick_search', label: 'Quick Search' },
-      { id: 'tds_report', label: 'TDS Report' }
+      { id: 'tds_report', label: 'TDS Report' },
+      // Same live FundRequest screen as Balance > Fund Request, surfaced here
+      // so admins can approve/reject top-ups from the reports menu too.
+      { id: 'fund_request_management', label: 'Fund Request Management' }
     ]
   },
   { 
@@ -1213,7 +1216,7 @@ const DashboardPage = () => {
             <AddBank />
           ) : activeTab === 'member_bank_details' ? (
             <MemberBankDetails />
-          ) : activeTab === 'fund_request' ? (
+          ) : activeTab === 'fund_request' || activeTab === 'fund_request_management' ? (
             <FundRequest />
           ) : activeTab === 'transfer' ? (
             <Transfer />

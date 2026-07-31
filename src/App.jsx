@@ -633,7 +633,20 @@ function App() {
             <Route path="whitelist" element={<ApiWhitelisting />} />
             <Route path="webhook" element={<WebhookCallbacks />} />
             <Route path="profile" element={<MyProfile />} />
-            <Route path="kyc" element={<UploadKYC />} />
+            {/* Onboarding only — Upload KYC is member-panel only. Old /kyc and
+                /kyc/upload links redirect so nothing 404s. */}
+            <Route path="kyc" element={<Navigate to="/api-panel/dashboard/kyc/onboarding" replace />} />
+            <Route path="kyc/upload" element={<Navigate to="/api-panel/dashboard/kyc/onboarding" replace />} />
+            <Route path="kyc/onboarding" element={<MemberOnboardingWizard />} />
+            {/* Same report components as the member panel — the backend scopes
+                rows by the JWT, so no per-panel data wiring is needed. */}
+            <Route path="report/aeps" element={<AEPSReport />} />
+            <Route path="report/dmt" element={<DMTHistory />} />
+            <Route path="report/payout" element={<PayoutHistory />} />
+            <Route path="report/matm" element={<MATMHistory />} />
+            <Route path="report/recharge" element={<RechargeHistory />} />
+            <Route path="report/bbps" element={<BBPSHistory />} />
+            <Route path="report/business" element={<BusinessSummary />} />
             <Route path="wallet/w2w" element={<WalletToWallet />} />
             <Route path="wallet/fund-request" element={<FundRequest />} />
             <Route path="wallet/aeps" element={<AEPSWalletHistory />} />
