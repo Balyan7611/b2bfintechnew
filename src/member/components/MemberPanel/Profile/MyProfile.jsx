@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import { setNotification } from '../../../../store/slices/uiSlice';
 import { getSession, saveSession } from '../../../../utils/authUtils';
+import { resolveMemberId, getLoginId } from '../../../../utils/memberIdentity';
 import { API } from '../../../../api/endpoints';
 import styles from './MyProfile.module.css';
 
@@ -178,15 +179,22 @@ const MyProfile = () => {
   // 2. Fetch Tab Specific Data
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const memberId = sessionUser?.msrno || sessionUser?.userId || formData.id;
+    // formData.id comes from fetchMemberProfile(), which verifies the member
+    // against the Member master — prefer it over the raw JWT claim, which on the
+    // API panel can be the LoginId string instead of the numeric Member.Id.
+    const memberId = formData.id || sessionUser?.msrno || sessionUser?.userId;
+    if (activeTab === 'MyService') {
+      // Services tab resolves its own id, so run it even if we have none yet.
+      fetchServicesData(memberId);
+      return;
+    }
+    if (!memberId) return;
     if (activeTab === 'AccountDetails') {
       fetchBankAccounts(memberId);
     } else if (activeTab === 'KYC') {
       fetchKycDocs(memberId);
-    } else if (activeTab === 'MyService') {
-      fetchServicesData(memberId);
     }
-  }, [activeTab, sessionUser]);
+  }, [activeTab, sessionUser, formData.id]);
 
   // Fetch Member Bank Accounts
   const fetchBankAccounts = async (memberId) => {
@@ -221,19 +229,27 @@ const MyProfile = () => {
   };
 
   // Fetch Master & Assigned Services
-  const fetchServicesData = async (memberId) => {
+  const fetchServicesData = async (memberIdHint) => {
     setIsLoadingServices(true);
     try {
-      const [masterRes, assignedRes] = await Promise.all([
+      // Never trust a raw JWT claim here — resolve the real numeric Member.Id,
+      // and keep the LoginId around so getMine() can match rows even if the id
+      // lookup comes up empty.
+      const resolvedId = (await resolveMemberId()) || memberIdHint || null;
+      const loginId = getLoginId() || formData.loginId || '';
+
+      const [masterRes, assigned] = await Promise.all([
         API.service?.getAll ? API.service.getAll() : null,
-        API.memberService?.getAll ? API.memberService.getAll({ MemberID: memberId }) : null
+        API.memberService.getMine({ memberId: resolvedId, loginId })
       ]);
 
       const masters = masterRes?.data?.items || masterRes?.data || (Array.isArray(masterRes) ? masterRes : []);
-      const assigned = assignedRes?.data?.items || assignedRes?.data || (Array.isArray(assignedRes) ? assignedRes : []);
+
+      console.log('[MyProfile] services tab -> memberId:', resolvedId, 'loginId:', loginId,
+        '| master services:', masters.length, '| my rows:', assigned.length, assigned);
 
       setMasterServices(masters);
-      setAssignedServices(assigned);
+      setAssignedServices(Array.isArray(assigned) ? assigned : []);
     } catch (err) {
       console.error('Error fetching services data:', err);
     } finally {
@@ -449,24 +465,34 @@ const MyProfile = () => {
 
   // Request Service Activation
   const handleRequestService = async (service) => {
-    const memberId = formData.id || sessionUser?.msrno;
-    if (!memberId) {
-      dispatch(setNotification({ type: 'error', message: 'Unable to identify member session' }));
-      return;
-    }
+    // The backend reads MemberId from the JWT for /Request/{serviceId}, so a
+    // missing local id must not block the request — it's only used for the
+    // refetch and the legacy /Create fallback.
+    const memberId = (await resolveMemberId()) || formData.id || sessionUser?.msrno || null;
 
     setRequestingServiceId(service.id);
     try {
-      if (API.memberService?.create) {
-        await API.memberService.create({
-          memberId: parseInt(memberId),
+      // Use the dedicated request endpoint so the row lands as
+      // AssignTypeId = 2 (Pending) and shows up on the admin
+      // "Service Activation Requests" screen. Falls back to Create only
+      // if the endpoint isn't available.
+      await API.memberService.requestActivation(parseInt(service.id), memberId);
+      dispatch(setNotification({ type: 'success', message: `Service request for '${service.name}' submitted successfully!` }));
+
+      // Show "Pending Approval" immediately, without waiting for the refetch.
+      setAssignedServices(prev => {
+        const rest = prev.filter(a => Number(a.serviceId ?? a.ServiceId ?? a.service_id) !== Number(service.id));
+        return [...rest, {
+          memberId: memberId ? parseInt(memberId) : null,
           serviceId: parseInt(service.id),
           isActive: false,
-          remark: 'Requested by Member'
-        });
-        dispatch(setNotification({ type: 'success', message: `Service request for '${service.name}' submitted successfully!` }));
-        fetchServicesData(memberId);
-      }
+          assignTypeId: 2,
+          remark: 'Requested by member for activation',
+          startDate: new Date().toISOString()
+        }];
+      });
+
+      await fetchServicesData(memberId);
     } catch (err) {
       console.error('Request service error:', err);
       dispatch(setNotification({ type: 'error', message: 'Failed to request service' }));
@@ -1220,9 +1246,14 @@ const MyProfile = () => {
                       { id: 8, name: 'Electricity & Utility Bills (BBPS)', sectionType: 2 }
                     ]).map(service => {
                       // Check if member has this service assigned
-                      const assigned = assignedServices.find(a => Number(a.serviceId || a.service_id) === Number(service.id));
-                      const isApproved = assigned && assigned.isActive;
-                      const isPending = assigned && !assigned.isActive;
+                      const assigned = assignedServices.find(a => Number(a.serviceId ?? a.ServiceId ?? a.service_id) === Number(service.id));
+                      const assignType = Number(assigned?.assignTypeId ?? assigned?.AssignTypeId ?? 0);
+                      const active = (assigned?.isActive ?? assigned?.IsActive) === true;
+                      // 1 = admin-assigned, 2 = pending, 3 = approved, 4 = rejected
+                      const isApproved = !!assigned && (active || assignType === 3);
+                      const isPending = !!assigned && !active && assignType === 2;
+                      const isRejected = !!assigned && !active && assignType === 4;
+                      const rejectReason = assigned?.remark || assigned?.Remark || '';
 
                       return (
                         <div key={service.id} className={styles.itemCard}>
@@ -1241,13 +1272,21 @@ const MyProfile = () => {
                             ) : isPending ? (
                               <span className={styles.badgePending}><FaHourglassHalf /> Pending Approval</span>
                             ) : (
-                              <button 
-                                className={styles.requestServiceBtn} 
-                                disabled={requestingServiceId === service.id}
-                                onClick={() => handleRequestService(service)}
-                              >
-                                {requestingServiceId === service.id ? <FaSpinner className={styles.spin} /> : <FaPaperPlane />} Request Activation
-                              </button>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
+                                {isRejected && (
+                                  <span className={styles.badgeRejected} title={rejectReason}>
+                                    <FaTimes /> Rejected{rejectReason ? ` — ${rejectReason}` : ''}
+                                  </span>
+                                )}
+                                <button
+                                  className={styles.requestServiceBtn}
+                                  disabled={requestingServiceId === service.id}
+                                  onClick={() => handleRequestService(service)}
+                                >
+                                  {requestingServiceId === service.id ? <FaSpinner className={styles.spin} /> : <FaPaperPlane />}
+                                  {isRejected ? ' Request Again' : ' Request Activation'}
+                                </button>
+                              </div>
                             )}
                           </div>
                         </div>

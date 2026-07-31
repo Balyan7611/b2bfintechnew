@@ -106,14 +106,18 @@ const ManageMember = () => {
   const [serviceSearch, setServiceSearch] = useState('');
   const [assignMember, setAssignMember] = useState(null);
 
-  // Fetch all services from master API
+  // Fetch all services from master API (defensive parsing - backend may wrap
+  // the list as `data` (bare array) or `data.items` (paginated) depending on
+  // the endpoint, so handle both instead of assuming one shape).
   useEffect(() => {
     const fetchServices = async () => {
       try {
         const res = await API.service.getAll();
-        if (res && res.status === true && Array.isArray(res.data)) {
-          setAllServices(res.data);
-        }
+        let items = [];
+        if (Array.isArray(res?.data)) items = res.data;
+        else if (Array.isArray(res?.data?.items)) items = res.data.items;
+        else if (Array.isArray(res?.items)) items = res.items;
+        setAllServices(items);
       } catch (err) {
         console.error("Error loading services in ManageMember:", err);
       }
@@ -121,36 +125,60 @@ const ManageMember = () => {
     fetchServices();
   }, []);
 
-  const handleOpenServices = (m) => {
-    setOpenServicesMember(m);
-    if (!memberServices[m.id] && allServices.length > 0) {
-      // Simulate some initial services checked (e.g. index % 3 === 0)
-      const initial = allServices
-        .filter((_, idx) => idx % 3 === 0)
-        .map(s => s.id);
-      setMemberServices(prev => ({ ...prev, [m.id]: initial }));
+  // Loads the member's REAL assigned services from the backend (MemberService
+  // table) - no more faking/guessing a random subset locally.
+  const fetchAssignedServicesForMember = async (memberId) => {
+    try {
+      const res = await API.memberService.getAll({ MemberID: memberId });
+      let items = [];
+      if (Array.isArray(res?.data?.items)) items = res.data.items;
+      else if (Array.isArray(res?.data)) items = res.data;
+      else if (Array.isArray(res?.items)) items = res.items;
+
+      const records = items
+        .filter(it => it.isActive !== false)
+        .map(it => ({ recordId: it.id, serviceId: it.serviceId ?? it.ServiceId }));
+
+      setMemberServices(prev => ({ ...prev, [memberId]: records }));
+    } catch (err) {
+      console.error("Error loading assigned services for member:", err);
+      setMemberServices(prev => ({ ...prev, [memberId]: [] }));
     }
   };
 
+  const handleOpenServices = (m) => {
+    setOpenServicesMember(m);
+    // Always refetch so the popover shows the real, current DB state.
+    fetchAssignedServicesForMember(m.id);
+  };
+
   const getAssignedServices = (member) => {
-    if (!member || !memberServices[member.id] || allServices.length === 0) return [];
-    return memberServices[member.id].map(id => {
-      const s = allServices.find(service => service.id.toString() === id.toString());
-      return s ? { id: s.id, name: s.name } : null;
+    if (!member || allServices.length === 0) return [];
+    const records = memberServices[member.id] || [];
+    return records.map(r => {
+      const s = allServices.find(service => service.id.toString() === (r.serviceId ?? '').toString());
+      return s ? { id: s.id, name: s.name, recordId: r.recordId } : null;
     }).filter(Boolean);
   };
 
-  const removeServiceFromMember = (member, serviceIdToRemove) => {
-    setMemberServices(prev => {
-      const current = prev[member.id] || [];
-      const updated = current.filter(id => id.toString() !== serviceIdToRemove.toString());
-      return { ...prev, [member.id]: updated };
-    });
+  const removeServiceFromMember = async (member, serviceIdToRemove) => {
+    const records = memberServices[member.id] || [];
+    const target = records.find(r => (r.serviceId ?? '').toString() === serviceIdToRemove.toString());
+    if (!target) return;
+    try {
+      await API.memberService.delete(target.recordId);
+      setMemberServices(prev => ({
+        ...prev,
+        [member.id]: (prev[member.id] || []).filter(r => r.recordId !== target.recordId)
+      }));
+    } catch (err) {
+      console.error("Error removing service from member:", err);
+    }
   };
 
   const openAssignModal = (member) => {
     setAssignMember(member);
-    const currentlyAssigned = memberServices[member.id] || [];
+    const currentlyAssigned = (memberServices[member.id] || []).map(r => r.serviceId);
     setSelectedServices(currentlyAssigned);
     setServiceSearch('');
     setIsAssignModalOpen(true);
@@ -158,9 +186,9 @@ const ManageMember = () => {
   };
 
   const toggleServiceSelection = (serviceId) => {
-    setSelectedServices(prev => 
-      prev.includes(serviceId) 
-        ? prev.filter(id => id !== serviceId) 
+    setSelectedServices(prev =>
+      prev.includes(serviceId)
+        ? prev.filter(id => id !== serviceId)
         : [...prev, serviceId]
     );
   };
@@ -173,17 +201,37 @@ const ManageMember = () => {
     setSelectedServices([]);
   };
 
-  const handleSaveAssignedServices = (e) => {
+  // Diffs the checked services against what's actually assigned in the
+  // backend and only sends the delta (Create for newly checked, Delete for
+  // unchecked) - then re-fetches the real state instead of trusting a local
+  // guess, so the popover/modal always reflect true DB data afterwards.
+  const handleSaveAssignedServices = async (e) => {
     if (e) e.preventDefault();
-    if (assignMember) {
-      setIsAssigningServices(true);
-      setServicesSuccess('');
-      setTimeout(() => {
-        setMemberServices(prev => ({ ...prev, [assignMember.id]: selectedServices }));
-        setIsAssigningServices(false);
-        setIsAssignModalOpen(false);
-        setActiveDropdown(null);
-      }, 1000);
+    if (!assignMember) return;
+
+    setIsAssigningServices(true);
+    setServicesSuccess('');
+    try {
+      const existingRecords = memberServices[assignMember.id] || [];
+      const existingServiceIds = existingRecords.map(r => (r.serviceId ?? '').toString());
+      const selectedIds = selectedServices.map(id => id.toString());
+
+      const toAdd = selectedIds.filter(id => !existingServiceIds.includes(id));
+      const toRemove = existingRecords.filter(r => !selectedIds.includes((r.serviceId ?? '').toString()));
+
+      await Promise.all([
+        ...toAdd.map(serviceId => API.memberService.create({ memberId: assignMember.id, serviceId, isActive: true })),
+        ...toRemove.map(r => API.memberService.delete(r.recordId))
+      ]);
+
+      await fetchAssignedServicesForMember(assignMember.id);
+
+      setIsAssignModalOpen(false);
+      setActiveDropdown(null);
+    } catch (err) {
+      console.error("Error saving assigned services:", err);
+    } finally {
+      setIsAssigningServices(false);
     }
   };
 

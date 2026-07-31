@@ -79,6 +79,7 @@ import RoleManagement from '../components/SettingsPages/RoleManagement';
 import AssignPackage from '../components/SettingsPages/AssignPackage';
 import ServiceManagement from '../components/SettingsPages/ServiceManagement';
 import AssignService from '../components/SettingsPages/AssignService';
+import ServiceRequests from '../components/SettingsPages/ServiceRequests';
 import BannerManagement from '../components/SettingsPages/BannerManagement';
 import OperatorManagement from '../components/SettingsPages/OperatorManagement';
 import PermissionSetting from '../components/SettingsPages/PermissionSetting';
@@ -278,6 +279,7 @@ const SIDEBAR_LINKS = [
       { id: 'parent_change', label: 'Parent Change' },
       { id: 'manage_news', label: 'Manage News' },
       { id: 'assign_service', label: 'Assign Service' },
+      { id: 'service_requests', label: 'Service Requests' },
       // { id: 'assign_service_role', label: 'Assign Service On Role' },
       { id: 'check_txn', label: 'Check TXN' },
       { id: 'employee_login_list', label: 'Employee Login List' }
@@ -1287,6 +1289,8 @@ const DashboardPage = () => {
             <AssignPackage />
           ) : activeTab === 'assign_service' ? (
             <AssignService />
+          ) : activeTab === 'service_requests' ? (
+            <ServiceRequests />
           ) : activeTab === 'services' ? (
             <ServiceManagement />
           ) : activeTab === 'upload_banner' ? (

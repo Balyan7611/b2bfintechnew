@@ -91,6 +91,7 @@ export const clearSession = () => {
   localStorage.removeItem('admin_token');
   localStorage.removeItem('access_token');
   localStorage.removeItem('member_token');
+  localStorage.removeItem('api_token');
   sessionStorage.clear();
 };
 

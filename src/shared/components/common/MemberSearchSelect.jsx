@@ -112,7 +112,10 @@ const MemberSearchSelect = ({ value, onChange, roleId, placeholder = "Search or 
         />
       </div>
       {showDropdown && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #CBD5E1', borderRadius: '10px', marginTop: '5px', zIndex: 9999, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', maxHeight: '200px', overflowY: 'auto' }}>
+        // Kept well below modal/overlay z-index levels (e.g. the admin header's
+        // Quick Actions panel + its backdrop sit at 9998-10000) so this
+        // in-page dropdown never punches through a modal that's open above it.
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #CBD5E1', borderRadius: '10px', marginTop: '5px', zIndex: 100, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', maxHeight: '200px', overflowY: 'auto' }}>
           {(isSearching || isLoadingAll) ? (
             <div style={{ padding: '12px 15px', display: 'flex', alignItems: 'center', gap: '8px', color: '#64748B', fontSize: '0.85rem' }}>
               <FiRefreshCw className="global-spin" /> Loading...

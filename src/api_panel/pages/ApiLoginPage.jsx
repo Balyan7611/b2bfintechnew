@@ -350,7 +350,11 @@ const ApiLoginPage = () => {
     const loginId = decoded?.LoginId || decoded?.loginId || decoded?.sub || userId;
     const userName = decoded?.unique_name || decoded?.name || decoded?.Name || 'API User';
     const mobileNo = decoded?.mobile || decoded?.Mobile || decoded?.phone || userId;
-    const numericId = decoded?.sub || decoded?.id || '0';
+    // `sub` on this backend is the LoginId string (e.g. "RT100"), NOT the numeric
+    // Member.Id. Only accept a genuinely numeric claim here — otherwise leave it 0
+    // and let resolveMemberId() look the real Id up from the Member master.
+    const rawNumeric = decoded?.MemberId ?? decoded?.memberId ?? decoded?.Id ?? decoded?.id ?? decoded?.nameid ?? decoded?.sub;
+    const numericId = /^\d+$/.test(String(rawNumeric ?? '').trim()) ? parseInt(rawNumeric, 10) : 0;
 
     saveSession({
       loginId: loginId,

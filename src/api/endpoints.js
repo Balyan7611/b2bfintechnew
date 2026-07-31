@@ -37,6 +37,7 @@ import { LogsServiceDatumService } from '../services/logsServiceDatum.service';
 import { MemberServiceService } from '../services/memberService.service';
 import { IpAuthanticateService } from '../services/ipAuthanticate.service';
 import { ClientCredentialService } from '../services/clientCredential.service';
+import { MemberWebhookService } from '../services/memberWebhook.service';
 
 // Re-exporting everything exactly as before to maintain backward compatibility
 export const API = {
@@ -65,6 +66,7 @@ export const API = {
     state: StateService,
     member: MemberService,
     memberService: MemberServiceService,
+    memberWebhook: MemberWebhookService,
     privacyPolicy: PrivacyPolicyService,
     refundPolicy: RefundPolicyService,
     termsCondition: TermsConditionService,
