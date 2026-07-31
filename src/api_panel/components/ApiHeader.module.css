@@ -155,11 +155,7 @@
   align-items: center;
   gap: 8px;
   min-width: 125px;
-  transition: border-color 0.2s;
-}
-
-.walletPill:hover {
-  border-color: var(--color-primary);
+  cursor: default;
 }
 
 .walletIcon {

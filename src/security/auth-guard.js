@@ -41,12 +41,21 @@ export const checkAuth = (token, requiredRole, isApiPanel = false) => {
 
     const targetRole = String(requiredRole);
 
-    // Role check: Admin (1) or Member (2)
-    if (userRole !== targetRole) {
-        return { 
-            isAuth: false, 
-            redirect: userRole === '1' ? '/admin/dashboard' : '/member/dashboard' 
-        };
+    if (targetRole === '1') {
+        // Admin-only route - must be exactly role 1.
+        if (userRole !== '1') {
+            return { isAuth: false, redirect: '/member/dashboard' };
+        }
+        return { isAuth: true };
+    }
+
+    // Member route: any authenticated non-admin role is valid here (Retailer,
+    // Distributor, Master Distributor, Admin-as-member, Unique, etc. all share
+    // the same member dashboard) - not just one hardcoded role id. Matching
+    // this against a single exact role (e.g. "2") incorrectly blanked the
+    // dashboard for every other role (3, 4, 5...).
+    if (userRole === '1') {
+        return { isAuth: false, redirect: '/admin/dashboard' };
     }
 
     return { isAuth: true };

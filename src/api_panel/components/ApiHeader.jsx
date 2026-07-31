@@ -20,7 +20,7 @@ import {
 import {
   FaBars, FaMoon, FaSun, FaExpand,
   FaEnvelope, FaBell, FaChartBar, FaHeadset, FaPowerOff, FaWallet,
-  FaUser, FaEdit, FaHistory, FaMobileAlt, FaCog, FaCertificate, FaBullhorn, FaCommentDots, FaPaperclip, FaKey
+  FaUser, FaEdit, FaHistory, FaMobileAlt, FaCog, FaBullhorn, FaCommentDots, FaPaperclip, FaKey
 } from 'react-icons/fa';
 import { 
   FiX, FiChevronRight, FiChevronLeft, FiShoppingBag, FiUsers, FiCheckCircle, FiFileText, FiStar, FiSearch 
@@ -28,7 +28,16 @@ import {
 import { SITE_CONFIG } from '../../config/siteConfig';
 import { requestForToken, setupForegroundListener } from '../../firebase';
 import { clearSession, getSession } from '../../utils/authUtils';
+import { API } from '../../api/endpoints';
 import styles from './ApiHeader.module.css';
+
+// Maps a WalletType DB record (Name: MAIN / AEPS / COMMISSION ...) to the matching
+// balance field on UserWalletBalance and a display color.
+const WALLET_TYPE_CONFIG = [
+  { match: 'AEPS', balanceKey: 'aepsBalance', color: '#10B981' },
+  { match: 'MAIN', balanceKey: 'mainBalance', color: '#1756AA' },
+  { match: 'COMMISSION', balanceKey: 'commissionBalance', color: '#F59E0B' }
+];
 
 const ApiHeader = () => {
   const dispatch = useDispatch();
@@ -147,11 +156,68 @@ const ApiHeader = () => {
     }
   };
 
-  const walletData = [
-    { name: 'AEPS WALLET', value: '0.00', color: '#10B981' },
-    { name: 'MAIN WALLET', value: '0.00', color: 'var(--color-primary)' },
-    { name: 'PROFIT WALLET', value: '0.00', color: '#F59E0B' }
-  ];
+  // Seed with all wallet types visible by default so nothing is hidden while the
+  // first live fetch from WalletType (DB) is still in flight.
+  const [walletTypes, setWalletTypes] = useState([
+    { code: 'MAIN', name: 'Main', isActive: true },
+    { code: 'AEPS', name: 'AEPS', isActive: true },
+    { code: 'COMMISSION', name: 'Commission', isActive: true }
+  ]);
+  const [walletBalances, setWalletBalances] = useState({ mainBalance: 0, aepsBalance: 0, commissionBalance: 0 });
+
+  const fetchWalletHeaderData = async () => {
+    try {
+      const session = getSession();
+      const memberId = session?.msrno || session?.userId || '';
+      const fromDate = new Date('2000-01-01').toISOString();
+      const toDate = new Date().toISOString();
+
+      const [typesRes, balancesRes] = await Promise.all([
+        API.walletType.getActive({ pageNumber: 1, pageSize: 10000 }),
+        memberId ? API.userWalletBalance.getAll({ pageNumber: 1, pageSize: 1, fromDate, toDate, memberId, silent: true }) : Promise.resolve(null)
+      ]);
+
+      // Only overwrite the list when the API actually returned wallet types.
+      // If the request fails/returns empty (e.g. transient network issue), keep
+      // whatever was last shown instead of hiding every wallet pill.
+      if (Array.isArray(typesRes) && typesRes.length > 0) {
+        setWalletTypes(typesRes);
+      }
+
+      const row = Array.isArray(balancesRes?.data) ? balancesRes.data[0] : null;
+      if (row) {
+        setWalletBalances({
+          mainBalance: parseFloat(row.mainBalance) || 0,
+          aepsBalance: parseFloat(row.aepsBalance) || 0,
+          commissionBalance: parseFloat(row.commissionBalance) || 0
+        });
+      }
+    } catch (err) {
+      console.error('ApiHeader: Failed to fetch wallet header data:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchWalletHeaderData();
+    const interval = setInterval(fetchWalletHeaderData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Only wallet types that are Active in the database (WalletType.IsActive) are shown here.
+  // If a wallet type is deactivated from the DB, its pill disappears from this header automatically.
+  const walletData = walletTypes
+    .filter(wt => wt.isActive)
+    .map(wt => {
+      // `code` (MAIN/AEPS/COMMISSION) is only used internally to pick the right
+      // balance field/color. The label shown on screen is always the DB `name`
+      // exactly as typed - rename it in the DB and the pill updates to match.
+      const cfg = WALLET_TYPE_CONFIG.find(c => (wt.code || '').toUpperCase().includes(c.match));
+      return {
+        name: `${wt.name || wt.code || ''} Wallet`,
+        value: (walletBalances[cfg?.balanceKey] || 0).toFixed(2),
+        color: cfg?.color || '#64748b'
+      };
+    });
 
   return (
     <>
@@ -187,12 +253,9 @@ const ApiHeader = () => {
             background: '#ffffff',
             border: `1px solid ${wallet.color}40`,
             padding: '4px 10px', borderRadius: '8px', marginRight: index === walletData.length - 1 ? '16px' : '4px',
-            transition: 'all 0.2s ease', cursor: 'pointer',
+            cursor: 'default',
             boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = wallet.color; e.currentTarget.style.boxShadow = `0 2px 4px ${wallet.color}20`; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${wallet.color}40`; e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.02)'; }}
-          onClick={() => handleNavigate('/api-panel/dashboard/wallet/' + wallet.name.toLowerCase().split(' ')[0])}
           >
             <FaWallet style={{ fontSize: '1.2rem', color: wallet.color }} />
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.1' }}>

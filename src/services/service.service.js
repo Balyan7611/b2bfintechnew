@@ -1,4 +1,28 @@
 import { apiService } from '../api/httpClient';
+import { ServiceResponseModel } from '../models/serviceModel';
+
+// Explicitly attach whatever auth token is available (access_token / admin_token /
+// member_token) so background/header calls never go out without an Authorization
+// header, regardless of which panel is calling.
+const getAuthConfig = (extra = {}) => {
+  const raw = sessionStorage.getItem('access_token')
+    || localStorage.getItem('access_token')
+    || sessionStorage.getItem('admin_token')
+    || localStorage.getItem('admin_token')
+    || sessionStorage.getItem('member_token')
+    || localStorage.getItem('member_token');
+
+  if (!raw || raw === 'null' || raw === 'undefined') return extra;
+
+  const token = raw.replace(/^"(.*)"$/, '$1').replace(/^Bearer\s+/i, '');
+  return {
+    ...extra,
+    headers: {
+      ...(extra.headers || {}),
+      Authorization: `Bearer ${token}`
+    }
+  };
+};
 
 /* ──────────────────────────────────────────────
    Helper: build FormData from service object
@@ -40,6 +64,15 @@ export const ServiceManagementService = {
   // GET services by section type
   getBySectionType: async (sectionType) => {
     return await apiService.get(`/Service/get-services-by-sectiontype/${sectionType}?isActive=true`);
+  },
+
+  // Clean, mapped list of services that are actually turned on for members/API
+  // users (isActive + onoff), used to populate the dynamic service tiles in
+  // the Member / Admin / API-panel dashboards instead of a hardcoded array.
+  getActiveServices: async () => {
+    const res = await apiService.post('/Service/get-all-services', {}, getAuthConfig({ hideLoader: true, ignoreError: true }));
+    const all = ServiceResponseModel(res);
+    return all.filter(s => s.isActive && s.onoff);
   },
 
   // CREATE service — POST multipart/form-data

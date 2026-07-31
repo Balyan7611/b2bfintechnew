@@ -238,11 +238,76 @@ const MemberHeader = () => {
     }
   };
 
-  const walletData = [
-    { name: 'AEPS WALLET', value: '0.00', color: '#10B981' },
-    { name: 'MAIN WALLET', value: '0.00', color: 'var(--color-primary)' },
-    { name: 'PROFIT WALLET', value: '0.00', color: '#F59E0B' }
+  // Seed with all wallet types visible by default so nothing is hidden while the
+  // first live fetch from WalletType (DB) is still in flight.
+  const [walletTypes, setWalletTypes] = useState([
+    { code: 'MAIN', name: 'Main', isActive: true },
+    { code: 'AEPS', name: 'AEPS', isActive: true },
+    { code: 'COMMISSION', name: 'Commission', isActive: true }
+  ]);
+  const [walletBalances, setWalletBalances] = useState({ mainBalance: 0, aepsBalance: 0, commissionBalance: 0 });
+
+  const fetchWalletHeaderData = async () => {
+    try {
+      const session = getSession();
+      const memberId = session?.msrno || session?.userId || '';
+      if (!memberId) return;
+
+      const [typesRes, balancesRes] = await Promise.all([
+        API.walletType.getActive({ pageNumber: 1, pageSize: 10000 }),
+        API.userWalletBalance.getAll({ pageNumber: 1, pageSize: 1, memberId, silent: true })
+      ]);
+
+      // Only overwrite when the API actually returned wallet types - keeps last
+      // known list instead of hiding everything if this call ever fails.
+      if (Array.isArray(typesRes) && typesRes.length > 0) {
+        setWalletTypes(typesRes);
+      }
+
+      const row = Array.isArray(balancesRes?.data) ? balancesRes.data[0] : null;
+      if (row) {
+        setWalletBalances({
+          mainBalance: parseFloat(row.mainBalance) || 0,
+          aepsBalance: parseFloat(row.aepsBalance) || 0,
+          commissionBalance: parseFloat(row.commissionBalance) || 0
+        });
+      }
+    } catch (err) {
+      console.error('MemberHeader: Failed to fetch wallet header data:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchWalletHeaderData();
+    // Refresh periodically so wallet pills stay in sync after transactions
+    // and pick up any name/active-status change made from the DB.
+    const interval = setInterval(fetchWalletHeaderData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Maps a WalletType DB record (Name: MAIN / AEPS / COMMISSION ...) to the matching
+  // balance field on UserWalletBalance and a display color.
+  const WALLET_TYPE_CONFIG = [
+    { match: 'AEPS', balanceKey: 'aepsBalance', color: '#10B981' },
+    { match: 'MAIN', balanceKey: 'mainBalance', color: 'var(--color-primary)' },
+    { match: 'COMMISSION', balanceKey: 'commissionBalance', color: '#F59E0B' }
   ];
+
+  // Only wallet types that are Active in the database (WalletType.IsActive) are shown.
+  // Name, and whether it shows at all, both come live from the DB.
+  const walletData = walletTypes
+    .filter(wt => wt.isActive)
+    .map(wt => {
+      // `code` (MAIN/AEPS/COMMISSION) is only used internally to pick the right
+      // balance field/color. The label shown on screen is always the DB `name`
+      // exactly as typed - rename it in the DB and the pill updates to match.
+      const cfg = WALLET_TYPE_CONFIG.find(c => (wt.code || '').toUpperCase().includes(c.match));
+      return {
+        name: `${wt.name || wt.code || ''} Wallet`,
+        value: (walletBalances[cfg?.balanceKey] || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        color: cfg?.color || '#64748b'
+      };
+    });
 
   return (
     <>

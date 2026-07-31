@@ -12,11 +12,13 @@ import {
   FiSmartphone, FiCreditCard as FiCard, FiUser
 } from 'react-icons/fi';
 import { LineChart, Line, BarChart, Bar, Legend, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { 
-  setSelectedDate, setActiveTab, setUpgradePopup 
+import {
+  setSelectedDate, setActiveTab, setUpgradePopup, setServiceCards
 } from '../../../store/slices/memberPanelSlice';
 import UpgradePopup from './UpgradePopup';
 import GuidedTour from '../../../shared/components/common/GuidedTour';
+import { API } from '../../../api/endpoints';
+import { getServiceColor } from '../../../shared/utils/serviceVisuals';
 import styles from './MemberHome.module.css';
 import sharedStyles from '../../../shared/components/common/SharedTable.module.css';
 
@@ -266,9 +268,34 @@ const MemberHome = () => {
     };
   }, [topServicesFilter]);
 
+  // Replace the initial dummy service tiles with the real, active-only
+  // service list from the backend (Service master table). If this ever
+  // fails/returns empty, the initial hardcoded list stays as a safe fallback
+  // instead of leaving the section blank.
+  useEffect(() => {
+    const fetchServiceCards = async () => {
+      try {
+        const activeServices = await API.service.getActiveServices();
+        if (Array.isArray(activeServices) && activeServices.length > 0) {
+          const mapped = activeServices.map(s => ({
+            id: s.id,
+            name: s.name,
+            stat1Label: 'Commission',
+            stat1Value: '0.00',
+            color: getServiceColor(s.name)
+          }));
+          dispatch(setServiceCards(mapped));
+        }
+      } catch (err) {
+        console.error('MemberHome: Failed to fetch active services:', err);
+      }
+    };
+    fetchServiceCards();
+  }, [dispatch]);
+
   useEffect(() => {
     setIsLoaded(true);
-    
+
     // Setup Intersection Observer for Scroll Animation
     const observer = new IntersectionObserver((entries) => {
       const [entry] = entries;

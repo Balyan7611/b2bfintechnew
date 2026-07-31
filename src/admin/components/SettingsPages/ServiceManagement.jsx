@@ -210,6 +210,7 @@ const ServiceManagement = () => {
   /* ── 8. Save (Create / Update) ── */
   const handleSave = async (e) => {
     e.preventDefault();
+
     setFormSaving(true);
     try {
       // Pass formData object directly — service layer handles FormData building
@@ -615,7 +616,14 @@ const ServiceManagement = () => {
                     </div>
                     <div>
                       <label style={labelStyle}>Service URL</label>
-                      <input name="url" value={formData.url} onChange={handleInputChange} style={iStyle} placeholder="https://..." />
+                      <input
+                        name="url"
+                        type="text"
+                        value={formData.url}
+                        onChange={handleInputChange}
+                        style={iStyle}
+                        placeholder="https://... or a name/slug"
+                      />
                     </div>
                     <div>
                       <label style={labelStyle}>Price</label>

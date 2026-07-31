@@ -2,9 +2,39 @@ import { apiService } from '../api/httpClient';
 import { MemberRequestModel } from '../models/memberModel';
 import { MemberSearchResponseModel } from '../models/memberSearchModel';
 
+// Explicitly attach whatever auth token is available (access_token / admin_token /
+// member_token) so background/header calls never go out without an Authorization
+// header, regardless of which panel is calling.
+const getAuthConfig = (extra = {}) => {
+    const raw = sessionStorage.getItem('access_token')
+        || localStorage.getItem('access_token')
+        || sessionStorage.getItem('admin_token')
+        || localStorage.getItem('admin_token')
+        || sessionStorage.getItem('member_token')
+        || localStorage.getItem('member_token');
+
+    if (!raw || raw === 'null' || raw === 'undefined') return extra;
+
+    const token = raw.replace(/^"(.*)"$/, '$1').replace(/^Bearer\s+/i, '');
+    return {
+        ...extra,
+        headers: {
+            ...(extra.headers || {}),
+            Authorization: `Bearer ${token}`
+        }
+    };
+};
+
 export const MemberService = {
     getById: async (id) => {
         return await apiService.get(`/Member/get-member-by-id/${id}`);
+    },
+
+    // Admin dashboard header uses this dedicated route for its own wallet
+    // snapshot: GET /api/Member/GetByID/{id} -> returns the member record
+    // directly (mainWallet / aepsWallet / commissionWallet included).
+    getByIdRaw: async (id) => {
+        return await apiService.get(`/Member/GetByID/${id}`, getAuthConfig({ hideLoader: true, ignoreError: true }));
     },
 
     createMember: async (data) => {

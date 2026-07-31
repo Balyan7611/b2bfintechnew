@@ -23,16 +23,18 @@ const dashboardSlice = createSlice({
     setSelectedDate: (state, action) => { state.selectedDate = action.payload; },
     setHoveredMenu: (state, action) => { state.hoveredMenu = action.payload; },
     setIsMemberDropdownOpen: (state, action) => { state.isMemberDropdownOpen = action.payload; },
+    setWallets: (state, action) => { state.wallets = { ...state.wallets, ...action.payload }; },
   },
 });
 
-export const { 
-  toggleSidebar, 
-  setSidebarOpen, 
-  toggleQuickActions, 
-  setQuickActionsOpen, 
-  setSelectedDate, 
-  setHoveredMenu, 
-  setIsMemberDropdownOpen 
+export const {
+  toggleSidebar,
+  setSidebarOpen,
+  toggleQuickActions,
+  setQuickActionsOpen,
+  setSelectedDate,
+  setHoveredMenu,
+  setIsMemberDropdownOpen,
+  setWallets
 } = dashboardSlice.actions;
 export default dashboardSlice.reducer;

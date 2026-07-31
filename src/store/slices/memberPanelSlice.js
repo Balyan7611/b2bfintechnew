@@ -64,6 +64,11 @@ const memberPanelSlice = createSlice({
     setSearchTerm: (state, action) => {
       state.searchTerm = action.payload;
     },
+    // Replaces the (initially hardcoded/dummy) service tiles with the live,
+    // active-only service list fetched from the backend Service master table.
+    setServiceCards: (state, action) => {
+      state.serviceCards = Array.isArray(action.payload) ? action.payload : [];
+    },
     setActiveTab: (state, action) => {
       state.activeTab = action.payload;
     },
@@ -158,7 +163,8 @@ export const {
   toggleDarkMode, 
   setSelectedDate,
   setSearchTerm,
-  setActiveTab, 
+  setServiceCards,
+  setActiveTab,
   setProfileDropdown, 
   toggleProfileDropdown,
   toggleSidebar,

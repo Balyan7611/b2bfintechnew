@@ -186,11 +186,17 @@ const AdminLoginPage = () => {
     sessionStorage.setItem('admin_token', token);
     sessionStorage.setItem('access_token', token);
 
+    // Extract the real numeric user ID from the JWT payload - same as member
+    // login does - so admin-only calls (e.g. Member/GetByID for the wallet
+    // header) have a valid ID to hit instead of falling back to 0/empty.
+    const numericId = decoded?.sub || decoded?.id || decoded?.nameid || '0';
+
     // Save the secure session
     saveSession({
       adminId,
       fullName: decoded.name || 'Admin',
       role: 1,
+      msrno: numericId,
       latitude: location?.latitude,
       longitude: location?.longitude,
       ip: clientIp || '127.0.0.1'

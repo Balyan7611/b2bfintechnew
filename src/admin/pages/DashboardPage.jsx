@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { API } from '../../api/endpoints';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { SITE_CONFIG } from '../../config/siteConfig';
+import { getServiceVisual, getServicePaletteColor } from '../../shared/utils/serviceVisuals';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import {
   toggleSidebar,
@@ -11,7 +12,8 @@ import {
   toggleQuickActions,
   setQuickActionsOpen,
   setHoveredMenu,
-  setIsMemberDropdownOpen
+  setIsMemberDropdownOpen,
+  setWallets
 } from '../../store/slices/dashboardSlice';
 import { clearSession, getSession } from '../../utils/authUtils';
 import { setNotification } from '../../store/slices/uiSlice';
@@ -643,7 +645,108 @@ const DashboardPage = () => {
 
   const chartFilterRef = useRef(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  
+
+  // "Services Overview" list: seeded with the old static cards so the panel
+  // never looks empty, then replaced with the live, active-only service list
+  // from the backend (Service master table) as soon as it loads.
+  const [dashboardCards, setDashboardCards] = useState(DASHBOARD_CARDS);
+
+  useEffect(() => {
+    const fetchServiceCards = async () => {
+      try {
+        const activeServices = await API.service.getActiveServices();
+        if (Array.isArray(activeServices) && activeServices.length > 0) {
+          const mapped = activeServices.map(s => ({
+            id: s.id,
+            title: s.name,
+            icon: getServiceVisual(s.name).icon,
+            color: getServicePaletteColor(s.name),
+            badge: null,
+            max: '0.00'
+          }));
+          setDashboardCards(mapped);
+        }
+      } catch (err) {
+        console.error('DashboardPage: Failed to fetch active services:', err);
+      }
+    };
+    fetchServiceCards();
+  }, []);
+
+  // Seed with all wallet types visible by default so nothing is hidden while the
+  // first live fetch from WalletType (DB) is still in flight.
+  const [walletTypes, setWalletTypes] = useState([
+    { code: 'MAIN', name: 'Main', isActive: true },
+    { code: 'AEPS', name: 'AEPS', isActive: true },
+    { code: 'COMMISSION', name: 'Commission', isActive: true }
+  ]);
+
+  // Fetch live wallet types + balances (AEPS / Main / Profit) for the header pills.
+  // Both the wallet name AND whether it's shown at all come live from the DB -
+  // deactivating a wallet type (WalletType.IsActive = 0) hides it here automatically.
+  //
+  // NOTE: Admin uses the same UserWalletBalance endpoint as Member/API-panel -
+  // confirmed working with an Admin JWT (returns mainBalance/aepsBalance/
+  // commissionBalance for the admin's own msrno). The earlier Member/GetByID
+  // attempt didn't actually return usable wallet fields, so it's reverted.
+  // "Independent from API panel" just means each panel fetches its own logged-in
+  // user's own msrno - it does not require a different endpoint.
+  useEffect(() => {
+    const fetchWalletHeaderData = async () => {
+      try {
+        const session = getSession();
+        const memberId = session?.msrno || session?.userId || '';
+
+        const [typesRes, balancesRes] = await Promise.all([
+          API.walletType.getActive({ pageNumber: 1, pageSize: 10000 }),
+          memberId ? API.userWalletBalance.getAll({ pageNumber: 1, pageSize: 1, memberId, silent: true }) : Promise.resolve(null)
+        ]);
+
+        if (Array.isArray(typesRes) && typesRes.length > 0) {
+          setWalletTypes(typesRes);
+        }
+
+        const row = Array.isArray(balancesRes?.data) ? balancesRes.data[0] : null;
+        if (row) {
+          dispatch(setWallets({
+            aeps: parseFloat(row.aepsBalance) || 0,
+            main: parseFloat(row.mainBalance) || 0,
+            profit: parseFloat(row.commissionBalance) || 0
+          }));
+        }
+      } catch (err) {
+        console.error('DashboardPage: Failed to fetch wallet header data:', err);
+      }
+    };
+
+    fetchWalletHeaderData();
+    const interval = setInterval(fetchWalletHeaderData, 30000);
+    return () => clearInterval(interval);
+  }, [dispatch]);
+
+  // Maps a WalletType DB record (Name: MAIN / AEPS / COMMISSION ...) to the matching
+  // balance field (already in Redux `wallets`) and a display color/icon tint.
+  const WALLET_TYPE_CONFIG = [
+    { match: 'AEPS', balanceKey: 'aeps', color: '#27AE60', bg: 'rgba(39,174,96,0.1)' },
+    { match: 'MAIN', balanceKey: 'main', color: '#1756AA', bg: 'rgba(23,86,170,0.1)' },
+    { match: 'COMMISSION', balanceKey: 'profit', color: '#EAA21F', bg: 'rgba(234,162,31,0.1)' }
+  ];
+
+  const headerWalletPills = walletTypes
+    .filter(wt => wt.isActive)
+    .map(wt => {
+      // `code` (MAIN/AEPS/COMMISSION) is only used internally to pick the right
+      // balance field/color. The label shown on screen is always the DB `name`
+      // exactly as typed - rename it in the DB and the pill updates to match.
+      const cfg = WALLET_TYPE_CONFIG.find(c => (wt.code || '').toUpperCase().includes(c.match));
+      const label = wt.name || wt.code || '';
+      return {
+        name: `${label} Wallet`,
+        value: (wallets[cfg?.balanceKey] || 0).toFixed(2),
+        color: cfg?.color || '#64748b',
+        bg: cfg?.bg || 'rgba(100,116,139,0.1)'
+      };
+    });
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -891,33 +994,17 @@ const DashboardPage = () => {
 
         <div className={styles.headerRight}>
           <div className={`${styles.headerWallets} admin-header-wallets`}>
-            <div className={styles.walletPill}>
-              <span className={styles.walletIconWrap} style={{ color: '#27AE60', background: 'rgba(39,174,96,0.1)' }}>
-                <FaWallet />
-              </span>
-              <div className={styles.walletInfo}>
-                <span className={styles.walletLabel}>AEPS Wallet</span>
-                <span className={styles.walletAmount}>{wallets.aeps.toFixed(2)}</span>
+            {headerWalletPills.map((pill, idx) => (
+              <div className={styles.walletPill} key={idx}>
+                <span className={styles.walletIconWrap} style={{ color: pill.color, background: pill.bg }}>
+                  <FaWallet />
+                </span>
+                <div className={styles.walletInfo}>
+                  <span className={styles.walletLabel}>{pill.name}</span>
+                  <span className={styles.walletAmount}>{pill.value}</span>
+                </div>
               </div>
-            </div>
-            <div className={styles.walletPill}>
-              <span className={styles.walletIconWrap} style={{ color: '#1756AA', background: 'rgba(23,86,170,0.1)' }}>
-                <FaWallet />
-              </span>
-              <div className={styles.walletInfo}>
-                <span className={styles.walletLabel}>Main Wallet</span>
-                <span className={styles.walletAmount}>{wallets.main.toFixed(2)}</span>
-              </div>
-            </div>
-            <div className={styles.walletPill}>
-              <span className={styles.walletIconWrap} style={{ color: '#EAA21F', background: 'rgba(234,162,31,0.1)' }}>
-                <FaWallet />
-              </span>
-              <div className={styles.walletInfo}>
-                <span className={styles.walletLabel}>Profit Wallet</span>
-                <span className={styles.walletAmount}>{wallets.profit.toFixed(2)}</span>
-              </div>
-            </div>
+            ))}
           </div>
           {/* Kill Switch (Emergency Freeze) */}
           <div 
@@ -1412,7 +1499,7 @@ const DashboardPage = () => {
                     <div className={`${styles.cardContainer} ${styles.servicesCard} ${styles.servicesCardMobileOrder}`}>
                       <h3 className={styles.sectionTitle}>Services Overview</h3>
                       <div className={styles.servicesList}>
-                        {DASHBOARD_CARDS.map((card, index) => (
+                        {dashboardCards.map((card, index) => (
                           <ServiceRow key={card.id} card={card} index={index} />
                         ))}
                       </div>

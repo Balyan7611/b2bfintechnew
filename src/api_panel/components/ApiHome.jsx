@@ -4,6 +4,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import styles from './ApiHome.module.css';
 import { FaCheckCircle, FaExclamationTriangle, FaClock, FaTimesCircle, FaServer, FaShieldAlt, FaStore, FaLandmark, FaMoneyBillWave, FaMobileAlt, FaFingerprint, FaWallet, FaQrcode, FaExchangeAlt, FaIdCard, FaAddressCard, FaUniversity, FaUserPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { API } from '../../api/endpoints';
+import { renderServiceIcon, getServiceColor } from '../../shared/utils/serviceVisuals';
 const ApiHome = () => {
   const navigate = useNavigate();
   const { isDarkMode } = useSelector((state) => state.memberPanel);
@@ -70,18 +72,43 @@ const ApiHome = () => {
     }
   };
 
-  const quickServices = [
-    { name: 'DMT', icon: <FaMoneyBillWave />, color: '#8E24AA', path: '/api-panel/dashboard/service/dmt', value: '₹ 12.5L', max: '₹ 20L', usagePercent: 62 },
-    { name: 'RECHARGE', icon: <FaMobileAlt />, color: '#1E88E5', path: '/api-panel/dashboard/service/mobile-recharge', value: '₹ 24K', max: '₹ 50K', usagePercent: 48 },
-    { name: 'AEPS', icon: <FaFingerprint />, color: '#43A047', path: '/api-panel/dashboard/service/aeps', value: '₹ 45L', max: '₹ 50L', usagePercent: 90 },
-    { name: 'PAYOUT', icon: <FaWallet />, color: '#E53935', path: '/api-panel/dashboard/service/payout', value: '₹ 8.2L', max: '₹ 15L', usagePercent: 55 },
-    { name: 'UPI', icon: <FaQrcode />, color: '#1A237E', path: '/api-panel/dashboard/service/upitransfer', value: '₹ 1.5L', max: '₹ 5L', usagePercent: 30 },
-    { name: 'W2W', icon: <FaExchangeAlt />, color: '#FB8C00', path: '/api-panel/dashboard/wallet/w2w', value: '₹ 9.1L', max: '₹ 10L', usagePercent: 91 },
-    { name: 'AADHARPAY', icon: <FaIdCard />, color: '#00897B', path: '/api-panel/dashboard/service/aadharpay', value: '₹ 2.8L', max: '₹ 5L', usagePercent: 56 },
-    { name: 'PAN', icon: <FaAddressCard />, color: '#D81B60', path: '/api-panel/dashboard/service/pan', value: '45/100', max: 'Cards', usagePercent: 45 },
-    { name: 'V-ACCOUNT', icon: <FaUniversity />, color: '#5E35B1', path: '/api-panel/dashboard/wallet/main', value: '₹ 18.5L', max: '₹ 25L', usagePercent: 74 },
-    { name: 'FUND REQ', icon: <FaUserPlus />, color: '#F4511E', path: '/api-panel/dashboard/wallet/fund-request', value: '₹ 32L', max: '₹ 50L', usagePercent: 64 }
-  ];
+  // Seeded with the old static tiles so the section never looks empty, then
+  // replaced with the live, active-only service list from the backend
+  // (Service master table) as soon as it loads.
+  const [quickServices, setQuickServices] = useState([
+    { name: 'DMT', icon: <FaMoneyBillWave />, color: '#8E24AA', value: '₹ 0.00', max: '₹ 0.00', usagePercent: 0 },
+    { name: 'RECHARGE', icon: <FaMobileAlt />, color: '#1E88E5', value: '₹ 0.00', max: '₹ 0.00', usagePercent: 0 },
+    { name: 'AEPS', icon: <FaFingerprint />, color: '#43A047', value: '₹ 0.00', max: '₹ 0.00', usagePercent: 0 },
+    { name: 'PAYOUT', icon: <FaWallet />, color: '#E53935', value: '₹ 0.00', max: '₹ 0.00', usagePercent: 0 },
+    { name: 'UPI', icon: <FaQrcode />, color: '#1A237E', value: '₹ 0.00', max: '₹ 0.00', usagePercent: 0 },
+    { name: 'W2W', icon: <FaExchangeAlt />, color: '#FB8C00', value: '₹ 0.00', max: '₹ 0.00', usagePercent: 0 },
+    { name: 'AADHARPAY', icon: <FaIdCard />, color: '#00897B', value: '₹ 0.00', max: '₹ 0.00', usagePercent: 0 },
+    { name: 'PAN', icon: <FaAddressCard />, color: '#D81B60', value: '0/0', max: 'Cards', usagePercent: 0 },
+    { name: 'V-ACCOUNT', icon: <FaUniversity />, color: '#5E35B1', value: '₹ 0.00', max: '₹ 0.00', usagePercent: 0 },
+    { name: 'FUND REQ', icon: <FaUserPlus />, color: '#F4511E', value: '₹ 0.00', max: '₹ 0.00', usagePercent: 0 }
+  ]);
+
+  useEffect(() => {
+    const fetchQuickServices = async () => {
+      try {
+        const activeServices = await API.service.getActiveServices();
+        if (Array.isArray(activeServices) && activeServices.length > 0) {
+          const mapped = activeServices.map(s => ({
+            name: s.name,
+            icon: renderServiceIcon(s.name),
+            color: getServiceColor(s.name),
+            value: '₹ 0.00',
+            max: '₹ 0.00',
+            usagePercent: 0
+          }));
+          setQuickServices(mapped);
+        }
+      } catch (err) {
+        console.error('ApiHome: Failed to fetch active services:', err);
+      }
+    };
+    fetchQuickServices();
+  }, []);
 
   return (
     <div className={`${styles.container} ${isDarkMode ? styles.dark : ''}`}>
