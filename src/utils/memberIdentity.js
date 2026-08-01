@@ -16,10 +16,21 @@ export const isNumericId = (val) => {
     return s !== '' && s !== '0' && /^\d+$/.test(s);
 };
 
-const readToken = () =>
-    sessionStorage.getItem('access_token') || localStorage.getItem('access_token') ||
-    sessionStorage.getItem('member_token') || localStorage.getItem('member_token') ||
-    sessionStorage.getItem('api_token') || localStorage.getItem('api_token');
+const readToken = () => {
+    if (typeof window !== 'undefined') {
+        const path = window.location.pathname;
+        if (path.startsWith('/api-panel')) {
+            return sessionStorage.getItem('api_token') || localStorage.getItem('api_token') ||
+                   sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+        }
+        if (path.startsWith('/admin')) {
+            return sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token');
+        }
+    }
+    return sessionStorage.getItem('access_token') || localStorage.getItem('access_token') ||
+           sessionStorage.getItem('member_token') || localStorage.getItem('member_token') ||
+           sessionStorage.getItem('api_token') || localStorage.getItem('api_token');
+};
 
 // The LoginId is always reliable — it's what the user typed to log in.
 export const getLoginId = () => {

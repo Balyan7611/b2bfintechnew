@@ -329,9 +329,9 @@ input:checked + .slider:before {
 .table th {
   background: var(--table-header-bg);
   color: var(--table-header-text);
-  padding: 16px 14px;
+  padding: 8px 6px;
   text-align: left;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -340,8 +340,8 @@ input:checked + .slider:before {
 }
 
 .table td {
-  padding: 14px 16px;
-  font-size: 0.85rem;
+  padding: 8px 6px;
+  font-size: 0.72rem;
   color: #4E6080;
   border-bottom: 1px solid #EEF3FC;
   vertical-align: middle;

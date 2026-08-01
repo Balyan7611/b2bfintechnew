@@ -417,9 +417,9 @@
 
 .benTable th {
   background: linear-gradient(90deg, #1756AA 0%, #0D1B3E 100%);
-  padding: 9px 14px;
+  padding: 8px 6px;
   text-align: left;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: #ffffff;
   text-transform: uppercase;
@@ -439,8 +439,8 @@
 }
 
 .benTable td {
-  padding: 9px 14px;
-  font-size: 0.85rem;
+  padding: 8px 6px;
+  font-size: 0.72rem;
   color: #1e293b;
   border-bottom: 1px solid #EDF2F7;
   font-weight: 500;

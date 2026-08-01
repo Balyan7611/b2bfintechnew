@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FaShieldAlt, FaServer, FaCheckCircle, FaExclamationTriangle, FaPaperPlane, FaGlobe, FaNetworkWired, FaHistory, FaTrash, FaToggleOn, FaToggleOff, FaTimes } from 'react-icons/fa';
 import AdminTable from '../../shared/components/common/AdminTable';
 import { API } from '../../api/endpoints';
@@ -11,6 +11,8 @@ const ApiWhitelisting = () => {
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({ show: false, id: null });
   const [otp, setOtp] = useState('');
   const [otpToken, setOtpToken] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -28,23 +30,28 @@ const ApiWhitelisting = () => {
   const session = getSession();
   const currentUserId = session?.userId || session?.msrno || 2;
 
-  const fetchIpList = async () => {
+  const fetchIpList = useCallback(async () => {
     setLoadingList(true);
     try {
       const res = await API.ipAuthanticate.getAll({ userId: currentUserId > 0 ? currentUserId : '' });
       const data = res?.data?.items || res?.data?.data || res?.data || (Array.isArray(res) ? res : []);
-      setIpList(Array.isArray(data) ? data : []);
+      const rawList = Array.isArray(data) ? data : [];
+      // Filter out any localhost IP addresses
+      const filtered = rawList.filter(item => {
+        const ip = String(item.ip || item.IP || '').trim().toLowerCase();
+        return ip !== 'localhost' && ip !== '127.0.0.1' && ip !== '::1';
+      });
+      setIpList(filtered);
     } catch (err) {
       console.error('Failed to fetch IP whitelist:', err);
     } finally {
       setLoadingList(false);
     }
-  };
+  }, [currentUserId]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchIpList();
-  }, []);
+  }, [fetchIpList]);
 
   // STEP 1: Send OTP for IP Whitelisting
   const handleSubmit = async (e) => {
@@ -52,6 +59,13 @@ const ApiWhitelisting = () => {
     if (!inputValue.trim()) return;
     setErrorMessage('');
     setModalError('');
+
+    const trimmedIp = inputValue.trim().toLowerCase();
+    if (trimmedIp === 'localhost' || trimmedIp === '127.0.0.1' || trimmedIp === '::1') {
+      setErrorMessage('Localhost IP address cannot be whitelisted.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -75,6 +89,7 @@ const ApiWhitelisting = () => {
         setOtp('');
         setModalError('');
         setVerifySuccess(false);
+        setShowAddModal(false); // Close add modal before opening OTP modal
         setShowOtpModal(true);
       } else {
         throw new Error(res?.message || 'Failed to send OTP for IP Whitelisting');
@@ -144,18 +159,24 @@ const ApiWhitelisting = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this IP entry?')) return;
+  const handleDelete = (id) => {
+    setDeleteModal({ show: true, id });
+  };
+
+  const confirmDelete = async () => {
+    const id = deleteModal.id;
+    if (!id) return;
     try {
       const res = await API.ipAuthanticate.delete(id);
       if (res?.status === false) {
         alert(res?.message || 'Failed to delete entry. The server returned an error.');
       } else {
-        alert(res?.message || 'IP entry deleted successfully.');
         await fetchIpList();
       }
     } catch (err) {
       alert('Failed to delete entry: ' + err.message);
+    } finally {
+      setDeleteModal({ show: false, id: null });
     }
   };
 
@@ -176,72 +197,8 @@ const ApiWhitelisting = () => {
     <div className={styles.container}>
 
       <div className={styles.topCards}>
-        <div className={styles.configCard}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>
-              <span className={styles.cardIconBox}><FaNetworkWired /></span>
-              IP Whitelisting
-            </div>
-            <span className={styles.stepBadge}>2-Step Verification</span>
-          </div>
-
-          {errorMessage && (
-            <div style={{ background: '#FEE2E2', color: '#B91C1C', padding: '12px 16px', borderRadius: '8px', marginBottom: '15px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid #FCA5A5', fontWeight: 600 }}>
-              <FaExclamationTriangle /> {errorMessage}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className={styles.formGrid}>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>IP Address</label>
-              <div className={styles.inputWrap}>
-                <div className={styles.iconWrap}>
-                  <FaNetworkWired />
-                </div>
-                <input
-                  className={styles.input}
-                  placeholder="e.g. 48.43.181.120"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  required
-                />
-              </div>
-              {inputValue && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div className={`${styles.statusIndicator} ${styles.valid}`}>
-                    <FaCheckCircle /> Valid IP Format
-                  </div>
-                  <span className={styles.hintText}>Enter Server IP to Whitelist</span>
-                </div>
-              )}
-            </div>
-
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Reason / Remarks</label>
-              <textarea
-                className={styles.textarea}
-                placeholder="e.g. Production API Gateway server IP"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                rows={3}
-              />
-            </div>
-
-            <div className={styles.submitWrap} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <button
-                type="submit"
-                className={styles.submitBtn}
-                style={{ width: '100%', margin: 0, whiteSpace: 'nowrap' }}
-                disabled={isSubmitting || !inputValue.trim()}
-              >
-                {isSubmitting ? 'Sending OTP...' : 'Send OTP & Whitelist'} <FaPaperPlane />
-              </button>
-            </div>
-          </form>
-        </div>
-
         <div className={styles.configCard} style={{ minWidth: 0 }}>
-          <ApiCredentials compact />
+          <ApiCredentials compact={false} />
         </div>
       </div>
 
@@ -249,6 +206,33 @@ const ApiWhitelisting = () => {
         <AdminTable
           title="YOUR WHITELISTED IPS"
           icon={<FaHistory />}
+          rightAction={
+            <button
+              onClick={() => {
+                setErrorMessage('');
+                setInputValue('');
+                setReason('');
+                setShowAddModal(true);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'linear-gradient(135deg, #1756AA 0%, #0D1B3E 100%)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s'
+              }}
+            >
+              <FaNetworkWired /> Whitelist New IP
+            </button>
+          }
           columns={tableColumns}
           data={paginatedData}
           renderRow={(item) => {
@@ -321,11 +305,153 @@ const ApiWhitelisting = () => {
         </div>
       </div>
 
+      {/* Add IP Modal */}
+      {showAddModal && (
+        <div className={styles.modalOverlay} onClick={() => !isSubmitting && setShowAddModal(false)}>
+          <div className={styles.modalContent} style={{ maxWidth: '500px', textAlign: 'left', position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <button 
+              className={styles.closeModalBtn} 
+              onClick={() => setShowAddModal(false)}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'transparent',
+                border: 'none',
+                color: '#64748b',
+                cursor: 'pointer',
+                fontSize: '1.25rem'
+              }}
+            >
+              <FaTimes />
+            </button>
+            <h3 className={styles.modalTitle} style={{ marginBottom: '6px' }}>Whitelist New IP</h3>
+            <p className={styles.modalSubtitle} style={{ marginBottom: '20px' }}>Configure API access for a new server IP address.</p>
+            
+            {errorMessage && (
+              <div style={{ background: '#FEE2E2', color: '#B91C1C', padding: '12px 16px', borderRadius: '8px', marginBottom: '15px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid #FCA5A5', fontWeight: 600 }}>
+                <FaExclamationTriangle /> {errorMessage}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className={styles.formGrid}>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>IP Address</label>
+                <div className={styles.inputWrap}>
+                  <div className={styles.iconWrap}>
+                    <FaNetworkWired />
+                  </div>
+                  <input
+                    className={styles.input}
+                    placeholder="e.g. 48.43.181.120"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    required
+                  />
+                </div>
+                {inputValue && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className={`${styles.statusIndicator} ${styles.valid}`}>
+                      <FaCheckCircle /> Valid IP Format
+                    </div>
+                    <span className={styles.hintText}>Enter Server IP to Whitelist</span>
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Reason / Remarks</label>
+                <textarea
+                  className={styles.textarea}
+                  placeholder="e.g. Production API Gateway server IP"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div className={styles.modalActions} style={{ justifyContent: 'flex-end', marginTop: '10px' }}>
+                <button 
+                  type="button" 
+                  className={styles.cancelBtn} 
+                  onClick={() => setShowAddModal(false)}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={styles.submitBtn}
+                  style={{ margin: 0 }}
+                  disabled={isSubmitting || !inputValue.trim()}
+                >
+                  {isSubmitting ? 'Sending OTP...' : 'Send OTP & Whitelist'} <FaPaperPlane />
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.show && (
+        <div className={styles.modalOverlay} onClick={() => setDeleteModal({ show: false, id: null })}>
+          <div className={styles.modalContent} style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <button 
+              className={styles.closeModalBtn} 
+              onClick={() => setDeleteModal({ show: false, id: null })}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'transparent',
+                border: 'none',
+                color: '#64748b',
+                cursor: 'pointer',
+                fontSize: '1.25rem'
+              }}
+            >
+              <FaTimes />
+            </button>
+            <div className={styles.successIconWrap} style={{ background: '#FEE2E2', marginBottom: '16px' }}>
+              <FaTrash className={styles.successIcon} style={{ color: '#EF4444' }} />
+            </div>
+            <h3 className={styles.modalTitle} style={{ marginBottom: '6px' }}>Delete IP Entry</h3>
+            <p className={styles.modalSubtitle} style={{ marginBottom: '20px' }}>Are you sure you want to remove this IP address from the whitelist?</p>
+            <div className={styles.modalActions}>
+              <button className={styles.cancelBtn} onClick={() => setDeleteModal({ show: false, id: null })}>Cancel</button>
+              <button 
+                className={styles.submitBtn} 
+                style={{ margin: 0, padding: '10px 24px', background: '#EF4444' }} 
+                onClick={confirmDelete}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* OTP Verification Modal */}
       {showOtpModal && (
         <div className={styles.modalOverlay} onClick={() => !isVerifying && setShowOtpModal(false)}>
-          <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-            <button className={styles.closeModalBtn} onClick={() => setShowOtpModal(false)}><FaTimes /></button>
+          <div className={styles.modalContent} style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <button 
+              className={styles.closeModalBtn} 
+              onClick={() => setShowOtpModal(false)}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'transparent',
+                border: 'none',
+                color: '#64748b',
+                cursor: 'pointer',
+                fontSize: '1.25rem'
+              }}
+            >
+              <FaTimes />
+            </button>
 
             {verifySuccess ? (
               <div className={styles.successScreen}>

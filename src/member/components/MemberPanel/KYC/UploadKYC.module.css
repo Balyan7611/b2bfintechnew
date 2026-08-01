@@ -63,8 +63,8 @@
   background: rgba(23, 86, 170, 0.04);
   color: var(--color-text-secondary, #4E6080);
   font-weight: 700;
-  font-size: 0.78rem;
-  padding: 16px 20px;
+  font-size: 0.7rem;
+  padding: 8px 6px;
   text-align: left;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -72,7 +72,7 @@
 }
 
 .uploadTable td {
-  padding: 16px 20px;
+  padding: 8px 6px;
   border-bottom: 1px solid var(--color-border, #EEF3FC);
   vertical-align: middle;
   transition: background 0.2s ease;

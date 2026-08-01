@@ -14,6 +14,10 @@ const SMSTemplate = () => {
   const [editingRowId, setEditingRowId] = useState(null);
   const [backupRow, setBackupRow] = useState(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
+
   const [formData, setFormData] = useState({
     category: '',
     isSms: true,
@@ -82,6 +86,22 @@ const SMSTemplate = () => {
   React.useEffect(() => {
     fetchData();
   }, []);
+
+  const filteredTemplates = templates.filter(tmp => {
+    const term = searchQuery.toLowerCase();
+    const catName = categories.find(c => c.id == tmp.categoryId)?.name || tmp.categoryId || tmp.category || '';
+    return catName.toLowerCase().includes(term) || (tmp.template && tmp.template.toLowerCase().includes(term));
+  });
+
+  const totalPages = Math.ceil(filteredTemplates.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedTemplates = filteredTemplates.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -253,7 +273,12 @@ const SMSTemplate = () => {
         <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
-            <select className={styles.selectEntries} style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+            <select 
+              className={styles.selectEntries} 
+              style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}
+              value={itemsPerPage}
+              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+            >
               <option value={10}>10</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
@@ -275,6 +300,8 @@ const SMSTemplate = () => {
               type="text" 
               placeholder="Search templates..." 
               style={{ borderRadius: '10px' }}
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             />
           </div>
         </div>
@@ -297,18 +324,18 @@ const SMSTemplate = () => {
               </tr>
             </thead>
             <tbody>
-              {templates.length === 0 ? (
+              {paginatedTemplates.length === 0 ? (
                 <tr>
                    <td colSpan="10" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
                       <div>No templates defined</div>
                    </td>
                 </tr>
               ) : (
-                templates.map((tmp, idx) => {
+                paginatedTemplates.map((tmp, idx) => {
                   return (
                     <tr key={tmp.id} className={idx % 2 === 0 ? styles.rowEven : styles.rowOdd}>
                       {/* S.No */}
-                      <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{idx + 1}</td>
+                      <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{startIndex + idx + 1}</td>
                       
                       {/* Unified Action Column (Now 2nd Column) */}
                       <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '12px 0' }}>
@@ -566,11 +593,36 @@ const SMSTemplate = () => {
         </div>
 
         <div className={styles.paginationRow} style={{ marginTop: '20px', paddingTop: '12px' }}>
-          <span style={{ fontSize: '0.75rem', color: '#718096' }}>Showing {templates.length > 0 ? 1 : 0} to {templates.length} of {templates.length} entries</span>
+          <span style={{ fontSize: '0.75rem', color: '#718096' }}>
+            Showing {filteredTemplates.length > 0 ? startIndex + 1 : 0} to {Math.min(startIndex + itemsPerPage, filteredTemplates.length)} of {filteredTemplates.length} entries
+          </span>
           <div className={styles.pagination} style={{ display: 'flex', gap: '6px' }}>
-            <button className={styles.pageBtn} style={{ width: '32px', height: '32px' }} disabled><FaChevronLeft /></button>
-            <button className={`${styles.pageBtn} ${styles.pageActive}`} style={{ width: '32px', height: '32px' }}>1</button>
-            <button className={styles.pageBtn} style={{ width: '32px', height: '32px' }} disabled><FaChevronRight /></button>
+            <button 
+              className={styles.pageBtn} 
+              style={{ width: '32px', height: '32px' }} 
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+            >
+              <FaChevronLeft />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button 
+                key={i + 1}
+                className={`${styles.pageBtn} ${currentPage === i + 1 ? styles.pageActive : ''}`} 
+                style={{ width: '32px', height: '32px' }}
+                onClick={() => handlePageChange(i + 1)}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button 
+              className={styles.pageBtn} 
+              style={{ width: '32px', height: '32px' }} 
+              disabled={currentPage === totalPages || totalPages === 0}
+              onClick={() => handlePageChange(currentPage + 1)}
+            >
+              <FaChevronRight />
+            </button>
           </div>
         </div>
       </div>

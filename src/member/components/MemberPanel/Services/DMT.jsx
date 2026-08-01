@@ -10,18 +10,9 @@ import { SITE_CONFIG } from '../../../../config/siteConfig';
 import { useFetchServices } from '../../../../hooks/useFetchServices';
 
 // ---------- Constants ----------
-const DEFAULT_BENEFICIARIES = [
-  { id: 1, name: 'Sachin Balyan', bank: 'Kotak Bank', accountNo: '9745556971', ifsc: 'KKBK0000962', verified: true },
-  { id: 2, name: 'Dandugula Shadulla', bank: 'HDFC Bank', accountNo: '50100643538245', ifsc: 'HDFC0000001', verified: true },
-  { id: 3, name: 'Mr Karanvir', bank: 'IDFC Bank', accountNo: '10012315254', ifsc: 'IDFB0020101', verified: true },
-];
+const DEFAULT_BENEFICIARIES = [];
 
-const CONTACTS = [
-  { mobile: '9784905576', name: 'Vishnu Prajapati', rcode: 0 },
-  { mobile: '6377749427', name: 'Rahul Sharma', rcode: 1 },
-  { mobile: '9782921295', name: 'New Customer (Register)', rcode: 4 },
-  { mobile: '6378840248', name: 'Blocked User', rcode: 3 },
-];
+const CONTACTS = [];
 
 const POPULAR_BANKS = [
   { id: '1', name: 'State Bank of India', code: 'SBI', imgSrc: '/images/SBI.png' },

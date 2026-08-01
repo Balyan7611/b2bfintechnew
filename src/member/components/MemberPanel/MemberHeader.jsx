@@ -259,19 +259,10 @@ const MemberHeader = () => {
         return;
       }
 
-      // Balances come straight off the member record:
-      // GET /Member/GetByID/{id} -> data.mainWallet / data.aepsWallet
-      const [typesRes, memberRes] = await Promise.all([
+      const [typesRes, balances] = await Promise.all([
         API.walletType.getActive({ pageNumber: 1, pageSize: 10000 }),
-        API.member.getByIdRaw(memberId)
+        API.userWalletBalance.getForMember(memberId)
       ]);
-
-      const m = memberRes?.data?.data || memberRes?.data || memberRes || {};
-      const balances = {
-        mainBalance: parseFloat(m.mainWallet ?? m.MainWallet) || 0,
-        aepsBalance: parseFloat(m.aepsWallet ?? m.AepsWallet) || 0,
-        commissionBalance: parseFloat(m.commissionWallet ?? m.CommissionWallet) || 0
-      };
 
       // Only overwrite when the API actually returned wallet types - keeps last
       // known list instead of hiding everything if this call ever fails.

@@ -100,10 +100,9 @@ const AEPSWalletHistory = () => {
       <AdminTable
         title="AEPS EWALLET SUMMARY"
         topContent={
-          !isApiPanel ? (
           <div className={styles.filterSection}>
             <div className={styles.filterRow}>
-              <div className={styles.formGroup}>
+               <div className={styles.formGroup}>
                 <label>From Date</label>
                 <input type="date" className={styles.inputControl} name="fromDate" value={filters.fromDate} onChange={(e) => dispatch(updateAEPSWalletFilters({fromDate: e.target.value}))} />
               </div>
@@ -121,7 +120,6 @@ const AEPSWalletHistory = () => {
               <button className={styles.submitBtn} disabled={isLoading} onClick={loadHistory}>{isLoading ? 'Loading...' : 'Filter Records'}</button>
             </div>
           </div>
-          ) : null
         }
         columns={columns}
         data={filteredList}
@@ -143,8 +141,8 @@ const AEPSWalletHistory = () => {
             <td>₹{item.tds}</td>
             <td>₹{item.charge}</td>
             <td style={{fontWeight: 800}}>₹{item.closing}</td>
-            <td style={{fontSize: '0.8rem', color: '#4E6080'}}>{item.date}</td>
-            <td style={{maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.8rem', color: '#718096'}} title={item.desc}>
+            <td style={{color: '#4E6080'}}>{item.date}</td>
+            <td style={{maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#718096'}} title={item.desc}>
               {item.desc}
             </td>
             <td>

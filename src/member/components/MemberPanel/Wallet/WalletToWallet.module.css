@@ -362,8 +362,8 @@
 
 .table th {
   background-color: #f8fafc;
-  padding: 10px 12px;
-  font-size: 0.75rem;
+  padding: 8px 6px;
+  font-size: 0.72rem;
   font-weight: 600;
   color: #475569;
   text-transform: uppercase;
@@ -373,8 +373,8 @@
 }
 
 .table td {
-  padding: 12px;
-  font-size: 0.85rem;
+  padding: 8px 6px;
+  font-size: 0.72rem;
   color: #1e293b;
   border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;

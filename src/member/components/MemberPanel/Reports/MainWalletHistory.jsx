@@ -57,22 +57,27 @@ const MainWalletHistory = () => {
       const meLabel = myName && myLoginId ? `${myName} (${myLoginId})`
         : myName || myLoginId || `Member #${memberId}`;
 
-      dispatch(setMainWalletList(items.map(r => ({
-        id: r.id,
-        member: r.memberName
-          ? `${r.memberName}${r.loginId ? ` (${r.loginId})` : ''}`
-          : (r.loginId || meLabel),
-        opening: r.openingBalance.toFixed(2),
-        amount: r.amount.toFixed(2),
-        factor: r.isCredit ? 'Credit' : 'Debit',
-        surcharge: r.surcharge.toFixed(2),
-        gst: r.gst.toFixed(2),
-        tds: r.tds.toFixed(2),
-        commission: r.commission.toFixed(2),
-        closing: r.balance.toFixed(2),
-        narration: r.narration || r.description || '-',
-        date: formatLedgerDate(r.createdDate)
-      }))));
+      dispatch(setMainWalletList(items.map(r => {
+        const rowName = r.memberName || myName;
+        const rowLoginId = r.loginId || myLoginId;
+        const memberLabel = rowName && rowLoginId ? `${rowName} (${rowLoginId})`
+          : rowName || rowLoginId || meLabel;
+
+        return {
+          id: r.id,
+          member: memberLabel,
+          opening: r.openingBalance.toFixed(2),
+          amount: r.amount.toFixed(2),
+          factor: r.isCredit ? 'Credit' : 'Debit',
+          surcharge: r.surcharge.toFixed(2),
+          gst: r.gst.toFixed(2),
+          tds: r.tds.toFixed(2),
+          commission: r.commission.toFixed(2),
+          closing: r.balance.toFixed(2),
+          narration: r.narration || r.description || '-',
+          date: formatLedgerDate(r.createdDate)
+        };
+      })));
     } catch (err) {
       console.error('MainWalletHistory: failed to load', err);
       dispatch(setMainWalletList([]));
@@ -100,11 +105,10 @@ const MainWalletHistory = () => {
   ];
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${styles.compactTableContainer}`}>
       <AdminTable
         title="E-WALLET HISTORY"
         topContent={
-          !isApiPanel ? (
           <div className={styles.filterSection}>
             <div className={styles.filterRow}>
               <div className={styles.formGroup}>
@@ -127,7 +131,6 @@ const MainWalletHistory = () => {
               </button>
             </div>
           </div>
-          ) : null
         }
         columns={columns}
         data={filteredList}
@@ -149,10 +152,10 @@ const MainWalletHistory = () => {
             <td>₹{item.tds}</td>
             <td style={{color: '#27AE60', fontWeight: 700}}>₹{item.commission}</td>
             <td style={{fontWeight: 800}}>₹{item.closing}</td>
-            <td style={{maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.8rem', color: '#718096'}} title={item.narration}>
+            <td style={{maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#718096'}} title={item.narration}>
               {item.narration}
             </td>
-            <td style={{fontSize: '0.8rem', color: '#4E6080'}}>{item.date}</td>
+            <td style={{color: '#4E6080'}}>{item.date}</td>
           </tr>
         )}
         searchQuery={searchQuery}

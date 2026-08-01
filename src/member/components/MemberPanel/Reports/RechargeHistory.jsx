@@ -53,7 +53,7 @@ const RechargeHistory = () => {
         renderRow={(item, index) => (
           <tr key={item.id}>
             <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
-            <td style={{ fontSize: '0.8rem', color: '#4E6080' }}>{item.date}</td>
+            <td style={{ color: '#4E6080' }}>{item.date}</td>
             <td style={{ fontWeight: 700, color: '#1756AA' }}>{item.number}</td>
             <td>{item.operator}</td>
             <td style={{ fontWeight: 800 }}>₹{item.amount}</td>

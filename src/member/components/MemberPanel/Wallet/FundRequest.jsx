@@ -59,8 +59,7 @@ const formatCardNumber = (accNo) => {
 };
 
 const FundRequest = () => {
-  // NOTE: the Submit form and Company Bank cards used to be hidden on the API
-  // panel. Both panels now show the full page, so no panel check is needed.
+  const isApiPanel = typeof window !== 'undefined' && window.location.pathname.startsWith('/api-panel');
 
   // Live data
   const [memberId, setMemberId] = useState(null);
@@ -539,7 +538,7 @@ const FundRequest = () => {
           </div>
         </div>
 
-        <div className={styles.tableWrapper}>
+        <div className={`${styles.tableWrapper} ${isApiPanel ? styles.compactTableContainer : ''}`}>
           <table className={styles.premiumTable}>
             <thead>
               <tr>

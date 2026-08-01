@@ -14,7 +14,19 @@ export const generatePassword = (fullName) => {
 
 // ── localStorage Helpers ───────────────────────────────
 const USERS_KEY = 'bss_registered_users';
-const SESSION_KEY = 'bss_current_session';
+
+export const getSessionKey = () => {
+  if (typeof window !== 'undefined') {
+    const path = window.location.pathname;
+    if (path.startsWith('/api-panel')) {
+      return 'bss_api_session';
+    }
+    if (path.startsWith('/admin')) {
+      return 'bss_admin_session';
+    }
+  }
+  return 'bss_current_session';
+};
 
 export const saveUser = (userData) => {
   const existing = getAllUsers();
@@ -74,20 +86,24 @@ export const saveSession = (user) => {
     longitude: typeof user?.longitude === 'number' ? user.longitude : 0,
     loggedInAt: new Date().toISOString()
   });
-  localStorage.setItem(SESSION_KEY, sessionData);
-  sessionStorage.setItem(SESSION_KEY, sessionData);
+  const key = getSessionKey();
+  localStorage.setItem(key, sessionData);
+  sessionStorage.setItem(key, sessionData);
 };
 
 export const getSession = () => {
   try {
-    return JSON.parse(sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY));
+    const key = getSessionKey();
+    return JSON.parse(sessionStorage.getItem(key) || localStorage.getItem(key));
   } catch {
     return null;
   }
 };
 
 export const clearSession = () => {
-  localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem('bss_current_session');
+  localStorage.removeItem('bss_api_session');
+  localStorage.removeItem('bss_admin_session');
   localStorage.removeItem('admin_token');
   localStorage.removeItem('access_token');
   localStorage.removeItem('member_token');

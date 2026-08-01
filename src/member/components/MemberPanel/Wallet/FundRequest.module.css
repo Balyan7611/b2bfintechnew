@@ -858,7 +858,7 @@
 }
 
 .premiumTable th {
-  padding: 14px 16px;
+  padding: 8px 6px;
   background: linear-gradient(90deg, #1756AA 0%, #0d1b3e 100%);
   color: #ffffff;
   font-size: 0.72rem;
@@ -878,9 +878,9 @@
 }
 
 .premiumTable td {
-  padding: 14px 16px;
+  padding: 8px 6px;
   border-bottom: 1px solid #f1f5f9;
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   font-weight: 650;
   color: #1e293b;
   white-space: nowrap;
@@ -1316,4 +1316,19 @@
     align-items: center;
     gap: 12px;
   }
+}
+
+/* Compact Table View to prevent horizontal scroll where possible */
+.compactTableContainer th {
+  padding: 8px 6px !important;
+  font-size: 0.68rem !important;
+}
+
+.compactTableContainer td {
+  padding: 8px 6px !important;
+  font-size: 0.72rem !important;
+}
+
+.compactTableContainer tr td span {
+  font-size: 0.65rem !important;
 }

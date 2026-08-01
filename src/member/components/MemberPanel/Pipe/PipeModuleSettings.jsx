@@ -357,20 +357,20 @@ const PipeModuleSettings = () => {
           <table className={styles.table} style={{ width: '100%', minWidth: '1600px', tableLayout: 'auto' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '60px', color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem' }}>S.NO.</th>
-                <th style={{ width: '90px', textAlign: 'center', color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem' }}>ACTION</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem' }}>SERVICE</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem' }}>PIPE</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem' }}>MODULE NAME</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem', textAlign: 'center' }}>IS REQUIRED</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem', textAlign: 'center' }}>IS OTP</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem', textAlign: 'center' }}>IS TPIN</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem', textAlign: 'center' }}>IS FACE</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem', textAlign: 'center' }}>IS FINGER</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem', textAlign: 'center' }}>IS IRIS</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem' }}>WADH FACE</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem' }}>WADH FINGER</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem' }}>WADH IRIS</th>
+                <th style={{ width: '60px', color: '#fff', border: 'none' }}>S.NO.</th>
+                <th style={{ width: '90px', textAlign: 'center', color: '#fff', border: 'none' }}>ACTION</th>
+                <th style={{ color: '#fff', border: 'none' }}>SERVICE</th>
+                <th style={{ color: '#fff', border: 'none' }}>PIPE</th>
+                <th style={{ color: '#fff', border: 'none' }}>MODULE NAME</th>
+                <th style={{ color: '#fff', border: 'none', textAlign: 'center' }}>IS REQUIRED</th>
+                <th style={{ color: '#fff', border: 'none', textAlign: 'center' }}>IS OTP</th>
+                <th style={{ color: '#fff', border: 'none', textAlign: 'center' }}>IS TPIN</th>
+                <th style={{ color: '#fff', border: 'none', textAlign: 'center' }}>IS FACE</th>
+                <th style={{ color: '#fff', border: 'none', textAlign: 'center' }}>IS FINGER</th>
+                <th style={{ color: '#fff', border: 'none', textAlign: 'center' }}>IS IRIS</th>
+                <th style={{ color: '#fff', border: 'none' }}>WADH FACE</th>
+                <th style={{ color: '#fff', border: 'none' }}>WADH FINGER</th>
+                <th style={{ color: '#fff', border: 'none' }}>WADH IRIS</th>
               </tr>
             </thead>
             <tbody>
@@ -387,29 +387,29 @@ const PipeModuleSettings = () => {
                   const serviceName = services.find(s => s.id === item.serviceId)?.name || `Service #${item.serviceId}`;
                   return (
                     <tr key={item.id} className={index % 2 === 0 ? styles.rowEven : styles.rowOdd}>
-                      <td style={{ color: '#A0AEC0', fontWeight: 700, padding: '12px 16px' }}>{index + 1}</td>
-                      <td style={{ textAlign: 'center', padding: '12px 16px' }}>
+                      <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{index + 1}</td>
+                      <td style={{ textAlign: 'center' }}>
                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                           <button onClick={() => handleEdit(item)} className={styles.editBtn} style={{ width: '32px', height: '32px', background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', border: 'none', borderRadius: '8px', cursor: 'pointer' }} title="Edit"><FaEdit /></button>
                           <button onClick={() => setShowConfirmModal({ isOpen: true, id: item.id })} className={styles.deleteBtn} style={{ width: '32px', height: '32px', background: 'rgba(239, 68, 68, 0.1)', color: '#E53E3E', border: 'none', borderRadius: '8px', cursor: 'pointer' }} title="Delete"><FaTrash /></button>
                         </div>
                       </td>
-                      <td style={{ fontWeight: 600, color: '#334155', padding: '12px 16px' }}>{serviceName}</td>
-                      <td style={{ color: '#475569', padding: '12px 16px' }}>{item.pipe}</td>
-                      <td style={{ padding: '12px 16px' }}>
+                      <td style={{ fontWeight: 600, color: '#334155' }}>{serviceName}</td>
+                      <td style={{ color: '#475569' }}>{item.pipe}</td>
+                      <td>
                         <span style={{ background: 'rgba(23, 86, 170, 0.08)', color: '#1756AA', padding: '4px 8px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem' }}>
                           {item.moduleName}
                         </span>
                       </td>
-                      <td style={{ textAlign: 'center', padding: '12px 16px' }}><ToggleSwitch checked={item.isRequired} onChange={() => toggleField(item.id, 'isRequired')} /></td>
-                      <td style={{ textAlign: 'center', padding: '12px 16px' }}><ToggleSwitch checked={item.isOtp} onChange={() => toggleField(item.id, 'isOtp')} /></td>
-                      <td style={{ textAlign: 'center', padding: '12px 16px' }}><ToggleSwitch checked={item.isTpin} onChange={() => toggleField(item.id, 'isTpin')} /></td>
-                      <td style={{ textAlign: 'center', padding: '12px 16px' }}><ToggleSwitch checked={item.isface} onChange={() => toggleField(item.id, 'isface')} /></td>
-                      <td style={{ textAlign: 'center', padding: '12px 16px' }}><ToggleSwitch checked={item.isfinger} onChange={() => toggleField(item.id, 'isfinger')} /></td>
-                      <td style={{ textAlign: 'center', padding: '12px 16px' }}><ToggleSwitch checked={item.isIris} onChange={() => toggleField(item.id, 'isIris')} /></td>
-                      <td style={{ padding: '12px 16px' }}><WadhCell text={item.wadhFace} /></td>
-                      <td style={{ padding: '12px 16px' }}><WadhCell text={item.wadhFinger} /></td>
-                      <td style={{ padding: '12px 16px' }}><WadhCell text={item.wadhIris} /></td>
+                      <td style={{ textAlign: 'center' }}><ToggleSwitch checked={item.isRequired} onChange={() => toggleField(item.id, 'isRequired')} /></td>
+                      <td style={{ textAlign: 'center' }}><ToggleSwitch checked={item.isOtp} onChange={() => toggleField(item.id, 'isOtp')} /></td>
+                      <td style={{ textAlign: 'center' }}><ToggleSwitch checked={item.isTpin} onChange={() => toggleField(item.id, 'isTpin')} /></td>
+                      <td style={{ textAlign: 'center' }}><ToggleSwitch checked={item.isface} onChange={() => toggleField(item.id, 'isface')} /></td>
+                      <td style={{ textAlign: 'center' }}><ToggleSwitch checked={item.isfinger} onChange={() => toggleField(item.id, 'isfinger')} /></td>
+                      <td style={{ textAlign: 'center' }}><ToggleSwitch checked={item.isIris} onChange={() => toggleField(item.id, 'isIris')} /></td>
+                      <td><WadhCell text={item.wadhFace} /></td>
+                      <td><WadhCell text={item.wadhFinger} /></td>
+                      <td><WadhCell text={item.wadhIris} /></td>
                     </tr>
                   );
                 })

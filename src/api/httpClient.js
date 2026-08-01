@@ -91,8 +91,11 @@ httpClient.interceptors.request.use((config) => {
     );
 
     if (!isPublicEndpoint) {
+        const isApiPath = typeof window !== 'undefined' && window.location.pathname.startsWith('/api-panel');
         if (isAdminPath) {
             token = sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token') || sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+        } else if (isApiPath) {
+            token = sessionStorage.getItem('api_token') || localStorage.getItem('api_token') || sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
         } else {
             token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || sessionStorage.getItem('member_token') || localStorage.getItem('member_token') || sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token');
         }

@@ -16,6 +16,10 @@ const SMSCategory = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionsRef = useRef(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
+
   const standardCategories = [
     'Admin Login OTP',
     'Admin Fund Add OTP',
@@ -59,6 +63,20 @@ const SMSCategory = () => {
   const filteredSuggestions = standardCategories.filter(item => 
     item.toLowerCase().includes(categoryName.toLowerCase())
   );
+
+  const filteredCategories = categories.filter(cat => 
+    cat.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedCategories = filteredCategories.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -134,7 +152,12 @@ const SMSCategory = () => {
         <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
-            <select className={styles.selectEntries} style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+            <select 
+              className={styles.selectEntries} 
+              style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}
+              value={itemsPerPage}
+              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+            >
               <option value={10}>10</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
@@ -156,6 +179,8 @@ const SMSCategory = () => {
               type="text" 
               placeholder="Search categories..." 
               style={{ borderRadius: '10px' }}
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             />
           </div>
         </div>
@@ -172,16 +197,16 @@ const SMSCategory = () => {
               </tr>
             </thead>
             <tbody>
-              {categories.length === 0 ? (
+              {paginatedCategories.length === 0 ? (
                 <tr>
                    <td colSpan="5" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                        <span style={{ fontSize: '0.85rem' }}>No categories configured yet</span></div></td>
                 </tr>
               ) : (
-                categories.map((cat, idx) => (
+                paginatedCategories.map((cat, idx) => (
                   <tr key={cat.id} className={idx % 2 === 0 ? styles.rowEven : styles.rowOdd}>
-                    <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{String(idx + 1).padStart(2, '0')}</td>
+                    <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{String(startIndex + idx + 1).padStart(2, '0')}</td>
                     <td style={{ textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                         <button className={styles.editBtn} style={{ width: '32px', height: '32px', background: '#1756AA', color: '#fff' }} title="Edit" onClick={() => handleEdit(cat)}><FaEdit /></button>
@@ -209,11 +234,36 @@ const SMSCategory = () => {
         </div>
 
         <div className={styles.paginationRow} style={{ marginTop: '20px', paddingTop: '12px' }}>
-          <span style={{ fontSize: '0.75rem', color: '#718096' }}>Showing {categories.length > 0 ? 1 : 0} to {categories.length} of {categories.length} records</span>
+          <span style={{ fontSize: '0.75rem', color: '#718096' }}>
+            Showing {filteredCategories.length > 0 ? startIndex + 1 : 0} to {Math.min(startIndex + itemsPerPage, filteredCategories.length)} of {filteredCategories.length} records
+          </span>
           <div className={styles.pagination} style={{ display: 'flex', gap: '6px' }}>
-            <button className={styles.pageBtn} style={{ width: '32px', height: '32px' }} disabled><FaChevronLeft /></button>
-            <button className={`${styles.pageBtn} ${styles.pageActive}`} style={{ width: '32px', height: '32px' }}>1</button>
-            <button className={styles.pageBtn} style={{ width: '32px', height: '32px' }} disabled><FaChevronRight /></button>
+            <button 
+              className={styles.pageBtn} 
+              style={{ width: '32px', height: '32px' }} 
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+            >
+              <FaChevronLeft />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button 
+                key={i + 1}
+                className={`${styles.pageBtn} ${currentPage === i + 1 ? styles.pageActive : ''}`} 
+                style={{ width: '32px', height: '32px' }}
+                onClick={() => handlePageChange(i + 1)}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button 
+              className={styles.pageBtn} 
+              style={{ width: '32px', height: '32px' }} 
+              disabled={currentPage === totalPages || totalPages === 0}
+              onClick={() => handlePageChange(currentPage + 1)}
+            >
+              <FaChevronRight />
+            </button>
           </div>
         </div>
       </div>

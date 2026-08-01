@@ -32,11 +32,9 @@ import { resolveMemberId } from '../../utils/memberIdentity';
 import { API } from '../../api/endpoints';
 import styles from './ApiHeader.module.css';
 
-// Maps a WalletType DB record (Name: MAIN / AEPS / COMMISSION ...) to the matching
-// balance field on UserWalletBalance and a display color.
 const WALLET_TYPE_CONFIG = [
   { match: 'AEPS', balanceKey: 'aepsBalance', color: '#10B981' },
-  { match: 'MAIN', balanceKey: 'mainBalance', color: '#1756AA' },
+  { match: 'MAIN', balanceKey: 'mainBalance', color: 'var(--color-primary)' },
   { match: 'COMMISSION', balanceKey: 'commissionBalance', color: '#F59E0B' }
 ];
 
@@ -177,19 +175,10 @@ const ApiHeader = () => {
         return;
       }
 
-      // Balances come straight off the member record:
-      // GET /Member/GetByID/{id} -> data.mainWallet / data.aepsWallet
-      const [typesRes, memberRes] = await Promise.all([
+      const [typesRes, balances] = await Promise.all([
         API.walletType.getActive({ pageNumber: 1, pageSize: 10000 }),
-        API.member.getByIdRaw(memberId)
+        API.userWalletBalance.getForMember(memberId)
       ]);
-
-      const m = memberRes?.data?.data || memberRes?.data || memberRes || {};
-      const balances = {
-        mainBalance: parseFloat(m.mainWallet ?? m.MainWallet) || 0,
-        aepsBalance: parseFloat(m.aepsWallet ?? m.AepsWallet) || 0,
-        commissionBalance: parseFloat(m.commissionWallet ?? m.CommissionWallet) || 0
-      };
 
       // Only overwrite the list when the API actually returned wallet types.
       // If the request fails/returns empty (e.g. transient network issue), keep
@@ -211,8 +200,6 @@ const ApiHeader = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Only wallet types that are Active in the database (WalletType.IsActive) are shown here.
-  // If a wallet type is deactivated from the DB, its pill disappears from this header automatically.
   const walletData = walletTypes
     .filter(wt => wt.isActive)
     .map(wt => {
@@ -222,7 +209,7 @@ const ApiHeader = () => {
       const cfg = WALLET_TYPE_CONFIG.find(c => (wt.code || '').toUpperCase().includes(c.match));
       return {
         name: `${wt.name || wt.code || ''} Wallet`,
-        value: (walletBalances[cfg?.balanceKey] || 0).toFixed(2),
+        value: (walletBalances[cfg?.balanceKey] || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
         color: cfg?.color || '#64748b'
       };
     });
@@ -254,26 +241,19 @@ const ApiHeader = () => {
       <div className={styles.center}></div>
 
       <div className={styles.right}>
-        {/* All Wallet Cards placed on Right Side */}
-        {!isMobile && walletData.map((wallet, index) => (
-          <div key={index} style={{
-            display: 'flex', alignItems: 'center', gap: '8px',
-            background: '#ffffff',
-            border: `1px solid ${wallet.color}40`,
-            padding: '4px 10px', borderRadius: '8px', marginRight: index === walletData.length - 1 ? '16px' : '4px',
-            cursor: 'default',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
-          }}
-          >
-            <FaWallet style={{ fontSize: '1.2rem', color: wallet.color }} />
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.1' }}>
-              <span style={{ fontSize: '0.6rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{wallet.name}</span>
-              <span style={{ fontSize: '0.85rem', fontWeight: '800', color: '#0f172a' }}>
-                {parseFloat(wallet.value).toLocaleString('en-IN', {minimumFractionDigits:2})}
-              </span>
+        <div className={styles.walletSection}>
+          {walletData.map((wallet) => (
+            <div key={wallet.name} className={styles.walletPill}>
+              <div className={styles.walletIcon} style={{ color: wallet.color }}>
+                <FaWallet />
+              </div>
+              <div className={styles.walletInfo}>
+                <span className={styles.walletLabel}>{wallet.name}</span>
+                <span className={styles.walletValue}>{wallet.value}</span>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
 
         <div className={styles.verticalDivider}></div>
 

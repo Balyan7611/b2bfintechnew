@@ -47,7 +47,7 @@ const BBPSHistory = () => {
         renderRow={(item, index) => (
           <tr key={item.id}>
             <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
-            <td style={{ fontSize: '0.8rem', color: '#4E6080' }}>{item.date}</td>
+            <td style={{ color: '#4E6080' }}>{item.date}</td>
             <td style={{ fontWeight: 700 }}>{item.consumer}</td>
             <td>{item.category}</td>
             <td>{item.biller}</td>

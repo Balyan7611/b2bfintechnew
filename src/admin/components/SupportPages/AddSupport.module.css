@@ -191,9 +191,9 @@
 .table th {
   background: var(--table-header-bg);
   color: var(--table-header-text);
-  padding: 14px 16px;
+  padding: 8px 6px;
   text-align: left;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -202,8 +202,8 @@
 }
 
 .table td {
-  padding: 13px 16px;
-  font-size: 0.85rem;
+  padding: 8px 6px;
+  font-size: 0.72rem;
   color: #4E6080;
   border-bottom: 1px solid #F1F5F9;
   vertical-align: middle;

@@ -16,6 +16,7 @@ import {
     FaChevronRight,
     FaTimes,
 } from 'react-icons/fa';
+import { API } from '../../../api/endpoints';
 import styles from './Attendance.module.css';
 
 const Attendance = () => {
@@ -39,26 +40,58 @@ const Attendance = () => {
     const [historyEmployeeFilter, setHistoryEmployeeFilter] = useState(null); // null = all employees
     const [historyDepartmentFilter, setHistoryDepartmentFilter] = useState('all');
 
-    // ─── Mock Employees (initial) ──────────────────────────
+    // ─── Fetch Members (Dynamic) ──────────────────────────
     useEffect(() => {
-        const mockEmployees = [
-            { id: 1, name: 'Rahul Sharma', email: 'rahul@example.com', contact: '9876543210', department: 'Engineering', designation: 'Senior Developer' },
-            { id: 2, name: 'Priya Patel', email: 'priya@example.com', contact: '9876543211', department: 'Design', designation: 'UI/UX Designer' },
-            { id: 3, name: 'Amit Kumar', email: 'amit@example.com', contact: '9876543212', department: 'Marketing', designation: 'Marketing Lead' },
-            { id: 4, name: 'Sneha Reddy', email: 'sneha@example.com', contact: '9876543213', department: 'Engineering', designation: 'Frontend Developer' },
-            { id: 5, name: 'Vikram Singh', email: 'vikram@example.com', contact: '9876543214', department: 'HR', designation: 'HR Manager' },
-            { id: 6, name: 'Ananya Gupta', email: 'ananya@example.com', contact: '9876543215', department: 'Engineering', designation: 'Backend Developer' },
-            { id: 7, name: 'Deepak Verma', email: 'deepak@example.com', contact: '9876543216', department: 'Finance', designation: 'Finance Analyst' },
-        ];
-        setEmployees(mockEmployees);
+        const fetchMembers = async () => {
+            try {
+                const res = await API.member.getAll({ pageSize: 5000 });
+                let fetchedMembers = [];
+                if (res) {
+                    if (Array.isArray(res)) fetchedMembers = res;
+                    else if (Array.isArray(res.data)) fetchedMembers = res.data;
+                    else if (res.data && Array.isArray(res.data.items)) fetchedMembers = res.data.items;
+                    else if (res.data && Array.isArray(res.data.data)) fetchedMembers = res.data.data;
+                    else if (Array.isArray(res.items)) fetchedMembers = res.items;
+                    else if (res.data && res.data.memberList && Array.isArray(res.data.memberList)) fetchedMembers = res.data.memberList;
+                    else if (res.memberList && Array.isArray(res.memberList)) fetchedMembers = res.memberList;
+                }
+                
+                const mappedMembers = fetchedMembers.map(m => {
+                    const fname = m.firstName || m.FirstName || m.first_name || '';
+                    const lname = m.lastName || m.LastName || m.last_name || '';
+                    const mname = m.name || m.Name || m.name_ || '';
+                    const email = m.email || m.Email || m.emailId || m.email_id || '';
+                    const mobile = m.mobile || m.Mobile || m.phone || m.contact || '';
+                    const role = m.role || m.Role || m.roleName || m.RoleName || m.userType || m.department || 'Member';
+                    const pack = m.package || m.Package || m.packageName || m.designation || 'Standard';
 
-        const todayStr = new Date().toISOString().split('T')[0];
-        const mockAttendance = {};
-        mockEmployees.forEach(emp => {
-            const statuses = ['present', 'present', 'present', 'absent', 'halfday'];
-            mockAttendance[emp.id] = statuses[Math.floor(Math.random() * statuses.length)];
-        });
-        setAttendance({ [todayStr]: mockAttendance });
+                    return {
+                        id: m.id || m.Id || m.memberId || m.MemberId,
+                        name: mname || `${fname} ${lname}`.trim() || 'Unknown User',
+                        email: email,
+                        contact: mobile,
+                        department: role,
+                        designation: pack,
+                        original: m
+                    };
+                });
+                
+                setEmployees(mappedMembers);
+
+                // Setup default attendance state for today
+                const todayStr = new Date().toISOString().split('T')[0];
+                const initialAttendance = {};
+                mappedMembers.forEach(emp => {
+                    if (emp.id) {
+                        initialAttendance[emp.id] = 'not marked';
+                    }
+                });
+                setAttendance(prev => ({ ...prev, [todayStr]: prev[todayStr] || initialAttendance }));
+            } catch (err) {
+                console.error("Failed to fetch members:", err);
+            }
+        };
+        fetchMembers();
     }, []);
 
     // ─── Handlers ────────────────────────────────────────────
@@ -85,49 +118,25 @@ const Attendance = () => {
     };
 
     // Employee CRUD
-    const addEmployee = (e) => {
-        e.preventDefault();
-        const newEmployee = {
-            id: Date.now(),
-            ...employeeForm,
-        };
-        setEmployees([...employees, newEmployee]);
-        setEmployeeForm({ name: '', email: '', contact: '', department: '', designation: '' });
-        setShowAddEmployee(false);
-    };
-
+    // Edit / Delete (Optional now that it's synced)
     const editEmployee = (employee) => {
-        setEditingEmployee(employee);
-        setEmployeeForm(employee);
-        setShowAddEmployee(true);
-    };
-
-    const updateEmployee = (e) => {
-        e.preventDefault();
-        setEmployees(employees.map(emp =>
-            emp.id === editingEmployee.id ? { ...emp, ...employeeForm } : emp
-        ));
-        setEmployeeForm({ name: '', email: '', contact: '', department: '', designation: '' });
-        setEditingEmployee(null);
-        setShowAddEmployee(false);
-    };
-
-    const deleteEmployee = (id) => {
-        if (window.confirm('Are you sure you want to delete this employee?')) {
-            setEmployees(employees.filter(emp => emp.id !== id));
-            const newAttendance = { ...attendance };
-            Object.keys(newAttendance).forEach(date => {
-                if (newAttendance[date][id]) delete newAttendance[date][id];
-            });
-            setAttendance(newAttendance);
-        }
+        // Normally we'd redirect to a member edit page
+        alert(`Cannot edit member ${employee.name} here. Use the main Member Management section.`);
     };
 
     // Filter employees for main table
     const filteredEmployees = employees.filter(emp => {
-        const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            emp.contact.includes(searchTerm);
+        if (!emp || !emp.id) return false;
+        
+        const empName = (emp.name || '').toLowerCase();
+        const empEmail = (emp.email || '').toLowerCase();
+        const empContact = (emp.contact || '').toLowerCase();
+        const searchLower = (searchTerm || '').toLowerCase();
+
+        const matchesSearch = empName.includes(searchLower) ||
+            empEmail.includes(searchLower) ||
+            empContact.includes(searchLower);
+            
         const matchesDept = filterDepartment === 'all' || emp.department === filterDepartment;
         return matchesSearch && matchesDept;
     });
@@ -251,9 +260,6 @@ const Attendance = () => {
                                 </option>
                             ))}
                         </select>
-                        <button className={styles.iconBtn} onClick={() => { setShowAddEmployee(true); setEditingEmployee(null); setEmployeeForm({ name: '', email: '', contact: '', department: '', designation: '' }); }} title="Add Employee">
-                            <FaUserPlus />
-                        </button>
                         <button className={styles.iconBtn} onClick={saveAttendance} title="Save Attendance">
                             <FaSave />
                         </button>
@@ -279,7 +285,7 @@ const Attendance = () => {
                         <tbody>
                             {filteredEmployees.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className={styles.emptyRow}>No employees found. Add some!</td>
+                                    <td colSpan="7" className={styles.emptyRow}>No members found. (Checking API sync...)</td>
                                 </tr>
                             ) : (
                                 filteredEmployees.map((emp, index) => {
@@ -305,14 +311,8 @@ const Attendance = () => {
                                             </td>
                                             <td>
                                                 <div className={styles.actionIcons}>
-                                                    <button onClick={() => editEmployee(emp)} title="Edit Employee">
-                                                        <FaUserEdit />
-                                                    </button>
-                                                    <button onClick={() => { setShowHistory(true); setHistoryEmployeeFilter(emp.id); setHistoryDepartmentFilter('all'); }} title="View Employee History">
+                                                    <button onClick={() => { setShowHistory(true); setHistoryEmployeeFilter(emp.id); setHistoryDepartmentFilter('all'); }} title="View Attendance History">
                                                         <FaHistory />
-                                                    </button>
-                                                    <button onClick={() => deleteEmployee(emp.id)} title="Delete Employee">
-                                                        <FaTrashAlt />
                                                     </button>
                                                 </div>
                                             </td>
@@ -398,71 +398,6 @@ const Attendance = () => {
                 </div>
             )}
 
-            {/* ─── Employee Modal ───────────────────────────── */}
-            {showAddEmployee && (
-                <div className={styles.modalOverlay} onClick={() => setShowAddEmployee(false)}>
-                    <div className={styles.modal} onClick={e => e.stopPropagation()}>
-                        <div className={styles.modalHeader}>
-                            <h3>{editingEmployee ? 'Edit Employee' : 'Add New Employee'}</h3>
-                            <button className={styles.closeBtn} onClick={() => setShowAddEmployee(false)}>×</button>
-                        </div>
-                        <form onSubmit={editingEmployee ? updateEmployee : addEmployee} className={styles.employeeForm}>
-                            <div className={styles.formGroup}>
-                                <label>Full Name *</label>
-                                <input
-                                    type="text"
-                                    value={employeeForm.name}
-                                    onChange={e => setEmployeeForm({ ...employeeForm, name: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <div className={styles.formRow}>
-                                <div className={styles.formGroup}>
-                                    <label>Email *</label>
-                                    <input
-                                        type="email"
-                                        value={employeeForm.email}
-                                        onChange={e => setEmployeeForm({ ...employeeForm, email: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                                <div className={styles.formGroup}>
-                                    <label>Contact *</label>
-                                    <input
-                                        type="text"
-                                        value={employeeForm.contact}
-                                        onChange={e => setEmployeeForm({ ...employeeForm, contact: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                            </div>
-                            <div className={styles.formRow}>
-                                <div className={styles.formGroup}>
-                                    <label>Department</label>
-                                    <input
-                                        type="text"
-                                        value={employeeForm.department}
-                                        onChange={e => setEmployeeForm({ ...employeeForm, department: e.target.value })}
-                                        placeholder="e.g., Engineering"
-                                    />
-                                </div>
-                                <div className={styles.formGroup}>
-                                    <label>Designation</label>
-                                    <input
-                                        type="text"
-                                        value={employeeForm.designation}
-                                        onChange={e => setEmployeeForm({ ...employeeForm, designation: e.target.value })}
-                                        placeholder="e.g., Senior Developer"
-                                    />
-                                </div>
-                            </div>
-                            <button type="submit" className={styles.primaryBtn}>
-                                {editingEmployee ? 'Update Employee' : 'Add Employee'}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

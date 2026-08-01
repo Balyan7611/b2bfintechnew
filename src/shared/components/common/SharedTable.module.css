@@ -17,9 +17,9 @@
 .table th {
   background: var(--table-header-bg);
   color: var(--table-header-text);
-  padding: 14px 16px;
+  padding: 8px 6px;
   text-align: left;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -28,9 +28,9 @@
 }
 
 .table td {
-  padding: 14px 16px;
+  padding: 8px 6px;
   border-bottom: 1px solid #F1F5F9;
-  font-size: 0.85rem;
+  font-size: 0.72rem;
   color: #4E6080;
   transition: background 0.2s;
   white-space: nowrap;

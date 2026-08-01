@@ -182,7 +182,7 @@ const WebhookCallbacks = () => {
   const totalPages = Math.ceil(filtered.length / rowsPerPage) || 1;
   const paginated = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
-  const tableColumns = ['S.No', 'Service Name', 'First URL (Callback)', 'Second URL (Webhook)', 'Secret Key', 'Action'];
+  const tableColumns = ['S.No', 'Service Name', 'First URL (Callback)', 'Second URL (Webhook)', 'Action'];
 
   const refreshAction = (
     <button
@@ -306,27 +306,7 @@ const WebhookCallbacks = () => {
                 }}
               />
             </td>
-            <td>
-              {w.secretKey ? (
-                <button
-                  onClick={() => handleCopySecret(w.secretKey)}
-                  title="Click to copy"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    background: '#F0F7FF', border: '1px solid rgba(23,86,170,0.15)',
-                    borderRadius: '6px', padding: '5px 8px', cursor: 'pointer',
-                    fontSize: '0.72rem', fontFamily: 'monospace', color: '#1756AA', maxWidth: '160px'
-                  }}
-                >
-                  <FiCopy size={11} />
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {w.secretKey}
-                  </span>
-                </button>
-              ) : (
-                <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontStyle: 'italic' }}>Not configured</span>
-              )}
-            </td>
+
             <td style={{ textAlign: 'center' }}>
               <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
                 <button

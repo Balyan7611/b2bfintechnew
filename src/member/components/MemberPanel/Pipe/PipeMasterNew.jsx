@@ -265,12 +265,12 @@ const PipeMasterNew = () => {
           <table className={styles.table} style={{ width: '100%', minWidth: '900px', tableLayout: 'auto' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '60px', color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem' }}>S.NO.</th>
-                <th style={{ width: '90px', textAlign: 'center', color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem' }}>ACTION</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem' }}>SERVICE</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem' }}>PIPE NAME</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem' }}>ALIAS NAME</th>
-                <th style={{ color: '#fff', border: 'none', padding: '14px 16px', fontSize: '0.75rem' }}>IS ACTIVE</th>
+                <th style={{ width: '60px', color: '#fff', border: 'none' }}>S.NO.</th>
+                <th style={{ width: '90px', textAlign: 'center', color: '#fff', border: 'none' }}>ACTION</th>
+                <th style={{ color: '#fff', border: 'none' }}>SERVICE</th>
+                <th style={{ color: '#fff', border: 'none' }}>PIPE NAME</th>
+                <th style={{ color: '#fff', border: 'none' }}>ALIAS NAME</th>
+                <th style={{ color: '#fff', border: 'none' }}>IS ACTIVE</th>
               </tr>
             </thead>
             <tbody>
@@ -287,21 +287,21 @@ const PipeMasterNew = () => {
                   const serviceName = services.find(s => s.id === item.serviceId)?.name || `Service #${item.serviceId}`;
                   return (
                     <tr key={item.id} className={index % 2 === 0 ? styles.rowEven : styles.rowOdd}>
-                      <td style={{ color: '#A0AEC0', fontWeight: 700, padding: '12px 16px' }}>{index + 1}</td>
-                      <td style={{ textAlign: 'center', padding: '12px 16px' }}>
+                      <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{index + 1}</td>
+                      <td style={{ textAlign: 'center' }}>
                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                           <button onClick={() => handleEdit(item)} className={styles.editBtn} style={{ width: '32px', height: '32px', background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', border: 'none', borderRadius: '8px', cursor: 'pointer' }} title="Edit"><FaEdit /></button>
                           <button onClick={() => setShowConfirmModal({ isOpen: true, id: item.id })} className={styles.deleteBtn} style={{ width: '32px', height: '32px', background: 'rgba(239, 68, 68, 0.1)', color: '#E53E3E', border: 'none', borderRadius: '8px', cursor: 'pointer' }} title="Delete"><FaTrash /></button>
                         </div>
                       </td>
-                      <td style={{ fontWeight: 600, color: '#334155', padding: '12px 16px' }}>{serviceName}</td>
-                      <td style={{ padding: '12px 16px' }}>
+                      <td style={{ fontWeight: 600, color: '#334155' }}>{serviceName}</td>
+                      <td>
                         <span style={{ background: 'rgba(23, 86, 170, 0.08)', color: '#1756AA', padding: '4px 8px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem' }}>
                           {item.pipeName}
                         </span>
                       </td>
-                      <td style={{ color: '#475569', padding: '12px 16px' }}>{item.aliasName}</td>
-                      <td style={{ padding: '12px 16px' }}><ToggleSwitch checked={item.isActive} onChange={() => toggleField(item.id, 'isActive')} /></td>
+                      <td style={{ color: '#475569' }}>{item.aliasName}</td>
+                      <td><ToggleSwitch checked={item.isActive} onChange={() => toggleField(item.id, 'isActive')} /></td>
                     </tr>
                   );
                 })

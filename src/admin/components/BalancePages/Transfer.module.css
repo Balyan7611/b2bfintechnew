@@ -91,16 +91,16 @@
 .table th {
   background: var(--table-header-bg);
   color: var(--table-header-text);
-  padding: 16px 14px;
+  padding: 8px 6px;
   text-align: left;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   white-space: nowrap;
   border-bottom: 3px solid rgba(0,0,0,0.02);
 }
-.table td { padding: 16px; font-size: 0.85rem; color: #2D3748; border-bottom: 1px solid #EDF2F7; }
+.table td { padding: 8px 6px; font-size: 0.72rem; color: #2D3748; border-bottom: 1px solid #EDF2F7; }
 .rowEven { background: #fff; }
 .rowOdd { background: #F8FAFF; }
 .table tbody tr:hover { background: #F8FAFF; box-shadow: inset 4px 0 0 #1756AA; }

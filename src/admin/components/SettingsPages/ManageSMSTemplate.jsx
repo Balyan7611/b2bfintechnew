@@ -12,6 +12,10 @@ const ManageSMSTemplate = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [successToast, setSuccessToast] = useState('');
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
+
   const [formData, setFormData] = useState({
     name: '',
     approved: true,
@@ -67,6 +71,21 @@ const ManageSMSTemplate = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const filteredTemplates = templates.filter(tmp => 
+    tmp.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (tmp.original && tmp.original.template?.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const totalPages = Math.ceil(filteredTemplates.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedTemplates = filteredTemplates.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -208,7 +227,12 @@ const ManageSMSTemplate = () => {
         <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
-            <select className={styles.selectEntries} style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+            <select 
+              className={styles.selectEntries} 
+              style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}
+              value={itemsPerPage}
+              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+            >
               <option value={10}>10</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
@@ -230,6 +254,8 @@ const ManageSMSTemplate = () => {
               type="text" 
               placeholder="Search templates..." 
               style={{ borderRadius: '10px' }}
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             />
           </div>
         </div>
@@ -247,16 +273,16 @@ const ManageSMSTemplate = () => {
               </tr>
             </thead>
             <tbody>
-              {templates.length === 0 ? (
+              {paginatedTemplates.length === 0 ? (
                 <tr>
-                   <td colSpan="6" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
-                     <div>No templates found</div>
+                   <td colSpan="8" style={{ textAlign: 'center', padding: '30px 0', color: '#A0AEC0' }}>
+                      <div>No active templates mapped</div>
                    </td>
                 </tr>
               ) : (
-                templates.map((tmp, idx) => (
+                paginatedTemplates.map((tmp, idx) => (
                   <tr key={tmp.id} className={idx % 2 === 0 ? styles.rowEven : styles.rowOdd}>
-                    <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{String(idx + 1).padStart(2, '0')}</td>
+                    <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{String(startIndex + idx + 1).padStart(2, '0')}</td>
                     <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '12px 0' }}>
                       <div style={{ display: 'inline-flex', gap: '8px', justifyContent: 'center', alignItems: 'center', flexWrap: 'nowrap', flexDirection: 'row', margin: '0 auto' }}>
                         <button 
@@ -324,7 +350,6 @@ const ManageSMSTemplate = () => {
           </table>
         </div>
 
-        {/* ── PAGINATION ROW ── */}
         <div className={styles.paginationRow} style={{ 
           marginTop: '20px', 
           paddingTop: '15px', 
@@ -336,48 +361,36 @@ const ManageSMSTemplate = () => {
           paddingRight: '20px',
           paddingBottom: '15px'
         }}>
-          <span style={{ fontSize: '0.75rem', color: '#718096', fontWeight: 600 }}>Showing {templates.length > 0 ? 1 : 0} to {templates.length} of {templates.length} entries</span>
+          <span style={{ fontSize: '0.75rem', color: '#718096', fontWeight: 600 }}>
+            Showing {filteredTemplates.length > 0 ? startIndex + 1 : 0} to {Math.min(startIndex + itemsPerPage, filteredTemplates.length)} of {filteredTemplates.length} entries
+          </span>
           <div className={styles.pagination} style={{ display: 'flex', gap: '6px' }}>
-            <button className={styles.pageBtn} style={{ 
-              width: '32px', 
-              height: '32px', 
-              borderRadius: '8px', 
-              border: '1px solid #E2E8F0', 
-              background: '#fff', 
-              color: '#A0AEC0', 
-              cursor: 'not-allowed', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              fontSize: '0.8rem'
-            }} disabled><FaChevronLeft /></button>
-            <button className={`${styles.pageBtn} ${styles.pageActive}`} style={{ 
-              width: '32px', 
-              height: '32px', 
-              borderRadius: '8px', 
-              border: 'none', 
-              background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)', 
-              color: '#fff', 
-              fontWeight: 700, 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              fontSize: '0.85rem',
-              boxShadow: '0 3px 8px rgba(30, 58, 138, 0.2)'
-            }}>1</button>
-            <button className={styles.pageBtn} style={{ 
-              width: '32px', 
-              height: '32px', 
-              borderRadius: '8px', 
-              border: '1px solid #E2E8F0', 
-              background: '#fff', 
-              color: '#A0AEC0', 
-              cursor: 'not-allowed', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              fontSize: '0.8rem'
-            }} disabled><FaChevronRight /></button>
+            <button 
+              className={styles.pageBtn} 
+              style={{ width: '32px', height: '32px' }} 
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+            >
+              <FaChevronLeft />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button 
+                key={i + 1}
+                className={`${styles.pageBtn} ${currentPage === i + 1 ? styles.pageActive : ''}`} 
+                style={{ width: '32px', height: '32px' }}
+                onClick={() => handlePageChange(i + 1)}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button 
+              className={styles.pageBtn} 
+              style={{ width: '32px', height: '32px' }} 
+              disabled={currentPage === totalPages || totalPages === 0}
+              onClick={() => handlePageChange(currentPage + 1)}
+            >
+              <FaChevronRight />
+            </button>
           </div>
         </div>
       </div>

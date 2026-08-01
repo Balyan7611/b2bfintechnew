@@ -4,6 +4,7 @@ import { API } from '../../api/endpoints';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { SITE_CONFIG } from '../../config/siteConfig';
 import { getServiceVisual, getServicePaletteColor } from '../../shared/utils/serviceVisuals';
+import { resolveMemberId } from '../../utils/memberIdentity';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import {
   toggleSidebar,
@@ -26,7 +27,7 @@ import {
   FaIdCard, FaFileAlt, FaGavel, FaCog, FaSms, 
   FaChevronRight, FaChevronLeft,
   FaMoneyCheckAlt, FaCreditCard, FaQrcode, FaAddressCard, 
-  FaHandHoldingUsd, FaPaperPlane, FaMoneyBill, FaChartPie, FaProjectDiagram,
+  FaHandHoldingUsd, FaPaperPlane, FaMoneyBill, FaChartPie, FaProjectDiagram, FaChartLine, FaChartBar,
   FaChevronDown, FaCircle, FaCalendarAlt, FaCaretDown, FaCaretUp,
   FaEdit, FaUserLock, FaArrowLeft, FaExclamationTriangle
 } from 'react-icons/fa';
@@ -41,6 +42,7 @@ import MemberBankDetails from '../components/BalancePages/MemberBankDetails';
 import FundRequest from '../components/BalancePages/FundRequest';
 import Transfer from '../components/BalancePages/Transfer';
 import StaffRegistration from '../components/MemberPages/StaffRegistration';
+import ApiAnalytics from '../components/ReportPages/ApiAnalytics';
 import StaffList from '../components/MemberPages/StaffList';
 import ChangePassword from '../components/MemberPages/ChangePassword';
 import ChangeTPIN from '../components/MemberPages/ChangeTPIN';
@@ -131,11 +133,21 @@ import Unique from '../components/MemberPages/Unique';
 import PipeMasterNew from '../../member/components/MemberPanel/Pipe/PipeMasterNew';
 import PipeModuleSettings from '../../member/components/MemberPanel/Pipe/PipeModuleSettings';
 import Attendance from '../components/AttendancePages/Attendance';
+import BusinessAnalytics from '../components/ReportPages/BusinessAnalytics';
 import styles from './DashboardPage.module.css';
 
 // --- DATA ---
 const SIDEBAR_LINKS = [
   { id: 'dashboard', label: 'Dashboard', icon: FaTachometerAlt },
+  { 
+    id: 'analytics', 
+    label: 'Analytics', 
+    icon: FaChartPie,
+    subLinks: [
+      { id: 'business_analytics', label: 'Business Analytics' },
+      { id: 'api_analytics', label: 'API Analytics' }
+    ]
+  },
   { 
     id: 'complain', 
     label: 'Complain/Support', 
@@ -699,24 +711,27 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchWalletHeaderData = async () => {
       try {
-        const session = getSession();
-        const memberId = session?.msrno || session?.userId || '';
+        const memberId = await resolveMemberId();
+        if (!memberId) {
+          console.warn('DashboardPage: no member id resolved, showing zero balances');
+          dispatch(setWallets({ aeps: 0, main: 0, profit: 0 }));
+          return;
+        }
 
-        const [typesRes, balancesRes] = await Promise.all([
+        const [typesRes, balances] = await Promise.all([
           API.walletType.getActive({ pageNumber: 1, pageSize: 10000 }),
-          memberId ? API.userWalletBalance.getAll({ pageNumber: 1, pageSize: 1, memberId, silent: true }) : Promise.resolve(null)
+          API.userWalletBalance.getForMember(memberId, { silent: true })
         ]);
 
         if (Array.isArray(typesRes) && typesRes.length > 0) {
           setWalletTypes(typesRes);
         }
 
-        const row = Array.isArray(balancesRes?.data) ? balancesRes.data[0] : null;
-        if (row) {
+        if (balances) {
           dispatch(setWallets({
-            aeps: parseFloat(row.aepsBalance) || 0,
-            main: parseFloat(row.mainBalance) || 0,
-            profit: parseFloat(row.commissionBalance) || 0
+            aeps: balances.aepsBalance || 0,
+            main: balances.mainBalance || 0,
+            profit: balances.commissionBalance || 0
           }));
         }
       } catch (err) {
@@ -1202,7 +1217,11 @@ const DashboardPage = () => {
 
         {/* ── MAIN CONTENT ── */}
         <main className={styles.content} ref={contentRef}>
-          {activeTab === 'complain_list' ? (
+          {activeTab === 'business_analytics' ? (
+            <BusinessAnalytics />
+          ) : activeTab === 'api_analytics' ? (
+            <ApiAnalytics />
+          ) : activeTab === 'complain_list' ? (
             <SupportList />
           ) : activeTab === 'add_support' ? (
             <AddSupport />
