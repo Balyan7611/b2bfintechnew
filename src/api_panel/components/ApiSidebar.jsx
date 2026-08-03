@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FaTachometerAlt, FaWallet, FaIdCard, FaLink, FaCog, FaNetworkWired, FaFileAlt,
-  FaMoneyCheckAlt
+  FaMoneyCheckAlt, FaTicketAlt
 } from 'react-icons/fa';
 import { FiChevronRight, FiChevronLeft, FiX } from 'react-icons/fi';
 import { toggleSidebar, setSidebarOpen } from '../../store/slices/memberPanelSlice';
@@ -75,6 +75,11 @@ const ApiSidebar = () => {
       name: 'KYC',
       icon: <FaIdCard />,
       path: '/api-panel/dashboard/kyc/onboarding'
+    },
+    {
+      name: 'Help & Support',
+      icon: <FaTicketAlt />,
+      path: '/api-panel/dashboard/support'
     },
     {
       name: 'Security Settings',

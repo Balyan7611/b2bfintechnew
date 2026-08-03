@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { createTicket, sendChatMessage, deleteTicket, updateTicket } from '../../../../store/slices/supportSlice';
-import { showLoader, hideLoader } from '../../../../store/slices/uiSlice';
+import { createTicket, sendChatMessage, deleteTicket, updateTicket } from '../../../store/slices/supportSlice';
+import { showLoader, hideLoader } from '../../../store/slices/uiSlice';
 import { 
   FaTicketAlt, FaPlus, FaCheck, FaPaperPlane, FaPaperclip, 
   FaSearch, FaChevronLeft, FaFileAlt, FaImage, FaCircle,
@@ -9,12 +9,12 @@ import {
   FaCommentDots
 } from 'react-icons/fa';
 import { FiDatabase, FiUploadCloud } from 'react-icons/fi';
-import styles from './MemberSupport.module.css';
-import sharedStyles from '../../../../shared/components/common/SharedTable.module.css';
-import { API } from '../../../../api/endpoints';
-import ChatPopup from '../../../../shared/components/SupportList/ChatPopup';
+import styles from './SupportTickets.module.css';
+import sharedStyles from '../common/SharedTable.module.css';
+import { API } from '../../../api/endpoints';
+import ChatPopup from '../SupportList/ChatPopup';
 
-const MemberSupport = () => {
+const SupportTickets = () => {
   const dispatch = useDispatch();
   const { chatMessages } = useSelector((s) => s.support);
   
@@ -856,4 +856,4 @@ const MemberSupport = () => {
   );
 };
 
-export default MemberSupport;
+export default SupportTickets;

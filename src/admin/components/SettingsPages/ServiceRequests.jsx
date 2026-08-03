@@ -186,7 +186,7 @@ const ServiceRequests = () => {
   );
 
   return (
-    <div style={{ width: '100%', padding: '0' }}>
+    <div style={{ width: '100%', padding: '24px 32px', boxSizing: 'border-box' }}>
       {toast && (
         <div style={{
           position: 'fixed', top: '20px', right: '20px', zIndex: 99999,

@@ -102,6 +102,40 @@ const MemberHome = () => {
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('7 Days');
+  
+  // Live Member Dashboard State
+  const [overviewData, setOverviewData] = useState(null);
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [recentTransactions, setRecentTransactions] = useState([]);
+  const [loadingDashboard, setLoadingDashboard] = useState(false);
+
+  const fetchDashboardData = React.useCallback(async () => {
+    setLoadingDashboard(true);
+    try {
+      const [overviewRes, analyticsRes, txnsRes] = await Promise.all([
+        API.memberDashboard.getOverview().catch(() => null),
+        API.memberDashboard.getAnalytics().catch(() => null),
+        API.memberDashboard.getRecentTransactions(10).catch(() => null)
+      ]);
+      if (overviewRes && (overviewRes.success === true || overviewRes.status === true)) {
+        setOverviewData(overviewRes.data);
+      }
+      if (analyticsRes && (analyticsRes.success === true || analyticsRes.status === true)) {
+        setAnalyticsData(analyticsRes.data);
+      }
+      if (txnsRes && (txnsRes.success === true || txnsRes.status === true) && Array.isArray(txnsRes.data)) {
+        setRecentTransactions(txnsRes.data);
+      }
+    } catch (err) {
+      console.error('MemberHome: Failed to fetch dashboard data:', err);
+    } finally {
+      setLoadingDashboard(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showMemberTour, setShowMemberTour] = useState(false);
 
@@ -195,6 +229,34 @@ const MemberHome = () => {
     };
   }, [selectedFilter, wallets.main]);
 
+  const displayStats = useMemo(() => {
+    if (overviewData) {
+      return {
+        business: (overviewData.todayBusinessVolume ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+        earning: (overviewData.todayEarning ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+        txns: overviewData.todayTxnsCount ?? 0,
+        balance: (wallets.main ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })
+      };
+    }
+    return {
+      business: stats.business,
+      earning: stats.earning,
+      txns: stats.txns,
+      balance: stats.balance
+    };
+  }, [overviewData, stats, wallets.main]);
+
+  const displayChartData = useMemo(() => {
+    if (analyticsData?.dailyPerformance) {
+      return analyticsData.dailyPerformance.map(p => ({
+        time: p.date ? new Date(p.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '',
+        amount: p.volume || 0,
+        baseline: (p.volume || 0) * 0.8
+      }));
+    }
+    return chartData;
+  }, [analyticsData, chartData]);
+
   const daybookTabs = [
     { name: 'Recharge', icon: <FiSmartphone /> },
     { name: 'AEPS', icon: <FaFingerprint /> },
@@ -237,6 +299,17 @@ const MemberHome = () => {
     });
   }, [weeklyRatioFilter]);
 
+  const displaySuccessRatioData = useMemo(() => {
+    if (analyticsData?.weeklyRatio) {
+      return analyticsData.weeklyRatio.map(r => ({
+        day: r.day,
+        Success: r.successCount || 0,
+        Failed: r.failedCount || 0
+      }));
+    }
+    return successRatioData;
+  }, [analyticsData, successRatioData]);
+
   const { topServicesData, totalVolume } = useMemo(() => {
     let multi = 1;
     if (topServicesFilter === 'Today') multi = 0.05;
@@ -268,29 +341,59 @@ const MemberHome = () => {
     };
   }, [topServicesFilter]);
 
+  const displayTopServices = useMemo(() => {
+    if (analyticsData?.topServicesDistribution) {
+      const colors = ['#F472B6', '#A78BFA', '#2DD4BF', '#A3E635', '#FDE047'];
+      const total = analyticsData.topServicesDistribution.reduce((sum, item) => sum + (item.percentage || 0), 0);
+      return {
+        totalVolume: total >= 1000 ? `${(total/1000).toFixed(1)}k` : total.toString(),
+        topServicesData: analyticsData.topServicesDistribution.map((item, idx) => ({
+          name: item.serviceName,
+          value: item.percentage || 0,
+          color: colors[idx % colors.length],
+          percent: `${item.percentage}%`
+        }))
+      };
+    }
+    return { topServicesData, totalVolume };
+  }, [analyticsData, topServicesData, totalVolume]);
+
   // Replace the initial dummy service tiles with the real, active-only
   // service list from the backend (Service master table). If this ever
   // fails/returns empty, the initial hardcoded list stays as a safe fallback
   // instead of leaving the section blank.
   useEffect(() => {
-    const fetchServiceCards = async () => {
+    const fetchServices = async () => {
       try {
-        const activeServices = await API.service.getActiveServices();
-        if (Array.isArray(activeServices) && activeServices.length > 0) {
-          const mapped = activeServices.map(s => ({
-            id: s.id,
-            name: s.name,
+        const res = await API.memberDashboard.getServices();
+        if (res && (res.success === true || res.status === true) && Array.isArray(res.data)) {
+          const mapped = res.data.map(s => ({
+            id: s.serviceId,
+            name: s.serviceName,
             stat1Label: 'Commission',
-            stat1Value: '0.00',
-            color: getServiceColor(s.name)
+            stat1Value: `${s.commissionRate || '0.00'}%`,
+            color: getServiceColor(s.serviceName)
           }));
           dispatch(setServiceCards(mapped));
+        } else {
+          // Fallback to active services if memberDashboard/Services fails
+          const activeServices = await API.service.getActiveServices();
+          if (Array.isArray(activeServices) && activeServices.length > 0) {
+            const mapped = activeServices.map(s => ({
+              id: s.id,
+              name: s.name,
+              stat1Label: 'Commission',
+              stat1Value: '0.00%',
+              color: getServiceColor(s.name)
+            }));
+            dispatch(setServiceCards(mapped));
+          }
         }
       } catch (err) {
         console.error('MemberHome: Failed to fetch active services:', err);
       }
     };
-    fetchServiceCards();
+    fetchServices();
   }, [dispatch]);
 
   useEffect(() => {
@@ -442,7 +545,7 @@ const MemberHome = () => {
             
             <div className={styles.performanceChartWrapper}>
               <ResponsiveContainer width="100%" height={240}>
-                <LineChart data={chartData} margin={{ top: 20, right: 15, left: -15, bottom: 10 }}>
+                <LineChart data={displayChartData} margin={{ top: 20, right: 15, left: -15, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="8 8" vertical={false} stroke="#E2E8F0" />
                   <XAxis 
                     dataKey="time" 
@@ -491,7 +594,7 @@ const MemberHome = () => {
                  <div className={styles.insightIconWrap}><FaMoneyBillWave /></div>
                  <div className={styles.insightText}>
                     <span className={styles.insightLabel}>Business</span>
-                    <strong className={styles.insightValue}>₹{stats.business}</strong>
+                    <strong className={styles.insightValue}>₹{displayStats.business}</strong>
                  </div>
               </div>
               
@@ -499,7 +602,7 @@ const MemberHome = () => {
                  <div className={styles.insightIconWrap}><FaCheckCircle /></div>
                  <div className={styles.insightText}>
                     <span className={styles.insightLabel}>Earning</span>
-                    <strong className={styles.insightValue}>₹{stats.earning}</strong>
+                    <strong className={styles.insightValue}>₹{displayStats.earning}</strong>
                  </div>
               </div>
 
@@ -507,7 +610,7 @@ const MemberHome = () => {
                  <div className={styles.insightIconWrap}><FaExchangeAlt /></div>
                  <div className={styles.insightText}>
                     <span className={styles.insightLabel}>Today TXNS</span>
-                    <strong className={styles.insightValue}>{stats.txns}</strong>
+                    <strong className={styles.insightValue}>{displayStats.txns}</strong>
                  </div>
               </div>
 
@@ -515,7 +618,7 @@ const MemberHome = () => {
                  <div className={styles.insightIconWrap}><FaWallet /></div>
                  <div className={styles.insightText}>
                     <span className={styles.insightLabel}>Wallet Balance</span>
-                    <strong className={styles.insightValue}>₹{stats.balance}</strong>
+                    <strong className={styles.insightValue}>₹{displayStats.balance}</strong>
                  </div>
               </div>
             </div>
@@ -550,7 +653,7 @@ const MemberHome = () => {
           <div className={styles.barChartContainer}>
             <ResponsiveContainer width="100%" height={240}>
               {analyticsVisible && (
-                <BarChart data={successRatioData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <BarChart data={displaySuccessRatioData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                   <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#718096', fontSize: 11, fontWeight: 500 }} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: '#718096', fontSize: 11 }} tickFormatter={(val) => val >= 1000 ? `${(val/1000).toFixed(0)}k` : val} />
@@ -591,7 +694,7 @@ const MemberHome = () => {
                  {analyticsVisible && (
                    <PieChart>
                      <Pie
-                       data={topServicesData}
+                       data={displayTopServices.topServicesData}
                        cx="50%" cy="50%"
                        innerRadius={70} outerRadius={85}
                        paddingAngle={5}
@@ -600,7 +703,7 @@ const MemberHome = () => {
                        cornerRadius={10}
                        animationDuration={1500}
                      >
-                       {topServicesData.map((entry, index) => (
+                       {displayTopServices.topServicesData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                        ))}
                      </Pie>
@@ -609,13 +712,13 @@ const MemberHome = () => {
                  )}
                </ResponsiveContainer>
                <div className={styles.donutCenterText} style={{ pointerEvents: 'none' }}>
-                  <span className={styles.donutCenterValue}>₹{totalVolume}</span>
+                  <span className={styles.donutCenterValue}>₹{displayTopServices.totalVolume}</span>
                   <span className={styles.donutCenterLabel}>Volume</span>
                </div>
             </div>
             
             <div className={styles.donutLegendList}>
-              {topServicesData.map((item, idx) => (
+              {displayTopServices.topServicesData.map((item, idx) => (
                 <div key={idx} className={styles.donutLegendItem}>
                    <div className={styles.donutLegendLeft}>
                      <span className={styles.colorSquare} style={{ backgroundColor: item.color }}></span>
@@ -680,7 +783,22 @@ const MemberHome = () => {
               </tr>
             </thead>
             <tbody>
-              {transactions.length > 0 ? (
+              {recentTransactions.length > 0 ? (
+                recentTransactions.map((txn, i) => (
+                  <tr key={txn.id || i}>
+                    <td className={styles.serviceNameTd}>{txn.serviceName}</td>
+                    <td>₹{(txn.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td style={{ fontWeight: 600 }}>₹{(txn.change || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td>Transaction by {txn.memberLoginId}</td>
+                    <td>
+                      <span className={`${sharedStyles.statusPill} ${sharedStyles[(txn.status || '').toLowerCase()]}`}>
+                        {txn.status}
+                      </span>
+                    </td>
+                    <td>{txn.date ? new Date(txn.date).toLocaleString('en-IN') : '-'}</td>
+                  </tr>
+                ))
+              ) : transactions.length > 0 ? (
                 transactions.map((txn, i) => (
                   <tr key={i}>
                     <td className={styles.serviceNameTd}>{txn.service}</td>

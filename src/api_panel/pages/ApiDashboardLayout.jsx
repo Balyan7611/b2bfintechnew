@@ -5,6 +5,7 @@ import { getSession } from '../../utils/authUtils';
 import { Outlet } from 'react-router-dom';
 import ApiSidebar from '../components/ApiSidebar';
 import ApiHeader from '../components/ApiHeader';
+import FloatingTxnSearch from '../../shared/components/common/FloatingTxnSearch';
 import { 
   setIsMobile, 
   setSidebarOpen,
@@ -176,7 +177,7 @@ const ApiDashboardLayout = () => {
           </button>
         </div>
       )}
-
+      <FloatingTxnSearch />
     </div>
   );
 };

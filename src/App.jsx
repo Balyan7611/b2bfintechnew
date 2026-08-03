@@ -38,10 +38,11 @@ import Payout from './member/components/MemberPanel/Services/Payout';
 import UpiCashout from './member/components/MemberPanel/Services/UpiCashout';
 import UpiTransfer from './member/components/MemberPanel/Services/UpiTransfer';
 import Water from './member/components/MemberPanel/Services/Water';
-import MemberSupport from './member/components/MemberPanel/Support/MemberSupport';
+import SupportTickets from './shared/components/Support/SupportTickets';
 import FundRequest from './member/components/MemberPanel/Wallet/FundRequest';
 import WalletToWallet from './member/components/MemberPanel/Wallet/WalletToWallet';
 import LoginPage from './member/pages/LoginPage';
+import LoginHistory from './shared/components/Logs/LoginHistory';
 import MemberDashboard from './member/pages/MemberDashboard';
 import MemberOnboardingWizard from './member/components/MemberPanel/KYC/MemberOnboardingWizard';
 import ApiLoginPage from './api_panel/pages/ApiLoginPage';
@@ -572,10 +573,14 @@ function App() {
           {/* --- MEMBER ROUTES --- */}
           <Route path="/member/" element={<LoginPage />} />
           <Route path="/member/login" element={<LoginPage />} />
+          <Route path="/member/logs/activity" element={<Navigate to="/member/dashboard/logs/activity" replace />} />
+          <Route path="/member/logs/mobile" element={<Navigate to="/member/dashboard/logs/login-history" replace />} />
           <Route path="/member/dashboard" element={<AuthGuard role="2">
                 <MemberDashboard />
             </AuthGuard>}>
             <Route index element={<MemberHome />} />
+            <Route path="logs/login-history" element={<LoginHistory />} />
+            <Route path="logs/activity" element={<LoginHistory />} />
             <Route path="profile" element={<MyProfile />} />
             <Route path="commission" element={<CommissionSetup />} />
             <Route path="report/aeps" element={<AEPSReport />} />
@@ -611,7 +616,7 @@ function App() {
             <Route path="service/upicashout" element={<UpiCashout />} />
             <Route path="service/upitransfer" element={<UpiTransfer />} />
             <Route path="service/pan" element={<PanCard />} />
-            <Route path="support" element={<MemberSupport />} />
+            <Route path="support" element={<SupportTickets />} />
             <Route path="certificate" element={<MemberCertificate />} />
           </Route>
           <Route path="/member/commission" element={<Navigate to="/member/dashboard/commission" replace />} />
@@ -638,6 +643,9 @@ function App() {
             <Route path="kyc" element={<Navigate to="/api-panel/dashboard/kyc/onboarding" replace />} />
             <Route path="kyc/upload" element={<Navigate to="/api-panel/dashboard/kyc/onboarding" replace />} />
             <Route path="kyc/onboarding" element={<MemberOnboardingWizard />} />
+            
+            {/* Logs Routes */}
+            <Route path="logs/login-history" element={<LoginHistory />} />
             {/* Same report components as the member panel — the backend scopes
                 rows by the JWT, so no per-panel data wiring is needed. */}
             <Route path="report/aeps" element={<AEPSReport />} />
@@ -658,7 +666,7 @@ function App() {
             <Route path="service/upitransfer" element={<UpiTransfer />} />
             <Route path="service/aadharpay" element={<AadharPay />} />
             <Route path="service/pan" element={<PanCard />} />
-            <Route path="support" element={<MemberSupport />} />
+            <Route path="support" element={<SupportTickets />} />
             <Route path="certificate" element={<MemberCertificate />} />
           </Route>
 

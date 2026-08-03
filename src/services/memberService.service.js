@@ -142,5 +142,15 @@ export const MemberServiceService = {
     // Admin: reject a pending request with a reason -> IsActive=0, AssignTypeId=4 (Rejected).
     reject: async (memberServiceId, reason = '') => {
         return await apiService.post(`/MemberService/Reject/${memberServiceId}?reason=${encodeURIComponent(reason)}`, {});
+    },
+
+    // Pause service (IsActive=0, AssignTypeId=5)
+    pause: async (id) => {
+        return await apiService.post(`/MemberService/Pause/${id}`, {});
+    },
+
+    // Cancel service (IsActive=0, AssignTypeId=6)
+    cancel: async (id) => {
+        return await apiService.post(`/MemberService/Cancel/${id}`, {});
     }
 };

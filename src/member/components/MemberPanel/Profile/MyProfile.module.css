@@ -26,9 +26,9 @@
 }
 
 .headerCover {
-  height: 90px;
-  background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 100%);
-  border-bottom: 1px solid var(--border-color, #eef2f6);
+  height: 120px;
+  background: linear-gradient(135deg, #dde1f7, #013e93);
+  border-bottom: none;
 }
 
 .headerContent {
@@ -344,14 +344,47 @@
 
 /* ─── Reset Password / Pin ─── */
 .resetSection {
-  max-width: 600px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 10px 0;
+  padding: 24px;
   animation: fadeIn 0.4s ease;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  background: var(--card-bg, #ffffff);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border-color, #eef2f6);
+}
+
+.resetImageContainer {
+  flex: 0.45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resetImageContainer img {
+  max-width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+}
+
+.resetContentContainer {
+  flex: 0.55;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .resetSection {
+    flex-direction: column;
+    padding: 16px;
+  }
 }
 
 .sectionHeader {
-  margin-bottom: 28px;
+  margin-bottom: 20px;
 }
 
 .sectionSub {
@@ -364,11 +397,7 @@
 .resetForm {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  background: var(--bg-subtle, #f8fafc);
-  padding: 32px;
-  border-radius: 20px;
-  border: 1px solid var(--border-color, #eef2f6);
+  gap: 16px;
 }
 
 .inputGroup {

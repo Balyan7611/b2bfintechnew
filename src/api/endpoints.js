@@ -40,6 +40,8 @@ import { MemberServiceService } from '../services/memberService.service';
 import { IpAuthanticateService } from '../services/ipAuthanticate.service';
 import { ClientCredentialService } from '../services/clientCredential.service';
 import { MemberWebhookService } from '../services/memberWebhook.service';
+import { AdminDashboardService } from '../services/adminDashboard.service';
+import { MemberDashboardService } from '../services/memberDashboard.service';
 
 // Re-exporting everything exactly as before to maintain backward compatibility
 export const API = {
@@ -96,6 +98,9 @@ export const API = {
     logsServiceDatum: LogsServiceDatumService,
     ipAuthanticate: IpAuthanticateService,
     clientCredential: ClientCredentialService,
+    adminDashboard: AdminDashboardService,
+    memberDashboard: MemberDashboardService,
+    apiPartnerDashboard: require('../services/apiPartnerDashboard.service').ApiPartnerDashboardService,
 };
 
 export const fetchCompanyData = CompanyService.fetchCompanyData;

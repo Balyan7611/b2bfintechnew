@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-  FaTachometerAlt, FaCog, FaUserCheck, FaFileAlt, FaWallet, FaHeadset
+  FaTachometerAlt, FaCog, FaUserCheck, FaFileAlt, FaWallet, FaHeadset, FaHistory
 } from 'react-icons/fa';
 import { FiChevronRight, FiChevronLeft, FiGrid, FiX } from 'react-icons/fi';
 import { toggleSidebar, setSidebarOpen } from '../../../store/slices/memberPanelSlice';
@@ -84,6 +84,14 @@ const MemberSidebar = () => {
       name: 'Help & Support',
       icon: <FaHeadset />,
       path: '/member/dashboard/support'
+    },
+    { 
+      name: 'Logs', 
+      icon: <FaHistory />, 
+      hasChildren: true,
+      children: [
+        { name: 'Login History', path: '/member/dashboard/logs/login-history' }
+      ]
     }
   ];
 

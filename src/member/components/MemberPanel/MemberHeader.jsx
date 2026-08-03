@@ -64,29 +64,6 @@ const MemberHeader = () => {
       role: s?.role === 1 ? 'Admin' : 'Retailer'
     };
   });
-  
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const searchRef = useRef(null);
-
-  const searchItems = [
-    { name: 'Dashboard', path: '/member/dashboard' },
-    { name: 'Mobile Recharge', path: '/member/dashboard/recharge' },
-    { name: 'DTH Recharge', path: '/member/dashboard/dth' },
-    { name: 'AEPS Services', path: '/member/dashboard/aeps' },
-    { name: 'BBPS (Bill Pay)', path: '/member/dashboard/bbps' },
-    { name: 'Money Transfer (DMT)', path: '/member/dashboard/dmt' },
-    { name: 'Reports', path: '/member/reports' },
-    { name: 'Members & Users', path: '/member/users' },
-    { name: 'KYC Management', path: '/member/kyc' },
-    { name: 'Settings', path: '/member/settings' },
-    { name: 'Wallet & Fund', path: '/member/wallet' },
-    { name: 'My Profile', path: '/member/dashboard/profile' },
-  ];
-
-  const filteredSearchItems = searchItems.filter(item => 
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const { 
     isDarkMode, user, isProfileDropdownOpen, isMobile, isSidebarOpen,
@@ -203,9 +180,6 @@ const MemberHeader = () => {
       if (notifRef.current && !notifRef.current.contains(event.target)) {
         dispatch(setNotifOpen(false));
       }
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setShowSearchResults(false);
-      }
     };
 
     const handleEsc = (e) => {
@@ -213,7 +187,6 @@ const MemberHeader = () => {
         dispatch(setProfileDropdown(false));
         dispatch(setMailOpen(false));
         dispatch(setNotifOpen(false));
-        setShowSearchResults(false);
       }
     };
 
@@ -334,49 +307,6 @@ const MemberHeader = () => {
       </div>
 
       <div className={styles.center}>
-        {!isMobile && (
-          <div className={styles.searchBar} ref={searchRef}>
-            <FiSearch className={styles.searchIcon} />
-            <input 
-              type="text" 
-              name="search_box"
-              autoComplete="off"
-              placeholder="Search for services, reports..." 
-              className={styles.searchInput} 
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setShowSearchResults(true);
-              }}
-              onFocus={() => setShowSearchResults(true)}
-            />
-            
-            {showSearchResults && searchQuery && (
-              <div className={styles.searchDropdown}>
-                {filteredSearchItems.length > 0 ? (
-                  filteredSearchItems.map((item, index) => (
-                    <div 
-                      key={index} 
-                      className={styles.searchResultItem}
-                      onClick={() => {
-                        navigate(item.path);
-                        setShowSearchResults(false);
-                        setSearchQuery('');
-                      }}
-                    >
-                      <FiSearch style={{ color: '#A0AEC0', marginRight: '10px' }} />
-                      <span style={{ fontSize: '0.85rem', color: '#0D1B3E', fontWeight: 500 }}>{item.name}</span>
-                    </div>
-                  ))
-                ) : (
-                  <div style={{ padding: '15px', textAlign: 'center', color: '#718096', fontSize: '0.85rem' }}>
-                    No results found for "{searchQuery}"
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       <div className={styles.right}>
@@ -397,11 +327,9 @@ const MemberHeader = () => {
         <div className={styles.verticalDivider}></div>
 
         <div className={styles.actionIcons}>
-          <button className={`${styles.iconBtn} ${styles.mobileHide}`} onClick={handleFullscreen}>
+          <button className={`${styles.iconBtn} ${styles.mobileHide}`} onClick={handleFullscreen} title="Fullscreen">
             <FaExpand />
           </button>
-
-          {/* 🔥 Dark/Light Toggle Button Removed */}
 
           <div className={styles.dropdownWrap} ref={notifRef}>
             <button className={styles.iconBtn} onClick={() => {
@@ -515,11 +443,15 @@ const MemberHeader = () => {
                           <div className={`${styles.menuIcon} ${styles.iconChart}`}><FaEdit /></div>
                           <span>Edit Profile</span>
                         </div>
-                        <div className={styles.menuItem} onClick={() => handleNavigate('/member/logs/activity')}>
+                        <div className={styles.menuItem} onClick={() => handleNavigate('/member/dashboard/logs/login-history')}>
+                          <div className={`${styles.menuIcon} ${styles.iconNavy}`}><FaHistory /></div>
+                          <span>Login History</span>
+                        </div>
+                        <div className={styles.menuItem} onClick={() => handleNavigate('/member/dashboard/logs/activity')}>
                           <div className={`${styles.menuIcon} ${styles.iconSupport}`}><FaHistory /></div>
                           <span>Activity Logs</span>
                         </div>
-                        <div className={styles.menuItem} onClick={() => handleNavigate('/member/logs/mobile')}>
+                        <div className={styles.menuItem} onClick={() => handleNavigate('/member/dashboard/logs/login-history')}>
                           <div className={`${styles.menuIcon} ${styles.iconNavy}`}><FaMobileAlt /></div>
                           <span>Mobile Logs</span>
                         </div>

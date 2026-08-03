@@ -97,11 +97,20 @@ const MyProfile = () => {
     fileUrl: ''
   });
 
-  // My Services State
   const [masterServices, setMasterServices] = useState([]);
   const [assignedServices, setAssignedServices] = useState([]);
   const [isLoadingServices, setIsLoadingServices] = useState(false);
   const [requestingServiceId, setRequestingServiceId] = useState(null);
+  
+  // Custom confirmation modal
+  const [confirmModal, setConfirmModal] = useState({
+    show: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    confirmText: 'Confirm',
+    confirmBg: '#10B981'
+  });
 
   // 1. Initial Load: Get User Session & Profile
   useEffect(() => {
@@ -524,6 +533,64 @@ const MyProfile = () => {
     } finally {
       setRequestingServiceId(null);
     }
+  };
+
+  // Pause Service
+  const handlePauseService = (serviceId) => {
+    setConfirmModal({
+      show: true,
+      title: 'Pause Service',
+      message: 'Are you sure you want to temporarily PAUSE this service? You can resume it anytime.',
+      confirmText: 'Yes, Pause',
+      confirmBg: '#F59E0B',
+      onConfirm: async () => {
+        try {
+          const memberId = (await resolveMemberId()) || formData.id || sessionUser?.msrno || null;
+          const assigned = assignedServices.find(a => Number(a.serviceId ?? a.ServiceId ?? a.service_id) === Number(serviceId));
+          if (!assigned?.id) {
+            dispatch(setNotification({ type: 'error', message: 'Could not find assigned service record ID' }));
+            return;
+          }
+          await API.memberService.pause(assigned.id);
+          dispatch(setNotification({ type: 'success', message: 'Service paused successfully!' }));
+          await fetchServicesData(memberId);
+        } catch (err) {
+          console.error('Pause service error:', err);
+          dispatch(setNotification({ type: 'error', message: 'Failed to pause service' }));
+        } finally {
+          setConfirmModal(prev => ({ ...prev, show: false }));
+        }
+      }
+    });
+  };
+
+  // Cancel Service
+  const handleCancelService = (serviceId) => {
+    setConfirmModal({
+      show: true,
+      title: 'Cancel Service',
+      message: 'Are you sure you want to CANCEL this service? The service status will be set to inactive.',
+      confirmText: 'Yes, Cancel',
+      confirmBg: '#EF4444',
+      onConfirm: async () => {
+        try {
+          const memberId = (await resolveMemberId()) || formData.id || sessionUser?.msrno || null;
+          const assigned = assignedServices.find(a => Number(a.serviceId ?? a.ServiceId ?? a.service_id) === Number(serviceId));
+          if (!assigned?.id) {
+            dispatch(setNotification({ type: 'error', message: 'Could not find assigned service record ID' }));
+            return;
+          }
+          await API.memberService.cancel(assigned.id);
+          dispatch(setNotification({ type: 'success', message: 'Service cancelled successfully!' }));
+          await fetchServicesData(memberId);
+        } catch (err) {
+          console.error('Cancel service error:', err);
+          dispatch(setNotification({ type: 'error', message: 'Failed to cancel service' }));
+        } finally {
+          setConfirmModal(prev => ({ ...prev, show: false }));
+        }
+      }
+    });
   };
 
   // Download Certificate Image
@@ -984,17 +1051,21 @@ const MyProfile = () => {
             {/* TAB 2: RESET PASSWORD */}
             {activeTab === 'ResetPassword' && (
               <div className={styles.resetSection}>
-                <div className={styles.sectionHeader}>
-                  <div className={styles.titleWithIcon}>
-                    <FaKey className={styles.titleIcon} />
-                    <div>
-                      <h2>Change Password</h2>
-                      <p className={styles.sectionSub}>Update your account login password</p>
+                <div className={styles.resetImageContainer}>
+                  <img src="/images/resetpassword.png" alt="Security Password" />
+                </div>
+                <div className={styles.resetContentContainer}>
+                  <div className={styles.sectionHeader}>
+                    <div className={styles.titleWithIcon}>
+                      <FaKey className={styles.titleIcon} />
+                      <div>
+                        <h2>Change Password</h2>
+                        <p className={styles.sectionSub}>Update your account login password</p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <form onSubmit={handleUpdatePassword} className={styles.resetForm}>
+                  <form onSubmit={handleUpdatePassword} className={styles.resetForm}>
                   <div className={styles.inputGroup}>
                     <label>Old Password *</label>
                     <div className={styles.inputWrapper}>
@@ -1046,23 +1117,28 @@ const MyProfile = () => {
                     </button>
                   </div>
                 </form>
+                </div>
               </div>
             )}
 
             {/* TAB 3: RESET PIN */}
             {activeTab === 'ResetPin' && (
               <div className={styles.resetSection}>
-                <div className={styles.sectionHeader}>
-                  <div className={styles.titleWithIcon}>
-                    <FaShieldAlt className={styles.titleIcon} />
-                    <div>
-                      <h2>Change Transaction Pin</h2>
-                      <p className={styles.sectionSub}>Update your 4-digit secret transaction PIN</p>
+                <div className={styles.resetImageContainer}>
+                  <img src="/images/resetpin.jpg" alt="Pin Security" />
+                </div>
+                <div className={styles.resetContentContainer}>
+                  <div className={styles.sectionHeader}>
+                    <div className={styles.titleWithIcon}>
+                      <FaShieldAlt className={styles.titleIcon} />
+                      <div>
+                        <h2>Change Transaction Pin</h2>
+                        <p className={styles.sectionSub}>Update your 4-digit secret transaction PIN</p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <form onSubmit={handleUpdatePin} className={styles.resetForm}>
+                  <form onSubmit={handleUpdatePin} className={styles.resetForm}>
                   <div className={styles.inputGroup}>
                     <label>Old PIN *</label>
                     <div className={styles.inputWrapper}>
@@ -1117,6 +1193,7 @@ const MyProfile = () => {
                     </button>
                   </div>
                 </form>
+                </div>
               </div>
             )}
 
@@ -1291,14 +1368,14 @@ const MyProfile = () => {
                       { id: 7, name: 'PAN Card Services', sectionType: 3 },
                       { id: 8, name: 'Electricity & Utility Bills (BBPS)', sectionType: 2 }
                     ]).map(service => {
-                      // Check if member has this service assigned
                       const assigned = assignedServices.find(a => Number(a.serviceId ?? a.ServiceId ?? a.service_id) === Number(service.id));
                       const assignType = Number(assigned?.assignTypeId ?? assigned?.AssignTypeId ?? 0);
                       const active = (assigned?.isActive ?? assigned?.IsActive) === true;
-                      // 1 = admin-assigned, 2 = pending, 3 = approved, 4 = rejected
                       const isApproved = !!assigned && (active || assignType === 3);
                       const isPending = !!assigned && !active && assignType === 2;
                       const isRejected = !!assigned && !active && assignType === 4;
+                      const isPaused = !!assigned && !active && assignType === 5;
+                      const isCancelled = !!assigned && !active && assignType === 6;
                       const rejectReason = assigned?.remark || assigned?.Remark || '';
 
                       return (
@@ -1313,27 +1390,87 @@ const MyProfile = () => {
                             </div>
                           </div>
                           <div className={styles.cardFooter}>
-                            {isApproved ? (
-                              <span className={styles.badgeApproved}><FaRegCheckCircle /> Approved Service</span>
-                            ) : isPending ? (
-                              <span className={styles.badgePending}><FaHourglassHalf /> Pending Approval</span>
-                            ) : (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
-                                {isRejected && (
-                                  <span className={styles.badgeRejected} title={rejectReason}>
-                                    <FaTimes /> Rejected{rejectReason ? ` — ${rejectReason}` : ''}
-                                  </span>
-                                )}
-                                <button
-                                  className={styles.requestServiceBtn}
-                                  disabled={requestingServiceId === service.id}
-                                  onClick={() => handleRequestService(service)}
-                                >
-                                  {requestingServiceId === service.id ? <FaSpinner className={styles.spin} /> : <FaPaperPlane />}
-                                  {isRejected ? ' Request Again' : ' Request Activation'}
-                                </button>
-                              </div>
-                            )}
+                             {isApproved ? (
+                               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                                 <span className={styles.badgeApproved} style={{ width: '100%', justifyContent: 'center' }}><FaRegCheckCircle /> Active Service</span>
+                                 <div style={{ display: 'flex', gap: '8px', width: '100%', marginTop: '4px' }}>
+                                   <button
+                                     onClick={() => handlePauseService(service.id)}
+                                     style={{
+                                       flex: 1, padding: '8px 12px', background: 'rgba(245, 158, 11, 0.1)', 
+                                       color: '#D97706', border: '1px solid rgba(245, 158, 11, 0.2)', 
+                                       borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
+                                       transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'
+                                     }}
+                                     onMouseOver={(e) => { e.currentTarget.style.background = '#F59E0B'; e.currentTarget.style.color = '#fff'; }}
+                                     onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)'; e.currentTarget.style.color = '#D97706'; }}
+                                   >
+                                     Pause
+                                   </button>
+                                   <button
+                                     onClick={() => handleCancelService(service.id)}
+                                     style={{
+                                       flex: 1, padding: '8px 12px', background: 'rgba(239, 68, 68, 0.1)', 
+                                       color: '#DC2626', border: '1px solid rgba(239, 68, 68, 0.2)', 
+                                       borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
+                                       transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'
+                                     }}
+                                     onMouseOver={(e) => { e.currentTarget.style.background = '#EF4444'; e.currentTarget.style.color = '#fff'; }}
+                                     onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#DC2626'; }}
+                                   >
+                                     Cancel
+                                   </button>
+                                 </div>
+                               </div>
+                             ) : isPending ? (
+                               <span className={styles.badgePending} style={{ width: '100%', justifyContent: 'center' }}><FaHourglassHalf /> Pending Approval</span>
+                             ) : isPaused ? (
+                               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                                 <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'rgba(245, 158, 11, 0.1)', color: '#D97706', padding: '8px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, border: '1px dashed rgba(245, 158, 11, 0.4)' }}>
+                                   <FaHourglassHalf /> Service Paused
+                                 </span>
+                                 <button
+                                   className={styles.requestServiceBtn}
+                                   disabled={requestingServiceId === service.id}
+                                   onClick={() => handleRequestService(service)}
+                                   style={{
+                                     width: '100%', background: '#10B981', color: '#fff', border: 'none',
+                                     borderRadius: '8px', padding: '10px 16px', fontSize: '0.8rem', fontWeight: 700,
+                                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                                     transition: 'background 0.2s'
+                                   }}
+                                   onMouseOver={(e) => e.currentTarget.style.background = '#059669'}
+                                   onMouseOut={(e) => e.currentTarget.style.background = '#10B981'}
+                                 >
+                                   {requestingServiceId === service.id ? <FaSpinner className={styles.spin} /> : <FaPaperPlane />}
+                                   {' Resume Service'}
+                                 </button>
+                               </div>
+                             ) : (
+                               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                                 {(isRejected || isCancelled) && (
+                                   <span className={isRejected ? styles.badgeRejected : styles.badgePending} title={rejectReason} style={isCancelled ? { background: '#F1F5F9', color: '#475569', border: '1px solid #E2E8F0', width: '100%', justifyContent: 'center' } : { width: '100%', justifyContent: 'center' }}>
+                                     <FaTimes /> {isRejected ? `Rejected${rejectReason ? ` — ${rejectReason}` : ''}` : 'Cancelled'}
+                                   </span>
+                                 )}
+                                 <button
+                                   className={styles.requestServiceBtn}
+                                   disabled={requestingServiceId === service.id}
+                                   onClick={() => handleRequestService(service)}
+                                   style={{
+                                     width: '100%', background: 'linear-gradient(135deg, #1756AA, #0d3b7a)', color: '#fff', border: 'none',
+                                     borderRadius: '8px', padding: '10px 16px', fontSize: '0.8rem', fontWeight: 700,
+                                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                                     transition: 'opacity 0.2s'
+                                   }}
+                                   onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'}
+                                   onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                                 >
+                                   {requestingServiceId === service.id ? <FaSpinner className={styles.spin} /> : <FaPaperPlane />}
+                                   {isRejected || isCancelled ? ' Request Again' : ' Request Activation'}
+                                 </button>
+                               </div>
+                             )}
                           </div>
                         </div>
                       );
@@ -1426,6 +1563,47 @@ const MyProfile = () => {
           </div>
         </div>
       </div>
+      {confirmModal.show && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(5px)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999999
+        }}>
+          <div style={{
+            background: '#ffffff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '400px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            textAlign: 'center', border: '1px solid #e2e8f0', animation: 'fadeIn 0.2s ease-out'
+          }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '1.25rem', color: '#0f172a', fontWeight: 800 }}>{confirmModal.title}</h3>
+            <p style={{ margin: '0 0 24px 0', fontSize: '0.875rem', color: '#475569', lineHeight: 1.5 }}>{confirmModal.message}</p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+                style={{
+                  padding: '10px 20px', background: '#F1F5F9', color: '#475569', border: '1px solid #E2E8F0',
+                  borderRadius: '10px', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = '#E2E8F0'}
+                onMouseOut={(e) => e.currentTarget.style.background = '#F1F5F9'}
+              >
+                No, Keep
+              </button>
+              <button
+                onClick={confirmModal.onConfirm}
+                style={{
+                  padding: '10px 20px', background: confirmModal.confirmBg, color: '#ffffff', border: 'none',
+                  borderRadius: '10px', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', transition: 'opacity 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'}
+                onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+              >
+                {confirmModal.confirmText}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

@@ -375,6 +375,10 @@ const ApiHeader = () => {
                           <div className={`${styles.menuIcon} ${styles.iconNavy}`}><FaKey /></div>
                           <span>API Credentials</span>
                         </div>
+                        <div className={styles.menuItem} onClick={() => handleNavigate('/api-panel/dashboard/logs/login-history')}>
+                          <div className={`${styles.menuIcon} ${styles.iconNavy}`}><FaHistory /></div>
+                          <span>Login History</span>
+                        </div>
                         <div className={styles.divider}></div>
                         <div className={`${styles.menuItem} ${styles.logoutItem}`} onClick={handleLogout}>
                           <div className={`${styles.menuIcon} ${styles.iconRed}`}><FaPowerOff /></div>

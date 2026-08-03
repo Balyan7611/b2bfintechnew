@@ -29,7 +29,7 @@ import {
   FaMoneyCheckAlt, FaCreditCard, FaQrcode, FaAddressCard, 
   FaHandHoldingUsd, FaPaperPlane, FaMoneyBill, FaChartPie, FaProjectDiagram, FaChartLine, FaChartBar,
   FaChevronDown, FaCircle, FaCalendarAlt, FaCaretDown, FaCaretUp,
-  FaEdit, FaUserLock, FaArrowLeft, FaExclamationTriangle
+  FaEdit, FaUserLock, FaArrowLeft, FaExclamationTriangle, FaHistory
 } from 'react-icons/fa';
 import { FiGrid, FiX, FiDroplet } from 'react-icons/fi';
 import SupportList from '../../shared/components/SupportList/SupportList';
@@ -98,6 +98,7 @@ import CheckTXN from '../components/SettingsPages/CheckTXN';
 import EmployeeLoginList from '../components/SettingsPages/EmployeeLoginList';
 import SMSCategory from '../components/SettingsPages/SMSCategory';
 import SMSTemplate from '../components/SettingsPages/SMSTemplate';
+import LoginHistory from '../../shared/components/Logs/LoginHistory';
 import SMSIntegration from '../components/SettingsPages/SMSIntegration';
 import ManageSMSTemplate from '../components/SettingsPages/ManageSMSTemplate';
 import AEPSHistory from '../components/ReportPages/AEPSHistory';
@@ -320,6 +321,14 @@ const SIDEBAR_LINKS = [
       { id: 'pipe_module_settings', label: 'Pipe Module Settings' }
     ]
   },
+  { 
+    id: 'logs', 
+    label: 'Logs', 
+    icon: FaHistory,
+    subLinks: [
+      { id: 'login_history', label: 'Login History' }
+    ]
+  },
   { id: 'attendance', label: 'Attendance', icon: FaCalendarAlt },
 ];
 
@@ -336,41 +345,11 @@ const ACTION_ICONS = [
   { icon: FaUserCircle, label: 'Profile', color: '#4A5568', bg: 'rgba(74,85,104,0.1)' },
 ];
 
-const DASHBOARD_CARDS = [
-  { id: 1, title: 'E-Wallet Summary', icon: FaWallet, color: 'green', badge: null, max: '0.00' },
-  { id: 2, title: 'Balance Transfer', icon: FaExchangeAlt, color: 'green', badge: null, max: '0.00' },
-  { id: 3, title: 'Registration', icon: FaUserPlus, color: 'red', badge: null, max: '0.00' },
-  { id: 4, title: 'Todays DMT', icon: FaMoneyBillWave, color: 'blue', badge: { label: 'Sur', value: '0.0000', type: 'orange' }, max: '0.00' },
-  { id: 5, title: 'Total Recharge', icon: FaMobileAlt, color: 'green', badge: { label: 'Comm', value: '0.00', type: 'green' }, max: '0.00' },
-  { id: 6, title: 'Total AEPS', icon: FaFingerprint, color: 'red', badge: { label: 'Comm', value: '0.00', type: 'green' }, max: '0.00' },
-  { id: 7, title: 'Total Payout', icon: FaMoneyCheckAlt, color: 'yellow', badge: { label: 'Charge', value: '0.00', type: 'red' }, max: '0.00' },
-  { id: 8, title: 'Todays MATM', icon: FaCreditCard, color: 'blue', badge: { label: 'Comm', value: '0.00', type: 'green' }, max: '0.00' },
-  { id: 9, title: 'Total Aadharpay', icon: FaIdCard, color: 'green', badge: { label: 'Surcharge', value: '0.00', type: 'red' }, max: '0.00' },
-  { id: 10, title: 'Total UPI', icon: FaQrcode, color: 'red', badge: { label: 'Charge', value: '0', type: 'red' }, max: '0.00' },
-  { id: 11, title: 'Total Water', icon: FiDroplet, color: 'blue', badge: { label: 'Max', value: '0.00', type: 'red' }, max: '0.00' },
-  { id: 12, title: 'Total Fund Request', icon: FaHandHoldingUsd, color: 'yellow', badge: { label: 'Max', value: '0.00', type: 'red' }, max: '0.00' },
-  { id: 13, title: 'UPI Transfer', icon: FaPaperPlane, color: 'yellow', badge: { label: 'Charge', value: '0.00', type: 'red' }, max: '0.00' },
-  { id: 14, title: 'UPI Cashout', icon: FaMoneyBill, color: 'yellow', badge: { label: 'Charge', value: '0.00', type: 'red' }, max: '0.00' },
-  { id: 15, title: 'Credit Card', icon: FaCreditCard, color: 'yellow', badge: { label: 'Charge', value: '0.00', type: 'red' }, max: '0.00' },
-  { id: 16, title: 'DMT PPI', icon: FaChartPie, color: 'yellow', badge: { label: 'Charge', value: '0.00', type: 'red' }, max: '0.00' },
-];
+const DASHBOARD_CARDS = [];
 
-const CHART_DATA = [
-  { date: 'May 01', amount: 12500 },
-  { date: 'May 05', amount: 18200 },
-  { date: 'May 10', amount: 14800 },
-  { date: 'May 15', amount: 26000 },
-  { date: 'May 20', amount: 21500 },
-  { date: 'May 25', amount: 34000 },
-  { date: 'May 30', amount: 41200 },
-];
+const CHART_DATA = [];
 
-const DONUT_DATA = [
-  { name: 'AEPS', value: 45000 },
-  { name: 'DMT', value: 30000 },
-  { name: 'Recharge', value: 15000 },
-  { name: 'Payout', value: 20000 },
-];
+const DONUT_DATA = [];
 
 const DONUT_COLORS = ['#1756AA', '#EAA21F', '#27AE60', '#E53E3E'];
 
@@ -536,6 +515,37 @@ const DashboardPage = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [isSearchingMember, setIsSearchingMember] = useState(false);
 
+  // Live Admin Dashboard State
+  const [overviewData, setOverviewData] = useState(null);
+  const [recentTxns, setRecentTxns] = useState([]);
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
+
+  const fetchDashboardData = useCallback(async () => {
+    setIsLoadingDashboard(true);
+    try {
+      const [overviewRes, txnsRes] = await Promise.all([
+        API.adminDashboard.getOverview().catch(() => null),
+        API.adminDashboard.getRecentTransactions(10).catch(() => null)
+      ]);
+      if (overviewRes && (overviewRes.success === true || overviewRes.status === true)) {
+        setOverviewData(overviewRes.data);
+      }
+      if (txnsRes && (txnsRes.success === true || txnsRes.status === true) && Array.isArray(txnsRes.data)) {
+        setRecentTxns(txnsRes.data);
+      }
+    } catch (err) {
+      console.error('Failed to load admin dashboard overview:', err);
+    } finally {
+      setIsLoadingDashboard(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'dashboard') {
+      fetchDashboardData();
+    }
+  }, [activeTab, fetchDashboardData]);
+
   useEffect(() => {
     if (memberSearchQuery.trim().length < 3) {
       setSuggestions([]);
@@ -603,55 +613,11 @@ const DashboardPage = () => {
   const chartFilterOptions = ['Today', '7 Days', '1 Month', '3 Months', '6 Months', '1 Year', 'All Time'];
 
   const serviceHealthData = useMemo(() => {
-    let multiplier = 1;
-    if (selectedChartFilter === '7 Days') multiplier = 7;
-    if (selectedChartFilter === '1 Month') multiplier = 30;
-    if (selectedChartFilter === '3 Months') multiplier = 90;
-    if (selectedChartFilter === '6 Months') multiplier = 180;
-    if (selectedChartFilter === '1 Year') multiplier = 365;
-    if (selectedChartFilter === 'All Time') multiplier = 1000;
-
-    return [
-      { name: 'AEPS', success: Math.floor(4000 * multiplier * (Math.random() * 0.4 + 0.8)), failed: Math.floor(400 * multiplier) },
-      { name: 'DMT', success: Math.floor(3000 * multiplier * (Math.random() * 0.4 + 0.8)), failed: Math.floor(200 * multiplier) },
-      { name: 'Recharge', success: Math.floor(2000 * multiplier * (Math.random() * 0.4 + 0.8)), failed: Math.floor(100 * multiplier) },
-      { name: 'Payout', success: Math.floor(2780 * multiplier * (Math.random() * 0.4 + 0.8)), failed: Math.floor(500 * multiplier) },
-      { name: 'UPI', success: Math.floor(1890 * multiplier * (Math.random() * 0.4 + 0.8)), failed: Math.floor(50 * multiplier) },
-    ];
+    return [];
   }, [selectedChartFilter]);
 
   const revenueProfitData = useMemo(() => {
-    let data = [];
-    if (selectedChartFilter === 'Today') {
-      data = ['08:00', '12:00', '16:00', '20:00', '23:59'].map(t => ({
-        date: t, revenue: Math.floor(Math.random() * 5000) + 1000, profit: Math.floor(Math.random() * 500) + 100
-      }));
-    } else if (selectedChartFilter === '7 Days') {
-      data = ['08', '09', '10', '11', '12', '13', '14'].map(d => ({
-        date: `May ${d}`, revenue: Math.floor(Math.random() * 5000) + 2000, profit: Math.floor(Math.random() * 600) + 200
-      }));
-    } else if (selectedChartFilter === '1 Month') {
-      data = ['W1', 'W2', 'W3', 'W4'].map(w => ({
-        date: w, revenue: Math.floor(Math.random() * 25000) + 15000, profit: Math.floor(Math.random() * 3000) + 1500
-      }));
-    } else if (selectedChartFilter === '3 Months') {
-      data = ['Mar', 'Apr', 'May'].map(m => ({
-        date: m, revenue: Math.floor(Math.random() * 80000) + 50000, profit: Math.floor(Math.random() * 9000) + 5000
-      }));
-    } else if (selectedChartFilter === '6 Months') {
-      data = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map(m => ({
-        date: m, revenue: Math.floor(Math.random() * 150000) + 100000, profit: Math.floor(Math.random() * 18000) + 10000
-      }));
-    } else if (selectedChartFilter === '1 Year') {
-      data = ['Q1', 'Q2', 'Q3', 'Q4'].map(q => ({
-        date: q, revenue: Math.floor(Math.random() * 400000) + 250000, profit: Math.floor(Math.random() * 45000) + 25000
-      }));
-    } else {
-      data = ['2023', '2024', '2025', '2026'].map(y => ({
-        date: y, revenue: Math.floor(Math.random() * 1000000) + 800000, profit: Math.floor(Math.random() * 120000) + 80000
-      }));
-    }
-    return data;
+    return [];
   }, [selectedChartFilter]);
 
   const formatYAxis = (value) => {
@@ -1391,6 +1357,8 @@ const DashboardPage = () => {
             <QuickSearch />
           ) : activeTab === 'tds_report' ? (
             <TDSReport />
+          ) : activeTab === 'login_history' ? (
+            <LoginHistory />
           ) : activeTab === 'pipe_master_new' ? (
             <PipeMasterNew />
           ) : activeTab === 'pipe_module_settings' ? (
@@ -1580,7 +1548,7 @@ const DashboardPage = () => {
                               <FaIdCard />
                             </div>
                             <div className={styles.alertInfo}>
-                              <span className={styles.alertCount}>12</span>
+                              <span className={styles.alertCount}>{overviewData?.pendingActions?.kycPendingCount ?? 0}</span>
                               <span className={styles.alertLabel}>KYC Pending</span>
                             </div>
                           </div>
@@ -1590,7 +1558,7 @@ const DashboardPage = () => {
                               <FaHeadset />
                             </div>
                             <div className={styles.alertInfo}>
-                              <span className={styles.alertCount}>5</span>
+                              <span className={styles.alertCount}>{overviewData?.pendingActions?.openTicketsCount ?? 0}</span>
                               <span className={styles.alertLabel}>Open Tickets</span>
                             </div>
                           </div>
@@ -1600,7 +1568,7 @@ const DashboardPage = () => {
                               <FaWallet />
                             </div>
                             <div className={styles.alertInfo}>
-                              <span className={styles.alertCount}>3</span>
+                              <span className={styles.alertCount}>{overviewData?.pendingActions?.pendingFundRequestsCount ?? 0}</span>
                               <span className={styles.alertLabel}>Fund Request</span>
                             </div>
                           </div>
@@ -1613,17 +1581,27 @@ const DashboardPage = () => {
                   <div className={styles.rightColumn}>
                     {/* KEY METRICS ROW */}
                     <div className={`${styles.statsRow} ${styles.statsRowMobileOrder} admin-stats-row`}>
-                      {STAT_CARDS.map(stat => (
-                        <div key={stat.id} className={styles.statCard}>
-                          <div className={styles.statIconWrap}>
-                            <stat.icon className={`${styles.statIcon} ${styles[`icon_${stat.color}`]}`} />
+                      {STAT_CARDS.map(stat => {
+                        let displayValue = '₹ 0.00';
+                        if (overviewData?.counters) {
+                          const c = overviewData.counters;
+                          if (stat.id === 1) displayValue = `₹ ${(c.totalTransactionsAmount ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+                          if (stat.id === 2) displayValue = `₹ ${(c.totalCommission ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+                          if (stat.id === 3) displayValue = `₹ ${(c.totalCharges ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+                          if (stat.id === 4) displayValue = `₹ ${(c.netFlow ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+                        }
+                        return (
+                          <div key={stat.id} className={styles.statCard}>
+                            <div className={styles.statIconWrap}>
+                              <stat.icon className={`${styles.statIcon} ${styles[`icon_${stat.color}`]}`} />
+                            </div>
+                            <div className={styles.statInfo}>
+                              <span className={styles.statValue}>{displayValue}</span>
+                              <span className={styles.statLabel}>{stat.title}</span>
+                            </div>
                           </div>
-                          <div className={styles.statInfo}>
-                            <span className={styles.statValue}>{stat.value}</span>
-                            <span className={styles.statLabel}>{stat.title}</span>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     {/* CHART */}
@@ -1730,30 +1708,20 @@ const DashboardPage = () => {
                       <div className={`${styles.cardContainer} ${styles.bottomInfoCard}`} style={{ padding: '16px' }}>
                         <h3 className={styles.sectionTitle}>Top Performers</h3>
                         <div className={styles.performersList}>
-                          <div className={styles.performerItem}>
-                            <div className={styles.performerAvatar}>R</div>
-                            <div className={styles.performerInfo}>
-                              <span className={styles.performerName}>Ramesh Store</span>
-                              <span className={styles.performerType}>DMT Agent</span>
-                            </div>
-                            <span className={styles.performerAmount}>₹ 45k</span>
-                          </div>
-                          <div className={styles.performerItem}>
-                            <div className={styles.performerAvatar}>P</div>
-                            <div className={styles.performerInfo}>
-                              <span className={styles.performerName}>Priya Telecom</span>
-                              <span className={styles.performerType}>AEPS Retailer</span>
-                            </div>
-                            <span className={styles.performerAmount}>₹ 38k</span>
-                          </div>
-                          <div className={styles.performerItem}>
-                            <div className={styles.performerAvatar}>S</div>
-                            <div className={styles.performerInfo}>
-                              <span className={styles.performerName}>Sharma Comms</span>
-                              <span className={styles.performerType}>Recharge</span>
-                            </div>
-                            <span className={styles.performerAmount}>₹ 32k</span>
-                          </div>
+                          {Array.isArray(overviewData?.topPerformers) && overviewData.topPerformers.length > 0 ? (
+                            overviewData.topPerformers.map((p, idx) => (
+                              <div key={idx} className={styles.performerItem}>
+                                <div className={styles.performerAvatar}>{(p.memberName || p.name || 'M')[0]}</div>
+                                <div className={styles.performerInfo}>
+                                  <span className={styles.performerName}>{p.memberName || p.name}</span>
+                                  <span className={styles.performerType}>{p.shopName || 'Retailer Point'}</span>
+                                </div>
+                                <span className={styles.performerAmount}>₹ {(p.totalVolume || 0).toLocaleString('en-IN')}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div style={{ color: '#64748b', fontSize: '0.8rem', textAlign: 'center', padding: '16px 0' }}>No performers recorded.</div>
+                          )}
                         </div>
                       </div>
 
@@ -1761,27 +1729,21 @@ const DashboardPage = () => {
                       <div className={`${styles.cardContainer} ${styles.bottomInfoCard}`} style={{ padding: '16px' }}>
                         <h3 className={styles.sectionTitle}>API Health Status</h3>
                         <div className={styles.apiHealthList}>
-                          <div className={styles.apiRow}>
-                            <div className={styles.apiNameWrap}>
-                              <div className={styles.apiDotGreen}></div>
-                              <span>ICICI Payout</span>
-                            </div>
-                            <span className={styles.textGreen}>99.9% Uptime</span>
-                          </div>
-                          <div className={styles.apiRow}>
-                            <div className={styles.apiNameWrap}>
-                              <div className={styles.apiDotGreen}></div>
-                              <span>YesBank AEPS</span>
-                            </div>
-                            <span className={styles.textGreen}>98.5% Uptime</span>
-                          </div>
-                          <div className={styles.apiRow}>
-                            <div className={styles.apiNameWrap}>
-                              <div className={styles.apiDotOrange}></div>
-                              <span>Paytm Wallet</span>
-                            </div>
-                            <span className={styles.textOrange}>Degraded</span>
-                          </div>
+                          {Array.isArray(overviewData?.apiHealthStatuses) && overviewData.apiHealthStatuses.length > 0 ? (
+                            overviewData.apiHealthStatuses.map((api, idx) => (
+                              <div key={idx} className={styles.apiRow}>
+                                <div className={styles.apiNameWrap}>
+                                  <div className={api.status?.toLowerCase() === 'active' ? styles.apiDotGreen : styles.apiDotOrange}></div>
+                                  <span>{api.apiName || api.name}</span>
+                                </div>
+                                <span className={api.status?.toLowerCase() === 'active' ? styles.textGreen : styles.textOrange}>
+                                  {(api.uptime ?? 100)}% Uptime
+                                </span>
+                              </div>
+                            ))
+                          ) : (
+                            <div style={{ color: '#64748b', fontSize: '0.8rem', textAlign: 'center', padding: '16px 0' }}>No external APIs tracked.</div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1806,32 +1768,32 @@ const DashboardPage = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {RECENT_TXNS.length === 0 ? (
+                        {recentTxns.length === 0 ? (
                           <tr>
                             <td colSpan="8" style={{ textAlign: 'center', padding: '24px 0', color: '#64748b' }}>
                               No recent transactions found.
                             </td>
                           </tr>
                         ) : (
-                          RECENT_TXNS.map((txn, i) => (
-                            <tr key={txn.id}>
+                          recentTxns.map((txn, i) => (
+                            <tr key={txn.id || i}>
                               <td>{i + 1}</td>
-                              <td>{txn.date}</td>
+                              <td>{new Date(txn.date).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}</td>
                               <td>
-                                <span className={`${styles.servicePill} ${styles[`service_${txn.service.toLowerCase()}`] || ''}`}>
-                                  {txn.service}
+                                <span className={`${styles.servicePill} ${styles[`service_${(txn.serviceName || '').toLowerCase().replace(/\s+/g, '')}`] || ''}`}>
+                                  {txn.serviceName}
                                 </span>
                               </td>
-                              <td>{txn.memberId}</td>
-                              <td>₹ {txn.amount}</td>
-                              <td>₹ {txn.commission}</td>
+                              <td>{txn.memberLoginId}</td>
+                              <td>₹ {(txn.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                              <td>₹ {(txn.commission || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                               <td>
-                                <span className={`${styles.statusBadge} ${styles[`status_${txn.status.toLowerCase()}`]}`}>
+                                <span className={`${styles.statusBadge} ${styles[`status_${(txn.status || '').toLowerCase()}`]}`}>
                                   {txn.status}
                                 </span>
                               </td>
-                              <td className={txn.change.startsWith('+') ? styles.changePositive : txn.change.startsWith('-') ? styles.changeNegative : styles.changeNeutral}>
-                                {txn.change}
+                              <td className={(txn.change || 0) >= 0 ? styles.changePositive : styles.changeNegative}>
+                                {(txn.change || 0) >= 0 ? `+${(txn.change || 0).toFixed(2)}` : (txn.change || 0).toFixed(2)}
                               </td>
                             </tr>
                           ))

@@ -1,0 +1,95 @@
+.searchFloatingContainer {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #ffffff;
+  height: 56px;
+  border-radius: 28px;
+  box-shadow: 0 10px 25px rgba(23, 86, 170, 0.2);
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1000;
+  border: 2px solid transparent;
+  width: 56px;
+  overflow: hidden;
+}
+
+.searchFloatingContainer:hover {
+  box-shadow: 0 15px 35px rgba(23, 86, 170, 0.3);
+  transform: translateY(-2px);
+}
+
+.searchFloatingContainer.expanded {
+  width: 320px;
+  border-color: #1756AA;
+  cursor: default;
+  padding-left: 15px;
+}
+
+.searchIconWrapper {
+  min-width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1756AA 0%, #0d3b7a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -2px;
+  box-shadow: 0 4px 10px rgba(23, 86, 170, 0.3);
+}
+
+.searchIconLiquid {
+  color: white;
+  font-size: 1.1rem;
+}
+
+.searchBarInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.95rem;
+  color: #0F172A;
+  margin-left: 15px;
+  font-family: inherit;
+  font-weight: 500;
+  height: 100%;
+}
+
+.searchBarInput::placeholder {
+  color: #94A3B8;
+  font-weight: 400;
+}
+
+.searchCloseBtn {
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border-radius: 50%;
+  margin-left: auto;
+  margin-right: 5px;
+  transition: all 0.2s;
+}
+
+.searchCloseBtn:hover {
+  color: #EF4444;
+  background: #FEE2E2;
+}
+
+@media (max-width: 768px) {
+  .searchFloatingContainer {
+    bottom: 20px;
+    right: 20px;
+  }
+  .searchFloatingContainer.expanded {
+    width: calc(100vw - 40px);
+  }
+}

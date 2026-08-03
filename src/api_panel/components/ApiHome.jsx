@@ -6,12 +6,29 @@ import { FaCheckCircle, FaExclamationTriangle, FaClock, FaTimesCircle, FaServer,
 import { useNavigate } from 'react-router-dom';
 import { API } from '../../api/endpoints';
 import { renderServiceIcon, getServiceColor } from '../../shared/utils/serviceVisuals';
+import { resolveMemberId, getLoginId } from '../../utils/memberIdentity';
+import AdminTable from '../../shared/components/common/AdminTable';
+
 const ApiHome = () => {
   const navigate = useNavigate();
   const { isDarkMode } = useSelector((state) => state.memberPanel);
   const [activeLane, setActiveLane] = useState('Success');
   const [currentTime, setCurrentTime] = useState('');
   const [healthScore, setHealthScore] = useState(0);
+
+  // Overview State
+  const [overviewMetrics, setOverviewMetrics] = useState({
+    todayVolume: 0,
+    todayCommission: 0,
+    successRatio: 0,
+    totalTransactions: 0
+  });
+
+  // Recent Transactions State
+  const [recentTxns, setRecentTxns] = useState([]);
+  const [txnSearchQuery, setTxnSearchQuery] = useState('');
+  const [txnRowsPerPage, setTxnRowsPerPage] = useState(10);
+  const [txnCurrentPage, setTxnCurrentPage] = useState(1);
 
   // Smooth count up animation for health score
   useEffect(() => {
@@ -89,26 +106,60 @@ const ApiHome = () => {
   ]);
 
   useEffect(() => {
-    const fetchQuickServices = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const activeServices = await API.service.getActiveServices();
-        if (Array.isArray(activeServices) && activeServices.length > 0) {
-          const mapped = activeServices.map(s => ({
-            name: s.name,
-            icon: renderServiceIcon(s.name),
-            color: getServiceColor(s.name),
+        // Fetch Overview
+        const overviewRes = await API.apiPartnerDashboard.getOverview();
+        if (overviewRes?.data) {
+          setOverviewMetrics(overviewRes.data);
+        } else if (overviewRes?.data?.data) { // Handle double nested data if present
+          setOverviewMetrics(overviewRes.data.data);
+        }
+
+        // Fetch Recent Transactions
+        const txnsRes = await API.apiPartnerDashboard.getRecentTransactions(10);
+        if (txnsRes?.data) {
+          setRecentTxns(Array.isArray(txnsRes.data) ? txnsRes.data : []);
+        } else if (txnsRes?.data?.data) {
+          setRecentTxns(Array.isArray(txnsRes.data.data) ? txnsRes.data.data : []);
+        }
+
+        // Fetch Assigned Services directly from ApiPartner endpoint
+        const servicesRes = await API.apiPartnerDashboard.getAssignedServices();
+        let assignedServices = [];
+        if (Array.isArray(servicesRes?.data)) assignedServices = servicesRes.data;
+        else if (Array.isArray(servicesRes?.data?.data)) assignedServices = servicesRes.data.data;
+
+        if (assignedServices.length > 0) {
+          const mapped = assignedServices.map(s => ({
+            name: s.serviceName || s.name,
+            icon: s.iconUrl ? <img src={s.iconUrl} alt={s.serviceName} style={{ width: '24px', height: '24px' }} /> : renderServiceIcon(s.serviceName || s.name),
+            color: getServiceColor(s.serviceName || s.name),
             value: '₹ 0.00',
-            max: '₹ 0.00',
-            usagePercent: 0
+            max: 'Unlimited',
+            usagePercent: 0,
+            status: s.status || 'Active'
           }));
           setQuickServices(mapped);
+        } else {
+          setQuickServices([]);
         }
       } catch (err) {
-        console.error('ApiHome: Failed to fetch active services:', err);
+        console.error('ApiHome: Failed to fetch dashboard data:', err);
       }
     };
-    fetchQuickServices();
+    fetchDashboardData();
   }, []);
+
+  const filteredTxns = recentTxns.filter(txn => 
+    txn.txnId?.toLowerCase().includes(txnSearchQuery.toLowerCase()) ||
+    txn.service?.toLowerCase().includes(txnSearchQuery.toLowerCase()) ||
+    txn.status?.toLowerCase().includes(txnSearchQuery.toLowerCase())
+  );
+  
+  const totalTxnEntries = filteredTxns.length;
+  const totalTxnPages = Math.ceil(totalTxnEntries / txnRowsPerPage);
+  const displayTxns = filteredTxns.slice((txnCurrentPage - 1) * txnRowsPerPage, txnCurrentPage * txnRowsPerPage);
 
   return (
     <div className={`${styles.container} ${isDarkMode ? styles.dark : ''}`}>
@@ -117,27 +168,27 @@ const ApiHome = () => {
       <div className={styles.statusGrid}>
         <div className={`${styles.statusCard} ${styles.blueCard} ${styles.animateCardPop}`} style={{ animationDelay: '0.1s' }}>
           <div className={styles.cardGlow}></div>
-          <div className={styles.cardTitle}>DEPOSIT TRANSACTIONS</div>
-          <div className={styles.cardAmount}>₹ 0.00</div>
-          <div className={styles.cardSubtext}>Today's Deposit Amount</div>
+          <div className={styles.cardTitle}>TODAY'S VOLUME</div>
+          <div className={styles.cardAmount}>₹ {overviewMetrics.todayVolume?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || '0.00'}</div>
+          <div className={styles.cardSubtext}>Total Transaction Volume</div>
         </div>
         <div className={`${styles.statusCard} ${styles.greenCard} ${styles.animateCardPop}`} style={{ animationDelay: '0.2s' }}>
           <div className={styles.cardGlow}></div>
-          <div className={styles.cardTitle}>SUCCESS TRANSACTIONS</div>
-          <div className={styles.cardAmount}>₹ 0.00</div>
-          <div className={styles.cardSubtext}>Today's Successful Amount</div>
+          <div className={styles.cardTitle}>TODAY'S COMMISSION</div>
+          <div className={styles.cardAmount}>₹ {overviewMetrics.todayCommission?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || '0.00'}</div>
+          <div className={styles.cardSubtext}>Earned API Commission</div>
         </div>
         <div className={`${styles.statusCard} ${styles.purpleCard} ${styles.animateCardPop}`} style={{ animationDelay: '0.3s' }}>
           <div className={styles.cardGlow}></div>
-          <div className={styles.cardTitle}>FAILED TRANSACTIONS</div>
-          <div className={styles.cardAmount}>₹ 0.00</div>
-          <div className={styles.cardSubtext}>Today's Failed Amount</div>
+          <div className={styles.cardTitle}>TOTAL TRANSACTIONS</div>
+          <div className={styles.cardAmount}>{overviewMetrics.totalTransactions || 0}</div>
+          <div className={styles.cardSubtext}>Count of API Hits</div>
         </div>
         <div className={`${styles.statusCard} ${styles.orangeCard} ${styles.animateCardPop}`} style={{ animationDelay: '0.4s' }}>
           <div className={styles.cardGlow}></div>
-          <div className={styles.cardTitle}>PENDING TRANSACTIONS</div>
-          <div className={styles.cardAmount}>₹ 0.00</div>
-          <div className={styles.cardSubtext}>Amount Awaiting Final Status</div>
+          <div className={styles.cardTitle}>SUCCESS RATIO</div>
+          <div className={styles.cardAmount}>{overviewMetrics.successRatio || 0}%</div>
+          <div className={styles.cardSubtext}>Overall Success Rate</div>
         </div>
       </div>
 
@@ -365,6 +416,42 @@ const ApiHome = () => {
           </p>
         </div>
 
+      </div>
+
+      {/* RECENT TRANSACTIONS SECTION */}
+      <div style={{ marginTop: '20px', animationDelay: '0.7s' }} className={styles.animateFadeIn}>
+        <AdminTable
+          title="RECENT TRANSACTIONS"
+          subtitle="Your latest API activities and status"
+          columns={['TXN ID', 'DATE', 'SERVICE', 'AMOUNT', 'STATUS', 'RESPONSE CODE']}
+          data={displayTxns}
+          renderRow={(txn, index) => (
+            <tr key={index}>
+              <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{txn.txnId}</td>
+              <td style={{ color: '#4E6080' }}>{new Date(txn.date).toLocaleString()}</td>
+              <td style={{ fontWeight: 600 }}>{txn.service}</td>
+              <td style={{ fontWeight: 700, color: '#10b981' }}>₹ {txn.amount?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+              <td>
+                <span style={{
+                  padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600,
+                  backgroundColor: txn.status === 'Success' ? '#ecfdf5' : txn.status === 'Pending' ? '#fef3c7' : '#fef2f2',
+                  color: txn.status === 'Success' ? '#10b981' : txn.status === 'Pending' ? '#d97706' : '#ef4444'
+                }}>
+                  {txn.status}
+                </span>
+              </td>
+              <td style={{ color: '#64748b' }}>{txn.apiResponseCode}</td>
+            </tr>
+          )}
+          searchQuery={txnSearchQuery}
+          onSearchChange={setTxnSearchQuery}
+          rowsPerPage={txnRowsPerPage}
+          onRowsPerPageChange={setTxnRowsPerPage}
+          currentPage={txnCurrentPage}
+          onPageChange={setTxnCurrentPage}
+          totalEntries={totalTxnEntries}
+          totalPages={totalTxnPages}
+        />
       </div>
     </div>
   );

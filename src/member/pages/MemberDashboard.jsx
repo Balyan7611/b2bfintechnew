@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { getSession } from '../../utils/authUtils';
 import { Outlet } from 'react-router-dom';
+import { API } from '../../api/endpoints';
+import { resolveMemberId, getLoginId } from '../../utils/memberIdentity';
 import MemberSidebar from '../components/MemberPanel/MemberSidebar';
 import MemberHeader from '../components/MemberPanel/MemberHeader';
 import MyServicesModal from '../components/MemberPanel/MyServices';
+import FloatingTxnSearch from '../../shared/components/common/FloatingTxnSearch';
 import { 
   setIsMobile, 
   setSidebarOpen,
@@ -66,6 +69,8 @@ const MemberDashboard = () => {
   const walletBtnRef = useRef(null);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1200);
   const [isLoading, setIsLoading] = useState(true);
+  const [serviceCatalog, setServiceCatalog] = useState([]);
+  const [assignedServiceIds, setAssignedServiceIds] = useState(new Set());
 
   const [isSystemFrozen, setIsSystemFrozen] = useState(() => localStorage.getItem('bss_system_frozen') === 'true');
   const [freezeMessage, setFreezeMessage] = useState(() => localStorage.getItem('bss_system_freeze_message') || '⚠️ SYSTEM NOTICE: All transactions and wallet transfers are temporarily suspended by the Admin for security.');
@@ -143,6 +148,36 @@ const MemberDashboard = () => {
     return () => clearTimeout(timer);
   }, [isDarkMode, dispatch]);
 
+  useEffect(() => {
+    const fetchAssignedServices = async () => {
+      try {
+        const memberId = await resolveMemberId();
+        const loginId = getLoginId();
+        const [servicesRes, assignedItems] = await Promise.all([
+          API.service.getAll(),
+          API.memberService.getMine({ memberId, loginId })
+        ]);
+        
+        let services = [];
+        if (Array.isArray(servicesRes?.data)) services = servicesRes.data;
+        else if (Array.isArray(servicesRes?.data?.items)) services = servicesRes.data.items;
+        else if (Array.isArray(servicesRes?.items)) services = servicesRes.items;
+        setServiceCatalog(services);
+        
+        const rows = Array.isArray(assignedItems) ? assignedItems : [];
+        const activeIds = new Set(
+          rows
+            .filter(it => (it.isActive ?? it.IsActive) === true || Number(it.assignTypeId ?? it.AssignTypeId) === 3)
+            .map(it => (it.serviceId ?? it.ServiceId)?.toString())
+        );
+        setAssignedServiceIds(activeIds);
+      } catch (err) {
+        console.error('Failed to fetch assigned services:', err);
+      }
+    };
+    fetchAssignedServices();
+  }, []);
+
   const handleDatePillClick = () => {
     if (dateInputRef.current) {
       if (typeof dateInputRef.current.showPicker === 'function') {
@@ -153,18 +188,29 @@ const MemberDashboard = () => {
     }
   };
 
-  const quickServices = [
+  const allQuickServices = [
     { name: 'DMT', icon: <FaMoneyBillWave />, color: '#8E24AA', path: '/member/dashboard/service/dmt' },
-    { name: 'RECHARGE', icon: <FaMobileAlt />, color: '#1E88E5', path: '/member/dashboard/service/mobile-recharge' },
+    { name: 'RECHARGE', icon: <FaMobileAlt />, color: '#1E88E5', path: '/member/dashboard/service/mobile-recharge', checkName: 'mobileprepaid' },
     { name: 'AEPS', icon: <FaFingerprint />, color: '#43A047', path: '/member/dashboard/service/aeps' },
     { name: 'PAYOUT', icon: <FaWallet />, color: '#E53935', path: '/member/dashboard/service/payout' },
     { name: 'UPI', icon: <FaQrcode />, color: '#1A237E', path: '/member/dashboard/service/upitransfer' },
-    { name: 'W2W', icon: <FaExchangeAlt />, color: '#FB8C00', path: '/member/dashboard/wallet/w2w' },
+    { name: 'W2W', icon: <FaExchangeAlt />, color: '#FB8C00', path: '/member/dashboard/wallet/w2w', alwaysShow: true },
     { name: 'AADHARPAY', icon: <FaIdCard />, color: '#00897B', path: '/member/dashboard/service/aadharpay' },
     { name: 'PAN', icon: <FaAddressCard />, color: '#D81B60', path: '/member/dashboard/service/pan' },
-    { name: 'V-ACCOUNT', icon: <FaUniversity />, color: '#5E35B1', path: '/member/dashboard/wallet/main' },
-    { name: 'FUND REQ', icon: <FaUserPlus />, color: '#F4511E', path: '/member/dashboard/wallet/fund-request' }
+    { name: 'V-ACCOUNT', icon: <FaUniversity />, color: '#5E35B1', path: '/member/dashboard/wallet/main', alwaysShow: true },
+    { name: 'FUND REQ', icon: <FaUserPlus />, color: '#F4511E', path: '/member/dashboard/wallet/fund-request', alwaysShow: true }
   ];
+
+  const quickServices = allQuickServices.filter(s => {
+    if (s.alwaysShow) return true;
+    const n = (s.checkName || s.name).toLowerCase().replace(/\s+/g, '');
+    const svc = serviceCatalog.find(c => 
+      (c.name || '').toLowerCase().replace(/\s+/g, '').includes(n) || 
+      n.includes((c.name || '').toLowerCase().replace(/\s+/g, ''))
+    );
+    if (!svc) return true; 
+    return assignedServiceIds.has(svc.id?.toString());
+  });
 
   const handleQuickServiceClick = (service) => {
     navigate(service.path);
@@ -422,6 +468,7 @@ const MemberDashboard = () => {
       )}
 
       <UpgradePopup />
+      <FloatingTxnSearch />
     </div>
   );
 };

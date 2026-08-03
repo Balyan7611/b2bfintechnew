@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaCheckDouble, FaCheckSquare, FaCommentDots, FaEllipsisV, FaPaperclip, FaPaperPlane, FaRegSquare, FaSearch, FaTimes, FaTrash, FaUsers } from 'react-icons/fa';
 import { FiActivity, FiFileText, FiUser, FiDollarSign, FiServer, FiCalendar, FiCheckCircle, FiXCircle, FiRefreshCw } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
+import { API } from '../../../api/endpoints';
 import { SITE_CONFIG } from '../../../config/siteConfig';
 import { addNotification } from '../../../store/slices/memberPanelSlice';
 import styles from './AdminChat.module.css';
@@ -69,32 +70,43 @@ const AdminChat = () => {
     }
   }, [isSearchExpanded]);
 
-  const handleTxnSearchSubmit = () => {
+  const handleTxnSearchSubmit = async () => {
     const trimmedId = searchTxnId.trim();
     if (!trimmedId) return;
     
-    if (trimmedId === "123456789") {
-      setTxnResult({
-        txnId: trimmedId,
-        member: "Rahul Sharma (MEM12345)",
-        amount: "₹ 15,000.00",
-        gateway: "PAYTM B2B GATEWAY",
-        status: "PENDING",
-        date: new Date().toLocaleString('en-GB')
+    try {
+      const res = await API.transaction.search({
+        searchTerm: trimmedId,
+        pageNumber: 1,
+        pageSize: 1
       });
-    } else {
-      setTxnResult({
-        txnId: trimmedId.toUpperCase(),
-        member: "Ram Prasad (MEM88392)",
-        amount: "₹ 1,500.00",
-        gateway: "ICICI DMT GATEWAY",
-        status: "PENDING",
-        date: new Date().toLocaleString('en-GB')
-      });
+      
+      if (res && res.status !== false) {
+        const payload = res.data || res;
+        const item = payload.items && payload.items[0];
+        if (item) {
+          setTxnResult({
+            txnId: item.orderId || item.id?.toString() || trimmedId,
+            member: `${item.customerName || 'Customer'} (ID: ${item.msrno || ''})`,
+            amount: `₹ ${(item.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+            gateway: item.vendorId || item.refid || 'DMT GATEWAY',
+            status: (item.status || 'PENDING').toUpperCase(),
+            date: item.createdDate ? new Date(item.createdDate).toLocaleString('en-GB') : new Date().toLocaleString('en-GB')
+          });
+          setTxnModalOpen(true);
+        } else {
+          alert('No transaction found with this ID.');
+        }
+      } else {
+        alert('No transaction found with this ID.');
+      }
+    } catch (err) {
+      console.error('Floating Transaction Search error:', err);
+      alert('Error performing transaction search.');
+    } finally {
+      setIsSearchExpanded(false);
+      setSearchTxnId('');
     }
-    setTxnModalOpen(true);
-    setIsSearchExpanded(false);
-    setSearchTxnId('');
   };
 
   const handleTxnActionClick = (actionName, color) => {
