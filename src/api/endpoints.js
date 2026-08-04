@@ -39,6 +39,7 @@ import { LogsServiceDatumService } from '../services/logsServiceDatum.service';
 import { MemberServiceService } from '../services/memberService.service';
 import { IpAuthanticateService } from '../services/ipAuthanticate.service';
 import { ClientCredentialService } from '../services/clientCredential.service';
+import { ApiSwitchingConceptService } from '../services/apiSwitchingConcept.service';
 import { MemberWebhookService } from '../services/memberWebhook.service';
 import { AdminDashboardService } from '../services/adminDashboard.service';
 import { MemberDashboardService } from '../services/memberDashboard.service';
@@ -98,6 +99,7 @@ export const API = {
     logsServiceDatum: LogsServiceDatumService,
     ipAuthanticate: IpAuthanticateService,
     clientCredential: ClientCredentialService,
+    apiSwitchingConcept: ApiSwitchingConceptService,
     adminDashboard: AdminDashboardService,
     memberDashboard: MemberDashboardService,
     apiPartnerDashboard: require('../services/apiPartnerDashboard.service').ApiPartnerDashboardService,

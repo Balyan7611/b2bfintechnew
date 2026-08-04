@@ -3,14 +3,15 @@ import { useDispatch } from 'react-redux';
 import { setNotification } from '../../../store/slices/uiSlice';
 import { API } from '../../../api/endpoints';
 import { normalizeStatus } from '../../../models/fundRequestModel';
+import { getImageUrl } from '../../../config/siteConfig';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { 
   FaSearch, FaFileExcel, FaFilePdf, FaPrint, FaCopy, FaFileCsv,
   FaChevronLeft, FaChevronRight, FaFilter, FaClock, FaCheckCircle, FaTimesCircle,
-  FaFileInvoiceDollar
+  FaFileInvoiceDollar, FaSyncAlt
 } from 'react-icons/fa';
 import { FiDatabase } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
-import ReceiptModal from '../../../shared/components/common/ReceiptModal';
 import styles from './FundRequest.module.css';
 
 // Which wallet an approved top-up lands in. Main is the default for fund
@@ -22,6 +23,9 @@ const ADMIN_MSRNO = 1;
 const FundRequest = () => {
   const dispatch = useDispatch();
   const [fundRequestList, setFundRequestList] = useState([]);
+  const [companyBanks, setCompanyBanks] = useState([]);
+  // msrno → { name, loginId } for fast lookup
+  const [memberMap, setMemberMap] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [busyId, setBusyId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,38 +41,100 @@ const FundRequest = () => {
   const [tempFilters, setTempFilters] = useState(filters);
 
   // Shapes a FundRequest API row for this table.
-  const toRow = (r) => ({
-    ...r,
-    // Always a string — msrno is numeric, and the filters below call
-    // .toLowerCase() on this.
-    memberId: String(r.loginId || r.memberName || r.msrno || ''),
-    msrno: r.msrno,
-    companyBankName: r.companyBankName || `Bank #${r.companyBankId}`,
-    paymentDate: (r.createdDate || '').slice(0, 10),
-    addDate: (r.createdDate || '').replace('T', ' ').slice(0, 16) || '-',
-    approveRejectDate: r.approveDate ? r.approveDate.replace('T', ' ').slice(0, 16) : '-',
-    status: normalizeStatus(r.status) === 'approved' ? 'Approved'
-      : normalizeStatus(r.status) === 'rejected' ? 'Rejected' : 'Pending',
-    reason: normalizeStatus(r.status) === 'rejected' ? (r.reason || r.remark || '-') : '-',
-    cashSlip: null,
-    indemnityBond: null
-  });
+  // banks = company banks array, mMap = { msrno: { name, loginId } }
+  const toRow = useCallback((r, banks = [], mMap = {}) => {
+    const bankId = r.bankId || r.companyBankId;
+    const bankName = (banks.find(b => String(b.id) === String(bankId))?.name) 
+      || r.companyBankName || r.bankName || 'Unknown Bank';
 
-  const loadRequests = useCallback(async () => {
+    const msrnoStr = String(r.msrno || r.memberId || '');
+    const mem = mMap[msrnoStr] || {};
+    const resolvedName    = r.memberName || r.name || mem.name    || '';
+    const resolvedLoginId = r.loginId   || mem.loginId || msrnoStr;
+
+    // Payment date: use dedicated paymentDate if available, fallback to createdDate
+    const rawPayDate = r.paymentDate || r.createdDate || '';
+    const rawAddDate = r.createdDate || r.paymentDate || '';
+
+    return {
+      ...r,
+      memberName: resolvedName,
+      loginId: resolvedLoginId,
+      // Combined string used in search filter
+      memberId: String(resolvedLoginId || resolvedName || msrnoStr),
+      msrno: r.msrno || r.memberId,
+      companyBankName: bankName,
+      paymentDate: rawPayDate ? rawPayDate.slice(0, 10) : '-',
+      addDate: rawAddDate ? rawAddDate.replace('T', ' ').slice(0, 16) : '-',
+      approveRejectDate: r.approveDate ? r.approveDate.replace('T', ' ').slice(0, 16) : '-',
+      status: normalizeStatus(r.status) === 'approved' ? 'Approved'
+        : normalizeStatus(r.status) === 'rejected' ? 'Rejected' : 'Pending',
+      reason: normalizeStatus(r.status) === 'rejected' ? (r.reason || r.remark || '-') : '-',
+      slip: getImageUrl(r.cashslip, 'FundRequest') || r.slipUrl || null,
+      cashslip: r.cashslip || null,
+      indemnityBond: null
+    };
+  }, []);
+
+  const loadRequests = useCallback(async (banks, existingMap = {}) => {
     setIsLoading(true);
     try {
       const rows = await API.fundRequest.getAll({ pageNumber: 1, pageSize: 500 });
       console.log('[Admin FundRequest] loaded', rows.length, 'request(s)', rows);
-      setFundRequestList(rows.map(toRow));
+
+      // Collect unique msrnos that we don't already have in the map
+      const uniqueMsrnos = [...new Set(rows.map(r => r.msrno || r.memberId).filter(Boolean))];
+      const mMap = { ...existingMap };
+
+      // Fetch member details for any msrno not yet resolved
+      await Promise.allSettled(
+        uniqueMsrnos
+          .filter(msrno => !mMap[String(msrno)])
+          .map(async (msrno) => {
+            try {
+              const res = await API.member.getById(msrno);
+              // Handle: res | res.data | res.data.data
+              const m = res?.data?.data || res?.data || res || {};
+              const name    = m.name || m.fullName || m.memberName || m.ownerName || m.firstName || m.firmName || '';
+              const loginId = m.memberID || m.memberid || m.loginID   || m.loginId || m.username || String(msrno);
+              console.log(`[FundRequest] member ${msrno} →`, name, loginId, m);
+              mMap[String(msrno)] = { name, loginId };
+            } catch (e) {
+              console.warn(`FundRequest: could not fetch member ${msrno}`, e);
+              mMap[String(msrno)] = { name: '', loginId: String(msrno) };
+            }
+          })
+      );
+
+      setMemberMap(mMap);
+      setFundRequestList(rows.map(r => toRow(r, banks, mMap)));
     } catch (err) {
       console.error('Admin FundRequest: failed to load list', err);
       setFundRequestList([]);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [toRow]);
 
-  useEffect(() => { loadRequests(); }, [loadRequests]);
+  useEffect(() => {
+    const init = async () => {
+      let banks = [];
+
+      // Load company banks
+      try {
+        const res = await API.companyBankDetail.getAll({ pageNumber: 1, pageSize: 200 });
+        banks = (Array.isArray(res) ? res : [])
+          .filter(b => !b.isDelete)
+          .map(b => ({ id: b.id, name: b.bankName || b.name }));
+        setCompanyBanks(banks);
+      } catch (err) {
+        console.warn('Admin FundRequest: could not load company banks', err);
+      }
+
+      loadRequests(banks);
+    };
+    init();
+  }, [loadRequests]);
 
   // Approve = mark the request approved, THEN credit the member's wallet.
   // The credit is deliberately a separate call so a failed transfer is visible
@@ -110,7 +176,7 @@ const FundRequest = () => {
         dispatch(setNotification({ type: 'success', message: 'Fund request rejected.' }));
       }
 
-      await loadRequests();
+      await loadRequests(companyBanks, memberMap);
     } catch (err) {
       console.error('Admin FundRequest: action failed', err);
       dispatch(setNotification({ type: 'error', message: err.message || 'Action failed.' }));
@@ -189,42 +255,63 @@ const FundRequest = () => {
                   <input type="date" className={styles.inputControl} value={tempFilters.toDate} onChange={e => setTempFilters({...tempFilters, toDate: e.target.value})} />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Member ID</label>
-                  <select className={styles.inputControl} value={tempFilters.memberId} onChange={e => setTempFilters({...tempFilters, memberId: e.target.value})}>
-                    <option value="">All Members</option>
-                    <option value="MDT8597">MDT8597</option>
-                    <option value="Pay99DT5001">Pay99DT5001</option>
-                    <option value="Pay99RT4003">Pay99RT4003</option>
-                  </select>
+                  <label>Member</label>
+                  <SearchableSelect
+                    options={[
+                      { value: '', label: 'All Members' },
+                      ...Array.from(new Set(fundRequestList.map(r => r.memberId).filter(Boolean))).map(memId => {
+                        const row = fundRequestList.find(r => r.memberId === memId);
+                        const name = row?.memberName && row.memberName !== '-' ? row.memberName : 'Unknown';
+                        const login = row?.loginId || row?.msrno || '';
+                        return { value: memId, label: `${name} (${login})` };
+                      })
+                    ]}
+                    value={tempFilters.memberId}
+                    onChange={val => setTempFilters({...tempFilters, memberId: val})}
+                    placeholder="Search Member..."
+                    containerStyle={{ margin: 0 }}
+                  />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Status</label>
-                  <select className={styles.inputControl} value={tempFilters.status} onChange={e => setTempFilters({...tempFilters, status: e.target.value})}>
-                    <option value="">All Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                  </select>
+                  <SearchableSelect
+                    options={[
+                      { value: '', label: 'All Status' },
+                      { value: 'pending', label: 'Pending' },
+                      { value: 'approved', label: 'Approved' },
+                      { value: 'rejected', label: 'Rejected' }
+                    ]}
+                    value={tempFilters.status}
+                    onChange={val => setTempFilters({...tempFilters, status: val})}
+                    placeholder="Search Status..."
+                    containerStyle={{ margin: 0 }}
+                  />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Payment Mode</label>
-                  <select className={styles.inputControl} value={tempFilters.paymentMode} onChange={e => setTempFilters({...tempFilters, paymentMode: e.target.value})}>
-                    <option value="">All Modes</option>
-                    <option value="imps">IMPS</option>
-                    <option value="neft">NEFT</option>
-                    <option value="rtgs">RTGS</option>
-                    <option value="cash">Cash</option>
-                  </select>
+                  <SearchableSelect
+                    options={[
+                      { value: '', label: 'All Modes' },
+                      ...Array.from(new Set(fundRequestList.map(r => r.paymentMode).filter(Boolean))).map(mode => ({ value: mode, label: mode }))
+                    ]}
+                    value={tempFilters.paymentMode}
+                    onChange={val => setTempFilters({...tempFilters, paymentMode: val})}
+                    placeholder="Search Mode..."
+                    containerStyle={{ margin: 0 }}
+                  />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Bank Name</label>
-                  <select className={styles.inputControl} value={tempFilters.bankName} onChange={e => setTempFilters({...tempFilters, bankName: e.target.value})}>
-                    <option value="">All Banks</option>
-                    <option value="icici">ICICI Bank</option>
-                    <option value="sbi">State Bank of India</option>
-                    <option value="hdfc">HDFC Bank</option>
-                    <option value="kotak">Kotak Bank</option>
-                  </select>
+                  <SearchableSelect
+                    options={[
+                      { value: '', label: 'All Banks' },
+                      ...companyBanks.map(b => ({ value: b.name, label: b.name }))
+                    ]}
+                    value={tempFilters.bankName}
+                    onChange={val => setTempFilters({...tempFilters, bankName: val})}
+                    placeholder="Search Bank..."
+                    containerStyle={{ margin: 0 }}
+                  />
                 </div>
               </div>
             </div>
@@ -304,7 +391,7 @@ const FundRequest = () => {
               <tr>
                 <th>S.No</th>
                 <th style={{ minWidth: '100px' }}>Action</th>
-                <th>Member ID</th>
+                <th style={{ minWidth: '150px' }}>Member Detail</th>
                 <th>Amount</th>
                 <th>Company Bank Name</th>
                 <th>Bank Ref ID</th>
@@ -343,7 +430,16 @@ const FundRequest = () => {
                       <span style={{ color: '#94A3B8', fontSize: '0.75rem' }}>—</span>
                     )}
                   </td>
-                  <td className={styles.fwBold}>{row.memberId}</td>
+                  <td>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                      {row.memberName && row.memberName !== '-' && (
+                        <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0D1B3E', lineHeight: 1.2 }}>{row.memberName}</span>
+                      )}
+                      {row.loginId && (
+                        <span style={{ fontSize: '0.75rem', color: '#3b82f6', fontFamily: 'monospace' }}>{row.loginId}</span>
+                      )}
+                    </div>
+                  </td>
                   <td className={styles.amountText}>₹ {row.amount}</td>
                   <td>{row.companyBankName}</td>
                   <td>{row.bankRefId}</td>
@@ -355,19 +451,13 @@ const FundRequest = () => {
                   <td>{row.addDate}</td>
                   <td>{row.approveRejectDate}</td>
                   <td>
-                    {row.cashSlip ? (
-                      <a 
-                        href="#" 
-                        className={styles.linkText} 
-                        title="View Slip"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setActiveSlip(row);
-                        }}
-                      >
-                        View Slip
-                      </a>
-                    ) : '-'}
+                    <button
+                      className={styles.viewSlipBtn}
+                      title="View Payment Receipt Slip"
+                      onClick={() => setActiveSlip(row)}
+                    >
+                      <FaFileInvoiceDollar /> View Slip
+                    </button>
                   </td>
                   <td>
                     {row.indemnityBond ? <a href="#" className={styles.linkText} title="View Bond">View Bond</a> : '-'}
@@ -455,25 +545,77 @@ const FundRequest = () => {
         </div>
       )}
 
-      {/* Slip viewer modal */}
-      <ReceiptModal 
-        isOpen={!!activeSlip}
-        onClose={() => setActiveSlip(null)}
-        data={activeSlip ? {
-          amount: activeSlip.amount,
-          charge: 0,
-          date: activeSlip.paymentDate + ' 10:26:00',
-          customerName: 'Vishnu Prajapati',
-          customerMobile: '9784905576',
-          beneficiary: activeSlip.memberId.split(' [')[0],
-          bank: activeSlip.companyBankName,
-          accountNo: activeSlip.bankRefId,
-          mode: activeSlip.paymentMode,
-          total: activeSlip.amount,
-          bankTransId: activeSlip.bankRefId,
-          id: activeSlip.bankRefId
-        } : null}
-      />
+      {/* ── SLIP VIEWER MODAL ── */}
+      {activeSlip && (
+        <div className={styles.modalOverlay} onClick={() => setActiveSlip(null)}>
+          <div className={styles.modalContainer} style={{ maxWidth: '520px' }} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}><FaFileInvoiceDollar style={{ marginRight: '8px' }} />Payment Receipt Slip</h2>
+              <button className={styles.closeBtn} onClick={() => setActiveSlip(null)}><FaTimesCircle /></button>
+            </div>
+            <div style={{ padding: '20px' }}>
+              {activeSlip.slip ? (
+                /* ── Member uploaded a slip — show actual image or PDF link ── */
+                <>
+                  {String(activeSlip.slip).toLowerCase().endsWith('.pdf') ? (
+                    <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                      <a
+                        href={activeSlip.slip}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ display: 'inline-block', padding: '10px 20px', background: '#3b82f6', color: '#fff', borderRadius: '8px', fontWeight: 600, textDecoration: 'none' }}
+                      >
+                        📄 View Receipt (PDF)
+                      </a>
+                    </div>
+                  ) : (
+                    <img
+                      src={activeSlip.slip}
+                      alt="Payment Receipt Slip"
+                      style={{ width: '100%', maxHeight: '420px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                      onError={e => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    />
+                  )}
+                  <div style={{ fontSize: '10px', color: '#ccc', wordBreak: 'break-all', marginTop: '4px' }}>
+                    DEBUG URL: {activeSlip.slip}
+                  </div>
+                  <a
+                    href={activeSlip.slip}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'none', textAlign: 'center', marginTop: '10px', color: '#3b82f6', fontWeight: 600 }}
+                  >
+                    Open Receipt File ↗
+                  </a>
+                  <p style={{ textAlign: 'center', marginTop: '10px', fontSize: '0.82rem', color: '#64748b' }}>📎 Payment receipt uploaded by member</p>
+                </>
+              ) : (
+                /* ── No slip uploaded — show transaction summary ── */
+                <>
+                  <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '18px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px dashed #cbd5e1' }}>
+                      <strong style={{ color: '#0f172a' }}>{activeSlip.companyBankName} — Transaction Log</strong>
+                      <span style={{ fontSize: '0.8rem', color: '#64748b' }}>UTR: {activeSlip.bankRefId}</span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div><span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block' }}>MEMBER ID</span><strong>{activeSlip.memberId}</strong></div>
+                      <div><span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block' }}>PAYMENT DATE</span><strong>{activeSlip.paymentDate}</strong></div>
+                      <div><span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block' }}>PAYMENT MODE</span><strong>{activeSlip.paymentMode}</strong></div>
+                      <div><span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block' }}>AMOUNT</span><strong style={{ color: '#16a34a', fontSize: '1.1rem' }}>₹{Number(activeSlip.amount).toLocaleString('en-IN')}</strong></div>
+                      <div><span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block' }}>STATUS</span><strong>{activeSlip.status}</strong></div>
+                      <div><span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block' }}>BANK</span><strong>{activeSlip.companyBankName}</strong></div>
+                    </div>
+                  </div>
+                  <p style={{ textAlign: 'center', marginTop: '12px', fontSize: '0.82rem', color: '#94a3b8' }}>📎 No receipt slip uploaded by member for this request</p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -110,7 +110,7 @@ const AEPSReport = () => {
             </div>
           </div>
         }
-        columns={['SNO', 'TRANSACTION DATE', 'MEMBER ID', 'MEMBER NAME', 'AADHARNUMBER', 'TRANSACTION TYPE', 'AMOUNT', 'BANK TRANSID', 'STATUS', 'VIEW RECEIPT']}
+        columns={['SNO', 'TRANSACTION DATE', 'MEMBER DETAIL', 'AADHARNUMBER', 'TRANSACTION TYPE', 'AMOUNT', 'BANK TRANSID', 'STATUS', 'VIEW RECEIPT']}
         data={filteredList}
         renderRow={(item, index) => {
           let statusStyle = styles.statusPending;
@@ -121,8 +121,10 @@ const AEPSReport = () => {
             <tr key={item.id}>
               <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
               <td style={{ fontSize: '0.85rem', color: '#4E6080' }}>{item.date}</td>
-              <td style={{ fontWeight: 700, color: '#1756AA' }}>{item.memberId}</td>
-              <td style={{ fontWeight: 600, color: '#2D3748' }}>{item.memberName}</td>
+              <td>
+                <div style={{ fontWeight: 700, color: '#1756AA' }}>{item.memberName}</div>
+                <div style={{ fontSize: '0.75rem', color: '#4E6080' }}>{item.memberId}</div>
+              </td>
               <td>{item.aadhar}</td>
               <td style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4A5568' }}>{item.type}</td>
               <td style={{ fontWeight: 800, color: '#2D3748' }}>₹{item.amount}</td>

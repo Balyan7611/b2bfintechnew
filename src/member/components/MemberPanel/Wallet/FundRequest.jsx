@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { API } from '../../../../api/endpoints';
 import { resolveMemberId } from '../../../../utils/memberIdentity';
 import { normalizeStatus } from '../../../../models/fundRequestModel';
+import { getImageUrl } from '../../../../config/siteConfig';
 import { 
   FaUniversity, FaMoneyBillWave, FaClock, FaCheckCircle, FaTimesCircle, 
   FaUpload, FaFileInvoiceDollar, FaQrcode, FaSearch, FaFilter,
@@ -90,6 +91,10 @@ const FundRequest = () => {
   const [loading, setLoading] = useState(false);
   const [copiedText, setCopiedText] = useState('');
 
+  // Stores blob URLs for slips uploaded in this session, keyed by bankRefId (UTR).
+  // Lets us show the image immediately after submit without needing backend to return a URL.
+  const slipMapRef = useRef({});
+
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -101,16 +106,17 @@ const FundRequest = () => {
     return {
       id: r.id,
       requestId: `FR${String(r.id).padStart(6, '0')}`,
-      date: (r.createdDate || '').slice(0, 10),
+      date: (r.paymentDate || r.createdDate || '').slice(0, 10) || '-',
       payMode: r.paymentMode || '-',
-      companyBank: r.companyBankName || bank?.name || `Bank #${r.companyBankId}`,
+      companyBank: r.companyBankName || bank?.name || (r.companyBankId ? `Bank #${r.companyBankId}` : '-'),
       amount: r.amount,
       remark: r.remark || '-',
       refId: r.bankRefId || '-',
-      addDate: (r.createdDate || '').replace('T', ' ').slice(0, 16) || '-',
+      addDate: (r.createdDate || r.paymentDate || '').replace('T', ' ').slice(0, 16) || '-',
       approveDate: r.approveDate ? r.approveDate.replace('T', ' ').slice(0, 16) : 'Pending',
       compRemarks: r.remark || '-',
-      slip: 'attached_receipt.png',
+      slip: getImageUrl(r.cashslip, 'FundRequest') || r.slipUrl || slipMapRef.current[r.bankRefId] || null,
+      cashslip: r.cashslip || null,
       status: normalizeStatus(r.status),
       reason: normalizeStatus(r.status) === 'rejected' ? (r.reason || r.remark || 'N/A') : 'N/A'
     };
@@ -202,14 +208,19 @@ const FundRequest = () => {
         companyBankId: parseInt(selectedBank),
         amount: parseFloat(amount),
         bankRefId: refNo,
-        // No payment gateway involved here, so the UTR doubles as the txn id.
         transactionId: `TXN_${refNo}`,
         paymentMode: payMode,
-        remark: remark || 'Wallet loading'
+        remark: remark || 'Wallet loading',
+        // slipFile triggers multipart/form-data in the service layer
+        slipFile: selectedFile || undefined
       });
 
       if (res && (res.status === true || res.code === 'TXN')) {
         showToast('Fund request submitted successfully!', 'success');
+        // Fallback: if backend doesn't return cashslip yet, store blob locally
+        if (selectedFile && !res?.data?.cashslip) {
+          slipMapRef.current[refNo] = URL.createObjectURL(selectedFile);
+        }
         setSelectedBank('');
         setAmount('');
         setRefNo('');
@@ -669,20 +680,60 @@ const FundRequest = () => {
               <button className={styles.modalCloseBtn} onClick={() => setActiveSlip(null)}>✕</button>
             </div>
             <div className={styles.slipModalBody}>
-              <div className={styles.slipMockContainer}>
-                <div className={styles.slipMockHeader}>
-                  <h4>{activeSlip.companyBank} Transaction Log</h4>
-                  <span>UTR ID: {activeSlip.refId}</span>
-                </div>
-                <div style={{ height: '1.5px', background: '#cbd5e1', borderStyle: 'dashed', margin: '14px 0' }}></div>
-                <div className={styles.slipDetailGrid}>
-                  <div><span>REQUEST ID</span><strong>{activeSlip.requestId}</strong></div>
-                  <div><span>PAYMENT DATE</span><strong>{activeSlip.date}</strong></div>
-                  <div><span>PAYMENT MODE</span><strong>{activeSlip.payMode}</strong></div>
-                  <div><span>AMOUNT</span><strong style={{ color: '#16a34a', fontSize: '1.15rem' }}>₹{activeSlip.amount.toLocaleString('en-IN')}</strong></div>
-                </div>
-              </div>
-              <span className={styles.slipAttachedName}>📎 Attached receipt file: {activeSlip.slip}</span>
+              {activeSlip.slip ? (
+                /* ── User uploaded a slip — show actual image or PDF link ── */
+                <>
+                  {String(activeSlip.slip).toLowerCase().endsWith('.pdf') ? (
+                    <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                      <a
+                        href={activeSlip.slip}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ display: 'inline-block', padding: '10px 20px', background: '#3b82f6', color: '#fff', borderRadius: '8px', fontWeight: 600, textDecoration: 'none' }}
+                      >
+                        📄 View Receipt (PDF)
+                      </a>
+                    </div>
+                  ) : (
+                    <img
+                      src={activeSlip.slip}
+                      alt="Payment Receipt Slip"
+                      style={{ maxWidth: '100%', maxHeight: '420px', borderRadius: '8px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
+                      onError={e => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    />
+                  )}
+                  <a
+                    href={activeSlip.slip}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'none', textAlign: 'center', marginTop: '8px', color: '#3b82f6', fontWeight: 600 }}
+                  >
+                    Open Receipt File ↗
+                  </a>
+                  <span className={styles.slipAttachedName}>📎 Payment receipt attached</span>
+                </>
+              ) : (
+                /* ── No slip uploaded — show default transaction summary ── */
+                <>
+                  <div className={styles.slipMockContainer}>
+                    <div className={styles.slipMockHeader}>
+                      <h4>{activeSlip.companyBank} Transaction Log</h4>
+                      <span>UTR ID: {activeSlip.refId}</span>
+                    </div>
+                    <div style={{ height: '1.5px', background: '#cbd5e1', borderStyle: 'dashed', margin: '14px 0' }}></div>
+                    <div className={styles.slipDetailGrid}>
+                      <div><span>REQUEST ID</span><strong>{activeSlip.requestId}</strong></div>
+                      <div><span>PAYMENT DATE</span><strong>{activeSlip.date}</strong></div>
+                      <div><span>PAYMENT MODE</span><strong>{activeSlip.payMode}</strong></div>
+                      <div><span>AMOUNT</span><strong style={{ color: '#16a34a', fontSize: '1.15rem' }}>₹{activeSlip.amount.toLocaleString('en-IN')}</strong></div>
+                    </div>
+                  </div>
+                  <span className={styles.slipAttachedName}>📎 No receipt uploaded for this request</span>
+                </>
+              )}
             </div>
           </div>
         </div>

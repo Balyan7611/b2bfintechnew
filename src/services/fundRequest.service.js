@@ -7,18 +7,40 @@ import {
 
 export const FundRequestService = {
     // Member submits a top-up request after transferring to a company bank.
+    // If data.slipFile (File object) is provided, sends multipart/form-data so
+    // the backend can store the receipt image and return a cashslip filename.
     create: async (data) => {
+        const { slipFile, ...rest } = data;
         const payload = FundRequestRequestModel({
-            ...data,
+            ...rest,
             status: FUND_REQUEST_STATUS.PENDING,
             isApprove: false,
             isDelete: false
         });
+
+        if (slipFile) {
+            const form = new FormData();
+            // Append all scalar fields
+            Object.entries(payload).forEach(([key, val]) => {
+                if (val !== undefined && val !== null) form.append(key, val);
+            });
+            form.append('slipFile', slipFile);
+            return await apiService.postForm('/FundRequest/Create', form);
+        }
+
         return await apiService.post('/FundRequest/Create', payload);
     },
 
     update: async (data) => {
-        return await apiService.put('/FundRequest/Update', FundRequestRequestModel(data));
+        const payload = FundRequestRequestModel(data);
+        const form = new FormData();
+        Object.entries(payload).forEach(([key, val]) => {
+            if (val !== undefined && val !== null) form.append(key, val);
+        });
+        if (data.slipFile) {
+            form.append('slipFile', data.slipFile);
+        }
+        return await apiService.putForm('/FundRequest/Update', form);
     },
 
     getById: async (id) => {
@@ -61,11 +83,13 @@ export const FundRequestService = {
     // Admin: mark a request approved. Crediting the wallet is a separate call
     // (UserWalletBalance/Transfer) — see approveAndCredit in the admin page.
     approve: async (request, { remark = '' } = {}) => {
+        const tzoffset = (new Date()).getTimezoneOffset() * 60000; // offset in milliseconds
+        const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 19);
         return await FundRequestService.update({
             ...request,
             status: FUND_REQUEST_STATUS.APPROVE,
             isApprove: true,
-            approveDate: new Date().toISOString().slice(0, 19),
+            approveDate: localISOTime,
             remark: remark || request.remark || 'Payment verified and approved'
         });
     },
@@ -73,10 +97,13 @@ export const FundRequestService = {
     // Backend expects status "Rejected" (not "Reject") and carries the
     // rejection cause in its own `reason` field alongside `remark`.
     reject: async (request, reason = '') => {
+        const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 19);
         return await FundRequestService.update({
             ...request,
             status: FUND_REQUEST_STATUS.REJECTED,
             isApprove: false,
+            approveDate: localISOTime,
             reason: reason || 'Payment not received',
             remark: 'Rejected by admin'
         });

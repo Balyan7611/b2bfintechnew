@@ -196,9 +196,75 @@ const ApiWhitelisting = () => {
   return (
     <div className={styles.container}>
 
-      <div className={styles.topCards}>
+      <div className={styles.topCards} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
         <div className={styles.configCard} style={{ minWidth: 0 }}>
           <ApiCredentials compact={false} />
+        </div>
+        
+        <div className={styles.configCard} style={{ minWidth: 0, padding: '24px' }}>
+          <h3 style={{ margin: '0 0 16px 0', fontSize: '1.15rem', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FaNetworkWired style={{ color: '#1756AA' }} /> Whitelist New IP
+          </h3>
+          <p style={{ margin: '0 0 20px 0', fontSize: '0.85rem', color: '#64748B' }}>Secure your API access by whitelisting specific IP addresses. Requests from non-whitelisted IPs will be rejected.</p>
+          
+          {errorMessage && (
+            <div style={{ background: '#FEE2E2', color: '#B91C1C', padding: '10px 12px', borderRadius: '6px', marginBottom: '16px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid #FCA5A5', fontWeight: 600 }}>
+              <FaExclamationTriangle /> {errorMessage}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1E293B', marginBottom: '6px' }}>IP Address</label>
+              <div className={styles.inputWrap}>
+                <div className={styles.iconWrap}>
+                  <FaNetworkWired />
+                </div>
+                <input
+                  className={styles.input}
+                  placeholder="e.g. 48.43.181.120"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1E293B', marginBottom: '6px' }}>Reason / Remarks</label>
+              <textarea
+                className={styles.textarea}
+                placeholder="e.g. Production API Gateway server IP"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={2}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting || !inputValue.trim()}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                background: (isSubmitting || !inputValue.trim()) ? '#94A3B8' : 'linear-gradient(135deg, #1756AA 0%, #0D1B3E 100%)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '12px 24px',
+                fontSize: '0.95rem',
+                fontWeight: 600,
+                cursor: (isSubmitting || !inputValue.trim()) ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+                width: '100%',
+                marginTop: '4px'
+              }}
+            >
+              {isSubmitting ? 'Sending OTP...' : 'Send OTP & Whitelist'} <FaPaperPlane />
+            </button>
+          </form>
         </div>
       </div>
 
@@ -206,33 +272,6 @@ const ApiWhitelisting = () => {
         <AdminTable
           title="YOUR WHITELISTED IPS"
           icon={<FaHistory />}
-          rightAction={
-            <button
-              onClick={() => {
-                setErrorMessage('');
-                setInputValue('');
-                setReason('');
-                setShowAddModal(true);
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'linear-gradient(135deg, #1756AA 0%, #0D1B3E 100%)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '8px 16px',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.2s'
-              }}
-            >
-              <FaNetworkWired /> Whitelist New IP
-            </button>
-          }
           columns={tableColumns}
           data={paginatedData}
           renderRow={(item) => {
@@ -304,94 +343,6 @@ const ApiWhitelisting = () => {
           </ul>
         </div>
       </div>
-
-      {/* Add IP Modal */}
-      {showAddModal && (
-        <div className={styles.modalOverlay} onClick={() => !isSubmitting && setShowAddModal(false)}>
-          <div className={styles.modalContent} style={{ maxWidth: '500px', textAlign: 'left', position: 'relative' }} onClick={e => e.stopPropagation()}>
-            <button 
-              className={styles.closeModalBtn} 
-              onClick={() => setShowAddModal(false)}
-              style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                background: 'transparent',
-                border: 'none',
-                color: '#64748b',
-                cursor: 'pointer',
-                fontSize: '1.25rem'
-              }}
-            >
-              <FaTimes />
-            </button>
-            <h3 className={styles.modalTitle} style={{ marginBottom: '6px' }}>Whitelist New IP</h3>
-            <p className={styles.modalSubtitle} style={{ marginBottom: '20px' }}>Configure API access for a new server IP address.</p>
-            
-            {errorMessage && (
-              <div style={{ background: '#FEE2E2', color: '#B91C1C', padding: '12px 16px', borderRadius: '8px', marginBottom: '15px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid #FCA5A5', fontWeight: 600 }}>
-                <FaExclamationTriangle /> {errorMessage}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className={styles.formGrid}>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>IP Address</label>
-                <div className={styles.inputWrap}>
-                  <div className={styles.iconWrap}>
-                    <FaNetworkWired />
-                  </div>
-                  <input
-                    className={styles.input}
-                    placeholder="e.g. 48.43.181.120"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    required
-                  />
-                </div>
-                {inputValue && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div className={`${styles.statusIndicator} ${styles.valid}`}>
-                      <FaCheckCircle /> Valid IP Format
-                    </div>
-                    <span className={styles.hintText}>Enter Server IP to Whitelist</span>
-                  </div>
-                )}
-              </div>
-
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Reason / Remarks</label>
-                <textarea
-                  className={styles.textarea}
-                  placeholder="e.g. Production API Gateway server IP"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  rows={3}
-                />
-              </div>
-
-              <div className={styles.modalActions} style={{ justifyContent: 'flex-end', marginTop: '10px' }}>
-                <button 
-                  type="button" 
-                  className={styles.cancelBtn} 
-                  onClick={() => setShowAddModal(false)}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={styles.submitBtn}
-                  style={{ margin: 0 }}
-                  disabled={isSubmitting || !inputValue.trim()}
-                >
-                  {isSubmitting ? 'Sending OTP...' : 'Send OTP & Whitelist'} <FaPaperPlane />
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Delete Confirmation Modal */}
       {deleteModal.show && (

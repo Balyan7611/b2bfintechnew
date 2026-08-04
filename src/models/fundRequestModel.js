@@ -56,18 +56,25 @@ export const FundRequestResponseModel = (res) => {
         memberName: item.memberName || item.MemberName || '',
         loginId: item.loginId || item.LoginId || '',
         companyBankId: item.companyBankId ?? item.CompanyBankId ?? 0,
-        companyBankName: item.companyBankName || item.bankName || '',
+        companyBankName: item.companyBankName || item.bankName || item.CompanyBankName || item.BankName || '',
         amount: parseFloat(item.amount) || 0,
-        bankRefId: item.bankRefId || '',
+        bankRefId: item.bankRefId || item.BankRefId || '',
         transactionId: item.transactionId || '',
-        paymentMode: item.paymentMode || '',
+        paymentMode: item.paymentMode || item.PaymentMode || '',
         status: item.status || FUND_REQUEST_STATUS.PENDING,
         isApprove: item.isApprove === true,
         remark: item.remark || '',
         reason: item.reason || '',
-        approveDate: item.approveDate || null,
-        createdDate: item.createdDate || item.addDate || null,
-        isDelete: item.isDelete === true
+        approveDate: item.approveDate || item.ApproveDate || null,
+        // addDate / createdDate — try every casing the backend might send
+        createdDate: item.createdDate || item.CreatedDate || item.addDate || item.AddDate || item.created_date || null,
+        // paymentDate — the date the member actually made the bank transfer
+        paymentDate: item.paymentDate || item.PaymentDate || item.payment_date || item.depositDate || null,
+        isDelete: item.isDelete === true,
+        // cashslip = filename returned by backend (e.g. "f6b92a4e.png")
+        // Full URL is built in the component using getImageUrl(cashslip, 'FundRequest')
+        cashslip: item.cashslip || item.CashSlip || item.cashSlip || item.slipFile || item.SlipFile || item.receipt || item.attachment || item.fileName || item.FileName || null,
+        slipUrl: item.slipUrl || item.receiptUrl || item.attachmentUrl || item.slip || null
     }));
 };
 

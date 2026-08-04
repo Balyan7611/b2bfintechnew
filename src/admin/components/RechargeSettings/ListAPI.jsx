@@ -11,7 +11,7 @@ import styles from '../MemberPages/MemberPages.module.css';
 import sharedStyles from '../../../shared/components/common/SharedTable.module.css';
 import { API } from '../../../api/endpoints';
 
-const ListAPI = () => {
+const ListAPI = ({ isEmbedded = false, onEditAPI }) => {
   const dispatch = useDispatch();
   const [apis, setApis] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -24,6 +24,7 @@ const ListAPI = () => {
   const [activeActionMenuId, setActiveActionMenuId] = useState(null);
 
   // Form states
+  const [apiid, setApiid] = useState('');
   const [apiname, setApiname] = useState('');
   const [apiUrl, setApiUrl] = useState('');
   const [merchantKey, setMerchantKey] = useState('');
@@ -40,11 +41,10 @@ const ListAPI = () => {
   const fetchApis = async () => {
     setLoading(true);
     try {
-      const res = await API.masterApi.getAll();
-      if (res && Array.isArray(res.data)) {
-        setApis(res.data);
-      } else if (Array.isArray(res)) {
-        setApis(res);
+      const res = await API.masterApi.getAll({ pageNumber: 1, pageSize: 5000 });
+      const items = res?.data?.items || res?.data || res || [];
+      if (Array.isArray(items)) {
+        setApis(items);
       } else {
         setApis([]);
       }
@@ -64,12 +64,14 @@ const ListAPI = () => {
     setModalType(type);
     setSelectedApi(api);
     if (api) {
+      setApiid(api.apiid || '');
       setApiname(api.apiname || '');
       setApiUrl(api.url || '');
       setMerchantKey(api.prm1val || '');
       setCallbackUrl(api.callBackUrl || '');
       setIsActive(api.isActive !== false);
     } else {
+      setApiid('');
       setApiname('');
       setApiUrl('');
       setMerchantKey('');
@@ -81,27 +83,22 @@ const ListAPI = () => {
 
   const handleSaveOrUpdate = async () => {
     try {
+      const payload = {
+        apiid: parseInt(apiid) || 0,
+        apiname,
+        url: apiUrl,
+        prm1val: merchantKey,
+        callBackUrl: callbackUrl,
+        isActive,
+        isDelete: false
+      };
+
       if (modalType === 'add') {
-        const payload = {
-          apiname,
-          url: apiUrl,
-          prm1val: merchantKey,
-          callBackUrl: callbackUrl,
-          isActive,
-          createdBy: 1,
-          modifiedBy: 1
-        };
+        payload.createdBy = 1;
         await API.masterApi.create(payload);
       } else {
-        const payload = {
-          ...selectedApi,
-          apiname,
-          url: apiUrl,
-          prm1val: merchantKey,
-          callBackUrl: callbackUrl,
-          isActive,
-          modifiedBy: 1
-        };
+        payload.id = selectedApi.id;
+        payload.modifiedBy = 1;
         await API.masterApi.update(payload);
       }
       setIsModalOpen(false);
@@ -140,20 +137,22 @@ const ListAPI = () => {
   };
 
   return (
-    <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
+    <div className={!isEmbedded ? styles.container : ''} style={!isEmbedded ? { padding: '15px 15px 0px 15px', maxWidth: '100%' } : { marginTop: '20px' }}>
       {/* ── MAIN REPOSITORY CARD ── */}
       <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
         {/* CARD INTERNAL HEADER */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap' }}>API Master List</h2>
-          <button style={{ 
-            display: 'flex', alignItems: 'center', gap: '8px', 
-            background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', 
-            color: '#fff', border: 'none', borderRadius: '8px', 
-            padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap'
-          }} onClick={() => openModal('add', null)}>
-            <FiPlus /> <span>Integrate New API</span>
-          </button>
+          {!isEmbedded && (
+            <button style={{ 
+              display: 'flex', alignItems: 'center', gap: '8px', 
+              background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', 
+              color: '#fff', border: 'none', borderRadius: '8px', 
+              padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap'
+            }} onClick={() => openModal('add', null)}>
+              <FiPlus /> <span>Integrate New API</span>
+            </button>
+          )}
         </div>
 
         {/* ── TOOLBAR ── */}
@@ -187,7 +186,7 @@ const ListAPI = () => {
         </div>
 
         {/* ── TABLE ── */}
-        <div className={styles.tableWrapper}>
+        <div className={styles.tableWrapper} style={{ overflow: 'visible', paddingBottom: '60px' }}>
           <table className={styles.table} style={{ minWidth: '800px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -261,7 +260,7 @@ const ListAPI = () => {
                             borderRadius: '8px',
                             boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -5px rgba(0, 0, 0, 0.1)',
                             border: '1px solid #E2E8F0',
-                            zIndex: 10,
+                            zIndex: 50,
                             width: '180px',
                             padding: '6px 0'
                           }}
@@ -283,7 +282,11 @@ const ListAPI = () => {
                               textAlign: 'left'
                             }}
                             onClick={() => {
-                              openModal('api', api);
+                              if (isEmbedded && onEditAPI) {
+                                onEditAPI(api);
+                              } else {
+                                openModal('api', api);
+                              }
                               setActiveActionMenuId(null);
                             }}
                           >
@@ -411,6 +414,10 @@ const ListAPI = () => {
             
             <div className={styles.drawerBody} style={{ padding: '25px', overflowY: 'auto' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>API ID</label>
+                  <input type="number" className={styles.inputControl} autoComplete="off" value={apiid} onChange={e => setApiid(e.target.value)} placeholder="e.g. 5" style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />
+                </div>
                 <div className={styles.formGroup}>
                   <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Gateway Name</label>
                   <input type="text" className={styles.inputControl} autoComplete="off" value={apiname} onChange={e => setApiname(e.target.value)} placeholder="Enter provider name" style={{ borderRadius: '10px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }} />

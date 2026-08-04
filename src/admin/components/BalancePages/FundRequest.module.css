@@ -264,6 +264,26 @@
   color: #2B6CB0;
 }
 
+.viewSlipBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #3b82f6;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.viewSlipBtn:hover {
+  background: #3b82f6;
+  color: #fff;
+}
+
 /* ── PAGINATION ── */
 .paginationRow { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 16px; }
 .pageInfo { font-size: 0.85rem; color: #4E6080; font-weight: 500; }
@@ -292,7 +312,7 @@
 
 .modalContainer {
   background: #fff; border-radius: 32px; width: 100%; max-width: 800px;
-  box-shadow: 0 30px 70px rgba(0,0,0,0.3); overflow: hidden;
+  box-shadow: 0 30px 70px rgba(0,0,0,0.3); overflow: visible;
   animation: slideUpModal 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

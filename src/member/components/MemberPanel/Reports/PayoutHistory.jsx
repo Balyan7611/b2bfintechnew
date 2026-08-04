@@ -46,13 +46,16 @@ const PayoutHistory = () => {
               </div>
             </div>
           }
-          columns={['#', 'DATE & TIME', 'MEMBER NAME', 'BANK NAME', 'ACCOUNT NO', 'AMOUNT', 'CHARGES', 'TOTAL', 'STATUS', 'RECEIPT']}
+          columns={['#', 'DATE & TIME', 'MEMBER DETAIL', 'BANK NAME', 'ACCOUNT NO', 'AMOUNT', 'CHARGES', 'TOTAL', 'STATUS', 'RECEIPT']}
           data={filteredList}
           renderRow={(item, index) => (
             <tr key={item.id}>
               <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
               <td style={{ color: '#4E6080' }}>{item.date}</td>
-              <td style={{ fontWeight: 600 }}>{item.name}</td>
+              <td>
+                <div style={{ fontWeight: 700, color: '#1756AA' }}>{item.name || 'Member'}</div>
+                <div style={{ fontSize: '0.75rem', color: '#4E6080' }}>{item.memberId || 'N/A'}</div>
+              </td>
               <td>{item.bank}</td>
               <td style={{ fontWeight: 700 }}>{item.accNo}</td>
               <td style={{ fontWeight: 700 }}>₹{item.amount}</td>

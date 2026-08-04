@@ -24,7 +24,7 @@ export const MasterApiService = {
     },
 
     update: async (data) => {
-        return await apiService.put('/MasterApi/update', data);
+        return await apiService.post('/MasterApi/update', data);
     },
 
     delete: async (id) => {

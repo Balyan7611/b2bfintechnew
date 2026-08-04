@@ -13,6 +13,7 @@ import { API } from '../../../../api/endpoints';
 import { resolveMemberId, getLoginId } from '../../../../utils/memberIdentity';
 import { getSession } from '../../../../utils/authUtils';
 import { formatLedgerDate } from '../../../../models/walletLedgerModel';
+import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 import styles from './AEPSReport.module.css';
 
 const MainWalletHistory = () => {
@@ -28,34 +29,69 @@ const MainWalletHistory = () => {
     currentPage
   } = useSelector(state => state.report.mainWalletReport);
 
+  const [memberOptions, setMemberOptions] = React.useState([]);
+
+  React.useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const res = await API.member.getAll({ pageNumber: 1, pageSize: 5000 });
+        const items = res?.data?.items || res?.data || res || [];
+        const options = (Array.isArray(items) ? items : []).map(m => {
+          const name = m.name || m.fullName || m.memberName || m.ownerName || m.firstName || m.firmName || '';
+          const loginId = m.memberID || m.memberid || m.loginID || m.loginId || m.username || String(m.id || m.msrno);
+          return {
+            value: String(m.id || m.msrno),
+            label: name && loginId ? `${name} (${loginId})` : (name || loginId || `Member ${m.id || m.msrno}`)
+          };
+        });
+        setMemberOptions(options);
+      } catch (err) {
+        console.warn('Failed to load members for filter', err);
+      }
+    };
+    if (isApiPanel) fetchMembers();
+  }, [isApiPanel]);
+
   // Loads the logged-in member's own Main wallet movements.
   const loadHistory = React.useCallback(async () => {
     setIsLoading(true);
     try {
-      const memberId = await resolveMemberId();
-      if (!memberId) {
+      const defaultMemberId = await resolveMemberId();
+      const queryMemberId = filters.memberId || defaultMemberId;
+      if (!queryMemberId) {
         console.warn('MainWalletHistory: could not resolve member id');
         dispatch(setMainWalletList([]));
         return;
       }
       // WalletTypeId 1 = Main wallet ledger.
       const { items } = await API.walletLedger.getMainLedger({
-        memberId,
+        memberId: queryMemberId,
         pageNumber: 1,
         pageSize: 500,
         fromDate: filters.fromDate || '',
         toDate: filters.toDate || ''
       });
-      console.log('[MainWalletHistory] memberId', memberId, '->', items.length, 'ledger row(s)', items);
+      console.log('[MainWalletHistory] memberId', queryMemberId, '->', items.length, 'ledger row(s)', items);
 
-      // This is always the logged-in member's own ledger, so when the API
-      // doesn't echo the member back, use the session's own name/login id
-      // instead of showing a bare "Member #2".
       const session = getSession();
-      const myName = session?.name || session?.fullName || '';
-      const myLoginId = getLoginId();
+      
+      // Fetch actual member details to ensure correct name/loginId instead of session fallback
+      let myName = session?.name || session?.fullName || '';
+      let myLoginId = getLoginId() || queryMemberId;
+      
+      try {
+        const res = await API.member.getById(queryMemberId);
+        const m = res?.data?.data || res?.data || res || {};
+        if (m.name || m.loginId || m.ownerName || m.username) {
+          myName = m.name || m.fullName || m.memberName || m.ownerName || m.firstName || m.firmName || myName;
+          myLoginId = m.memberID || m.memberid || m.loginID || m.loginId || m.username || myLoginId;
+        }
+      } catch (e) {
+        console.error('Failed to fetch member detail', e);
+      }
+
       const meLabel = myName && myLoginId ? `${myName} (${myLoginId})`
-        : myName || myLoginId || `Member #${memberId}`;
+        : myName || myLoginId || `Member #${queryMemberId}`;
 
       dispatch(setMainWalletList(items.map(r => {
         const rowName = r.memberName || myName;
@@ -65,7 +101,8 @@ const MainWalletHistory = () => {
 
         return {
           id: r.id,
-          member: memberLabel,
+          member: rowLoginId,
+          memberName: rowName,
           opening: r.openingBalance.toFixed(2),
           amount: r.amount.toFixed(2),
           factor: r.isCredit ? 'Credit' : 'Debit',
@@ -99,7 +136,7 @@ const MainWalletHistory = () => {
   );
 
   const columns = [
-    'SL', 'MEMBER DETAILS', 'OPENING AMOUNT', 'AMOUNT', 
+    'SL', 'MEMBER DETAIL', 'OPENING AMOUNT', 'AMOUNT', 
     'FACTOR', 'SURCHARGE', 'GST', 'TDS', 'COMMISSION', 
     'CLOSING BALANCE', 'NARRATION', 'TRANSFER DATE'
   ];
@@ -121,10 +158,12 @@ const MainWalletHistory = () => {
               </div>
               <div className={styles.formGroup}>
                 <label>Member ID :</label>
-                <select className={styles.inputControl} name="memberId" value={filters.memberId} onChange={(e) => dispatch(updateMainWalletFilters({memberId: e.target.value}))}>
-                  <option value="">Select Member</option>
-                  <option value="RT1236">Sachin Balyan (RT1236)</option>
-                </select>
+                <SearchableSelect
+                  options={memberOptions}
+                  value={filters.memberId}
+                  onChange={(val) => dispatch(updateMainWalletFilters({memberId: val}))}
+                  placeholder="Select Member"
+                />
               </div>
               <button className={styles.submitBtn} disabled={isLoading} onClick={loadHistory}>
                 {isLoading ? 'Loading...' : 'Search History'}
@@ -137,7 +176,10 @@ const MainWalletHistory = () => {
         renderRow={(item, index) => (
           <tr key={item.id}>
             <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
-            <td style={{fontWeight: 600, color: '#1756AA'}}>{item.member}</td>
+            <td>
+              <div style={{ fontWeight: 700, color: '#1756AA' }}>{item.memberName}</div>
+              <div style={{ fontSize: '0.75rem', color: '#4E6080' }}>{item.member}</div>
+            </td>
             <td style={{fontWeight: 700}}>₹{item.opening}</td>
             <td style={{fontWeight: '800', color: item.factor === 'Credit' ? '#27ae60' : '#e74c3c'}}>
               {item.factor === 'Credit' ? '+' : '-'}{item.amount}

@@ -5,7 +5,7 @@ import { showLoader, hideLoader, setNotification } from '../store/slices/uiSlice
 import { checkMaliciousInput } from '../utils/securityUtils';
 
 const httpClient = axios.create({
-    baseURL: 'https://api.sahayatamoney.in/api',
+    baseURL: process.env.REACT_APP_API_URL || 'https://api.sahayatamoney.in/api',
     headers: { 'Content-Type': 'application/json' }
 });
 
@@ -239,6 +239,14 @@ httpClient.interceptors.response.use((response) => {
     return Promise.reject(error);
 });
 
+const fetchWithTimeout = (url, ms = 3000) => {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, { signal: ctrl.signal })
+        .then(r => { clearTimeout(timer); return r; })
+        .catch(e => { clearTimeout(timer); throw e; });
+};
+
 const getSecurityData = async (presetLocation) => {
     let clientIp = '0.0.0.0';
     const ipEndpoints = [
@@ -248,7 +256,7 @@ const getSecurityData = async (presetLocation) => {
     ];
     for (const endpoint of ipEndpoints) {
         try {
-            const ipRes = await fetch(endpoint);
+            const ipRes = await fetchWithTimeout(endpoint, 3000);
             if (ipRes.ok) {
                 const data = await ipRes.json();
                 if (data.ip && data.ip !== '0.0.0.0') {

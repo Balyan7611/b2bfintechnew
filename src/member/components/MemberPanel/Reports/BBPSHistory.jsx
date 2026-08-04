@@ -42,12 +42,16 @@ const BBPSHistory = () => {
             </div>
           </div>
         }
-        columns={['#', 'DATE & TIME', 'CONSUMER NAME', 'CATEGORY', 'BILLER', 'AMOUNT', 'TXN ID', 'STATUS', 'RECEIPT']}
+        columns={['#', 'DATE & TIME', 'MEMBER DETAIL', 'CONSUMER NAME', 'CATEGORY', 'BILLER', 'AMOUNT', 'TXN ID', 'STATUS', 'RECEIPT']}
         data={filteredList}
         renderRow={(item, index) => (
           <tr key={item.id}>
             <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
             <td style={{ color: '#4E6080' }}>{item.date}</td>
+            <td>
+              <div style={{ fontWeight: 700, color: '#1756AA' }}>{item.memberName || 'Member'}</div>
+              <div style={{ fontSize: '0.75rem', color: '#4E6080' }}>{item.memberId || 'N/A'}</div>
+            </td>
             <td style={{ fontWeight: 700 }}>{item.consumer}</td>
             <td>{item.category}</td>
             <td>{item.biller}</td>

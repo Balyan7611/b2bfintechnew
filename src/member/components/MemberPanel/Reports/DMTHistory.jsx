@@ -75,14 +75,16 @@ const DMTHistory = () => {
             </div>
           </div>
         }
-        columns={['#', 'DATE & TIME', 'USER NAME', 'USER MOBILE', 'SENDER MOBILE', 'ACCOUNT NO', 'BENE NAME', 'BANK', 'STATUS', 'AMOUNT', 'ACTION']}
+        columns={['#', 'DATE & TIME', 'MEMBER DETAIL', 'SENDER MOBILE', 'ACCOUNT NO', 'BENE NAME', 'BANK', 'STATUS', 'AMOUNT', 'ACTION']}
         data={filteredList}
         renderRow={(item, index) => (
           <tr key={item.id}>
             <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
             <td style={{ color: '#4E6080' }}>{item.date}</td>
-            <td style={{ fontWeight: 600 }}>{item.userName}</td>
-            <td>{item.userMobile}</td>
+            <td>
+              <div style={{ fontWeight: 700, color: '#1756AA' }}>{item.userName || 'Member'}</div>
+              <div style={{ fontSize: '0.75rem', color: '#4E6080' }}>{item.userMobile || 'N/A'}</div>
+            </td>
             <td>{item.senderMobile}</td>
             <td style={{ fontWeight: 700 }}>{item.accNo}</td>
             <td>{item.beneName}</td>

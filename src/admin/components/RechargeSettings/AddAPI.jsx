@@ -5,6 +5,8 @@ import {
   FiRupeeSign, FiBarChart2, FiChevronDown, FiChevronUp
 } from 'react-icons/fi';
 import styles from '../MemberPages/MemberPages.module.css';
+import { API } from '../../../api/endpoints';
+import ListAPI from './ListAPI';
 
 // ─── ACCORDION SECTION ────────────────────────────────────────────────
 const Section = ({ id, label, icon, isOpen, onToggle, sectionRef, children }) => {
@@ -146,10 +148,13 @@ const ConfirmModal = ({ show, onCancel, onConfirm }) =>
     </div>
   );
 
-// ─── INITIAL STATE (with new XML fields) ─────────────────────────────
+// ─── INITIAL STATE ────────────────────────────────────────────────────
 const initialFormState = {
-  apiType: '',
+  id: '',
+  apiid: '',
   apiName: '',
+  apiType: '',
+  apiUrl: '',
   splitter: '',
   rechargeUrl: '',
   format: '',
@@ -163,15 +168,16 @@ const initialFormState = {
   txIdPos: '',
   statusPos: '',
   opRefPos: '',
+  errorCodePos: '',
   successMsg: '',
   failedMsg: '',
   pendingMsg: '',
-  xmlKeyRecharge: '',       // NEW
+  xmlKeyRecharge: '',
   balanceUrl: '',
   balanceUid: '',
   balancePin: '',
   balancePos: '',
-  xmlKeyBalance: '',        // NEW
+  xmlKeyBalance: '',
   statusUrl: '',
   statusUid: '',
   statusPin: '',
@@ -180,7 +186,7 @@ const initialFormState = {
   opRefPosStatus: '',
   statusParam3: '',
   statusParam4: '',
-  xmlKeyStatus: '',         // NEW
+  xmlKeyStatus: '',
 };
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────
@@ -231,18 +237,56 @@ const AddAPI = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setShowToast({ show: true, message: '✅ API Integration Submitted!' });
+    try {
+      const payload = {
+        ...form,
+        apiid: parseInt(form.apiid) || 0,
+        isActive: true,
+        isDelete: false,
+        createdBy: 1
+      };
+      
+      if (form.id) {
+        payload.modifiedBy = 1;
+        await API.masterApi.update(payload);
+        setShowToast({ show: true, message: '✅ API Updated Successfully!' });
+      } else {
+        await API.masterApi.create(payload);
+        setShowToast({ show: true, message: '✅ API Integration Submitted!' });
+      }
+      
       setTimeout(() => setShowToast({ show: false, message: '' }), 3000);
-      console.log('Submitted Data:', form);
-    }, 1500);
+      setForm(initialFormState);
+    } catch (e) {
+      console.error('API Error:', e);
+      setShowToast({ show: true, message: '❌ Error: ' + (e.message || 'Submission failed') });
+      setTimeout(() => setShowToast({ show: false, message: '' }), 3000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReset = () => setShowConfirm(true);
+
+  const handleEditAPI = (api) => {
+    setForm((prev) => ({
+      ...prev,
+      id: api.id,
+      apiid: api.apiid || api.id || '',
+      apiName: api.apiname || '',
+      apiUrl: api.url || '',
+      format: api.format || '',
+      version: api.version || '',
+      errorCodePos: api.errorCodePos || ''
+    }));
+    // Open General tab if closed
+    setOpen((prev) => ({ ...prev, general: true }));
+    // Scroll to top to see the form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const confirmReset = () => {
     setForm(initialFormState);
@@ -288,27 +332,44 @@ const AddAPI = () => {
                 </select>
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.label}>API Name *</label>
-                <input type="text" name="apiName" value={form.apiName} onChange={handleChange} placeholder="Enter API Name" className={styles.inputControl} style={{ height: '42px' }} />
+                <label className={styles.label}>
+                  <FiSettings /> API ID
+                </label>
+                <input
+                  type="number"
+                  name="apiid"
+                  className={styles.inputControl}
+                  value={form.apiid}
+                  onChange={handleChange}
+                  placeholder="e.g. 5"
+                  style={{ height: '42px' }}
+                />
               </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>
+                  <FiSettings /> API Name
+                </label>
+                <input
+                  type="text"
+                  name="apiName"
+                  className={styles.inputControl}
+                  value={form.apiName}
+                  onChange={handleChange}
+                  placeholder="e.g. Paytm Payout API"
+                  style={{ height: '42px' }}
+                />
+              </div>
+            </div>
+            <div className={styles.formGrid3}>
               <div className={styles.formGroup}>
                 <label className={styles.label}>Splitter *</label>
                 <input type="text" name="splitter" value={form.splitter} onChange={handleChange} placeholder="e.g. | or ," className={styles.inputControl} style={{ height: '42px' }} />
               </div>
-            </div>
-            <div className={styles.formGrid3}>
               <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
                 <label className={styles.label}>Recharge URL *</label>
                 <div className={styles.inputWrap}>
                   <FiGlobe className={styles.inputIcon} />
                   <input type="text" name="rechargeUrl" value={form.rechargeUrl} onChange={handleChange} placeholder="Enter Recharge URL" className={styles.inputControl} style={{ height: '42px', paddingLeft: '40px' }} />
-                </div>
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Format / Version</label>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <input type="text" name="format" value={form.format} onChange={handleChange} placeholder="format" className={styles.inputControl} style={{ height: '42px' }} />
-                  <input type="text" name="version" value={form.version} onChange={handleChange} placeholder="version" className={styles.inputControl} style={{ height: '42px' }} />
                 </div>
               </div>
             </div>
@@ -324,7 +385,22 @@ const AddAPI = () => {
                 </div>
               ))}
             </div>
+            
             <div className={styles.formGrid3} style={{ marginBottom: '20px' }}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Format</label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input type="text" name="format" value={form.format} onChange={handleChange} placeholder="e.g. format" className={styles.inputControl} style={{ height: '42px', flex: 1 }} />
+                  <input type="text" placeholder="CSV" className={styles.inputControl} style={{ height: '42px', flex: 1, backgroundColor: '#f8fafc' }} readOnly />
+                </div>
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Version</label>
+                <input type="text" name="version" value={form.version} onChange={handleChange} placeholder="e.g. version" className={styles.inputControl} style={{ height: '42px' }} />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px', marginBottom: '20px' }}>
               <div className={styles.formGroup}>
                 <label className={styles.label}>TxID Position</label>
                 <input type="text" name="txIdPos" value={form.txIdPos} onChange={handleChange} className={styles.inputControl} style={{ height: '42px' }} />
@@ -336,6 +412,10 @@ const AddAPI = () => {
               <div className={styles.formGroup}>
                 <label className={styles.label}>Op. Ref Position</label>
                 <input type="text" name="opRefPos" value={form.opRefPos} onChange={handleChange} className={styles.inputControl} style={{ height: '42px' }} />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>ErrorCode Position</label>
+                <input type="text" name="errorCodePos" value={form.errorCodePos} onChange={handleChange} className={styles.inputControl} style={{ height: '42px' }} />
               </div>
             </div>
             <div className={styles.formGrid3} style={{ marginBottom: '20px' }}>
@@ -352,7 +432,6 @@ const AddAPI = () => {
                 <input type="text" name="pendingMsg" value={form.pendingMsg} onChange={handleChange} className={styles.inputControl} style={{ height: '42px' }} />
               </div>
             </div>
-            {/* NEW XML Key for Recharge */}
             <div className={styles.formGroup}>
               <label className={styles.label}>XML Key (Recharge)</label>
               <input
@@ -388,7 +467,6 @@ const AddAPI = () => {
                 <label className={styles.label}>Balance Position</label>
                 <input type="text" name="balancePos" value={form.balancePos} onChange={handleChange} className={styles.inputControl} style={{ height: '40px', width: '100%' }} />
               </div>
-              {/* NEW XML Key for Balance */}
               <div className={styles.formGroup}>
                 <label className={styles.label}>XML Key (Balance)</label>
                 <input
@@ -423,7 +501,6 @@ const AddAPI = () => {
                 <div className={styles.formGroup}><label className={styles.label}>Parameter 3</label><input type="text" name="statusParam3" value={form.statusParam3} onChange={handleChange} className={styles.inputControl} style={{ height: '40px' }} /></div>
                 <div className={styles.formGroup}><label className={styles.label}>Parameter 4</label><input type="text" name="statusParam4" value={form.statusParam4} onChange={handleChange} className={styles.inputControl} style={{ height: '40px' }} /></div>
               </div>
-              {/* NEW XML Key for Status */}
               <div className={styles.formGroup}>
                 <label className={styles.label}>XML Key (Status)</label>
                 <input
@@ -472,6 +549,9 @@ const AddAPI = () => {
           </div>
         </form>
       </div>
+
+      {/* Embedded API List */}
+      <ListAPI isEmbedded={true} onEditAPI={handleEditAPI} />
     </div>
   );
 };

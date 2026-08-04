@@ -268,7 +268,6 @@ const SIDEBAR_LINKS = [
     label: 'API Setting', 
     icon: FaMobileAlt,
     subLinks: [
-      { id: 'list_api', label: 'List API' },
       { id: 'api_balance', label: 'API Balance' },
       { id: 'add_api', label: 'Add API' },
       { id: 'switch_system', label: 'Switch System' }

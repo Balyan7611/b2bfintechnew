@@ -66,12 +66,44 @@ const AEPSReport = () => {
         rawData = res.data.items;
       }
       
-      const mappedList = rawData.map((item, idx) => ({
-        id: item.id || item.transactionId || idx,
-        date: item.createdDate || item.date || item.transactionDate || '-',
-        memberId: item.memberId || item.msrNo || memberMsrNo,
-        memberName: item.memberName || item.name || session?.name || 'Member',
-        aadhar: item.aadhar || item.aadharNo || item.aadharNumber || '-',
+      // Gather unique member IDs
+      const uniqueMsrnos = [...new Set(rawData.map(i => i.memberId || i.msrNo || memberMsrNo).filter(Boolean))];
+      const memberMap = {};
+      
+      await Promise.allSettled(
+        uniqueMsrnos.map(async (msrno) => {
+          try {
+            const res = await API.member.getById(msrno);
+            const m = res?.data?.data || res?.data || res || {};
+            
+            const name = m.name || m.fullName || m.memberName || m.ownerName || m.firstName || m.firmName || '';
+            const loginId = m.memberID || m.memberid || m.loginID || m.loginId || m.username || String(msrno);
+            
+            if (name || loginId) {
+              memberMap[String(msrno)] = { name, loginId };
+            }
+          } catch (err) {
+            console.error(`Failed to fetch member details for msrno ${msrno}`, err);
+          }
+        })
+      );
+
+      const mappedList = rawData.map((item, idx) => {
+        const msrno = String(item.memberId || item.msrNo || memberMsrNo);
+        let resolvedName = item.memberName || item.customerName || item.name || session?.name || 'Member';
+        let resolvedLoginId = msrno;
+
+        if (memberMap[msrno]) {
+           resolvedName = memberMap[msrno].name || resolvedName;
+           resolvedLoginId = memberMap[msrno].loginId || resolvedLoginId;
+        }
+        
+        return {
+          id: item.id || item.transactionId || idx,
+          date: item.createdDate || item.date || item.transactionDate || '-',
+          memberId: resolvedLoginId,
+          memberName: resolvedName,
+          aadhar: item.aadhar || item.aadharNo || item.aadharNumber || '-',
         type: item.transactionType || item.type || 'Withdrawal',
         amount: item.amount || 0,
         commission: item.commission || 0,
@@ -80,7 +112,8 @@ const AEPSReport = () => {
         status: item.status || 'PENDING',
         bankTransId: item.bankTransId || item.transactionId || item.txnId || '-',
         rrn: item.rrn || item.bankRrn || '-'
-      }));
+        };
+      });
       
       dispatch(setAEPSList(mappedList));
     } catch (error) {
@@ -168,7 +201,7 @@ const AEPSReport = () => {
                 </div>
               </div>
             }
-            columns={['SNO', 'TRANSACTION DATE', 'MEMBER ID', 'MEMBER NAME', 'AADHARNUMBER', 'TRANSACTION TYPE', 'AMOUNT', 'BANK TRANSID', 'STATUS', 'ACTION']}
+            columns={['SNO', 'TRANSACTION DATE', 'MEMBER DETAIL', 'AADHARNUMBER', 'TRANSACTION TYPE', 'AMOUNT', 'BANK TRANSID', 'STATUS', 'ACTION']}
             data={filteredList}
             renderRow={(item, index) => {
               let statusStyle = styles.statusPending;
@@ -179,8 +212,10 @@ const AEPSReport = () => {
                 <tr key={item.id}>
                   <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
                   <td style={{ color: '#4E6080' }}>{item.date}</td>
-                  <td style={{ fontWeight: 700, color: '#1756AA' }}>{item.memberId}</td>
-                  <td style={{ fontWeight: 600, color: '#2D3748' }}>{item.memberName}</td>
+                  <td>
+                    <div style={{ fontWeight: 700, color: '#1756AA' }}>{item.memberName}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#4E6080' }}>{item.memberId}</div>
+                  </td>
                   <td>{item.aadhar}</td>
                   <td style={{ fontWeight: 700, color: '#4A5568' }}>{item.type}</td>
                   <td style={{ fontWeight: 800, color: '#2D3748' }}>₹{item.amount}</td>
@@ -195,10 +230,10 @@ const AEPSReport = () => {
                       className={styles.viewReceiptBtn}
                       onClick={() => {
                         setSelectedTxn(item);
-                        setViewDetailMode(true);
+                        setIsModalOpen(true);
                       }}
                     >
-                      View Detail
+                      View Receipt
                     </button>
                   </td>
                 </tr>

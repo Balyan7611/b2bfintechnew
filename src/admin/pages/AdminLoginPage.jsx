@@ -152,6 +152,13 @@ const AdminLoginPage = () => {
   };
 
   const fetchClientIp = async () => {
+    const fetchWithTimeout = (url, ms = 3000) => {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), ms);
+      return fetch(url, { signal: ctrl.signal })
+        .then(r => { clearTimeout(timer); return r; })
+        .catch(e => { clearTimeout(timer); throw e; });
+    };
     const endpoints = [
       'https://api.ipify.org?format=json',
       'https://ipapi.co/json/',
@@ -159,7 +166,7 @@ const AdminLoginPage = () => {
     ];
     for (const endpoint of endpoints) {
       try {
-        const res = await fetch(endpoint);
+        const res = await fetchWithTimeout(endpoint, 3000);
         if (res.ok) {
           const data = await res.json();
           if (data.ip && data.ip !== '0.0.0.0') return data.ip;
