@@ -38,6 +38,7 @@ const SwitchSystem = () => {
   const [allOperators, setAllOperators] = useState([]);
   const [operators,  setOperators]  = useState([]);   // filtered by service
   const [masterApis, setMasterApis] = useState([]);
+  const [allMembers, setAllMembers] = useState([]);
 
   // ── Form state ─────────────────────────────────────────────
   const [switchType,  setSwitchType]  = useState('');
@@ -102,6 +103,18 @@ const SwitchSystem = () => {
         const rawP = Array.isArray(packRes?.data) ? packRes.data : Array.isArray(packRes?.data?.items) ? packRes.data.items : Array.isArray(packRes) ? packRes : [];
         setPackages(rawP.map(p => ({ id: p.id, name: p.name || p.packageName || `Package #${p.id}` })));
       } catch (e) { console.warn('SwitchSystem: packages load failed', e); }
+
+      try {
+        // All members for table mapping
+        const memRes = await API.member.search("");
+        if (memRes && Array.isArray(memRes)) {
+          setAllMembers(memRes.map(m => ({ 
+            id: m.id || m.memberId || m.msrno, 
+            name: m.name || m.fullName, 
+            loginId: m.loginId || m.memberID 
+          })));
+        }
+      } catch (e) { console.warn('SwitchSystem: members load failed', e); }
 
       loadRules();
     };
@@ -461,8 +474,20 @@ const SwitchSystem = () => {
                 </tr>
               ) : (
                 currentData.map((rule, idx) => {
-                  const rOperator = parseInt(rule.opId) === 0 ? 'All Operator' : (operators.find(o => String(o.id) === String(rule.opId))?.name || `Operator #${rule.opId}`);
+                  const operator = parseInt(rule.opId) === 0 ? null : allOperators.find(o => String(o.id) === String(rule.opId));
+                  const rOperatorName = parseInt(rule.opId) === 0 ? 'All Operators' : (operator?.name || `Operator #${rule.opId}`);
+                  const rServiceName = operator ? getServiceName(operator.serviceId) : 'Global / All Services';
                   const rApiName = masterApis.find(a => String(a.id) === String(rule.activeApi))?.name || `API #${rule.activeApi}`;
+
+                  let inferredSwitchType = 'Operator Switch';
+                  if (rule.msrno > 0) inferredSwitchType = 'User Switch';
+                  else if (rule.packageId > 0) inferredSwitchType = 'Package Switch';
+
+                  const memberMatch = rule.msrno > 0 ? allMembers.find(m => String(m.id) === String(rule.msrno)) : null;
+                  const memberDisplay = memberMatch ? `${memberMatch.name || 'Unknown'} (${memberMatch.loginId || 'No ID'})` : `Member ID: ${rule.msrno}`;
+
+                  const packageMatch = rule.packageId > 0 ? packages.find(p => String(p.id) === String(rule.packageId)) : null;
+                  const packageDisplay = packageMatch ? `${packageMatch.name}` : `Package ID: ${rule.packageId}`;
 
                   return (
                     <tr key={rule.id} className={styles.hoverRow}>
@@ -474,23 +499,27 @@ const SwitchSystem = () => {
                           </div>
                           <div>
                             <span style={{ color: '#1756AA', fontWeight: 800, display: 'block', fontSize: '0.85rem' }}>
-                              {getServiceName(rule.serviceId)}
+                              {rServiceName}
                             </span>
                             {rule.slab && rule.slab !== '-' && rule.slab !== 'All' && (
                               <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Slab: {rule.slab}</span>
+                            )}
+                            {rule.blockSlab && (
+                              <span style={{ fontSize: '0.72rem', color: '#e53e3e', display: 'block' }}>Block: {rule.blockSlab}</span>
                             )}
                           </div>
                         </div>
                       </td>
                       <td style={{ textAlign: 'center' }}>
                         <span style={{ background: '#F1F5F9', color: '#4E6080', padding: '4px 12px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 700 }}>
-                          {rule.switchType || '-'}
+                          {inferredSwitchType}
                         </span>
-                        {rule.packageId > 0 && <div style={{fontSize: '0.7rem', color:'#64748b'}}>Pkg: {rule.packageId}</div>}
-                        {rule.msrno > 0 && <div style={{fontSize: '0.7rem', color:'#64748b'}}>Mem: {rule.msrno}</div>}
+                        {rule.packageId > 0 && <div style={{fontSize: '0.75rem', color:'#64748b', marginTop: '4px', fontWeight: 600}}>{packageDisplay}</div>}
+                        {rule.msrno > 0 && <div style={{fontSize: '0.75rem', color:'#1756AA', marginTop: '4px', fontWeight: 700}}>{memberDisplay}</div>}
+                        {inferredSwitchType === 'Operator Switch' && <div style={{fontSize: '0.75rem', color:'#64748b', marginTop: '4px', fontWeight: 600}}>{rOperatorName}</div>}
                       </td>
                       <td style={{ textAlign: 'center', fontSize: '0.82rem', color: '#334155', fontWeight: 600 }}>
-                        {rOperator}
+                        {rOperatorName}
                       </td>
                       <td style={{ textAlign: 'center' }}>
                         <span style={{ color: '#27AE60', fontWeight: 800, fontSize: '0.85rem', display: 'block' }}>

@@ -120,7 +120,10 @@ const AEPSReport = () => {
           return (
             <tr key={item.id}>
               <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
-              <td style={{ fontSize: '0.85rem', color: '#4E6080' }}>{item.date}</td>
+              <td>
+                <div style={{ color: '#0D1B3E', fontWeight: '800', fontSize: '0.85rem' }}>{item.date.split('T')[0]}</div>
+                <div style={{ color: '#718096', fontSize: '0.75rem', fontWeight: '600', marginTop: '2px' }}>{item.date.split('T')[1]?.split('.')[0] || ''}</div>
+              </td>
               <td>
                 <div style={{ fontWeight: 700, color: '#1756AA' }}>{item.memberName}</div>
                 <div style={{ fontSize: '0.75rem', color: '#4E6080' }}>{item.memberId}</div>

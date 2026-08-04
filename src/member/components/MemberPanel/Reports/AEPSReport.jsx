@@ -28,6 +28,28 @@ const AEPSReport = () => {
   const [selectedTxn, setSelectedTxn] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewDetailMode, setViewDetailMode] = useState(false);
+  
+  const [masterServices, setMasterServices] = useState([]);
+  const [masterOperators, setMasterOperators] = useState([]);
+  const [masterApis, setMasterApis] = useState([]);
+
+  useEffect(() => {
+    const fetchMasters = async () => {
+      try {
+        const svcRes = await API.service.getAll();
+        setMasterServices(Array.isArray(svcRes?.data) ? svcRes.data : Array.isArray(svcRes) ? svcRes : []);
+      } catch (e) {}
+      try {
+        const opRes = await API.operator.getAll({ pageSize: 1000 });
+        setMasterOperators(Array.isArray(opRes?.data?.items) ? opRes.data.items : Array.isArray(opRes?.data) ? opRes.data : Array.isArray(opRes) ? opRes : []);
+      } catch (e) {}
+      try {
+        const apiRes = await API.masterApi.getAll({ pageSize: 500 });
+        setMasterApis(Array.isArray(apiRes?.data?.items) ? apiRes.data.items : Array.isArray(apiRes?.data) ? apiRes.data : Array.isArray(apiRes) ? apiRes : []);
+      } catch (e) {}
+    };
+    fetchMasters();
+  }, []);
 
   const fetchAEPSReport = async () => {
     const session = getSession();
@@ -42,9 +64,10 @@ const AEPSReport = () => {
         pageSize: rowsPerPage,
         fromDate: filters.fromDate || '',
         toDate: filters.toDate || '',
-        serviceId: '8',
+        serviceId: '17,18',
+        sectionType: '9,10',
         operatorId: filters.operatorId || '',
-        apiId: '1',
+        apiId: '',
         memberId: '',   // Pass empty like admin — backend JWT already scopes the result
         status: filters.status || ''
       });
@@ -99,19 +122,9 @@ const AEPSReport = () => {
         }
         
         return {
-          id: item.id || item.transactionId || idx,
-          date: item.createdDate || item.date || item.transactionDate || '-',
-          memberId: resolvedLoginId,
+          ...item,
           memberName: resolvedName,
-          aadhar: item.aadhar || item.aadharNo || item.aadharNumber || '-',
-        type: item.transactionType || item.type || 'Withdrawal',
-        amount: item.amount || 0,
-        commission: item.commission || 0,
-        opening: item.openingBalance || item.opening || 0,
-        closing: item.closingBalance || item.closing || 0,
-        status: item.status || 'PENDING',
-        bankTransId: item.bankTransId || item.transactionId || item.txnId || '-',
-        rrn: item.rrn || item.bankRrn || '-'
+          memberId: resolvedLoginId,
         };
       });
       
@@ -151,13 +164,41 @@ const AEPSReport = () => {
   const handleApplyFilters = () => {
     fetchAEPSReport();
   };
+  
+  // Dynamic Column logic
+  const baseData = filteredList.length > 0 ? filteredList : list;
+  let dynamicColumns = [];
+  const allowedApiKeys = [
+    'createdDate', 'orderId', 'vendorId', 'refid', 'rrn',
+    'memberName', 'memberId', 'serviceName', 'operatorName', 'apiName', 'operator', 'api', 'service',
+    'customerName', 'customerMobile', 'accountNo', 'ifsc', 'bankName', 'beniName', 'beniVerifyName',
+    'openingBalance', 'amount', 'closingBalance',
+    'surcharge', 'commission', 'serviceCharge', 'totalCommission', 'totalTds', 'cashback', 'gst', 'tds', 'vgst', 'vcs', 'vtds', 'padmin', 'pgst', 'tdsadmin',
+    'mode', 'ip', 'fromChannel', 'message', 'status'
+  ];
+
+  if (baseData && baseData.length > 0) {
+    const rawKeys = Object.keys(baseData[0]);
+    dynamicColumns = allowedApiKeys.filter(key => {
+      if (rawKeys.includes(key)) return true;
+      if (key === 'operatorName' && (rawKeys.includes('operatorId') || rawKeys.includes('operator'))) return true;
+      if (key === 'apiName' && (rawKeys.includes('apiId') || rawKeys.includes('api') || rawKeys.includes('apiid'))) return true;
+      if (key === 'serviceName' && (rawKeys.includes('serviceId') || rawKeys.includes('service'))) return true;
+      return false;
+    });
+  }
+  
+  const formatHeader = (key) => key.replace(/([A-Z])/g, ' $1').toUpperCase();
+  const displayColumns = dynamicColumns.length > 0
+    ? ['SNO', ...dynamicColumns.map(formatHeader)]
+    : ['SNO', 'TRANSACTION DATE', 'MEMBER DETAIL', 'AADHARNUMBER', 'TRANSACTION TYPE', 'AMOUNT', 'BANK TRANSID', 'STATUS', 'VIEW RECEIPT'];
 
   return (
     <div className={styles.container}>
       {!viewDetailMode ? (
         <>
           <AdminTable
-            title="MANAGE AEPS"
+            title="AEPS REPORT"
             topContent={
               <div className={styles.filterSection}>
                 <div className={styles.filterRow}>
@@ -195,58 +236,87 @@ const AEPSReport = () => {
                       <option value="FAILED">Failed</option>
                     </select>
                   </div>
-                  <button className={styles.submitBtn} onClick={handleApplyFilters}>
+                  <button className={styles.submitBtn} onClick={fetchAEPSReport}>
                     Apply Filters
                   </button>
                 </div>
               </div>
             }
-            columns={['SNO', 'TRANSACTION DATE', 'MEMBER DETAIL', 'AADHARNUMBER', 'TRANSACTION TYPE', 'AMOUNT', 'BANK TRANSID', 'STATUS', 'ACTION']}
+            columns={displayColumns}
             data={filteredList}
-            renderRow={(item, index) => {
-              let statusStyle = styles.statusPending;
-              if (item.status === 'SUCCESS') statusStyle = styles.statusSuccess;
-              if (item.status === 'FAILED') statusStyle = styles.statusFailed;
-
-              return (
-                <tr key={item.id}>
-                  <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
-                  <td style={{ color: '#4E6080' }}>{item.date}</td>
-                  <td>
-                    <div style={{ fontWeight: 700, color: '#1756AA' }}>{item.memberName}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#4E6080' }}>{item.memberId}</div>
-                  </td>
-                  <td>{item.aadhar}</td>
-                  <td style={{ fontWeight: 700, color: '#4A5568' }}>{item.type}</td>
-                  <td style={{ fontWeight: 800, color: '#2D3748' }}>₹{item.amount}</td>
-                  <td style={{ fontFamily: 'monospace' }}>{item.bankTransId}</td>
-                  <td>
-                    <span className={`${styles.statusBadge} ${statusStyle}`}>
-                      {item.status}
-                    </span>
-                  </td>
-                  <td>
-                    <button 
-                      className={styles.viewReceiptBtn}
-                      onClick={() => {
-                        setSelectedTxn(item);
-                        setIsModalOpen(true);
-                      }}
-                    >
-                      View Receipt
-                    </button>
-                  </td>
-                </tr>
-              );
-            }}
             searchQuery={searchQuery}
             onSearchChange={(val) => dispatch(setAEPSSearchQuery(val))}
             rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(val) => dispatch(setAEPSRowsPerPage(val))}
+            onRowsPerPageChange={(val) => {
+              dispatch(setAEPSRowsPerPage(val));
+              dispatch(setAEPSCurrentPage(1));
+            }}
             currentPage={currentPage}
             onPageChange={(val) => dispatch(setAEPSCurrentPage(val))}
             totalEntries={totalEntries}
             totalPages={totalPages}
+            renderRow={(item, index) => {
+              return (
+                <tr key={item.id || index}>
+                  <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
+                  {dynamicColumns.map((colKey, colIndex) => {
+                    let val = item[colKey];
+                    
+                    if (colKey === 'operatorName' && !val) {
+                      const opId = item.operatorId || item.operator;
+                      if (opId) {
+                         const op = masterOperators.find(o => String(o.id) === String(opId));
+                         val = op ? op.name || op.operatorCode : opId;
+                      } else val = 'N/A';
+                    }
+                    if (colKey === 'apiName' && !val) {
+                      const aId = item.apiId || item.api || item.apiid;
+                      if (aId) {
+                         const api = masterApis.find(a => String(a.id) === String(aId) || String(a.apiid) === String(aId));
+                         val = api ? api.apiname || api.name : aId;
+                      } else val = 'N/A';
+                    }
+                    if (colKey === 'serviceName' && !val) {
+                      const sId = item.serviceId || item.service;
+                      if (sId) {
+                         const svc = masterServices.find(s => String(s.id) === String(sId));
+                         val = svc ? svc.name : sId;
+                      } else val = 'N/A';
+                    }
+                    
+                    // Status styling
+                    if (colKey.toLowerCase() === 'status') {
+                       let statusStyle = styles.statusPending;
+                       if (String(val).toUpperCase() === 'SUCCESS') statusStyle = styles.statusSuccess;
+                       if (String(val).toUpperCase() === 'FAILED') statusStyle = styles.statusFailed;
+                       return (
+                         <td key={colIndex}>
+                           <span className={`${styles.statusBadge} ${statusStyle}`}>
+                             {val}
+                           </span>
+                         </td>
+                       );
+                    }
+
+                    // Date styling (split top and bottom if contains 'T')
+                    if (String(val).includes('T') && String(val).length > 10) {
+                      return (
+                        <td key={colIndex}>
+                          <div style={{ color: '#0D1B3E', fontWeight: '800', fontSize: '0.85rem' }}>{String(val).split('T')[0]}</div>
+                          <div style={{ color: '#718096', fontSize: '0.75rem', fontWeight: '600', marginTop: '2px' }}>{String(val).split('T')[1]?.split('.')[0] || ''}</div>
+                        </td>
+                      );
+                    }
+
+                    return (
+                      <td key={colIndex} style={{ fontSize: '0.8rem', color: '#4E6080' }}>
+                        {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            }}
           />
           <ReceiptModal 
             isOpen={isModalOpen} 

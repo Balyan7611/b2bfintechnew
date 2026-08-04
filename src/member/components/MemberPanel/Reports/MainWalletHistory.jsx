@@ -30,6 +30,9 @@ const MainWalletHistory = () => {
   } = useSelector(state => state.report.mainWalletReport);
 
   const [memberOptions, setMemberOptions] = React.useState([]);
+  const [masterServices, setMasterServices] = React.useState([]);
+  const [masterOperators, setMasterOperators] = React.useState([]);
+  const [masterApis, setMasterApis] = React.useState([]);
 
   React.useEffect(() => {
     const fetchMembers = async () => {
@@ -51,6 +54,24 @@ const MainWalletHistory = () => {
     };
     if (isApiPanel) fetchMembers();
   }, [isApiPanel]);
+
+  React.useEffect(() => {
+    const fetchMasters = async () => {
+      try {
+        const svcRes = await API.service.getAll();
+        setMasterServices(Array.isArray(svcRes?.data) ? svcRes.data : Array.isArray(svcRes) ? svcRes : []);
+      } catch (e) {}
+      try {
+        const opRes = await API.operator.getAll({ pageSize: 1000 });
+        setMasterOperators(Array.isArray(opRes?.data?.items) ? opRes.data.items : Array.isArray(opRes?.data) ? opRes.data : Array.isArray(opRes) ? opRes : []);
+      } catch (e) {}
+      try {
+        const apiRes = await API.masterApi.getAll({ pageSize: 500 });
+        setMasterApis(Array.isArray(apiRes?.data?.items) ? apiRes.data.items : Array.isArray(apiRes?.data) ? apiRes.data : Array.isArray(apiRes) ? apiRes : []);
+      } catch (e) {}
+    };
+    fetchMasters();
+  }, []);
 
   // Loads the logged-in member's own Main wallet movements.
   const loadHistory = React.useCallback(async () => {
@@ -100,17 +121,18 @@ const MainWalletHistory = () => {
           : rowName || rowLoginId || meLabel;
 
         return {
+          ...r,
           id: r.id,
           member: rowLoginId,
           memberName: rowName,
-          opening: r.openingBalance.toFixed(2),
-          amount: r.amount.toFixed(2),
+          opening: (r.openingBalance || 0).toFixed(2),
+          amount: (r.amount || 0).toFixed(2),
           factor: r.isCredit ? 'Credit' : 'Debit',
-          surcharge: r.surcharge.toFixed(2),
-          gst: r.gst.toFixed(2),
-          tds: r.tds.toFixed(2),
-          commission: r.commission.toFixed(2),
-          closing: r.balance.toFixed(2),
+          surcharge: (r.surcharge || 0).toFixed(2),
+          gst: (r.gst || 0).toFixed(2),
+          tds: (r.tds || 0).toFixed(2),
+          commission: (r.commission || 0).toFixed(2),
+          closing: (r.balance || 0).toFixed(2),
           narration: r.narration || r.description || '-',
           date: formatLedgerDate(r.createdDate)
         };
@@ -135,11 +157,33 @@ const MainWalletHistory = () => {
     lower(item.member).includes(lower(searchQuery))
   );
 
-  const columns = [
-    'SL', 'MEMBER DETAIL', 'OPENING AMOUNT', 'AMOUNT', 
-    'FACTOR', 'SURCHARGE', 'GST', 'TDS', 'COMMISSION', 
-    'CLOSING BALANCE', 'NARRATION', 'TRANSFER DATE'
+  // Dynamic Column logic
+  const baseData = filteredList.length > 0 ? filteredList : list;
+  let dynamicColumns = [];
+  const allowedApiKeys = [
+    'createdDate', 'orderId', 'vendorId', 'refid', 'rrn',
+    'memberName', 'memberId', 'serviceName', 'operatorName', 'apiName', 'operator', 'api', 'service',
+    'customerName', 'customerMobile', 'accountNo', 'ifsc', 'bankName', 'beniName', 'beniVerifyName',
+    'openingBalance', 'amount', 'closingBalance',
+    'surcharge', 'commission', 'serviceCharge', 'totalCommission', 'totalTds', 'cashback', 'gst', 'tds', 'vgst', 'vcs', 'vtds', 'padmin', 'pgst', 'tdsadmin',
+    'mode', 'ip', 'fromChannel', 'message', 'status'
   ];
+
+  if (baseData && baseData.length > 0) {
+    const rawKeys = Object.keys(baseData[0]);
+    dynamicColumns = allowedApiKeys.filter(key => {
+      if (rawKeys.includes(key)) return true;
+      if (key === 'operatorName' && (rawKeys.includes('operatorId') || rawKeys.includes('operator'))) return true;
+      if (key === 'apiName' && (rawKeys.includes('apiId') || rawKeys.includes('api') || rawKeys.includes('apiid'))) return true;
+      if (key === 'serviceName' && (rawKeys.includes('serviceId') || rawKeys.includes('service'))) return true;
+      return false;
+    });
+  }
+  
+  const formatHeader = (key) => key.replace(/([A-Z])/g, ' $1').toUpperCase();
+  const displayColumns = dynamicColumns.length > 0
+    ? ['SNO', ...dynamicColumns.map(formatHeader)]
+    : ['SNO', 'MEMBER DETAIL', 'OPENING AMOUNT', 'AMOUNT', 'FACTOR', 'SURCHARGE', 'GST', 'TDS', 'COMMISSION', 'CLOSING BALANCE', 'NARRATION', 'TRANSFER DATE'];
 
   return (
     <div className={`${styles.container} ${styles.compactTableContainer}`}>
@@ -171,35 +215,70 @@ const MainWalletHistory = () => {
             </div>
           </div>
         }
-        columns={columns}
+        columns={displayColumns}
         data={filteredList}
-        renderRow={(item, index) => (
-          <tr key={item.id}>
-            <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
-            <td>
-              <div style={{ fontWeight: 700, color: '#1756AA' }}>{item.memberName}</div>
-              <div style={{ fontSize: '0.75rem', color: '#4E6080' }}>{item.member}</div>
-            </td>
-            <td style={{fontWeight: 700}}>₹{item.opening}</td>
-            <td style={{fontWeight: '800', color: item.factor === 'Credit' ? '#27ae60' : '#e74c3c'}}>
-              {item.factor === 'Credit' ? '+' : '-'}{item.amount}
-            </td>
-            <td>
-               <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700, background: item.factor === 'Credit' ? '#DCFCE7' : '#FEE2E2', color: item.factor === 'Credit' ? '#16A34A' : '#DC2626' }}>
-                {String(item.factor || '').toUpperCase()}
-               </span>
-            </td>
-            <td>₹{item.surcharge}</td>
-            <td>₹{item.gst}</td>
-            <td>₹{item.tds}</td>
-            <td style={{color: '#27AE60', fontWeight: 700}}>₹{item.commission}</td>
-            <td style={{fontWeight: 800}}>₹{item.closing}</td>
-            <td style={{maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#718096'}} title={item.narration}>
-              {item.narration}
-            </td>
-            <td style={{color: '#4E6080'}}>{item.date}</td>
-          </tr>
-        )}
+        renderRow={(item, index) => {
+          return (
+            <tr key={item.id || index}>
+              <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
+                  {dynamicColumns.map((colKey, colIndex) => {
+                    let val = item[colKey];
+                    
+                    if (colKey === 'operatorName' && !val) {
+                      const opId = item.operatorId || item.operator;
+                      if (opId) {
+                         const op = masterOperators.find(o => String(o.id) === String(opId));
+                         val = op ? op.name || op.operatorCode : opId;
+                      } else val = 'N/A';
+                    }
+                    if (colKey === 'apiName' && !val) {
+                      const aId = item.apiId || item.api || item.apiid;
+                      if (aId) {
+                         const api = masterApis.find(a => String(a.id) === String(aId) || String(a.apiid) === String(aId));
+                         val = api ? api.apiname || api.name : aId;
+                      } else val = 'N/A';
+                    }
+                    if (colKey === 'serviceName' && !val) {
+                      const sId = item.serviceId || item.service;
+                      if (sId) {
+                         const svc = masterServices.find(s => String(s.id) === String(sId));
+                         val = svc ? svc.name : sId;
+                      } else val = 'N/A';
+                    }
+                    
+                    // Status styling
+                if (colKey.toLowerCase() === 'status') {
+                   let statusStyle = styles.statusPending;
+                   if (String(val).toUpperCase() === 'SUCCESS') statusStyle = styles.statusSuccess;
+                   if (String(val).toUpperCase() === 'FAILED') statusStyle = styles.statusFailed;
+                   return (
+                     <td key={colIndex}>
+                       <span className={`${styles.statusBadge} ${statusStyle}`}>
+                         {val}
+                       </span>
+                     </td>
+                   );
+                }
+
+                // Date styling (split top and bottom if contains 'T')
+                if (String(val).includes('T') && String(val).length > 10) {
+                  return (
+                    <td key={colIndex}>
+                      <div style={{ color: '#0D1B3E', fontWeight: '800', fontSize: '0.85rem' }}>{String(val).split('T')[0]}</div>
+                      <div style={{ color: '#718096', fontSize: '0.75rem', fontWeight: '600', marginTop: '2px' }}>{String(val).split('T')[1]?.split('.')[0] || ''}</div>
+                    </td>
+                  );
+                }
+
+                return (
+                  <td key={colIndex} style={{ fontSize: '0.8rem', color: '#4E6080' }}>
+                    {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                  </td>
+                );
+              })}
+            </tr>
+          );
+        }}
         searchQuery={searchQuery}
         onSearchChange={(val) => dispatch(setMainWalletSearchQuery(val))}
         rowsPerPage={rowsPerPage}

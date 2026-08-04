@@ -101,9 +101,10 @@ const DMTHistory = () => {
         pageSize,
         fromDate,
         toDate,
-        serviceId: '9', // FOR DMT
+        serviceId: '16', // DMT: serviceId 16
+        sectionType: '7', // sectionType 7
         operatorId: selectedOperator,
-        apiId: '1',
+        apiId: '',
         memberId: selectedMember,
         status: selectedStatus
       });

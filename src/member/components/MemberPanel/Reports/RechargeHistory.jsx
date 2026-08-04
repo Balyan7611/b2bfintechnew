@@ -1,24 +1,97 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  setRechargeList, 
-  updateRechargeFilters, 
-  setRechargeSearchQuery, 
-  setRechargeRowsPerPage, 
-  setRechargeCurrentPage 
+import {
+  setRechargeList,
+  updateRechargeFilters,
+  setRechargeSearchQuery,
+  setRechargeRowsPerPage,
+  setRechargeCurrentPage
 } from '../../../../store/slices/reportSlice';
 import AdminTable from '../../../../shared/components/common/AdminTable';
 import styles from './AEPSReport.module.css';
+import { useState } from 'react';
+import { API } from '../../../../api/endpoints';
 
 const RechargeHistory = () => {
   const dispatch = useDispatch();
   const { list, filters, searchQuery, rowsPerPage, currentPage } = useSelector(state => state.report.rechargeReport);
 
-  useEffect(() => {
-    dispatch(setRechargeList([]));
-  }, [dispatch]);
+  const [masterServices, setMasterServices] = useState([]);
+  const [masterOperators, setMasterOperators] = useState([]);
+  const [masterApis, setMasterApis] = useState([]);
 
-  const filteredList = list.filter(item => item.number.includes(searchQuery) || item.txnId.toLowerCase().includes(searchQuery.toLowerCase()));
+  useEffect(() => {
+    const fetchMasters = async () => {
+      try {
+        const svcRes = await API.service.getAll();
+        setMasterServices(Array.isArray(svcRes?.data) ? svcRes.data : Array.isArray(svcRes) ? svcRes : []);
+      } catch (e) {}
+      try {
+        const opRes = await API.operator.getAll({ pageSize: 1000 });
+        setMasterOperators(Array.isArray(opRes?.data?.items) ? opRes.data.items : Array.isArray(opRes?.data) ? opRes.data : Array.isArray(opRes) ? opRes : []);
+      } catch (e) {}
+      try {
+        const apiRes = await API.masterApi.getAll({ pageSize: 500 });
+        setMasterApis(Array.isArray(apiRes?.data?.items) ? apiRes.data.items : Array.isArray(apiRes?.data) ? apiRes.data : Array.isArray(apiRes) ? apiRes : []);
+      } catch (e) {}
+    };
+    fetchMasters();
+
+    // Fetch Recharge transactions: serviceId=1,2,3, sectionType=1
+    const fetchRecharge = async () => {
+      try {
+        const res = await API.transaction.getAll({
+          pageNumber: currentPage,
+          pageSize: rowsPerPage,
+          fromDate: filters?.fromDate || '',
+          toDate: filters?.toDate || '',
+          serviceId: '1,2,3',
+          sectionType: '1',
+          operatorId: filters?.operatorId || '',
+          apiId: '',
+          memberId: '',
+          status: filters?.status || ''
+        });
+        let rawData = [];
+        if (res && res.status === true) {
+          rawData = Array.isArray(res.data) ? res.data : (res.data?.items || []);
+        } else if (Array.isArray(res)) rawData = res;
+        else if (res?.data?.items) rawData = res.data.items;
+        dispatch(setRechargeList(rawData));
+      } catch (e) { console.error('RechargeHistory fetch error:', e); dispatch(setRechargeList([])); }
+    };
+    fetchRecharge();
+  }, [dispatch, currentPage, rowsPerPage]);
+
+  const filteredList = list.filter(item => item.number?.includes(searchQuery) || item.txnId?.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  // Dynamic Column logic
+  const baseData = filteredList.length > 0 ? filteredList : list;
+  let dynamicColumns = [];
+  const allowedApiKeys = [
+    'createdDate', 'orderId', 'vendorId', 'refid', 'rrn',
+    'memberName', 'memberId', 'serviceName', 'operatorName', 'apiName', 'operator', 'api', 'service',
+    'customerName', 'customerMobile', 'accountNo', 'ifsc', 'bankName', 'beniName', 'beniVerifyName',
+    'openingBalance', 'amount', 'closingBalance',
+    'surcharge', 'commission', 'serviceCharge', 'totalCommission', 'totalTds', 'cashback', 'gst', 'tds', 'vgst', 'vcs', 'vtds', 'padmin', 'pgst', 'tdsadmin',
+    'mode', 'ip', 'fromChannel', 'message', 'status'
+  ];
+
+  if (baseData && baseData.length > 0) {
+    const rawKeys = Object.keys(baseData[0]);
+    dynamicColumns = allowedApiKeys.filter(key => {
+      if (rawKeys.includes(key)) return true;
+      if (key === 'operatorName' && (rawKeys.includes('operatorId') || rawKeys.includes('operator'))) return true;
+      if (key === 'apiName' && (rawKeys.includes('apiId') || rawKeys.includes('api') || rawKeys.includes('apiid'))) return true;
+      if (key === 'serviceName' && (rawKeys.includes('serviceId') || rawKeys.includes('service'))) return true;
+      return false;
+    });
+  }
+
+  const formatHeader = (key) => key.replace(/([A-Z])/g, ' $1').toUpperCase();
+  const displayColumns = dynamicColumns.length > 0
+    ? ['SNO', ...dynamicColumns.map(formatHeader)]
+    : ['SNO', 'DATE & TIME', 'MEMBER DETAIL', 'MOBILE NUMBER', 'OPERATOR', 'AMOUNT', 'COMMISSION', 'TXN ID', 'STATUS', 'RECEIPT'];
 
   return (
     <div className={styles.container}>
@@ -27,11 +100,11 @@ const RechargeHistory = () => {
         topContent={
           <div className={styles.filterSection}>
             <div className={styles.filterRow}>
-              <div className={styles.formGroup}><label>From Date</label><input type="date" className={styles.inputControl} value={filters.fromDate} onChange={(e) => dispatch(updateRechargeFilters({fromDate: e.target.value}))} /></div>
-              <div className={styles.formGroup}><label>To Date</label><input type="date" className={styles.inputControl} value={filters.toDate} onChange={(e) => dispatch(updateRechargeFilters({toDate: e.target.value}))} /></div>
+              <div className={styles.formGroup}><label>From Date</label><input type="date" className={styles.inputControl} value={filters.fromDate} onChange={(e) => dispatch(updateRechargeFilters({ fromDate: e.target.value }))} /></div>
+              <div className={styles.formGroup}><label>To Date</label><input type="date" className={styles.inputControl} value={filters.toDate} onChange={(e) => dispatch(updateRechargeFilters({ toDate: e.target.value }))} /></div>
               <div className={styles.formGroup}>
                 <label>Status</label>
-                <select className={styles.inputControl} value={filters.status} onChange={(e) => dispatch(updateRechargeFilters({status: e.target.value}))}>
+                <select className={styles.inputControl} value={filters.status} onChange={(e) => dispatch(updateRechargeFilters({ status: e.target.value }))}>
                   <option value="">All Status</option>
                   <option value="SUCCESS">Success</option>
                   <option value="PENDING">Pending</option>
@@ -44,25 +117,70 @@ const RechargeHistory = () => {
             </div>
           </div>
         }
-        columns={['#', 'DATE & TIME', 'MEMBER DETAIL', 'MOBILE NUMBER', 'OPERATOR', 'AMOUNT', 'COMMISSION', 'TXN ID', 'STATUS', 'RECEIPT']}
+        columns={displayColumns}
         data={filteredList}
-        renderRow={(item, index) => (
-          <tr key={item.id}>
-            <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
-            <td style={{ color: '#4E6080' }}>{item.date}</td>
-            <td>
-              <div style={{ fontWeight: 700, color: '#1756AA' }}>{item.memberName || 'Member'}</div>
-              <div style={{ fontSize: '0.75rem', color: '#4E6080' }}>{item.memberId || 'N/A'}</div>
-            </td>
-            <td style={{ fontWeight: 700, color: '#1756AA' }}>{item.number}</td>
-            <td>{item.operator}</td>
-            <td style={{ fontWeight: 800 }}>₹{item.amount}</td>
-            <td style={{ color: '#27AE60', fontWeight: 700 }}>₹{item.commission}</td>
-            <td style={{ fontFamily: 'monospace' }}>{item.txnId}</td>
-            <td><span className={`${styles.statusBadge} ${item.status === 'SUCCESS' ? styles.statusSuccess : styles.statusFailed}`}>{item.status}</span></td>
-            <td><button style={{ background: '#F1F5F9', color: '#1756AA', border: '1px solid #E2E8F0', padding: '4px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700 }}>Receipt</button></td>
-          </tr>
-        )}
+        renderRow={(item, index) => {
+          return (
+            <tr key={item.id || index}>
+              <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
+              {dynamicColumns.map((colKey, colIndex) => {
+                let val = item[colKey];
+                    
+                if (colKey === 'operatorName' && !val) {
+                  const opId = item.operatorId || item.operator;
+                  if (opId) {
+                     const op = masterOperators.find(o => String(o.id) === String(opId));
+                     val = op ? op.name || op.operatorCode : opId;
+                  } else val = 'N/A';
+                }
+                if (colKey === 'apiName' && !val) {
+                  const aId = item.apiId || item.api || item.apiid;
+                  if (aId) {
+                     const api = masterApis.find(a => String(a.id) === String(aId) || String(a.apiid) === String(aId));
+                     val = api ? api.apiname || api.name : aId;
+                  } else val = 'N/A';
+                }
+                if (colKey === 'serviceName' && !val) {
+                  const sId = item.serviceId || item.service;
+                  if (sId) {
+                     const svc = masterServices.find(s => String(s.id) === String(sId));
+                     val = svc ? svc.name : sId;
+                  } else val = 'N/A';
+                }
+                
+                // Status styling
+                if (colKey.toLowerCase() === 'status') {
+                  let statusStyle = styles.statusPending;
+                  if (String(val).toUpperCase() === 'SUCCESS') statusStyle = styles.statusSuccess;
+                  if (String(val).toUpperCase() === 'FAILED') statusStyle = styles.statusFailed;
+                  return (
+                    <td key={colIndex}>
+                      <span className={`${styles.statusBadge} ${statusStyle}`}>
+                        {val}
+                      </span>
+                    </td>
+                  );
+                }
+
+                // Date styling (split top and bottom if contains 'T')
+                if (String(val).includes('T') && String(val).length > 10) {
+                  return (
+                    <td key={colIndex}>
+                      <div style={{ color: '#0D1B3E', fontWeight: '800', fontSize: '0.85rem' }}>{String(val).split('T')[0]}</div>
+                      <div style={{ color: '#718096', fontSize: '0.75rem', fontWeight: '600', marginTop: '2px' }}>{String(val).split('T')[1]?.split('.')[0] || ''}</div>
+                    </td>
+                  );
+                }
+
+                return (
+                  <td key={colIndex} style={{ fontSize: '0.8rem', color: '#4E6080' }}>
+                    {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                  </td>
+                );
+              })}
+            </tr>
+          );
+        }}
         searchQuery={searchQuery}
         onSearchChange={(val) => dispatch(setRechargeSearchQuery(val))}
         rowsPerPage={rowsPerPage}

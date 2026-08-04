@@ -67,6 +67,39 @@ const BBPSTransaction = () => {
   const [selectedOperator, setSelectedOperator] = useState('');
   const [selectedMember, setSelectedMember] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize] = useState(50);
+  const [totalRecords, setTotalRecords] = useState(0);
+
+  const fetchTransactions = async () => {
+    setLoading(true);
+    try {
+      const res = await API.transaction.getAll({
+        pageNumber,
+        pageSize,
+        fromDate,
+        toDate,
+        serviceId: selectedService || '3,4,5,6,7,8,9,10,11,12,13,14,15',
+        sectionType: '2',
+        operatorId: selectedOperator,
+        apiId: '',
+        memberId: selectedMember,
+        status: selectedStatus
+      });
+      if (res && res.status === true) {
+        if (Array.isArray(res.data)) { setTransactions(res.data); setTotalRecords(res.totalRecords || res.data.length); }
+        else if (res.data && Array.isArray(res.data.items)) { setTransactions(res.data.items); setTotalRecords(res.data.totalItems || res.data.items.length); }
+        else setTransactions([]);
+      } else if (Array.isArray(res)) { setTransactions(res); setTotalRecords(res.length); }
+      else setTransactions([]);
+    } catch (e) { console.error('BBPSTransaction fetch error:', e); setTransactions([]); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchTransactions(); }, [pageNumber]);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -170,7 +203,7 @@ const BBPSTransaction = () => {
           </div>
         </div>
 
-        <form onSubmit={(e) => e.preventDefault()}>
+        <form onSubmit={(e) => { e.preventDefault(); fetchTransactions(); }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>From Date</label>
@@ -191,6 +224,8 @@ const BBPSTransaction = () => {
                   color: '#334155',
                   fontWeight: 500
                 }} 
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
                 onFocus={() => setFocusedField('fromDate')}
                 onBlur={() => setFocusedField(null)}
               />
@@ -214,6 +249,8 @@ const BBPSTransaction = () => {
                   color: '#334155',
                   fontWeight: 500
                 }} 
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
                 onFocus={() => setFocusedField('toDate')}
                 onBlur={() => setFocusedField(null)}
               />

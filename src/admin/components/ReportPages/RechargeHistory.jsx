@@ -70,6 +70,39 @@ const RechargeHistory = () => {
   const [selectedService, setSelectedService] = useState('');
   const [operatorList, setOperatorList] = useState([]);
   const [selectedOperator, setSelectedOperator] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize] = useState(50);
+  const [totalRecords, setTotalRecords] = useState(0);
+
+  const fetchTransactions = async () => {
+    setLoading(true);
+    try {
+      const res = await API.transaction.getAll({
+        pageNumber,
+        pageSize,
+        fromDate,
+        toDate,
+        serviceId: selectedService || '1,2,3',
+        sectionType: '1',
+        operatorId: selectedOperator,
+        apiId: '',
+        memberId: selectedMember,
+        status: selectedStatus
+      });
+      if (res && res.status === true) {
+        if (Array.isArray(res.data)) { setTransactions(res.data); setTotalRecords(res.totalRecords || res.data.length); }
+        else if (res.data && Array.isArray(res.data.items)) { setTransactions(res.data.items); setTotalRecords(res.data.totalItems || res.data.items.length); }
+        else setTransactions([]);
+      } else if (Array.isArray(res)) { setTransactions(res); setTotalRecords(res.length); }
+      else setTransactions([]);
+    } catch (e) { console.error('RechargeHistory fetch error:', e); setTransactions([]); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchTransactions(); }, [pageNumber]);
 
   useEffect(() => {
     const fetchServices = async () => {

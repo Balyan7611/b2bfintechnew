@@ -107,15 +107,16 @@ const AEPSHistory = () => {
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      // Fix ServiceId=8 as requested and category is AEPS (section type 9 is filtered on backend by serviceId 8)
+      // AEPS: serviceId 17,18 / sectionType 9,10
       const res = await API.transaction.getAll({
         pageNumber,
         pageSize,
         fromDate,
         toDate,
-        serviceId: '8', // Fixed ServiceId = 8
+        serviceId: '17,18',
+        sectionType: '9,10',
         operatorId: selectedOperator,
-        apiId: '1',     // Fixed ApiId = 1
+        apiId: '',
         memberId: selectedMember,
         status: selectedStatus
       });
