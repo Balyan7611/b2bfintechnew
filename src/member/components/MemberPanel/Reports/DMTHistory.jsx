@@ -50,31 +50,38 @@ const DMTHistory = () => {
     };
     fetchMasters();
 
-    // Fetch DMT transactions: serviceId=16, sectionType=7
-    const fetchDMT = async () => {
-      try {
-        const res = await API.transaction.getAll({
-          pageNumber: currentPage,
-          pageSize: rowsPerPage,
-          fromDate: filters?.fromDate || '',
-          toDate: filters?.toDate || '',
-          serviceId: '16',
-          sectionType: '7',
-          operatorId: filters?.operatorId || '',
-          apiId: '',
-          memberId: '',
-          status: filters?.status || ''
-        });
-        let rawData = [];
-        if (res && res.status === true) {
-          rawData = Array.isArray(res.data) ? res.data : (res.data?.items || []);
-        } else if (Array.isArray(res)) rawData = res;
-        else if (res?.data?.items) rawData = res.data.items;
-        dispatch(setDMTList(rawData));
-      } catch (e) { console.error('DMTHistory fetch error:', e); dispatch(setDMTList([])); }
-    };
-    fetchDMT();
-  }, [dispatch, currentPage, rowsPerPage]);
+  }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
+
+
+  const fetchData = async () => {
+    try {
+      const res = await API.transaction.getAll({
+        pageNumber: currentPage,
+        pageSize: rowsPerPage,
+        fromDate: filters.fromDate || '',
+        toDate: filters.toDate || '',
+        serviceId: '16',
+        sectionType: '7',
+        operatorId: filters.operatorId || '',
+        memberId: '',
+        status: filters.status || ''
+      });
+      let rawData = [];
+      if (res?.status === true) rawData = Array.isArray(res.data) ? res.data : (res.data?.items || []);
+      else if (Array.isArray(res?.data)) rawData = res.data;
+      else if (Array.isArray(res?.data?.items)) rawData = res.data.items;
+      else if (Array.isArray(res)) rawData = res;
+      console.log('[DMTHistory.jsx] rows:', rawData.length);
+      dispatch(setDMTList(rawData));
+    } catch (e) {
+      console.error('[DMTHistory.jsx] fetch error:', e);
+      dispatch(setDMTList([]));
+    }
+  };
+
+  // Auto-fetch on mount and when filters/page change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
 
   const filteredList = (list || []).filter(item => {
     const name = item.userName || '';
@@ -151,7 +158,7 @@ const DMTHistory = () => {
                   <option value="FAILED">Failed</option>
                 </select>
               </div>
-              <button className={styles.submitBtn}>Apply Filters</button>
+              <button className={styles.submitBtn} onClick={fetchData}>Apply Filters</button>
             </div>
           </div>
         }

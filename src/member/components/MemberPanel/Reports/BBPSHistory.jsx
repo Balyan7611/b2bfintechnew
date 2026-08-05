@@ -44,31 +44,38 @@ const BBPSHistory = () => {
     };
     fetchMasters();
 
-    // Fetch BBPS transactions: sectionType=2 (serviceId left empty — backend expects single int)
-    const fetchBBPS = async () => {
-      try {
-        const res = await API.transaction.getAll({
-          pageNumber: currentPage,
-          pageSize: rowsPerPage,
-          fromDate: filters?.fromDate || '',
-          toDate: filters?.toDate || '',
-          serviceId: '',
-          sectionType: '2',
-          operatorId: filters?.operatorId || '',
-          apiId: '',
-          memberId: '',
-          status: filters?.status || ''
-        });
-        let rawData = [];
-        if (res && res.status === true) {
-          rawData = Array.isArray(res.data) ? res.data : (res.data?.items || []);
-        } else if (Array.isArray(res)) rawData = res;
-        else if (res?.data?.items) rawData = res.data.items;
-        dispatch(setBBPSList(rawData));
-      } catch (e) { console.error('BBPSHistory fetch error:', e); dispatch(setBBPSList([])); }
-    };
-    fetchBBPS();
-  }, [dispatch, currentPage, rowsPerPage]);
+  }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
+
+
+  const fetchData = async () => {
+    try {
+      const res = await API.transaction.getAll({
+        pageNumber: currentPage,
+        pageSize: rowsPerPage,
+        fromDate: filters.fromDate || '',
+        toDate: filters.toDate || '',
+        serviceId: '',
+        sectionType: '2',
+        operatorId: filters.operatorId || '',
+        memberId: '',
+        status: filters.status || ''
+      });
+      let rawData = [];
+      if (res?.status === true) rawData = Array.isArray(res.data) ? res.data : (res.data?.items || []);
+      else if (Array.isArray(res?.data)) rawData = res.data;
+      else if (Array.isArray(res?.data?.items)) rawData = res.data.items;
+      else if (Array.isArray(res)) rawData = res;
+      console.log('[BBPSHistory.jsx] rows:', rawData.length);
+      dispatch(setBBPSList(rawData));
+    } catch (e) {
+      console.error('[BBPSHistory.jsx] fetch error:', e);
+      dispatch(setBBPSList([]));
+    }
+  };
+
+  // Auto-fetch on mount and when filters/page change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
 
   const filteredList = list.filter(item => item.consumer?.toLowerCase().includes(searchQuery.toLowerCase()) || item.txnId?.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -119,7 +126,7 @@ const BBPSHistory = () => {
                   <option value="Gas">Gas</option>
                 </select>
               </div>
-              <button className={styles.submitBtn}>Apply Filters</button>
+              <button className={styles.submitBtn} onClick={fetchData}>Apply Filters</button>
             </div>
           </div>
         }

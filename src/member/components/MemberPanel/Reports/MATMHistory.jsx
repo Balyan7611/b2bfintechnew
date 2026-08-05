@@ -44,8 +44,38 @@ const MATMHistory = () => {
     };
     fetchMasters();
     
-    dispatch(setMATMList([]));
   }, [dispatch]);
+
+
+  const fetchData = async () => {
+    try {
+      const res = await API.transaction.getAll({
+        pageNumber: currentPage,
+        pageSize: rowsPerPage,
+        fromDate: filters.fromDate || '',
+        toDate: filters.toDate || '',
+        serviceId: '',
+        sectionType: '8',
+        operatorId: filters.operatorId || '',
+        memberId: '',
+        status: filters.status || ''
+      });
+      let rawData = [];
+      if (res?.status === true) rawData = Array.isArray(res.data) ? res.data : (res.data?.items || []);
+      else if (Array.isArray(res?.data)) rawData = res.data;
+      else if (Array.isArray(res?.data?.items)) rawData = res.data.items;
+      else if (Array.isArray(res)) rawData = res;
+      console.log('[MATMHistory.jsx] rows:', rawData.length);
+      dispatch(setMATMList(rawData));
+    } catch (e) {
+      console.error('[MATMHistory.jsx] fetch error:', e);
+      dispatch(setMATMList([]));
+    }
+  };
+
+  // Auto-fetch on mount and when filters/page change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
 
   const filteredList = list.filter(item => item.txnId?.toLowerCase().includes(searchQuery.toLowerCase()) || item.cardNo?.includes(searchQuery));
 
@@ -95,7 +125,7 @@ const MATMHistory = () => {
                   <option value="FAILED">Failed</option>
                 </select>
               </div>
-              <button className={styles.submitBtn}>Apply Filters</button>
+              <button className={styles.submitBtn} onClick={fetchData}>Apply Filters</button>
             </div>
           </div>
         }

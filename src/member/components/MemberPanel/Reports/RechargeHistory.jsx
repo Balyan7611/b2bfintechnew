@@ -44,31 +44,38 @@ const RechargeHistory = () => {
     };
     fetchMasters();
 
-    // Fetch Recharge transactions: serviceId=1,2,3, sectionType=1
-    const fetchRecharge = async () => {
-      try {
-        const res = await API.transaction.getAll({
-          pageNumber: currentPage,
-          pageSize: rowsPerPage,
-          fromDate: filters?.fromDate || '',
-          toDate: filters?.toDate || '',
-          serviceId: '',
-          sectionType: '1',
-          operatorId: filters?.operatorId || '',
-          apiId: '',
-          memberId: '',
-          status: filters?.status || ''
-        });
-        let rawData = [];
-        if (res && res.status === true) {
-          rawData = Array.isArray(res.data) ? res.data : (res.data?.items || []);
-        } else if (Array.isArray(res)) rawData = res;
-        else if (res?.data?.items) rawData = res.data.items;
-        dispatch(setRechargeList(rawData));
-      } catch (e) { console.error('RechargeHistory fetch error:', e); dispatch(setRechargeList([])); }
-    };
-    fetchRecharge();
-  }, [dispatch, currentPage, rowsPerPage]);
+  }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
+
+
+  const fetchData = async () => {
+    try {
+      const res = await API.transaction.getAll({
+        pageNumber: currentPage,
+        pageSize: rowsPerPage,
+        fromDate: filters.fromDate || '',
+        toDate: filters.toDate || '',
+        serviceId: '',
+        sectionType: '1',
+        operatorId: filters.operatorId || '',
+        memberId: '',
+        status: filters.status || ''
+      });
+      let rawData = [];
+      if (res?.status === true) rawData = Array.isArray(res.data) ? res.data : (res.data?.items || []);
+      else if (Array.isArray(res?.data)) rawData = res.data;
+      else if (Array.isArray(res?.data?.items)) rawData = res.data.items;
+      else if (Array.isArray(res)) rawData = res;
+      console.log('[RechargeHistory.jsx] rows:', rawData.length);
+      dispatch(setRechargeList(rawData));
+    } catch (e) {
+      console.error('[RechargeHistory.jsx] fetch error:', e);
+      dispatch(setRechargeList([]));
+    }
+  };
+
+  // Auto-fetch on mount and when filters/page change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
 
   const filteredList = list.filter(item => item.number?.includes(searchQuery) || item.txnId?.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -120,7 +127,7 @@ const RechargeHistory = () => {
                 </select>
               </div>
               <div className={styles.formGroup} style={{ flex: '0 0 auto', alignSelf: 'flex-end' }}>
-                <button className={styles.submitBtn}>Apply Filters</button>
+                <button className={styles.submitBtn} onClick={fetchData}>Apply Filters</button>
               </div>
             </div>
           </div>
