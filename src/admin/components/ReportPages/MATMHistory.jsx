@@ -465,29 +465,26 @@ const MATMHistory = () => {
           <table className={styles.table} style={{ minWidth: '2200px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '60px' }}>#</th>
-                <th style={{ textAlign: 'center' }}>ACTION</th>
-                <th>DATE & TIME</th>
-                <th>MEMBER NAME</th>
-                <th>OPERATOR</th>
-                <th>OP BAL</th>
-                <th>AMOUNT</th>
+                <th style={{ width: '60px' }}>Sr.No.</th>
+                <th>Date</th>
+                <th>Name</th>
+                <th>Operator</th>
+                <th>Op Bal</th>
+                <th>Amount</th>
                 <th>TDS</th>
-                <th>CL BAL</th>
-                <th>COMMISSION</th>
-                <th style={{ textAlign: 'center' }}>STATUS</th>
-                <th>CARD NUMBER</th>
-                <th>OP ID</th>
-                <th>PROVIDER</th>
-                <th>REMARK</th>
-                <th>THROUGH</th>
-                <th>IP ADDRESS</th>
-                <th>REQUEST ID</th>
-                </tr>
+                <th>Commission</th>
+                <th>Cl Bal</th>
+                <th style={{ textAlign: 'center' }}>Status</th>
+                <th>Card Number</th>
+                <th>Op ID</th>
+                <th>Provider</th>
+                <th>Remark</th>
+                <th>Request ID</th>
+              </tr>
             </thead>
             <tbody>
               <tr>
-                <td colSpan="17" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
+                <td colSpan="15" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
                      <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No MATM data found</span>
                 </td>
               </tr>

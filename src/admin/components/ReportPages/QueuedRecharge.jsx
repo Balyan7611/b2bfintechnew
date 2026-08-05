@@ -306,15 +306,15 @@ const QueuedRecharge = () => {
                     <table className={styles.table} style={{ minWidth: '1800px' }}>
                         <thead>
                             <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                                <th style={{ width: '60px' }}>#</th>
+                                <th style={{ width: '60px' }}>SNO</th>
                                 <th>TXID</th>
-                                <th>OPERATOR</th>
-                                <th>NUMBER</th>
-                                <th>AMOUNT</th>
-                                <th style={{ textAlign: 'center' }}>STATUS</th>
-                                <th>OPERATOR ID</th>
-                                <th>RECHARGE BY</th>
-                                <th>DATE & TIME</th>
+                                <th>Operator</th>
+                                <th>Number</th>
+                                <th>Amount</th>
+                                <th style={{ textAlign: 'center' }}>Status</th>
+                                <th>Operator Id</th>
+                                <th>Recharge By</th>
+                                <th>Date Time</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -343,7 +343,7 @@ const QueuedRecharge = () => {
                                         <td>{txn.operatorId || txn.opid || 'N/A'}</td>
                                         <td>{txn.rechargeBy || txn.by || 'N/A'}</td>
                                         <td style={{ fontSize: '0.8rem', color: '#4E6080' }}>
-                                            {txn.dateTime || txn.date || 'N/A'}
+                                            {txn.dateTime || txn.date || txn.createdDate || 'N/A'}
                                         </td>
                                     </tr>
                                 ))

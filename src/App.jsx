@@ -63,6 +63,7 @@ import { clearSession, isTokenExpired, getSession } from './utils/authUtils';
 import { API } from './api/endpoints';
 import { setNavScrolled, setNotification } from './store/slices/uiSlice';
 import GlobalLoaderAndToast from './components/GlobalLoaderAndToast';
+import ActivityTracker from './components/ActivityTracker';
 
 function App() {
   const [sessionExpiredModal, setSessionExpiredModal] = useState({ show: false, message: '', redirectUrl: '' });
@@ -559,6 +560,7 @@ function App() {
 
   return (
     <div className="App">
+      <ActivityTracker />
       <Routes>
           {/* --- PUBLIC ROUTES --- */}
           <Route path="/" element={<HomePage />} />

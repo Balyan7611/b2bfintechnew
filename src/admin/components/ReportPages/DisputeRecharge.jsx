@@ -239,18 +239,18 @@ const DisputeRecharge = () => {
                     <table className={styles.table} style={{ minWidth: '1800px' }}>
                         <thead>
                             <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                                <th style={{ width: '60px' }}>#</th>
-                                <th style={{ width: '80px', textAlign: 'center' }}>ACTION</th>
-                                <th style={{ textAlign: 'center', width: '120px' }}>STATUS</th>
-                                <th>API NAME</th>
+                                <th style={{ width: '60px' }}>SNO</th>
+                                <th style={{ width: '80px', textAlign: 'center' }}>Action</th>
+                                <th>APIName</th>
                                 <th>TXID</th>
-                                <th>OPERATOR</th>
-                                <th>NUMBER</th>
-                                <th>AMOUNT</th>
-                                <th>OPERATOR ID</th>
-                                <th>RECHARGE BY</th>
-                                <th>DATE & TIME</th>
-                                <th style={{ textAlign: 'center' }}>RECEIPT</th>
+                                <th>Operator</th>
+                                <th>Number</th>
+                                <th>Amount</th>
+                                <th style={{ textAlign: 'center', width: '120px' }}>Status</th>
+                                <th>Operator Id</th>
+                                <th>Recharge By</th>
+                                <th>Date Time</th>
+                                <th style={{ textAlign: 'center' }}>Receipt</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -280,11 +280,10 @@ const DisputeRecharge = () => {
                                                         disabled={isAccepted}
                                                         style={{
                                                             width: '30px', height: '30px', borderRadius: '8px',
-                                                            background: isAccepted ? '#16A34A' : isCancelled ? '#F0FDF4' : '#F0FDF4',
+                                                            background: isAccepted ? '#16A34A' : '#F0FDF4',
                                                             color: isAccepted ? '#fff' : '#16A34A',
                                                             border: isAccepted ? 'none' : '1px solid #BBF7D0',
                                                             cursor: isAccepted ? 'not-allowed' : 'pointer',
-                                                            opacity: isCancelled ? 0.5 : 1,
                                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                             transition: 'all 0.2s'
                                                         }}
@@ -292,29 +291,27 @@ const DisputeRecharge = () => {
                                                             if (!isAccepted) {
                                                                 e.currentTarget.style.background = '#16A34A';
                                                                 e.currentTarget.style.color = '#fff';
-                                                                e.currentTarget.style.opacity = '1';
                                                             }
                                                         }}
                                                         onMouseOut={(e) => {
                                                             if (!isAccepted) {
-                                                                e.currentTarget.style.background = isCancelled ? '#F0FDF4' : '#F0FDF4';
+                                                                e.currentTarget.style.background = '#F0FDF4';
                                                                 e.currentTarget.style.color = '#16A34A';
-                                                                if (isCancelled) e.currentTarget.style.opacity = '0.5';
                                                             }
                                                         }}
+                                                        title="Accept Dispute"
                                                     >
-                                                        <FiCheck size={16} strokeWidth={3} />
+                                                        <FiCheck size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => !isCancelled && setConfirmModal({ isOpen: true, type: 'cancel', txid: row.txid })}
                                                         disabled={isCancelled}
                                                         style={{
                                                             width: '30px', height: '30px', borderRadius: '8px',
-                                                            background: isCancelled ? '#DC2626' : isAccepted ? '#FEF2F2' : '#FEF2F2',
+                                                            background: isCancelled ? '#DC2626' : '#FEF2F2',
                                                             color: isCancelled ? '#fff' : '#DC2626',
                                                             border: isCancelled ? 'none' : '1px solid #FECACA',
                                                             cursor: isCancelled ? 'not-allowed' : 'pointer',
-                                                            opacity: isAccepted ? 0.5 : 1,
                                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                             transition: 'all 0.2s'
                                                         }}
@@ -322,43 +319,53 @@ const DisputeRecharge = () => {
                                                             if (!isCancelled) {
                                                                 e.currentTarget.style.background = '#DC2626';
                                                                 e.currentTarget.style.color = '#fff';
-                                                                e.currentTarget.style.opacity = '1';
                                                             }
                                                         }}
                                                         onMouseOut={(e) => {
                                                             if (!isCancelled) {
-                                                                e.currentTarget.style.background = isAccepted ? '#FEF2F2' : '#FEF2F2';
+                                                                e.currentTarget.style.background = '#FEF2F2';
                                                                 e.currentTarget.style.color = '#DC2626';
-                                                                if (isAccepted) e.currentTarget.style.opacity = '0.5';
                                                             }
                                                         }}
+                                                        title="Cancel Dispute"
                                                     >
-                                                        <FiX size={16} strokeWidth={3} />
+                                                        <FiX size={16} />
                                                     </button>
                                                 </div>
                                             </td>
+                                            <td>{row.api || 'N/A'}</td>
+                                            <td>{row.txid || 'N/A'}</td>
+                                            <td>{row.op || 'N/A'}</td>
+                                            <td>{row.num || 'N/A'}</td>
+                                            <td style={{ fontWeight: 800, color: '#0D1B3E' }}>₹{row.amt || '0'}</td>
                                             <td style={{ textAlign: 'center' }}>
-                                                {renderStatusBadge(row.status)}
+                                                <span style={{
+                                                    padding: '4px 10px',
+                                                    borderRadius: '6px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 700,
+                                                    background: isAccepted ? '#DCFCE7' : isCancelled ? '#FEE2E2' : '#FEF3C7',
+                                                    color: isAccepted ? '#16A34A' : isCancelled ? '#DC2626' : '#D97706',
+                                                    border: `1px solid ${isAccepted ? '#BBF7D0' : isCancelled ? '#FECACA' : '#FDE68A'}`,
+                                                    textTransform: 'uppercase'
+                                                }}>
+                                                    {row.status || 'PENDING'}
+                                                </span>
                                             </td>
-                                            <td>{row.api}</td>
-                                            <td>{row.txid}</td>
-                                            <td>{row.op}</td>
-                                            <td>{row.num}</td>
-                                            <td style={{ fontWeight: 800, color: '#0D1B3E' }}>₹{row.amt}</td>
-                                            <td>{row.opid}</td>
-                                            <td>{row.by}</td>
-                                            <td style={{ fontSize: '0.8rem', color: '#4E6080' }}>{row.date}</td>
+                                            <td>{row.opid || '-'}</td>
+                                            <td>{row.by || 'N/A'}</td>
+                                            <td style={{ fontSize: '0.8rem', color: '#4E6080' }}>{row.date || 'N/A'}</td>
                                             <td style={{ textAlign: 'center' }}>
                                                 <button
                                                     onClick={() => setActiveReceipt(row)}
                                                     style={{
-                                                        background: 'rgba(231, 76, 60, 0.1)',
-                                                        border: 'none',
-                                                        color: '#E74C3C',
+                                                        background: '#F1F5F9',
+                                                        color: '#1756AA',
+                                                        border: '1px solid #E2E8F0',
                                                         padding: '6px 12px',
                                                         borderRadius: '6px',
                                                         fontSize: '0.75rem',
-                                                        fontWeight: 700,
+                                                        fontWeight: '700',
                                                         cursor: 'pointer',
                                                         display: 'inline-flex',
                                                         alignItems: 'center',

@@ -85,7 +85,7 @@ const RechargeHistory = () => {
         pageSize,
         fromDate,
         toDate,
-        serviceId: selectedService || '1,2,3',
+        serviceId: selectedService || '',
         sectionType: '1',
         operatorId: selectedOperator,
         apiId: '',
@@ -593,80 +593,63 @@ const RechargeHistory = () => {
           <table className={styles.table} style={{ minWidth: '3800px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '60px' }}>#</th>
-                <th style={{ width: '80px' }}>ACTION</th>
-                <th>DATE & TIME</th>
-                <th>MEMBER NAME</th>
-                <th>USER MOBILE</th>
-                <th>OPERATOR</th>
-                <th>IMAGE</th>
-                <th>NUMBER</th>
-                <th style={{ textAlign: 'center' }}>STATUS</th>
-                <th>API NAME</th>
-                <th>OP BAL</th>
-                <th>AMOUNT</th>
-                <th>COMMISSION</th>
-                <th>COMM INFO</th>
+                <th style={{ width: '80px', textAlign: 'center' }}>Action</th>
+                <th style={{ width: '60px' }}>SNO</th>
+                <th>Date</th>
+                <th>Name</th>
+                <th>Operator</th>
+                <th>Image</th>
+                <th>Number</th>
+                <th style={{ textAlign: 'center' }}>Status</th>
+                <th>Reason</th>
+                <th>OP Bal</th>
+                <th>Amount</th>
+                <th>Dis/Commission Info</th>
+                <th>Commission</th>
                 <th>TDS</th>
-                <th>DEBIT</th>
-                <th>CL BAL</th>
-                <th>API CLBAL</th>
-                <th>SET COMM</th>
-                <th>THROUGH</th>
-                <th>CIRCLE</th>
-                <th>API REQ</th>
-                <th>PROVIDER</th>
+                <th>CL Bal</th>
+                <th>Through</th>
+                <th>Provider</th>
                 <th>IP</th>
-                <th>RECHARGE ID</th>
-                <th>DIST TDS</th>
-                <th>SUPER TDS</th>
-                <th>CASHBACK</th>
-                <th>ROFFER</th>
-                <th>ADMIN PROFIT</th>
-                <th>PROV REQ ID</th>
-                </tr>
+                <th>Recharge ID</th>
+                <th>Admin Profit</th>
+                <th>Provider RequestID</th>
+              </tr>
             </thead>
             <tbody>
               {transactions.length > 0 ? (
                 transactions.map((txn, index) => (
                   <tr key={txn.id || index}>
-                    <td>{index + 1}</td>
-                    <td>
+                    <td style={{ textAlign: 'center', overflow: 'visible' }}>
                       <ActionMenu txn={txn} onViewReceipt={setActiveReceipt} onAction={handleMenuAction} alignUp={index >= transactions.length - 2 && transactions.length > 2} />
                     </td>
-                    <td>{txn.createdDate || txn.date}</td>
-                    <td>{txn.customerName || txn.memberName}</td>
-                    <td>{txn.customerMobile || txn.mobile}</td>
-                    <td>{txn.operatorName || txn.operator}</td>
+                    <td>{index + 1}</td>
+                    <td>{txn.createdDate || txn.date || 'N/A'}</td>
+                    <td>{txn.customerName || txn.memberName || 'N/A'}</td>
+                    <td>{txn.operatorName || txn.operator || 'N/A'}</td>
                     <td>-</td>
-                    <td>{txn.accountNo || txn.number}</td>
-                    <td><span className={`${styles.statusBadge} ${txn.status?.toLowerCase() === 'success' ? styles.statusSuccess : txn.status?.toLowerCase() === 'failed' ? styles.statusFailed : styles.statusPending}`}>{txn.status || 'PENDING'}</span></td>
+                    <td>{txn.accountNo || txn.number || txn.mobile || 'N/A'}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span className={`${styles.statusBadge} ${txn.status?.toLowerCase() === 'success' ? styles.statusSuccess : txn.status?.toLowerCase() === 'failed' ? styles.statusFailed : styles.statusPending}`}>{txn.status || 'PENDING'}</span>
+                    </td>
+                    <td>{txn.reason || txn.remark || txn.message || '-'}</td>
+                    <td>₹{txn.openingBalance || txn.opBal || '0.00'}</td>
+                    <td>₹{txn.amount || txn.txnAmount || '0.00'}</td>
                     <td>-</td>
-                    <td>-</td>
-                    <td>₹{txn.amount || txn.txnAmount}</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>{txn.orderId || txn.txnId || txn.refid}</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
+                    <td>₹{txn.commission || '0.00'}</td>
+                    <td>₹{txn.tds || '0.00'}</td>
+                    <td>₹{txn.closingBalance || txn.clBal || '0.00'}</td>
+                    <td>{txn.through || txn.fromChannel || txn.source || 'N/A'}</td>
+                    <td>{txn.provider || txn.apiName || 'N/A'}</td>
+                    <td>{txn.ip || 'N/A'}</td>
+                    <td>{txn.orderId || txn.txnId || txn.refid || 'N/A'}</td>
+                    <td>₹{txn.adminProfit || '0.00'}</td>
+                    <td>{txn.providerRequestId || txn.vendorId || 'N/A'}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="30" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
+                  <td colSpan="21" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
                        <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No recharge data found</span>
                   </td>
                 </tr>

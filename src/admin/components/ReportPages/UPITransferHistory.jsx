@@ -374,32 +374,31 @@ const UPITransferHistory = () => {
                     <table className={styles.table} style={{ minWidth: '2400px' }}>
                         <thead>
                             <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                                <th style={{ width: '60px' }}>#</th>
-                                <th style={{ width: '80px' }}>ACTION</th>
-                                <th style={{ textAlign: 'center' }}>STATUS</th>
-                                <th>MEMBER NAME</th>
-                                <th>TXN DATE & TIME</th>
-                                <th>AMOUNT</th>
-                                <th>SURCHARGE</th>
-                                <th>GST</th>
-                                <th>CASHBACK</th>
-                                <th>TDS</th>
-                                <th>ORDER ID</th>
-                                <th>UPI NAME</th>
+                                <th style={{ width: '60px' }}>S.No</th>
+                                <th style={{ width: '80px', textAlign: 'center' }}>Actions</th>
+                                <th>Date</th>
+                                <th style={{ textAlign: 'center' }}>Status</th>
+                                <th>Amount</th>
+                                <th>Member</th>
                                 <th>UPI ID</th>
-                                <th>OPERATOR</th>
-                                <th>UTR NUMBER</th>
-                                <th>VENDOR ID</th>
-                                <th>PROVIDER</th>
-                                <th>SOURCE</th>
-                                <th>REASON</th>
+                                <th>UPI name</th>
+                                <th>Op. bal</th>
+                                <th>Cl. bal</th>
+                                <th>Surcharge</th>
+                                <th>GST</th>
+                                <th>Commission</th>
+                                <th>Order ID</th>
+                                <th>Remark</th>
+                                <th>Source</th>
+                                <th>Chain comm.</th>
+                                <th>Admin profit</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan="19" style={{ padding: '30px 0', textAlign: 'center', color: '#1756AA' }}>Loading transactions...</td></tr>
+                                <tr><td colSpan="18" style={{ padding: '30px 0', textAlign: 'center', color: '#1756AA' }}>Loading transactions...</td></tr>
                             ) : transactions.length === 0 ? (
-                                <tr><td colSpan="19" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0' }}>
+                                <tr><td colSpan="18" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                                         <FiDatabase size={24} color="#94A3B8" />
                                         <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No UPI transfer data found</span>
@@ -417,6 +416,10 @@ const UPITransferHistory = () => {
                                                 alignUp={idx >= transactions.length - 2}
                                             />
                                         </td>
+                                        <td>
+                                            <div style={{ color: '#0D1B3E', fontWeight: '800', fontSize: '0.85rem' }}>{txn.createdDate?.split('T')[0] || txn.date?.split('T')[0] || 'N/A'}</div>
+                                            <div style={{ color: '#718096', fontSize: '0.75rem', fontWeight: '600', marginTop: '2px' }}>{txn.createdDate?.split('T')[1]?.split('.')[0] || ''}</div>
+                                        </td>
                                         <td style={{ textAlign: 'center' }}>
                                             <span style={{
                                                 padding: '4px 12px',
@@ -431,24 +434,27 @@ const UPITransferHistory = () => {
                                                 {txn.status || 'N/A'}
                                             </span>
                                         </td>
-                                        <td style={{ fontWeight: 700 }}>{txn.memberName || 'N/A'}</td>
-                                        <td style={{ fontSize: '0.8rem' }}>
-                                            {txn.createdDate ? new Date(txn.createdDate).toLocaleString('en-IN') : 'N/A'}
+                                        <td>
+                                            <span style={{ fontWeight: '800', color: '#0369A1', background: '#E0F2FE', padding: '4px 8px', borderRadius: '6px' }}>
+                                                ₹{(txn.amount || 0).toFixed(2)}
+                                            </span>
                                         </td>
-                                        <td style={{ fontWeight: 700, color: '#0369A1' }}>₹{parseFloat(txn.amount || 0).toFixed(2)}</td>
-                                        <td>₹{parseFloat(txn.surcharge || txn.charge || 0).toFixed(2)}</td>
-                                        <td>₹{parseFloat(txn.gst || 0).toFixed(2)}</td>
-                                        <td>₹{parseFloat(txn.cashback || 0).toFixed(2)}</td>
-                                        <td>₹{parseFloat(txn.tds || 0).toFixed(2)}</td>
-                                        <td>{txn.orderId || txn.id || 'N/A'}</td>
-                                        <td>{txn.upiName || 'N/A'}</td>
-                                        <td>{txn.upiId || txn.upi || 'N/A'}</td>
-                                        <td>{txn.operator || txn.operatorName || 'N/A'}</td>
-                                        <td>{txn.utrNumber || txn.utr || 'N/A'}</td>
-                                        <td>{txn.vendorId || 'N/A'}</td>
-                                        <td>{txn.providerName || txn.provider || 'N/A'}</td>
-                                        <td>{txn.source || 'N/A'}</td>
-                                        <td style={{ color: '#64748B', fontSize: '0.8rem', fontStyle: 'italic' }}>{txn.remark || txn.reason || 'N/A'}</td>
+                                        <td>
+                                            <div style={{ fontWeight: 700, color: '#1756AA' }}>{txn.memberName || 'N/A'}</div>
+                                            <div style={{ fontSize: '0.75rem', color: '#4E6080' }}>{txn.memberId || 'N/A'}</div>
+                                        </td>
+                                        <td>{txn.accountNo || txn.upiId || 'N/A'}</td>
+                                        <td>{txn.beniName || txn.upiName || 'N/A'}</td>
+                                        <td>₹{(txn.openingBalance || txn.opBal || 0).toFixed(2)}</td>
+                                        <td>₹{(txn.closingBalance || txn.clBal || 0).toFixed(2)}</td>
+                                        <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.surcharge || 0).toFixed(2)}</td>
+                                        <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.gst || 0).toFixed(2)}</td>
+                                        <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.commission || 0).toFixed(2)}</td>
+                                        <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{txn.orderId || txn.txnId || txn.refid || 'N/A'}</td>
+                                        <td>{txn.remark || txn.message || txn.reason || 'N/A'}</td>
+                                        <td>{txn.source || txn.fromChannel || 'N/A'}</td>
+                                        <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.chainComm || 0).toFixed(2)}</td>
+                                        <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.adminProfit || 0).toFixed(2)}</td>
                                     </tr>
                                 ))
                             )}

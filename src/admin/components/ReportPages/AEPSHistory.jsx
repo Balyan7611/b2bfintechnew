@@ -113,7 +113,7 @@ const AEPSHistory = () => {
         pageSize,
         fromDate,
         toDate,
-        serviceId: '17,18',
+        serviceId: '',
         sectionType: '9,10',
         operatorId: selectedOperator,
         apiId: '',

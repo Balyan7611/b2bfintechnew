@@ -82,7 +82,7 @@ const BBPSTransaction = () => {
         pageSize,
         fromDate,
         toDate,
-        serviceId: selectedService || '3,4,5,6,7,8,9,10,11,12,13,14,15',
+        serviceId: selectedService || '',
         sectionType: '2',
         operatorId: selectedOperator,
         apiId: '',
@@ -493,43 +493,65 @@ const BBPSTransaction = () => {
           <table className={styles.table} style={{ minWidth: '1800px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '60px' }}>#</th>
-                <th style={{ width: '80px' }}>ACTION</th>
-                <th>DATE & TIME</th>
-                <th style={{ textAlign: 'center' }}>STATUS</th>
-                <th>RECHARGE BY</th>
-                <th>TXID</th>
-                <th>API NAME</th>
-                <th>OPERATOR</th>
-                <th>NUMBER</th>
-                <th>AMOUNT</th>
-                <th>COMMISSION</th>
-                <th>OPERATOR ID</th>
-                </tr>
+                <th style={{ width: '80px', textAlign: 'center' }}>Action</th>
+                <th style={{ width: '60px' }}>SNO</th>
+                <th>Date</th>
+                <th>Name</th>
+                <th>Operator</th>
+                <th>Image</th>
+                <th>Number</th>
+                <th style={{ textAlign: 'center' }}>Status</th>
+                <th>Api Name</th>
+                <th>OP Bal</th>
+                <th>Amount</th>
+                <th>Dis/Commission.Info</th>
+                <th>TDS</th>
+                <th>Debit</th>
+                <th>CL Bal</th>
+                <th>Through</th>
+                <th>Circle</th>
+                <th>API Req</th>
+                <th>Provider</th>
+                <th>IP</th>
+                <th>Recharge ID</th>
+                <th>Admin Profit</th>
+                <th>Provider RequestID</th>
+              </tr>
             </thead>
             <tbody>
               {transactions.length > 0 ? (
                 transactions.map((txn, index) => (
                   <tr key={txn.id || index}>
-                    <td>{index + 1}</td>
-                    <td>
+                    <td style={{ textAlign: 'center', overflow: 'visible' }}>
                       <ActionMenu txn={txn} onViewReceipt={setActiveReceipt} onAction={handleMenuAction} alignUp={index >= transactions.length - 2 && transactions.length > 2} />
                     </td>
-                    <td>{txn.createdDate || txn.date}</td>
+                    <td>{index + 1}</td>
+                    <td>{txn.createdDate || txn.date || 'N/A'}</td>
+                    <td>{txn.customerName || txn.memberName || 'N/A'}</td>
+                    <td>{txn.operatorName || txn.operator || 'N/A'}</td>
+                    <td>-</td>
+                    <td>{txn.accountNo || txn.number || 'N/A'}</td>
                     <td style={{ textAlign: 'center' }}><span className={`${styles.statusBadge} ${txn.status?.toLowerCase() === 'success' ? styles.statusSuccess : txn.status?.toLowerCase() === 'failed' ? styles.statusFailed : styles.statusPending}`}>{txn.status || 'PENDING'}</span></td>
-                    <td>{txn.customerName || txn.memberName}</td>
-                    <td>{txn.orderId || txn.txnId || txn.refid}</td>
+                    <td>{txn.apiName || 'N/A'}</td>
+                    <td>₹{txn.openingBalance || txn.opBal || '0.00'}</td>
+                    <td>₹{txn.amount || txn.txnAmount || '0.00'}</td>
                     <td>-</td>
-                    <td>{txn.operatorName || txn.operator}</td>
-                    <td>{txn.accountNo || txn.number}</td>
-                    <td>₹{txn.amount || txn.txnAmount}</td>
+                    <td>₹{txn.tds || '0.00'}</td>
+                    <td>-</td>
+                    <td>₹{txn.closingBalance || txn.clBal || '0.00'}</td>
+                    <td>{txn.through || txn.source || txn.fromChannel || 'N/A'}</td>
                     <td>-</td>
                     <td>-</td>
+                    <td>{txn.provider || 'N/A'}</td>
+                    <td>{txn.ip || 'N/A'}</td>
+                    <td>{txn.orderId || txn.txnId || txn.refid || 'N/A'}</td>
+                    <td>₹{txn.adminProfit || '0.00'}</td>
+                    <td>{txn.providerRequestId || txn.vendorId || 'N/A'}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="12" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0', position: 'relative' }}>
+                  <td colSpan="23" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0', position: 'relative' }}>
                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                        <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '50%', border: '1px solid #E2E8F0' }}>
                          <FiDatabase size={24} color="#94A3B8" />

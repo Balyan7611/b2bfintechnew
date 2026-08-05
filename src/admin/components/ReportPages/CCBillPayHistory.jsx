@@ -336,23 +336,27 @@ const CCBillPayHistory = () => {
           <table className={styles.table} style={{ minWidth: '2200px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '60px' }}>#</th>
-                <th style={{ textAlign: 'center' }}>ACTION</th>
-                <th>DATE & TIME</th>
-                <th>USER ID</th>
-                <th>MEMBER NAME</th>
-                <th>CARD NUMBER</th>
-                <th>MOBILE NO</th>
-                <th>AMOUNT</th>
-                <th>TXN ID</th>
-                <th>VENDOR ID</th>
-                <th>SURCHARGE</th>
+                <th style={{ width: '60px' }}>S.No</th>
+                <th style={{ textAlign: 'center' }}>Action</th>
+                <th>Adddate</th>
+                <th>User</th>
+                <th>Name</th>
+                <th>CardNumber</th>
+                <th>MobileNo</th>
+                <th>Op Bal.</th>
+                <th>Amount</th>
+                <th>Surcharge</th>
                 <th>GST</th>
-                <th>NETWORK</th>
-                <th>REMARK</th>
-                <th>SOURCE</th>
-                <th style={{ textAlign: 'center' }}>STATUS MESSAGE</th>
-                </tr>
+                <th>Cls Bal.</th>
+                <th>TxnID</th>
+                <th>Vendor ID</th>
+                <th>NetWork</th>
+                <th>Remark</th>
+                <th>Source</th>
+                <th style={{ textAlign: 'center' }}>Status</th>
+                <th>Message</th>
+                <th>Receipt</th>
+              </tr>
             </thead>
             <tbody>
               {transactions.length > 0 ? (
@@ -362,25 +366,31 @@ const CCBillPayHistory = () => {
                     <td>
                       <ActionMenu txn={txn} onViewReceipt={setActiveReceipt} onAction={handleMenuAction} alignUp={index >= transactions.length - 2 && transactions.length > 2} />
                     </td>
-                    <td>{txn.createdDate || txn.date}</td>
-                    <td>{txn.userId || txn.memberId}</td>
-                    <td>{txn.customerName || txn.memberName}</td>
-                    <td>{txn.cardNumber || txn.accountNo}</td>
-                    <td>{txn.customerMobile || txn.mobile}</td>
-                    <td>₹{txn.amount || txn.txnAmount}</td>
-                    <td>{txn.orderId || txn.txnId || txn.refid}</td>
-                    <td>{txn.vendorId || '-'}</td>
+                    <td>{txn.createdDate || txn.date || 'N/A'}</td>
+                    <td>{txn.userId || txn.memberId || 'N/A'}</td>
+                    <td>{txn.customerName || txn.memberName || 'N/A'}</td>
+                    <td>{txn.cardNumber || txn.accountNo || 'N/A'}</td>
+                    <td>{txn.customerMobile || txn.mobile || 'N/A'}</td>
+                    <td>₹{txn.openingBalance || txn.opBal || '0.00'}</td>
+                    <td>₹{txn.amount || txn.txnAmount || '0.00'}</td>
                     <td>₹{txn.surcharge || '0'}</td>
                     <td>₹{txn.gst || '0'}</td>
+                    <td>₹{txn.closingBalance || txn.clBal || '0.00'}</td>
+                    <td>{txn.orderId || txn.txnId || txn.refid || 'N/A'}</td>
+                    <td>{txn.vendorId || '-'}</td>
                     <td>{txn.network || txn.operatorName || '-'}</td>
                     <td>{txn.remark || '-'}</td>
                     <td>{txn.source || 'WEB'}</td>
                     <td style={{ textAlign: 'center' }}><span className={`${styles.statusBadge} ${txn.status?.toLowerCase() === 'success' ? styles.statusSuccess : txn.status?.toLowerCase() === 'failed' ? styles.statusFailed : styles.statusPending}`}>{txn.status || 'PENDING'}</span></td>
+                    <td>{txn.message || '-'}</td>
+                    <td>
+                        <button onClick={() => setActiveReceipt(txn)} style={{ background: '#1756AA', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}>Receipt</button>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="16" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0', position: 'relative' }}>
+                  <td colSpan="20" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0', position: 'relative' }}>
                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                        <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '50%', border: '1px solid #E2E8F0' }}>
                          <FiDatabase size={24} color="#94A3B8" />

@@ -391,7 +391,8 @@ const FundRequest = () => {
               <tr>
                 <th>S.No</th>
                 <th style={{ minWidth: '100px' }}>Action</th>
-                <th style={{ minWidth: '150px' }}>Member Detail</th>
+                <th>Member ID</th>
+                <th>Name</th>
                 <th>Amount</th>
                 <th>Company Bank Name</th>
                 <th>Bank Ref ID</th>
@@ -399,11 +400,9 @@ const FundRequest = () => {
                 <th>Payment Mode</th>
                 <th>Remark</th>
                 <th>Status</th>
-                <th>Reason</th>
-                <th>Add Date</th>
-                <th>Approve/Reject Date</th>
-                <th>Cash Slip</th>
                 <th>Indemnity Bond</th>
+                <th>Add Date</th>
+                <th>Approve Date</th>
               </tr>
             </thead>
             <tbody>
@@ -431,14 +430,10 @@ const FundRequest = () => {
                     )}
                   </td>
                   <td>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                      {row.memberName && row.memberName !== '-' && (
-                        <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0D1B3E', lineHeight: 1.2 }}>{row.memberName}</span>
-                      )}
-                      {row.loginId && (
-                        <span style={{ fontSize: '0.75rem', color: '#3b82f6', fontFamily: 'monospace' }}>{row.loginId}</span>
-                      )}
-                    </div>
+                    {row.loginId || '-'}
+                  </td>
+                  <td>
+                    {row.memberName && row.memberName !== '-' ? row.memberName : '-'}
                   </td>
                   <td className={styles.amountText}>₹ {row.amount}</td>
                   <td>{row.companyBankName}</td>
@@ -447,25 +442,15 @@ const FundRequest = () => {
                   <td><span className={styles.payModeBadge}>{row.paymentMode}</span></td>
                   <td style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={row.remark}>{row.remark}</td>
                   <td>{getStatusBadge(row.status)}</td>
-                  <td>{row.reason}</td>
-                  <td>{row.addDate}</td>
-                  <td>{row.approveRejectDate}</td>
-                  <td>
-                    <button
-                      className={styles.viewSlipBtn}
-                      title="View Payment Receipt Slip"
-                      onClick={() => setActiveSlip(row)}
-                    >
-                      <FaFileInvoiceDollar /> View Slip
-                    </button>
-                  </td>
                   <td>
                     {row.indemnityBond ? <a href="#" className={styles.linkText} title="View Bond">View Bond</a> : '-'}
                   </td>
+                  <td>{row.addDate}</td>
+                  <td>{row.approveRejectDate}</td>
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="15" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
+                  <td colSpan="14" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
                     
                       <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
                         {isLoading ? 'Loading fund requests...' : 'No data available in table'}

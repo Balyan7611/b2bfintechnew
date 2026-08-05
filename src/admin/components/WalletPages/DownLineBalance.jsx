@@ -103,34 +103,21 @@ const DownLineBalance = () => {
           <table className={styles.table} style={{ minWidth: '1000px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ whiteSpace: 'nowrap', padding: '10px 15px', fontSize: '0.8rem', verticalAlign: 'middle' }}>User ID</th>
-                <th style={{ whiteSpace: 'nowrap', padding: '10px 15px', fontSize: '0.8rem', verticalAlign: 'middle' }}>User</th>
+                <th style={{ whiteSpace: 'nowrap', padding: '10px 15px', fontSize: '0.8rem', verticalAlign: 'middle' }}>#</th>
+                <th style={{ whiteSpace: 'nowrap', padding: '10px 15px', fontSize: '0.8rem', verticalAlign: 'middle' }}>Member</th>
+                <th style={{ whiteSpace: 'nowrap', padding: '10px 15px', fontSize: '0.8rem', verticalAlign: 'middle' }}>Role</th>
                 <th style={{ whiteSpace: 'nowrap', padding: '10px 15px', fontSize: '0.8rem', verticalAlign: 'middle' }}>Parent</th>
-                <th style={{ whiteSpace: 'nowrap', padding: '10px 15px', fontSize: '0.8rem', verticalAlign: 'middle' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <span>AEPS Balance</span>
-                    <span style={{ fontSize: '0.65rem', fontWeight: 500, color: 'rgba(255,255,255,0.8)', marginTop: '2px' }}>(Total: ₹0.00)</span>
-                  </div>
-                </th>
-                <th style={{ whiteSpace: 'nowrap', padding: '10px 15px', fontSize: '0.8rem', verticalAlign: 'middle' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <span>Balance</span>
-                    <span style={{ fontSize: '0.65rem', fontWeight: 500, color: 'rgba(255,255,255,0.8)', marginTop: '2px' }}>(Total: ₹0.00)</span>
-                  </div>
-                </th>
-                <th style={{ whiteSpace: 'nowrap', padding: '10px 15px', fontSize: '0.8rem', verticalAlign: 'middle' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <span>Hold Amount</span>
-                    <span style={{ fontSize: '0.65rem', fontWeight: 500, color: 'rgba(255,255,255,0.8)', marginTop: '2px' }}>(Total: ₹0.00)</span>
-                  </div>
-                </th>
-                <th style={{ whiteSpace: 'nowrap', padding: '10px 15px', fontSize: '0.8rem', verticalAlign: 'middle' }}>Show DownLine</th>
+                <th style={{ whiteSpace: 'nowrap', padding: '10px 15px', fontSize: '0.8rem', verticalAlign: 'middle' }}>Main wallet</th>
+                <th style={{ whiteSpace: 'nowrap', padding: '10px 15px', fontSize: '0.8rem', verticalAlign: 'middle' }}>AEPS wallet</th>
+                <th style={{ whiteSpace: 'nowrap', padding: '10px 15px', fontSize: '0.8rem', verticalAlign: 'middle' }}>On hold</th>
+                <th style={{ whiteSpace: 'nowrap', padding: '10px 15px', fontSize: '0.8rem', verticalAlign: 'middle' }}>Total</th>
+                <th style={{ whiteSpace: 'nowrap', padding: '10px 15px', fontSize: '0.8rem', verticalAlign: 'middle' }}>Downline</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan="7" style={{ padding: '20px 0' }}>
+                  <td colSpan="9" style={{ padding: '20px 0' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
                       <div className={styles.spinner} style={{ width: '30px', height: '30px', borderWidth: '3px' }}></div>
                       <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>Loading records...</span></div></td>
@@ -138,22 +125,26 @@ const DownLineBalance = () => {
               ) : sampleData.length === 0 ? (
                 <>
                   <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    <td colSpan="7" style={{ textAlign: 'center', color: '#A0AEC0', padding: '20px' }}>
+                    <td colSpan="9" style={{ textAlign: 'center', color: '#A0AEC0', padding: '20px' }}>
                        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span>
                     </td>
                   </tr>
-                  <tr style={{ height: '30px' }}><td colSpan="7" style={{ border: 'none' }}></td></tr>
+                  <tr style={{ height: '30px' }}><td colSpan="9" style={{ border: 'none' }}></td></tr>
                 </>
               ) : (
                 sampleData.map((item, index) => (
                   <tr key={index} className={styles.hoverRow}>
-                    <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{item.userId}</td>
-                    <td style={{ fontWeight: 800, color: '#0D1B3E' }}>{item.user}</td>
-                    <td style={{ fontWeight: 600, color: '#4E6080' }}>{item.parent}</td>
-                    <td style={{ fontWeight: 700, color: '#1756AA' }}>₹{item.aepsBal}</td>
-                    <td style={{ fontWeight: 800, color: '#27AE60' }}>₹{item.bal}</td>
-                    <td style={{ fontWeight: 700, color: '#E53E3E' }}>₹{item.hold}</td>
-                    <td>-</td>
+                    <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{index + 1}</td>
+                    <td style={{ fontWeight: 800, color: '#0D1B3E' }}>{item.member || item.user || 'N/A'}</td>
+                    <td style={{ fontWeight: 600, color: '#4E6080' }}>{item.role || 'N/A'}</td>
+                    <td style={{ fontWeight: 600, color: '#4E6080' }}>{item.parent || 'N/A'}</td>
+                    <td style={{ fontWeight: 800, color: '#27AE60' }}>₹{item.mainWallet || item.bal || '0.00'}</td>
+                    <td style={{ fontWeight: 700, color: '#1756AA' }}>₹{item.aepsWallet || item.aepsBal || '0.00'}</td>
+                    <td style={{ fontWeight: 700, color: '#E53E3E' }}>₹{item.onHold || item.hold || '0.00'}</td>
+                    <td style={{ fontWeight: 800, color: '#0D1B3E' }}>₹{item.total || '0.00'}</td>
+                    <td>
+                      <button style={{ background: '#EFF6FF', color: '#1756AA', border: '1px solid #BFDBFE', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>View</button>
+                    </td>
                   </tr>
                 ))
               )}

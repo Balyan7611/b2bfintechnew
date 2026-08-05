@@ -310,20 +310,19 @@ const NSDLHistory = () => {
                     <table className={styles.table} style={{ minWidth: '1800px' }}>
                         <thead>
                             <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                                <th style={{ width: '60px' }}>#</th>
-                                <th style={{ width: '100px', textAlign: 'center' }}>ACTION</th>
-                                <th>DATE & TIME</th>
-                                <th>MEMBER NAME</th>
-                                <th>NUMBER</th>
-                                <th>OPERATOR</th>
-                                <th>OP BAL</th>
-                                <th>AMOUNT</th>
-                                <th>TDS</th>
-                                <th>CL BAL</th>
-                                <th style={{ textAlign: 'center' }}>STATUS</th>
-                                <th>OPERATOR ID</th>
-                                <th>REMARK</th>
-                                <th style={{ width: '120px', textAlign: 'center' }}>RECEIPT</th>
+                                <th style={{ width: '60px' }}>Sr.No</th>
+                                <th style={{ width: '100px', textAlign: 'center' }}>Action</th>
+                                <th>Check</th>
+                                <th>Date</th>
+                                <th>Name</th>
+                                <th>Mob Number</th>
+                                <th>Op Bal</th>
+                                <th>Amt</th>
+                                <th>Debit</th>
+                                <th>Cl Bal</th>
+                                <th style={{ textAlign: 'center' }}>Status</th>
+                                <th>Ref No</th>
+                                <th>Remark</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -356,21 +355,21 @@ const NSDLHistory = () => {
                                                     <FiInfo size={12} /> VIEW
                                                 </button>
                                             </td>
+                                            <td>-</td>
                                             <td style={{ fontSize: '0.8rem', color: '#475569' }}>
                                                 {txn.dateTime || txn.createdDate ? new Date(txn.dateTime || txn.createdDate).toLocaleString('en-IN') : 'N/A'}
                                             </td>
                                             <td style={{ fontWeight: 600 }}>{txn.memberName || txn.member || 'N/A'}</td>
                                             <td>{txn.number || txn.mobile || 'N/A'}</td>
-                                            <td>{txn.operator || txn.op || 'N/A'}</td>
-                                            <td style={{ fontWeight: 500, color: '#475569' }}>₹{parseFloat(txn.opBal || 0).toFixed(2)}</td>
+                                            <td style={{ fontWeight: 500, color: '#475569' }}>₹{parseFloat(txn.opBal || txn.openingBalance || 0).toFixed(2)}</td>
                                             <td style={{ fontWeight: 700, color: '#0369A1' }}>₹{parseFloat(txn.amount || 0).toFixed(2)}</td>
                                             <td style={{ fontWeight: 600, color: '#EF4444' }}>₹{parseFloat(txn.tds || 0).toFixed(2)}</td>
-                                            <td style={{ fontWeight: 700, color: '#0F172A' }}>₹{parseFloat(txn.clBal || 0).toFixed(2)}</td>
+                                            <td style={{ fontWeight: 700, color: '#0F172A' }}>₹{parseFloat(txn.clBal || txn.closingBalance || 0).toFixed(2)}</td>
                                             <td style={{ textAlign: 'center' }}>
                                                 {renderStatusBadge(txn.status)}
                                             </td>
-                                            <td>{txn.operatorId || txn.opid || 'N/A'}</td>
-                                            <td style={{ color: '#64748B', fontSize: '0.8rem', fontStyle: 'italic' }}>{txn.remark || txn.reason || 'N/A'}</td>
+                                            <td>{txn.operatorId || txn.refid || txn.refNo || 'N/A'}</td>
+                                            <td style={{ color: '#64748B', fontSize: '0.8rem', fontStyle: 'italic' }}>{txn.remark || 'N/A'}</td>
                                             <td style={{ textAlign: 'center' }}>
                                                 <button
                                                     onClick={() => setActiveReceipt(txn)}

@@ -134,36 +134,24 @@ const MainWalletReport = () => {
           <table className={styles.table} style={{ minWidth: '3200px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '50px', padding: '10px 12px', fontSize: '0.75rem' }}>S.NO</th>
-                <th style={{ width: '130px', padding: '10px 12px', fontSize: '0.75rem' }}>TRANSID</th>
-                <th style={{ width: '130px', padding: '10px 12px', fontSize: '0.75rem' }}>PARENT</th>
-                <th style={{ width: '130px', padding: '10px 12px', fontSize: '0.75rem' }}>USER</th>
-                <th style={{ width: '130px', padding: '10px 12px', fontSize: '0.75rem' }}>NUMBER</th>
-                <th style={{ width: '130px', padding: '10px 12px', fontSize: '0.75rem' }}>OPERATOR</th>
-                <th style={{ width: '150px', padding: '10px 12px', fontSize: '0.75rem' }}>BENE ACCOUNT</th>
-                <th style={{ textAlign: 'center', width: '110px', padding: '10px 12px', fontSize: '0.75rem' }}>AMOUNT</th>
-                <th style={{ textAlign: 'center', width: '100px', padding: '10px 12px', fontSize: '0.75rem' }}>COST</th>
-                <th style={{ textAlign: 'center', width: '100px', padding: '10px 12px', fontSize: '0.75rem' }}>CHARGE</th>
-                <th style={{ textAlign: 'center', width: '110px', padding: '10px 12px', fontSize: '0.75rem' }}>RT CASHBACK</th>
-                <th style={{ width: '130px', padding: '10px 12px', fontSize: '0.75rem' }}>OPERATOR ID</th>
-                <th style={{ width: '130px', padding: '10px 12px', fontSize: '0.75rem' }}>API REF</th>
-                <th style={{ textAlign: 'center', width: '130px', padding: '10px 12px', fontSize: '0.75rem' }}>REMAINING BAL</th>
-                <th style={{ textAlign: 'center', width: '110px', padding: '10px 12px', fontSize: '0.75rem' }}>STATUS</th>
-                <th style={{ textAlign: 'center', width: '100px', padding: '10px 12px', fontSize: '0.75rem' }}>MODE</th>
-                <th style={{ width: '100px', padding: '10px 12px', fontSize: '0.75rem' }}>API</th>
-                <th style={{ width: '140px', padding: '10px 12px', fontSize: '0.75rem' }}>REQ.DATE</th>
-                <th style={{ width: '140px', padding: '10px 12px', fontSize: '0.75rem' }}>APPROVED DATE</th>
-                <th style={{ textAlign: 'center', width: '150px', padding: '10px 12px', fontSize: '0.75rem' }}>ADMIN COMM/CHARGE</th>
-                <th style={{ textAlign: 'center', width: '160px', padding: '10px 12px', fontSize: '0.75rem' }}>SUPERDT COMM/CHARGE</th>
-                <th style={{ textAlign: 'center', width: '140px', padding: '10px 12px', fontSize: '0.75rem' }}>DT COMM/CHARGE</th>
-                <th style={{ textAlign: 'center', width: '130px', padding: '10px 12px', fontSize: '0.75rem' }}>ADMIN PROFIT</th>
-                <th style={{ width: '200px', padding: '10px 12px', fontSize: '0.75rem' }}>REASON</th>
+                <th style={{ width: '50px', padding: '10px 12px', fontSize: '0.75rem' }}>#</th>
+                <th style={{ padding: '10px 12px', fontSize: '0.75rem' }}>Date</th>
+                <th style={{ padding: '10px 12px', fontSize: '0.75rem' }}>Member</th>
+                <th style={{ padding: '10px 12px', fontSize: '0.75rem' }}>Mode</th>
+                <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '0.75rem' }}>Opening</th>
+                <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '0.75rem' }}>Amount</th>
+                <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '0.75rem' }}>Closing</th>
+                <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '0.75rem' }}>Surcharge</th>
+                <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '0.75rem' }}>GST</th>
+                <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '0.75rem' }}>TDS</th>
+                <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '0.75rem' }}>Commission</th>
+                <th style={{ padding: '10px 12px', fontSize: '0.75rem' }}>Narration</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan="24" style={{ padding: '20px 0' }}>
+                  <td colSpan="12" style={{ padding: '20px 0' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
                       <div className={styles.spinner} style={{ width: '30px', height: '30px', borderWidth: '3px' }}></div>
                       <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>Loading records...</span></div></td>
@@ -171,48 +159,28 @@ const MainWalletReport = () => {
               ) : sampleData.length === 0 ? (
                 <>
                   <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    <td colSpan="24" style={{ textAlign: 'center', color: '#A0AEC0', padding: '20px' }}>
+                    <td colSpan="12" style={{ textAlign: 'center', color: '#A0AEC0', padding: '20px' }}>
                        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span>
                     </td>
                   </tr>
                   {/* COMPACT EMPTY STATE */}
-                  <tr style={{ height: '30px' }}><td colSpan="24" style={{ border: 'none' }}></td></tr>
+                  <tr style={{ height: '30px' }}><td colSpan="12" style={{ border: 'none' }}></td></tr>
                 </>
               ) : (
                 sampleData.map((item, index) => (
                   <tr key={index} className={styles.hoverRow}>
                     <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{index + 1}</td>
-                    <td style={{ fontWeight: 800, color: '#1756AA' }}>{item.transId || 'N/A'}</td>
-                    <td style={{ fontWeight: 600, color: '#4E6080' }}>{item.parent || 'N/A'}</td>
-                    <td style={{ fontWeight: 700, color: '#0D1B3E' }}>{item.user || 'N/A'}</td>
-                    <td style={{ fontWeight: 600, color: '#718096' }}>{item.number || 'N/A'}</td>
-                    <td>
-                      <span style={{ background: 'rgba(23, 86, 170, 0.05)', color: '#1756AA', padding: '4px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700 }}>
-                        {item.operator || 'N/A'}
-                      </span>
-                    </td>
-                    <td style={{ fontWeight: 600, color: '#4E6080' }}>{item.beneAccount || 'N/A'}</td>
+                    <td style={{ fontWeight: 600, color: '#4E6080', fontSize: '0.75rem' }}>{item.date || 'N/A'}</td>
+                    <td style={{ fontWeight: 700, color: '#0D1B3E' }}>{item.member || 'N/A'}</td>
+                    <td style={{ fontWeight: 600, color: '#4E6080' }}>{item.mode || 'N/A'}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#475569' }}>₹{item.opening || '0.00'}</td>
                     <td style={{ textAlign: 'center', fontWeight: 800, color: '#0D1B3E' }}>₹{item.amount || '0.00'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#E53E3E' }}>₹{item.cost || '0.00'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#D97706' }}>₹{item.charge || '0.00'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#27AE60' }}>+₹{item.rtCashback || '0.00'}</td>
-                    <td style={{ fontWeight: 600, color: '#718096' }}>{item.operatorId || 'N/A'}</td>
-                    <td style={{ fontWeight: 600, color: '#718096' }}>{item.apiRef || 'N/A'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 800, color: '#0D1B3E' }}>₹{item.remainingBal || '0.00'}</td>
-                    <td style={{ textAlign: 'center' }}>
-                      <span style={{ background: '#E6F4EA', color: '#1E7E34', padding: '4px 8px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 700 }}>
-                        {item.status || 'SUCCESS'}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'center', fontWeight: 600, color: '#4E6080' }}>{item.mode || 'N/A'}</td>
-                    <td style={{ fontWeight: 600, color: '#718096' }}>{item.api || 'N/A'}</td>
-                    <td style={{ fontWeight: 600, color: '#4E6080', fontSize: '0.75rem' }}>{item.reqDate || 'N/A'}</td>
-                    <td style={{ fontWeight: 600, color: '#4E6080', fontSize: '0.75rem' }}>{item.approvedDate || 'N/A'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#27AE60' }}>{item.adminComm || '0.00'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#27AE60' }}>{item.superdtComm || '0.00'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#27AE60' }}>{item.dtComm || '0.00'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 800, color: '#1756AA' }}>₹{item.adminProfit || '0.00'}</td>
-                    <td><div style={{ maxWidth: '180px', whiteSpace: 'normal', fontSize: '0.75rem', color: '#718096', lineHeight: '1.4' }}>{item.reason || 'N/A'}</div></td>
+                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#0F172A' }}>₹{item.closing || '0.00'}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 600, color: '#D97706' }}>₹{item.surcharge || '0.00'}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 600, color: '#D97706' }}>₹{item.gst || '0.00'}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 600, color: '#EF4444' }}>₹{item.tds || '0.00'}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#27AE60' }}>₹{item.commission || '0.00'}</td>
+                    <td><div style={{ maxWidth: '200px', whiteSpace: 'normal', fontSize: '0.75rem', color: '#718096', lineHeight: '1.4' }}>{item.narration || 'N/A'}</div></td>
                   </tr>
                 ))
               )}

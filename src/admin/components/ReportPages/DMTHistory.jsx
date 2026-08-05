@@ -578,26 +578,34 @@ const DMTHistory = () => {
           <table className={styles.table} style={{ minWidth: '1800px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '60px' }}>#</th>
-                 <th style={{ width: '100px', textAlign: 'center' }}>ACTION</th>
-                <th>DATE & TIME</th>
-                <th>USER NAME</th>
-                <th>USER MOBILE</th>
-                <th>SENDER MOBILE</th>
-                <th>SENDER NAME</th>
-                <th>ACCOUNT NO</th>
-                <th>BENE NAME</th>
-                <th>BENE NAME (BANK)</th>
-                <th>REFERENCE</th>
-                <th style={{ textAlign: 'center' }}>STATUS</th>
-                <th>OP BAL</th>
-                <th>AMOUNT</th>
-                </tr>
+                <th style={{ width: '60px' }}>S.No</th>
+                <th style={{ width: '100px', textAlign: 'center' }}>Actions</th>
+                <th>Date</th>
+                <th style={{ textAlign: 'center' }}>Status</th>
+                <th>Amount</th>
+                <th>Charge</th>
+                <th>Member</th>
+                <th>Sender</th>
+                <th>Beneficiary</th>
+                <th>Account</th>
+                <th>Bank / IFSC</th>
+                <th>Reference</th>
+                <th>Op. bal</th>
+                <th>Cl. bal</th>
+                <th>Cashback</th>
+                <th>Mode</th>
+                <th>Provider</th>
+                <th>Source</th>
+                <th>Commission</th>
+                <th>Order ID</th>
+                <th>Remark</th>
+                <th>Admin profit</th>
+              </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="14" style={{ padding: '40px 0', textAlign: 'center' }}>
+                  <td colSpan="22" style={{ padding: '40px 0', textAlign: 'center' }}>
                     <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#1756AA' }}>Loading DMT history...</span>
                   </td>
                 </tr>
@@ -605,20 +613,10 @@ const DMTHistory = () => {
                 transactions.map((txn, index) => (
                   <tr key={txn.id || index}>
                     <td>{((pageNumber - 1) * pageSize) + index + 1}</td>
-                     <td style={{ textAlign: 'center', overflow: 'visible' }}>
-                       <ActionMenu txn={txn} onViewReceipt={setActiveReceipt} onAction={handleMenuAction} />
-                     </td>
-                    <td>{txn.createdDate ? new Date(txn.createdDate).toLocaleString('en-IN') : 'N/A'}</td>
-                    <td>
-                      <div style={{ fontWeight: '700', color: '#1E293B', fontSize: '0.9rem' }}>{txn.memberName || 'N/A'}</div>
+                    <td style={{ textAlign: 'center', overflow: 'visible' }}>
+                      <ActionMenu txn={txn} onViewReceipt={setActiveReceipt} onAction={handleMenuAction} />
                     </td>
-                    <td style={{ fontWeight: '600', color: '#475569' }}>{txn.memberMobile || 'N/A'}</td>
-                    <td style={{ fontWeight: '600', color: '#64748B' }}>{txn.customerMobile || 'N/A'}</td>
-                    <td style={{ fontWeight: '700', color: '#1E293B' }}>{txn.customerName || 'N/A'}</td>
-                    <td style={{ fontWeight: '600', color: '#1756AA' }}>{txn.accountNo || 'N/A'}</td>
-                    <td>{txn.beniName || 'N/A'}</td>
-                    <td>{txn.beniVerifyName || 'N/A'}</td>
-                    <td style={{ fontSize: '0.85rem', color: '#64748B' }}>{txn.orderId || txn.refid || 'N/A'}</td>
+                    <td>{txn.createdDate ? new Date(txn.createdDate).toLocaleString('en-IN') : 'N/A'}</td>
                     <td style={{ textAlign: 'center' }}>
                       <span style={{
                         padding: '4px 12px',
@@ -633,18 +631,35 @@ const DMTHistory = () => {
                         {txn.status || 'N/A'}
                       </span>
                     </td>
-                    <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.openingBalance || txn.opBal || 0).toFixed(2)}</td>
                     <td>
                       <span style={{ fontWeight: '800', color: '#0369A1', background: '#E0F2FE', padding: '4px 8px', borderRadius: '6px' }}>
                         ₹{(txn.amount || 0).toFixed(2)}
                       </span>
                     </td>
-                    
+                    <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.surcharge || txn.charge || 0).toFixed(2)}</td>
+                    <td>
+                      <div style={{ fontWeight: '700', color: '#1E293B', fontSize: '0.9rem' }}>{txn.memberName || 'N/A'}</div>
+                    </td>
+                    <td style={{ fontWeight: '600', color: '#64748B' }}>{txn.customerMobile || txn.customerName || 'N/A'}</td>
+                    <td>{txn.beniName || txn.beniVerifyName || 'N/A'}</td>
+                    <td style={{ fontWeight: '600', color: '#1756AA' }}>{txn.accountNo || 'N/A'}</td>
+                    <td>{`${txn.bankName || 'N/A'} / ${txn.ifsc || 'N/A'}`}</td>
+                    <td style={{ fontSize: '0.85rem', color: '#64748B' }}>{txn.refid || 'N/A'}</td>
+                    <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.openingBalance || txn.opBal || 0).toFixed(2)}</td>
+                    <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.closingBalance || txn.clBal || 0).toFixed(2)}</td>
+                    <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.cashback || 0).toFixed(2)}</td>
+                    <td>{txn.mode || 'N/A'}</td>
+                    <td>{txn.operatorName || txn.provider || 'N/A'}</td>
+                    <td>{txn.source || txn.fromChannel || 'N/A'}</td>
+                    <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.commission || 0).toFixed(2)}</td>
+                    <td style={{ fontSize: '0.85rem', color: '#64748B' }}>{txn.orderId || 'N/A'}</td>
+                    <td>{txn.remark || txn.message || 'N/A'}</td>
+                    <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.adminProfit || 0).toFixed(2)}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="14" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
+                  <td colSpan="22" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
                     <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No DMT data found</span>
                   </td>
                 </tr>

@@ -110,7 +110,7 @@ const AEPSReport = () => {
             </div>
           </div>
         }
-        columns={['SNO', 'TRANSACTION DATE', 'MEMBER DETAIL', 'AADHARNUMBER', 'TRANSACTION TYPE', 'AMOUNT', 'BANK TRANSID', 'STATUS', 'VIEW RECEIPT']}
+        columns={['S.No', 'Actions', 'Date', 'Status', 'Amount', 'Member', 'Aadhaar', 'Mobile', 'Bank', 'Type', 'Op. bal', 'Cl. bal', 'Commission', 'TDS', 'UTR']}
         data={filteredList}
         renderRow={(item, index) => {
           let statusStyle = styles.statusPending;
@@ -120,23 +120,6 @@ const AEPSReport = () => {
           return (
             <tr key={item.id}>
               <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
-              <td>
-                <div style={{ color: '#0D1B3E', fontWeight: '800', fontSize: '0.85rem' }}>{item.date.split('T')[0]}</div>
-                <div style={{ color: '#718096', fontSize: '0.75rem', fontWeight: '600', marginTop: '2px' }}>{item.date.split('T')[1]?.split('.')[0] || ''}</div>
-              </td>
-              <td>
-                <div style={{ fontWeight: 700, color: '#1756AA' }}>{item.memberName}</div>
-                <div style={{ fontSize: '0.75rem', color: '#4E6080' }}>{item.memberId}</div>
-              </td>
-              <td>{item.aadhar}</td>
-              <td style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4A5568' }}>{item.type}</td>
-              <td style={{ fontWeight: 800, color: '#2D3748' }}>₹{item.amount}</td>
-              <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{item.bankTransId || 'TXN' + Math.random().toString(36).substr(2, 9).toUpperCase()}</td>
-              <td>
-                <span className={`${styles.statusBadge} ${statusStyle}`}>
-                  {item.status}
-                </span>
-              </td>
               <td>
                 <button 
                   style={{ 
@@ -154,9 +137,26 @@ const AEPSReport = () => {
                   onMouseOut={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#1756AA'; }}
                   onClick={() => setActiveReceipt(item)}
                 >
-                  View Receipt
+                  Receipt
                 </button>
               </td>
+              <td>{item.date?.split('T')[0] || item.createdDate?.split('T')[0] || 'N/A'}</td>
+              <td>
+                <span className={`${styles.statusBadge} ${statusStyle}`}>
+                  {item.status || 'PENDING'}
+                </span>
+              </td>
+              <td>₹{item.amount || '0.00'}</td>
+              <td>{`${item.memberName || 'N/A'} (${item.memberId || 'N/A'})`}</td>
+              <td>{item.aadhar || item.aadharNo || 'N/A'}</td>
+              <td>{item.customerMobile || item.mobile || 'N/A'}</td>
+              <td>{item.bankName || item.bank || 'N/A'}</td>
+              <td>{item.type || item.transactionType || item.serviceName || 'N/A'}</td>
+              <td>₹{item.openingBalance || '0.00'}</td>
+              <td>₹{item.closingBalance || '0.00'}</td>
+              <td>₹{item.commission || item.totalCommission || '0.00'}</td>
+              <td>₹{item.tds || item.totalTds || '0.00'}</td>
+              <td>{item.bankTransId || item.rrn || item.vendorId || item.txnId || 'N/A'}</td>
             </tr>
           );
         }}

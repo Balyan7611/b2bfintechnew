@@ -9,6 +9,7 @@ import {
 } from '../../../../store/slices/reportSlice';
 import AdminTable from '../../../../shared/components/common/AdminTable';
 import styles from './AEPSReport.module.css';
+import { FiFilter, FiSearch, FiDatabase } from 'react-icons/fi';
 import { useState } from 'react';
 import { API } from '../../../../api/endpoints';
 
@@ -45,7 +46,7 @@ const RechargeHistory = () => {
           pageSize: rowsPerPage,
           fromDate: filters?.fromDate || '',
           toDate: filters?.toDate || '',
-          serviceId: '1,2,3',
+          serviceId: '',
           sectionType: '1',
           operatorId: filters?.operatorId || '',
           apiId: '',
@@ -65,33 +66,7 @@ const RechargeHistory = () => {
 
   const filteredList = list.filter(item => item.number?.includes(searchQuery) || item.txnId?.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  // Dynamic Column logic
-  const baseData = filteredList.length > 0 ? filteredList : list;
-  let dynamicColumns = [];
-  const allowedApiKeys = [
-    'createdDate', 'orderId', 'vendorId', 'refid', 'rrn',
-    'memberName', 'memberId', 'serviceName', 'operatorName', 'apiName', 'operator', 'api', 'service',
-    'customerName', 'customerMobile', 'accountNo', 'ifsc', 'bankName', 'beniName', 'beniVerifyName',
-    'openingBalance', 'amount', 'closingBalance',
-    'surcharge', 'commission', 'serviceCharge', 'totalCommission', 'totalTds', 'cashback', 'gst', 'tds', 'vgst', 'vcs', 'vtds', 'padmin', 'pgst', 'tdsadmin',
-    'mode', 'ip', 'fromChannel', 'message', 'status'
-  ];
-
-  if (baseData && baseData.length > 0) {
-    const rawKeys = Object.keys(baseData[0]);
-    dynamicColumns = allowedApiKeys.filter(key => {
-      if (rawKeys.includes(key)) return true;
-      if (key === 'operatorName' && (rawKeys.includes('operatorId') || rawKeys.includes('operator'))) return true;
-      if (key === 'apiName' && (rawKeys.includes('apiId') || rawKeys.includes('api') || rawKeys.includes('apiid'))) return true;
-      if (key === 'serviceName' && (rawKeys.includes('serviceId') || rawKeys.includes('service'))) return true;
-      return false;
-    });
-  }
-
-  const formatHeader = (key) => key.replace(/([A-Z])/g, ' $1').toUpperCase();
-  const displayColumns = dynamicColumns.length > 0
-    ? ['SNO', ...dynamicColumns.map(formatHeader)]
-    : ['SNO', 'DATE & TIME', 'MEMBER DETAIL', 'MOBILE NUMBER', 'OPERATOR', 'AMOUNT', 'COMMISSION', 'TXN ID', 'STATUS', 'RECEIPT'];
+  const displayColumns = ['Action', 'SNO', 'Date', 'Member Details', 'Operator', 'Number', 'Status', 'Message', 'Opening Bal', 'Amount', 'Commission', 'TDS', 'Closing Bal', 'TXID', 'Operator Id'];
 
   return (
     <div className={styles.container}>
@@ -120,66 +95,37 @@ const RechargeHistory = () => {
         columns={displayColumns}
         data={filteredList}
         renderRow={(item, index) => {
-          return (
-            <tr key={item.id || index}>
-              <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
-              {dynamicColumns.map((colKey, colIndex) => {
-                let val = item[colKey];
-                    
-                if (colKey === 'operatorName' && !val) {
-                  const opId = item.operatorId || item.operator;
-                  if (opId) {
-                     const op = masterOperators.find(o => String(o.id) === String(opId));
-                     val = op ? op.name || op.operatorCode : opId;
-                  } else val = 'N/A';
-                }
-                if (colKey === 'apiName' && !val) {
-                  const aId = item.apiId || item.api || item.apiid;
-                  if (aId) {
-                     const api = masterApis.find(a => String(a.id) === String(aId) || String(a.apiid) === String(aId));
-                     val = api ? api.apiname || api.name : aId;
-                  } else val = 'N/A';
-                }
-                if (colKey === 'serviceName' && !val) {
-                  const sId = item.serviceId || item.service;
-                  if (sId) {
-                     const svc = masterServices.find(s => String(s.id) === String(sId));
-                     val = svc ? svc.name : sId;
-                  } else val = 'N/A';
-                }
-                
-                // Status styling
-                if (colKey.toLowerCase() === 'status') {
-                  let statusStyle = styles.statusPending;
-                  if (String(val).toUpperCase() === 'SUCCESS') statusStyle = styles.statusSuccess;
-                  if (String(val).toUpperCase() === 'FAILED') statusStyle = styles.statusFailed;
-                  return (
-                    <td key={colIndex}>
-                      <span className={`${styles.statusBadge} ${statusStyle}`}>
-                        {val}
-                      </span>
-                    </td>
-                  );
-                }
+            let statusStyle = styles.statusPending;
+            if (String(item.status).toUpperCase() === 'SUCCESS') statusStyle = styles.statusSuccess;
+            if (String(item.status).toUpperCase() === 'FAILED' || String(item.status).toUpperCase() === 'REJECTED') statusStyle = styles.statusFailed;
 
-                // Date styling (split top and bottom if contains 'T')
-                if (String(val).includes('T') && String(val).length > 10) {
-                  return (
-                    <td key={colIndex}>
-                      <div style={{ color: '#0D1B3E', fontWeight: '800', fontSize: '0.85rem' }}>{String(val).split('T')[0]}</div>
-                      <div style={{ color: '#718096', fontSize: '0.75rem', fontWeight: '600', marginTop: '2px' }}>{String(val).split('T')[1]?.split('.')[0] || ''}</div>
-                    </td>
-                  );
-                }
-
-                return (
-                  <td key={colIndex} style={{ fontSize: '0.8rem', color: '#4E6080' }}>
-                    {typeof val === 'object' ? JSON.stringify(val) : String(val)}
-                  </td>
-                );
-              })}
-            </tr>
-          );
+            return (
+              <tr key={item.id || index}>
+                <td>
+                  <button className={styles.actionBtn} title="View Receipt">
+                    <FiSearch />
+                  </button>
+                </td>
+                <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
+                <td>{item.createdDate || item.date || 'N/A'}</td>
+                <td>{`${item.memberName || 'N/A'} (${item.memberId || 'N/A'})`}</td>
+                <td>{item.operatorName || item.operatorId || 'N/A'}</td>
+                <td>{item.number || item.customerMobile || item.accountNo || 'N/A'}</td>
+                <td>
+                  <span className={`${styles.statusBadge} ${statusStyle}`}>
+                    {item.status || 'PENDING'}
+                  </span>
+                </td>
+                <td>{item.message || item.remark || 'N/A'}</td>
+                <td>₹{item.openingBalance || '0.00'}</td>
+                <td>₹{item.amount || '0.00'}</td>
+                <td>₹{item.commission || item.totalCommission || '0.00'}</td>
+                <td>₹{item.tds || item.totalTds || '0.00'}</td>
+                <td>₹{item.closingBalance || '0.00'}</td>
+                <td>{item.txnId || item.transId || item.orderId || 'N/A'}</td>
+                <td>{item.operatorId || 'N/A'}</td>
+              </tr>
+            );
         }}
         searchQuery={searchQuery}
         onSearchChange={(val) => dispatch(setRechargeSearchQuery(val))}

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiFilter } from 'react-icons/fi';
+import { FiFilter, FiSearch } from 'react-icons/fi';
 import { 
   setAEPSList, 
   updateAEPSFilters, 
@@ -28,6 +28,11 @@ const AEPSReport = () => {
   const [selectedTxn, setSelectedTxn] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewDetailMode, setViewDetailMode] = useState(false);
+  
+  const handleViewReceipt = (txn) => {
+    setSelectedTxn(txn);
+    setIsModalOpen(true);
+  };
   
   const [masterServices, setMasterServices] = useState([]);
   const [masterOperators, setMasterOperators] = useState([]);
@@ -64,7 +69,7 @@ const AEPSReport = () => {
         pageSize: rowsPerPage,
         fromDate: filters.fromDate || '',
         toDate: filters.toDate || '',
-        serviceId: '17,18',
+        serviceId: '',
         sectionType: '9,10',
         operatorId: filters.operatorId || '',
         apiId: '',
@@ -165,33 +170,7 @@ const AEPSReport = () => {
     fetchAEPSReport();
   };
   
-  // Dynamic Column logic
-  const baseData = filteredList.length > 0 ? filteredList : list;
-  let dynamicColumns = [];
-  const allowedApiKeys = [
-    'createdDate', 'orderId', 'vendorId', 'refid', 'rrn',
-    'memberName', 'memberId', 'serviceName', 'operatorName', 'apiName', 'operator', 'api', 'service',
-    'customerName', 'customerMobile', 'accountNo', 'ifsc', 'bankName', 'beniName', 'beniVerifyName',
-    'openingBalance', 'amount', 'closingBalance',
-    'surcharge', 'commission', 'serviceCharge', 'totalCommission', 'totalTds', 'cashback', 'gst', 'tds', 'vgst', 'vcs', 'vtds', 'padmin', 'pgst', 'tdsadmin',
-    'mode', 'ip', 'fromChannel', 'message', 'status'
-  ];
-
-  if (baseData && baseData.length > 0) {
-    const rawKeys = Object.keys(baseData[0]);
-    dynamicColumns = allowedApiKeys.filter(key => {
-      if (rawKeys.includes(key)) return true;
-      if (key === 'operatorName' && (rawKeys.includes('operatorId') || rawKeys.includes('operator'))) return true;
-      if (key === 'apiName' && (rawKeys.includes('apiId') || rawKeys.includes('api') || rawKeys.includes('apiid'))) return true;
-      if (key === 'serviceName' && (rawKeys.includes('serviceId') || rawKeys.includes('service'))) return true;
-      return false;
-    });
-  }
-  
-  const formatHeader = (key) => key.replace(/([A-Z])/g, ' $1').toUpperCase();
-  const displayColumns = dynamicColumns.length > 0
-    ? ['SNO', ...dynamicColumns.map(formatHeader)]
-    : ['SNO', 'TRANSACTION DATE', 'MEMBER DETAIL', 'AADHARNUMBER', 'TRANSACTION TYPE', 'AMOUNT', 'BANK TRANSID', 'STATUS', 'VIEW RECEIPT'];
+  const displayColumns = ['SNO', 'Transaction Date', 'Member Id', 'Member Name', 'AadharNumber', 'Bank Name', 'Transaction Type', 'Opening Bal', 'Amount', 'Commission', 'Closing Bal', 'Bank TransID', 'Status', 'View Receipt', 'Remark'];
 
   return (
     <div className={styles.container}>
@@ -256,64 +235,39 @@ const AEPSReport = () => {
             totalEntries={totalEntries}
             totalPages={totalPages}
             renderRow={(item, index) => {
+              let statusStyle = styles.statusPending;
+              if (String(item.status).toUpperCase() === 'SUCCESS') statusStyle = styles.statusSuccess;
+              if (String(item.status).toUpperCase() === 'FAILED' || String(item.status).toUpperCase() === 'REJECTED') statusStyle = styles.statusFailed;
+
               return (
                 <tr key={item.id || index}>
                   <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
-                  {dynamicColumns.map((colKey, colIndex) => {
-                    let val = item[colKey];
-                    
-                    if (colKey === 'operatorName' && !val) {
-                      const opId = item.operatorId || item.operator;
-                      if (opId) {
-                         const op = masterOperators.find(o => String(o.id) === String(opId));
-                         val = op ? op.name || op.operatorCode : opId;
-                      } else val = 'N/A';
-                    }
-                    if (colKey === 'apiName' && !val) {
-                      const aId = item.apiId || item.api || item.apiid;
-                      if (aId) {
-                         const api = masterApis.find(a => String(a.id) === String(aId) || String(a.apiid) === String(aId));
-                         val = api ? api.apiname || api.name : aId;
-                      } else val = 'N/A';
-                    }
-                    if (colKey === 'serviceName' && !val) {
-                      const sId = item.serviceId || item.service;
-                      if (sId) {
-                         const svc = masterServices.find(s => String(s.id) === String(sId));
-                         val = svc ? svc.name : sId;
-                      } else val = 'N/A';
-                    }
-                    
-                    // Status styling
-                    if (colKey.toLowerCase() === 'status') {
-                       let statusStyle = styles.statusPending;
-                       if (String(val).toUpperCase() === 'SUCCESS') statusStyle = styles.statusSuccess;
-                       if (String(val).toUpperCase() === 'FAILED') statusStyle = styles.statusFailed;
-                       return (
-                         <td key={colIndex}>
-                           <span className={`${styles.statusBadge} ${statusStyle}`}>
-                             {val}
-                           </span>
-                         </td>
-                       );
-                    }
-
-                    // Date styling (split top and bottom if contains 'T')
-                    if (String(val).includes('T') && String(val).length > 10) {
-                      return (
-                        <td key={colIndex}>
-                          <div style={{ color: '#0D1B3E', fontWeight: '800', fontSize: '0.85rem' }}>{String(val).split('T')[0]}</div>
-                          <div style={{ color: '#718096', fontSize: '0.75rem', fontWeight: '600', marginTop: '2px' }}>{String(val).split('T')[1]?.split('.')[0] || ''}</div>
-                        </td>
-                      );
-                    }
-
-                    return (
-                      <td key={colIndex} style={{ fontSize: '0.8rem', color: '#4E6080' }}>
-                        {typeof val === 'object' ? JSON.stringify(val) : String(val)}
-                      </td>
-                    );
-                  })}
+                  <td>{item.createdDate || item.date || 'N/A'}</td>
+                  <td>{item.memberId || 'N/A'}</td>
+                  <td>{item.memberName || 'N/A'}</td>
+                  <td>{item.aadhar || item.aadharNo || 'N/A'}</td>
+                  <td>{item.bankName || 'N/A'}</td>
+                  <td>{item.transactionType || item.mode || item.serviceName || 'N/A'}</td>
+                  <td>₹{item.openingBalance || '0.00'}</td>
+                  <td>₹{item.amount || '0.00'}</td>
+                  <td>₹{item.commission || item.totalCommission || '0.00'}</td>
+                  <td>₹{item.closingBalance || '0.00'}</td>
+                  <td>{item.rrn || item.vendorId || item.bankTransId || 'N/A'}</td>
+                  <td>
+                    <span className={`${styles.statusBadge} ${statusStyle}`}>
+                      {item.status || 'PENDING'}
+                    </span>
+                  </td>
+                  <td>
+                    <button 
+                      className={styles.actionBtn} 
+                      onClick={() => handleViewReceipt(item)}
+                      title="View Receipt"
+                    >
+                      <FiSearch />
+                    </button>
+                  </td>
+                  <td>{item.remark || item.message || 'N/A'}</td>
                 </tr>
               );
             }}

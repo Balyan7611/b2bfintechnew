@@ -110,20 +110,18 @@ const TDSReport = () => {
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
                 <th style={{ width: '60px' }}>#</th>
-                <th style={{ width: '100px', textAlign: 'center' }}>ACTION</th>
-                <th>FIRM NAME</th>
-                <th>MEMBER NAME</th>
-                <th>MEMBER DETAILS</th>
-                <th>MOBILE NUMBER</th>
-                <th>AADHAR NUMBER</th>
-                <th>PAN NUMBER</th>
-                <th style={{ fontWeight: 800 }}>TDS AMOUNT</th>
-                <th style={{ textAlign: 'center' }}>MONTH</th>
+                <th>Member</th>
+                <th>Mobile</th>
+                <th>PAN</th>
+                <th>Transactions</th>
+                <th>Services</th>
+                <th style={{ fontWeight: 800 }}>TDS</th>
+                <th>Share</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td colSpan="10" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0', position: 'relative' }}>
+                <td colSpan="8" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0', position: 'relative' }}>
                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                      <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '50%', border: '1px solid #E2E8F0' }}>
                        <FiDatabase size={24} color="#94A3B8" />
