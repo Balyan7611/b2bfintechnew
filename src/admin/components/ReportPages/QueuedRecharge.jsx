@@ -7,6 +7,7 @@ import {
     FiDatabase, FiAlertCircle, FiXCircle, FiBarChart2, FiClock
 } from 'react-icons/fi';
 import styles from '../MemberPages/MemberPages.module.css';
+import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
 
 // Adjust this constant to match your Queued Recharge service ID
 const QUEUED_SERVICE_ID = '10'; // Example ID
@@ -20,8 +21,9 @@ const QueuedRecharge = () => {
     const [loading, setLoading] = useState(false);
 
     // Filters
-    const [fromDate, setFromDate] = useState('');
-    const [toDate, setToDate] = useState('');
+    const today = new Date().toISOString().split('T')[0];
+  const [fromDate, setFromDate] = useState(today);
+    const [toDate, setToDate] = useState(today);
     const [selectedMember, setSelectedMember] = useState('');
     const [selectedService, setSelectedService] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('');
@@ -34,6 +36,10 @@ const QueuedRecharge = () => {
     // UI states
     const [showStats, setShowStats] = useState(false);
     const [focusedField, setFocusedField] = useState(null);
+
+    // Selection state
+    const [selectedIds, setSelectedIds] = useState([]);
+    const { popup, showPopup, closePopup } = usePopup();
 
     // ─── Stats Computation ──────────────────────────────────
     const totalTxns = totalRecords;
@@ -142,16 +148,40 @@ const QueuedRecharge = () => {
         fetchTransactions();
     };
 
+    // Select All / individual checkbox handlers
+    const toggleSelectAll = () => {
+        if (isAllSelected) {
+            setSelectedIds(prev => prev.filter(id => !allCurrentIds.includes(id)));
+        } else {
+            setSelectedIds(prev => [...new Set([...prev, ...allCurrentIds])]);
+        }
+    };
+
+    const toggleSelect = (id) => {
+        setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    };
+
     // Placeholder for Force Success/Fail actions
     const handleForceAction = (type) => {
-        // In real implementation, call API with selected transaction IDs
-        alert(`Force ${type} action triggered for queued transactions.`);
+        if (selectedIds.length === 0) {
+            showPopup('warning', 'No Selection', 'Please select at least one transaction first.');
+            return;
+        }
+        showPopup(
+            type === 'Success' ? 'success' : 'error',
+            `Force ${type}`,
+            `Force ${type} applied to ${selectedIds.length} transaction(s).`
+        );
     };
 
     // ─── Render ──────────────────────────────────────────────
     const totalPages = Math.ceil(totalRecords / pageSize) || 1;
     const startIndex = (pageNumber - 1) * pageSize;
     const currentRows = transactions.slice(startIndex, startIndex + pageSize);
+
+    // Selection helpers (depend on currentRows — must be after it)
+    const allCurrentIds = currentRows.map(t => t.id || t.txid);
+    const isAllSelected = allCurrentIds.length > 0 && allCurrentIds.every(id => selectedIds.includes(id));
 
     const renderStatusBadge = (status) => {
         const map = {
@@ -180,6 +210,7 @@ const QueuedRecharge = () => {
 
     return (
         <div className={styles.container}>
+            <PopupModal show={popup.show} type={popup.type} title={popup.title} message={popup.message} onClose={closePopup} />
             {/* ── FILTER CARD ── */}
             <div style={{
                 background: '#ffffff',
@@ -306,23 +337,33 @@ const QueuedRecharge = () => {
                     <table className={styles.table} style={{ minWidth: '1800px' }}>
                         <thead>
                             <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                                <th style={{ width: '60px' }}>SNO</th>
+                                <th style={{ width: '42px', textAlign: 'center' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={isAllSelected}
+                                        onChange={toggleSelectAll}
+                                        title="Select All"
+                                        style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#3b82f6' }}
+                                    />
+                                </th>
+                                <th style={{ width: '52px' }}>SNO</th>
+                                <th>SERVICE NO</th>
                                 <th>TXID</th>
-                                <th>Operator</th>
-                                <th>Number</th>
-                                <th>Amount</th>
-                                <th style={{ textAlign: 'center' }}>Status</th>
-                                <th>Operator Id</th>
-                                <th>Recharge By</th>
-                                <th>Date Time</th>
+                                <th>OPERATOR</th>
+                                <th>NUMBER</th>
+                                <th>AMOUNT</th>
+                                <th style={{ textAlign: 'center' }}>STATUS</th>
+                                <th>OPERATOR ID</th>
+                                <th>RECHARGE BY</th>
+                                <th>DATE TIME</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan="9" style={{ padding: '30px 0', textAlign: 'center', color: '#1756AA' }}>Loading queued transactions...</td></tr>
+                                <tr><td colSpan="11" style={{ padding: '30px 0', textAlign: 'center', color: '#1756AA' }}>Loading queued transactions...</td></tr>
                             ) : currentRows.length === 0 ? (
                                 <tr>
-                                    <td colSpan="9" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0' }}>
+                                    <td colSpan="11" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                                             <FiClock size={24} color="#94A3B8" />
                                             <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#718096' }}>No queued recharge found</span>
@@ -330,23 +371,36 @@ const QueuedRecharge = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                currentRows.map((txn, idx) => (
-                                    <tr key={txn.id || txn.txid || idx}>
-                                        <td style={{ fontWeight: 700, color: '#94A3B8', fontSize: '0.78rem' }}>{(pageNumber - 1) * pageSize + idx + 1}</td>
-                                        <td style={{ fontWeight: 600, color: '#1E293B' }}>{txn.txid || txn.id || 'N/A'}</td>
-                                        <td>{txn.operator || txn.op || 'N/A'}</td>
-                                        <td>{txn.number || txn.num || 'N/A'}</td>
-                                        <td style={{ fontWeight: 700, color: '#0369A1' }}>₹{parseFloat(txn.amount || 0).toFixed(2)}</td>
-                                        <td style={{ textAlign: 'center' }}>
-                                            {renderStatusBadge(txn.status)}
-                                        </td>
-                                        <td>{txn.operatorId || txn.opid || 'N/A'}</td>
-                                        <td>{txn.rechargeBy || txn.by || 'N/A'}</td>
-                                        <td style={{ fontSize: '0.8rem', color: '#4E6080' }}>
-                                            {txn.dateTime || txn.date || txn.createdDate || 'N/A'}
-                                        </td>
-                                    </tr>
-                                ))
+                                currentRows.map((txn, idx) => {
+                                    const rowId = txn.id || txn.txid || idx;
+                                    const isChecked = selectedIds.includes(rowId);
+                                    return (
+                                        <tr key={rowId} style={{ background: isChecked ? '#EFF6FF' : undefined }}>
+                                            <td style={{ textAlign: 'center' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isChecked}
+                                                    onChange={() => toggleSelect(rowId)}
+                                                    style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#3b82f6' }}
+                                                />
+                                            </td>
+                                            <td style={{ fontWeight: 700, color: '#94A3B8', fontSize: '0.78rem' }}>{(pageNumber - 1) * pageSize + idx + 1}</td>
+                                            <td style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: '#1756AA', fontWeight: 700 }}>{txn.serviceNo || txn.serviceno || txn.serviceNumber || '-'}</td>
+                                            <td style={{ fontWeight: 600, color: '#1E293B' }}>{txn.txid || txn.id || 'N/A'}</td>
+                                            <td>{txn.operator || txn.op || 'N/A'}</td>
+                                            <td>{txn.number || txn.num || 'N/A'}</td>
+                                            <td style={{ fontWeight: 700, color: '#0369A1' }}>₹{parseFloat(txn.amount || 0).toFixed(2)}</td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                {renderStatusBadge(txn.status)}
+                                            </td>
+                                            <td>{txn.operatorId || txn.opid || 'N/A'}</td>
+                                            <td>{txn.rechargeBy || txn.by || 'N/A'}</td>
+                                            <td style={{ fontSize: '0.8rem', color: '#4E6080' }}>
+                                                {txn.dateTime || txn.date || txn.createdDate || 'N/A'}
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>
@@ -354,22 +408,35 @@ const QueuedRecharge = () => {
 
                 {/* ── QUEUE ACTIONS ── */}
                 <div style={{ display: 'flex', gap: '15px', marginTop: '20px', padding: '16px 20px', background: '#F8FAFC', borderRadius: '16px', border: '1px solid #E2E8F0', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {selectedIds.length > 0 && (
+                        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1756AA', background: '#EFF6FF', padding: '6px 14px', borderRadius: '8px', border: '1px solid #BFDBFE' }}>
+                            {selectedIds.length} selected
+                        </span>
+                    )}
                     <button
                         onClick={() => handleForceAction('Success')}
-                        style={{ background: '#16A34A', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s' }}
-                        onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(22, 163, 74, 0.25)'; }}
+                        style={{ background: selectedIds.length > 0 ? '#16A34A' : '#9CA3AF', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem', cursor: selectedIds.length > 0 ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s' }}
+                        onMouseOver={(e) => { if (selectedIds.length > 0) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(22, 163, 74, 0.25)'; } }}
                         onMouseOut={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
                     >
                         <FiCheckCircle size={18} strokeWidth={3} /> Force Success
                     </button>
                     <button
                         onClick={() => handleForceAction('Fail')}
-                        style={{ background: '#DC2626', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s' }}
-                        onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(220, 38, 38, 0.25)'; }}
+                        style={{ background: selectedIds.length > 0 ? '#DC2626' : '#9CA3AF', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem', cursor: selectedIds.length > 0 ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s' }}
+                        onMouseOver={(e) => { if (selectedIds.length > 0) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(220, 38, 38, 0.25)'; } }}
                         onMouseOut={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
                     >
                         <FiXCircle size={18} strokeWidth={3} /> Force Fail
                     </button>
+                    {selectedIds.length > 0 && (
+                        <button
+                            onClick={() => setSelectedIds([])}
+                            style={{ background: 'transparent', color: '#64748B', border: '1px solid #CBD5E1', padding: '10px 16px', borderRadius: '10px', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer' }}
+                        >
+                            Clear Selection
+                        </button>
+                    )}
                 </div>
 
                 <div className="global-pagination" style={{ padding: '12px 20px', borderTop: '1px solid #F1F5F9' }}>

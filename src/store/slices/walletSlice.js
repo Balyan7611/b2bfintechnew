@@ -1,9 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+const today = new Date().toISOString().split('T')[0];
+
 const initialState = {
   filters: {
-    fromDate: '',
-    toDate: '',
+    fromDate: today,
+    toDate: today,
     memberId: '',
     service: '',
     mode: ''

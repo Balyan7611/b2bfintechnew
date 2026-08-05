@@ -21,8 +21,9 @@ const MoneyWalletLoadHistory = () => {
     const [loading, setLoading] = useState(false);
 
     // Filters
-    const [fromDate, setFromDate] = useState('');
-    const [toDate, setToDate] = useState('');
+    const today = new Date().toISOString().split('T')[0];
+  const [fromDate, setFromDate] = useState(today);
+    const [toDate, setToDate] = useState(today);
     const [selectedMember, setSelectedMember] = useState('');
     const [searchKeyword, setSearchKeyword] = useState('');
 

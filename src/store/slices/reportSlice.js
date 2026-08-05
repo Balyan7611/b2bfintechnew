@@ -1,11 +1,13 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+const today = new Date().toISOString().split('T')[0];
+
 const initialState = {
   aepsReport: {
     list: [],
     filters: {
-      fromDate: '',
-      toDate: '',
+      fromDate: today,
+      toDate: today,
       status: '',
       memberId: '',
       search: ''
@@ -18,8 +20,8 @@ const initialState = {
   dmtReport: {
     list: [],
     filters: {
-      fromDate: '',
-      toDate: '',
+      fromDate: today,
+      toDate: today,
       status: '',
       memberId: '',
       search: ''
@@ -31,8 +33,8 @@ const initialState = {
   payoutReport: {
     list: [],
     filters: {
-      fromDate: '',
-      toDate: '',
+      fromDate: today,
+      toDate: today,
       status: '',
       memberId: '',
       search: ''
@@ -44,8 +46,8 @@ const initialState = {
   matmReport: {
     list: [],
     filters: {
-      fromDate: '',
-      toDate: '',
+      fromDate: today,
+      toDate: today,
       status: '',
       memberId: '',
       search: ''
@@ -57,8 +59,8 @@ const initialState = {
   rechargeReport: {
     list: [],
     filters: {
-      fromDate: '',
-      toDate: '',
+      fromDate: today,
+      toDate: today,
       status: '',
       memberId: '',
       search: '',
@@ -71,8 +73,8 @@ const initialState = {
   bbpsReport: {
     list: [],
     filters: {
-      fromDate: '',
-      toDate: '',
+      fromDate: today,
+      toDate: today,
       status: '',
       memberId: '',
       search: '',
@@ -92,8 +94,8 @@ const initialState = {
   aepsWalletReport: {
     list: [],
     filters: {
-      fromDate: '',
-      toDate: ''
+      fromDate: today,
+      toDate: today
     },
     searchQuery: '',
     rowsPerPage: 10,
@@ -102,8 +104,8 @@ const initialState = {
   mainWalletReport: {
     list: [],
     filters: {
-      fromDate: '',
-      toDate: '',
+      fromDate: today,
+      toDate: today,
       memberId: ''
     },
     searchQuery: '',

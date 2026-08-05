@@ -25,8 +25,9 @@ const UPITransferHistory = () => {
     const [loading, setLoading] = useState(false);
 
     // Filters
-    const [fromDate, setFromDate] = useState('');
-    const [toDate, setToDate] = useState('');
+    const today = new Date().toISOString().split('T')[0];
+  const [fromDate, setFromDate] = useState(today);
+    const [toDate, setToDate] = useState(today);
     const [selectedService, setSelectedService] = useState('');
     const [selectedOperator, setSelectedOperator] = useState('');
     const [selectedMember, setSelectedMember] = useState('');

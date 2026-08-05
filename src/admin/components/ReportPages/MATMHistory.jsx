@@ -65,6 +65,35 @@ const MATMHistory = () => {
   const [selectedService, setSelectedService] = useState('');
   const [operatorList, setOperatorList] = useState([]);
   const [selectedOperator, setSelectedOperator] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const today = new Date().toISOString().split('T')[0];
+  const [fromDate, setFromDate] = useState(today);
+  const [toDate, setToDate] = useState(today);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const fetchTransactions = async () => {
+    setLoading(true);
+    try {
+      const res = await API.transaction.getAll({
+        pageNumber, pageSize, fromDate, toDate,
+        serviceId: selectedService || '',
+        sectionType: '3',
+        operatorId: selectedOperator, apiId: '', memberId: selectedMember, status: selectedStatus
+      });
+      if (res?.status === true) {
+        if (Array.isArray(res.data)) { setTransactions(res.data); setTotalRecords(res.totalRecords || res.data.length); }
+        else if (res.data?.items) { setTransactions(res.data.items); setTotalRecords(res.data.totalItems || res.data.items.length); }
+        else setTransactions([]);
+      } else if (Array.isArray(res)) { setTransactions(res); setTotalRecords(res.length); }
+      else setTransactions([]);
+    } catch (e) { console.error('MATMHistory fetch error:', e); setTransactions([]); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchTransactions(); }, [pageNumber, pageSize, selectedStatus]);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -445,10 +474,10 @@ const MATMHistory = () => {
         <div className="global-table-toolbar" style={{ padding: '10px 15px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
-            <select className={styles.selectEntries}>
-              <option>10</option>
-              <option>25</option>
-              <option>50</option>
+            <select className={styles.selectEntries} value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPageNumber(1); }}>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
             </select>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>entries</span>
           </div>

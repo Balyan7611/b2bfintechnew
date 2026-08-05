@@ -8,6 +8,8 @@ import {
   setPayoutCurrentPage 
 } from '../../../../store/slices/reportSlice';
 import AdminTable from '../../../../shared/components/common/AdminTable';
+import StatsGrid from '../../../../shared/components/common/StatsGrid';
+import { FiBarChart2 } from 'react-icons/fi';
 import styles from './AEPSReport.module.css';
 import { API } from '../../../../api/endpoints';
 
@@ -21,6 +23,7 @@ const PayoutHistory = () => {
   const [masterServices, setMasterServices] = useState([]);
   const [masterOperators, setMasterOperators] = useState([]);
   const [masterApis, setMasterApis] = useState([]);
+  const [showStats, setShowStats] = useState(false);
 
   useEffect(() => {
     const fetchMasters = async () => {
@@ -72,11 +75,39 @@ const PayoutHistory = () => {
     ? ['SNO', ...dynamicColumns.map(formatHeader)]
     : ['SNO', 'DATE & TIME', 'MEMBER DETAIL', 'BANK NAME', 'ACCOUNT NO', 'AMOUNT', 'CHARGES', 'TOTAL', 'STATUS', 'RECEIPT'];
 
+  const totalAmount = filteredList.reduce((a, t) => a + (parseFloat(t.amount) || 0), 0);
+  const totalCommission = filteredList.reduce((a, t) => a + (parseFloat(t.commission || t.totalCommission) || 0), 0);
+  const totalTds = filteredList.reduce((a, t) => a + (parseFloat(t.tds || t.totalTds) || 0), 0);
+  const stats = {
+    totalTxns: filteredList.length,
+    totalAmount,
+    successTxns: filteredList.filter(t => String(t.status).toUpperCase() === 'SUCCESS').length,
+    failedTxns: filteredList.filter(t => String(t.status).toUpperCase() === 'FAILED').length,
+    pendingTxns: filteredList.filter(t => String(t.status).toUpperCase() === 'PENDING').length,
+    totalCommission,
+    uplineCommission: totalCommission * 0.6,
+    adminCommission: totalCommission * 0.4,
+    totalTds,
+    adminProfit: totalCommission * 0.15,
+    tdsPayable: totalTds * 0.95,
+    netPayable: totalAmount - totalCommission,
+  };
+
   return (
     <div className={styles.container}>
       {!viewDetailMode ? (
-        <AdminTable
+        <>
+        <StatsGrid stats={stats} showStats={showStats} />
+      <AdminTable
           title="PAYOUT HISTORY"
+        rightAction={
+        <button
+          onClick={() => setShowStats(!showStats)}
+          style={{ background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)', color: '#fff', border: 'none', borderRadius: '10px', height: '36px', padding: '0 16px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+        >
+          <FiBarChart2 size={14} /> {showStats ? 'HIDE STATS' : 'VIEW STATS'}
+        </button>
+      }
           topContent={
             <div className={styles.filterSection}>
               <div className={styles.filterRow}>
@@ -168,6 +199,7 @@ const PayoutHistory = () => {
           totalEntries={filteredList.length}
           totalPages={Math.ceil(filteredList.length / rowsPerPage)}
         />
+        </>
       ) : (
         <div className={styles.detailContainer}>
           <div className={styles.detailHeader}>

@@ -21,8 +21,9 @@ const MoneyRemitterDetails = () => {
 
   // Filter states
   const [selectedMember, setSelectedMember] = useState('');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const today = new Date().toISOString().split('T')[0];
+  const [fromDate, setFromDate] = useState(today);
+  const [toDate, setToDate] = useState(today);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [memberList, setMemberList] = useState([]);

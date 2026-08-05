@@ -25,8 +25,9 @@ const BusinessSummary = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Date filters
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const today = new Date().toISOString().split('T')[0];
+  const [fromDate, setFromDate] = useState(today);
+  const [toDate, setToDate] = useState(today);
 
   // Filter logic
   const filteredData = useMemo(() => {

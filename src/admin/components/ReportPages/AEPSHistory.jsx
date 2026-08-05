@@ -77,8 +77,9 @@ const AEPSHistory = () => {
   const [operatorList, setOperatorList] = useState([]);
   const [selectedOperator, setSelectedOperator] = useState('');
   const [selectedMember, setSelectedMember] = useState('');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const today = new Date().toISOString().split('T')[0];
+  const [fromDate, setFromDate] = useState(today);
+  const [toDate, setToDate] = useState(today);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [transactions, setTransactions] = useState([]);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -587,10 +588,10 @@ const AEPSHistory = () => {
         <div className="global-table-toolbar" style={{ padding: '12px 20px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
-            <select className={styles.selectEntries}>
-              <option>10</option>
-              <option>25</option>
-              <option>50</option>
+            <select className={styles.selectEntries} value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPageNumber(1); }}>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
             </select>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>entries</span>
           </div>
