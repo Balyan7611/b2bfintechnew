@@ -1,219 +1,160 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FaChartPie, FaFilter, FaSpinner, FaChevronDown, 
-  FaArrowRight, FaArrowDown, FaCheckCircle, 
-  FaTimesCircle, FaExclamationCircle, FaExchangeAlt, 
-  FaRegLightbulb 
+import {
+  FaFilter, FaSpinner, FaChevronDown, FaRegLightbulb,
+  FaUser, FaUsers, FaBolt, FaLayerGroup
 } from 'react-icons/fa';
-import { FiTrendingUp, FiDownload } from 'react-icons/fi';
+import { FiDownload, FiTrendingUp, FiActivity, FiDollarSign, FiZap } from 'react-icons/fi';
+import { MdOutlineAccountBalanceWallet, MdPhoneAndroid, MdSwapHoriz } from 'react-icons/md';
+import { apiService } from '../../../api/httpClient';
 import { API } from '../../../api/endpoints';
 import AdminTable from '../../../shared/components/common/AdminTable';
 import styles from './BusinessAnalytics.module.css';
 
+/* ── Date helpers ─────────────────────────────────────────── */
+function toYMD(d) { return d.toISOString().slice(0, 10); }
 
+function periodDates(period) {
+  const today = new Date();
+  const ymd = (d) => toYMD(d);
+  const sub = (n) => { const d = new Date(today); d.setDate(d.getDate() - n); return d; };
+  switch (period) {
+    case 'today':     return { startDate: ymd(today), endDate: ymd(today) };
+    case 'yesterday': { const y = sub(1); return { startDate: ymd(y), endDate: ymd(y) }; }
+    case '7days':     return { startDate: ymd(sub(6)), endDate: ymd(today) };
+    case '30days':    return { startDate: ymd(sub(29)), endDate: ymd(today) };
+    case 'thisMonth': { const s = new Date(today.getFullYear(), today.getMonth(), 1); return { startDate: ymd(s), endDate: ymd(today) }; }
+    case 'lastMonth': {
+      const s = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const e = new Date(today.getFullYear(), today.getMonth(), 0);
+      return { startDate: ymd(s), endDate: ymd(e) };
+    }
+    default: return { startDate: ymd(sub(6)), endDate: ymd(today) };
+  }
+}
+
+function relativeDate(isoStr) {
+  if (!isoStr) return null;
+  const diff = Math.floor((Date.now() - new Date(isoStr).getTime()) / 86400000);
+  if (diff === 0) return 'Last used today';
+  if (diff === 1) return 'Last used yesterday';
+  return `Last used ${diff} days ago`;
+}
+
+/* ── Service icon map ────────────────────────────────────── */
+const SVC_ICON = {
+  'MONEY TRANSFER':    <MdSwapHoriz size={13} />,
+  'UPI TRANSFER':      <FiZap size={13} />,
+  'AEPS':              <FiActivity size={13} />,
+  'RECHARGE & BILLS':  <MdPhoneAndroid size={13} />,
+  'SETTLEMENT - WALLET': <MdOutlineAccountBalanceWallet size={13} />,
+};
+
+/* ── Service mini-card ───────────────────────────────────── */
+function SvcCard({ svc }) {
+  const barW = Math.min(svc.percentageOfBusiness * 2, 100);
+  return (
+    <div style={{
+      background: '#fff', border: '1px solid #E8EDF5', borderRadius: 12,
+      padding: '16px 18px', flex: '1 1 180px', minWidth: 160,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#4B5DB8', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+        {SVC_ICON[svc.serviceName] || <FiZap size={13} />} {svc.serviceName}
+      </div>
+      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0D1B3E', marginBottom: 6 }}>
+        ₹ {Number(svc.businessValue).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+      </div>
+      <div style={{ height: 4, background: '#E8EDF5', borderRadius: 2, marginBottom: 8, overflow: 'hidden' }}>
+        <div style={{ width: `${barW}%`, height: '100%', background: '#4B5DB8', borderRadius: 2 }} />
+      </div>
+      <div style={{ fontSize: '0.72rem', color: '#64748B' }}>
+        {svc.successfulTxns} of {svc.totalTxns} successful · {svc.percentageOfBusiness?.toFixed(1)}% of business
+      </div>
+      {svc.lastUsed && (
+        <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: 2 }}>{relativeDate(svc.lastUsed)}</div>
+      )}
+    </div>
+  );
+}
 
 const BusinessAnalytics = () => {
   const [memberList, setMemberList] = useState([]);
   const [selectedMember, setSelectedMember] = useState('');
-  const [scope, setScope] = useState('only'); // 'only' or 'downline'
+  const [scope, setScope] = useState('Downline');
   const [period, setPeriod] = useState('30days');
   const [loading, setLoading] = useState(false);
   const [analyzed, setAnalyzed] = useState(false);
-  const [analyticsData, setAnalyticsData] = useState([]);
+  const [error, setError] = useState('');
 
-  // Fetch member list for dropdown selection
+  // API response data
+  const [summary, setSummary] = useState(null);
+  const [services, setServices] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [memberInfo, setMemberInfo] = useState(null);
+  const [dateRange, setDateRange] = useState('');
+
   useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        const res = await API.member.search('');
-        setMemberList(res || []);
-      } catch (err) {
-        console.error('Failed to fetch members for analytics:', err);
-      }
-    };
-    fetchMembers();
+    API.member.search('').then(res => setMemberList(res || [])).catch(() => {});
   }, []);
 
   const handleAnalyse = async () => {
-    if (!selectedMember) {
-      alert('Please select a member to analyze.');
-      return;
-    }
+    if (!selectedMember) return alert('Please select a member.');
+    setLoading(true); setAnalyzed(false); setError('');
 
-    setLoading(true);
-    setAnalyzed(false);
+    const { startDate, endDate } = periodDates(period);
+    setDateRange(`${startDate} to ${endDate}`);
 
     try {
-      const [res, assignedServicesRes, allActiveServicesRes] = await Promise.all([
-        API.transaction.getAll({
-          memberId: selectedMember,
-          pageNumber: 1,
-          pageSize: 5000,
-        }),
-        API.memberService.getAll({ MemberID: selectedMember }),
-        API.service.getActiveServices()
-      ]);
+      const res = await apiService.get(
+        `/Admin/BusinessAnalysis?memberId=${selectedMember}&scope=${scope}&startDate=${startDate}&endDate=${endDate}`
+      );
 
-      let rawData = [];
-      if (res && res.status === true) {
-        rawData = Array.isArray(res.data) ? res.data : (res.data?.items || []);
-      } else if (res && Array.isArray(res.data)) {
-        rawData = res.data;
-      } else if (Array.isArray(res)) {
-        rawData = res;
-      } else if (res && res.items) {
-        rawData = res.items;
+      const data = res?.data || res;
+      if (!data || res?.status === false) {
+        setError(res?.mess || 'Failed to load analytics.');
+        return;
       }
 
-      let assignedItems = [];
-      if (Array.isArray(assignedServicesRes?.data?.items)) assignedItems = assignedServicesRes.data.items;
-      else if (Array.isArray(assignedServicesRes?.data)) assignedItems = assignedServicesRes.data;
-      else if (Array.isArray(assignedServicesRes?.items)) assignedItems = assignedServicesRes.items;
-      else if (Array.isArray(assignedServicesRes)) assignedItems = assignedServicesRes;
+      setSummary(data.summary || {});
+      setServices(data.services || []);
+      setMembers(data.members || []);
 
-      let allActiveServices = Array.isArray(allActiveServicesRes) ? allActiveServicesRes : [];
-      if (allActiveServices.length === 0 && Array.isArray(allActiveServicesRes?.data)) {
-        allActiveServices = allActiveServicesRes.data;
-      }
-
-      const assignedServiceIds = assignedItems
-        .filter(it => it.isActive !== false)
-        .map(it => it.serviceId ?? it.ServiceId);
-
-      const assignedServiceNames = assignedServiceIds.map(id => {
-        const s = allActiveServices.find(s => String(s.id) === String(id));
-        return s ? (s.name || '').toLowerCase() : '';
-      }).filter(Boolean);
-
-      const stats = {
-        'AEPS Cash Withdrawal': { successCount: 0, failedCount: 0, pendingCount: 0, volume: 0, key: 'aeps_cw' },
-        'AEPS Balance Enquiry': { successCount: 0, failedCount: 0, pendingCount: 0, volume: 0, key: 'aeps_be' },
-        'DMT (Money Transfer)': { successCount: 0, failedCount: 0, pendingCount: 0, volume: 0, key: 'dmt' },
-        'Payout (Bank Transfer)': { successCount: 0, failedCount: 0, pendingCount: 0, volume: 0, key: 'payout' },
-        'Mobile Recharge': { successCount: 0, failedCount: 0, pendingCount: 0, volume: 0, key: 'recharge' },
-        'BBPS Bill Payment': { successCount: 0, failedCount: 0, pendingCount: 0, volume: 0, key: 'bbps' }
-      };
-
-      rawData.forEach(txn => {
-        let type = (txn.transactionType || txn.type || '').toLowerCase();
-        let status = (txn.status || '').toUpperCase();
-        let amount = Number(txn.amount) || 0;
-        let serviceName = '';
-
-        if (type.includes('aeps') && type.includes('withdraw')) serviceName = 'AEPS Cash Withdrawal';
-        else if (type.includes('aeps') && type.includes('balance')) serviceName = 'AEPS Balance Enquiry';
-        else if (type.includes('dmt') || type.includes('money')) serviceName = 'DMT (Money Transfer)';
-        else if (type.includes('payout')) serviceName = 'Payout (Bank Transfer)';
-        else if (type.includes('recharge')) serviceName = 'Mobile Recharge';
-        else if (type.includes('bbps') || type.includes('bill')) serviceName = 'BBPS Bill Payment';
-
-        if (serviceName && stats[serviceName]) {
-          if (status === 'SUCCESS') {
-            stats[serviceName].successCount += 1;
-            stats[serviceName].volume += amount;
-          } else if (status === 'FAILED') {
-            stats[serviceName].failedCount += 1;
-          } else {
-            stats[serviceName].pendingCount += 1;
-          }
-        }
+      // Find member name from list for the header
+      const mFound = memberList.find(m => String(m.id || m.memberId) === String(selectedMember));
+      setMemberInfo({
+        id: mFound?.memberID || mFound?.memberId || selectedMember,
+        name: data.members?.[0]?.memberName || mFound?.name || 'Member',
+        shop: data.members?.[0]?.shopName || mFound?.shopName || '',
       });
 
-      const processed = Object.keys(stats).filter(key => {
-        // Only show if the member actually has this service assigned
-        return assignedServiceNames.some(assignedName => {
-          if (assignedName.includes('aeps') && key.toLowerCase().includes('aeps')) return true;
-          if (assignedName.includes('dmt') && key.toLowerCase().includes('dmt')) return true;
-          if (assignedName.includes('payout') && key.toLowerCase().includes('payout')) return true;
-          if (assignedName.includes('recharge') && key.toLowerCase().includes('recharge')) return true;
-          if (assignedName.includes('bbps') && key.toLowerCase().includes('bbps')) return true;
-          return false;
-        });
-      }).map(key => ({
-        service: key,
-        ...stats[key]
-      }));
-
-      // In real scenario, scope='downline' should recursively fetch. 
-      // For now, we simulate the downline multiplier only if requested, else it's pure real data.
-      const scaleMultiplier = scope === 'downline' ? 3.4 : 1.0;
-      
-      const finalData = processed.map(item => ({
-        ...item,
-        successCount: Math.round(item.successCount * scaleMultiplier),
-        failedCount: Math.round(item.failedCount * scaleMultiplier),
-        pendingCount: Math.round(item.pendingCount * scaleMultiplier),
-        volume: Number((item.volume * scaleMultiplier).toFixed(2))
-      }));
-
-      setAnalyticsData(finalData);
       setAnalyzed(true);
     } catch (err) {
-      console.error('Failed to fetch analytics:', err);
-      alert('Error fetching analytics. Check console.');
+      console.error(err);
+      setError('API error: ' + (err?.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleExportCSV = () => {
-    if (!analyzed || analyticsData.length === 0) {
-      alert('Please run the analysis before exporting.');
-      return;
-    }
+  // Table columns: # | MEMBER | SHOP | AEPS | MONEY TRANSFER | RECHARGE & BILLS | SETTLEMENT · WALLET | UPI TRANSFER | TOTAL
+  const TABLE_COLS = ['#', 'MEMBER', 'SHOP', 'AEPS', 'MONEY TRANSFER', 'RECHARGE & BILLS', 'SETTLEMENT · WALLET', 'UPI TRANSFER', 'TOTAL', 'TXNS', 'SUCCESS'];
 
-    const headers = ['Service', 'Success Count', 'Failed Count', 'Pending Count', 'Volume (Rs.)'];
-    const rows = analyticsData.map(item => [
-      item.service,
-      item.successCount,
-      item.failedCount,
-      item.pendingCount,
-      item.volume.toFixed(2)
-    ]);
-
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-      
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Business_Analytics_${selectedMember}_${period}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  // Compute overall KPI aggregates
-  const totalVolume = analyticsData.reduce((acc, item) => acc + item.volume, 0);
-  const totalSuccess = analyticsData.reduce((acc, item) => acc + item.successCount, 0);
-  const totalFailed = analyticsData.reduce((acc, item) => acc + item.failedCount, 0);
-  const totalPending = analyticsData.reduce((acc, item) => acc + item.pendingCount, 0);
+  const fmt = (n) => n > 0
+    ? `₹${Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+    : <span style={{ color: '#CBD5E1' }}>—</span>;
 
   return (
     <div className={styles.container}>
 
-
-      {/* ── FILTER SECTION ── */}
+      {/* ── FILTERS ── */}
       <div className={styles.filterSection}>
-        <div className={styles.filterHeader}>
-          <FaFilter className={styles.filterHeaderIcon} />
-          <span>Choose what to look at</span>
-        </div>
-
+        <div className={styles.filterHeader}><FaFilter className={styles.filterHeaderIcon} /><span>Choose what to look at</span></div>
         <div className={styles.filterGrid}>
-          {/* Member Dropdown */}
           <div className={styles.inputGroup}>
-            <label className={styles.label}>
-              Member <span className={styles.required}>*</span>
-            </label>
+            <label className={styles.label}>Member <span className={styles.required}>*</span></label>
             <div className={styles.selectWrapper}>
-              <select
-                className={styles.select}
-                value={selectedMember}
-                onChange={(e) => setSelectedMember(e.target.value)}
-              >
+              <select className={styles.select} value={selectedMember} onChange={e => setSelectedMember(e.target.value)}>
                 <option value="">Select Member</option>
-                {memberList.map((m) => (
+                {memberList.map(m => (
                   <option key={m.id || m.memberId} value={m.id || m.memberId}>
                     {m.name} ({m.mobile}) - {m.memberId}
                   </option>
@@ -221,40 +162,18 @@ const BusinessAnalytics = () => {
               </select>
               <FaChevronDown className={styles.selectChevron} />
             </div>
-            <span className={styles.helpText}>The member whose business you want to see.</span>
           </div>
-
-          {/* Scope Toggle */}
           <div className={styles.inputGroup}>
             <label className={styles.label}>Scope</label>
             <div className={styles.scopeToggle}>
-              <button
-                type="button"
-                className={`${styles.scopeButton} ${scope === 'only' ? styles.activeScope : ''}`}
-                onClick={() => setScope('only')}
-              >
-                This member only
-              </button>
-              <button
-                type="button"
-                className={`${styles.scopeButton} ${scope === 'downline' ? styles.activeScope : ''}`}
-                onClick={() => setScope('downline')}
-              >
-                Member + full downline
-              </button>
+              <button type="button" className={`${styles.scopeButton} ${scope === 'Self' ? styles.activeScope : ''}`} onClick={() => setScope('Self')}>This member only</button>
+              <button type="button" className={`${styles.scopeButton} ${scope === 'Downline' ? styles.activeScope : ''}`} onClick={() => setScope('Downline')}>Member + full downline</button>
             </div>
-            <span className={styles.helpText}>Downline walks the upline tree up to 12 levels.</span>
           </div>
-
-          {/* Period Selector */}
           <div className={styles.inputGroup}>
             <label className={styles.label}>Period</label>
             <div className={styles.selectWrapper}>
-              <select
-                className={styles.select}
-                value={period}
-                onChange={(e) => setPeriod(e.target.value)}
-              >
+              <select className={styles.select} value={period} onChange={e => setPeriod(e.target.value)}>
                 <option value="today">Today</option>
                 <option value="yesterday">Yesterday</option>
                 <option value="7days">Last 7 days</option>
@@ -266,154 +185,133 @@ const BusinessAnalytics = () => {
             </div>
           </div>
         </div>
-
-        {/* Buttons */}
         <div className={styles.filterActions}>
-          <button
-            type="button"
-            className={styles.analyseButton}
-            onClick={handleAnalyse}
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <FaSpinner className={styles.spinner} />
-                Analyzing...
-              </>
-            ) : (
-              'Analyse'
-            )}
+          <button className={styles.analyseButton} onClick={handleAnalyse} disabled={loading}>
+            {loading ? <><FaSpinner className={styles.spinner} /> Analyzing...</> : 'Analyse'}
           </button>
-          <button
-            type="button"
-            className={styles.exportButton}
-            onClick={handleExportCSV}
-            disabled={loading || !analyzed}
-          >
-            <FiDownload style={{ marginRight: '6px' }} />
-            Export CSV
-          </button>
+          {analyzed && (
+            <button className={styles.exportButton} onClick={() => {
+              const hdrs = ['#', 'Member', 'Shop', 'AEPS', 'Money Transfer', 'Recharge & Bills', 'Settlement-Wallet', 'UPI Transfer', 'Total'];
+              const rows = members.map((m, i) => [
+                i + 1, m.memberName, m.shopName,
+                m.aepsBusiness, m.moneyTransferBusiness, m.rechargeBillsBusiness,
+                m.settlementBusiness, m.upiTransferBusiness, m.totalBusinessValue
+              ]);
+              const csv = 'data:text/csv;charset=utf-8,' + [hdrs, ...rows].map(r => r.join(',')).join('\n');
+              const a = document.createElement('a'); a.href = encodeURI(csv); a.download = 'business_analytics.csv'; a.click();
+            }}>
+              <FiDownload style={{ marginRight: 6 }} /> Export CSV
+            </button>
+          )}
         </div>
+        {error && <div style={{ color: '#DC2626', fontSize: '0.82rem', marginTop: 8 }}>{error}</div>}
       </div>
 
-      {/* ── ANALYSIS OUTPUT ── */}
-      {analyzed && (
+      {/* ── RESULTS ── */}
+      {analyzed && summary && (
         <div className={styles.resultsArea}>
-          {/* KPI Dashboard */}
-          <div className={styles.kpiGrid}>
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiHeader}>
-                <span className={styles.kpiTitle}>Total Business Volume</span>
-              </div>
-              <span className={styles.kpiValue}>Rs. {totalVolume.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-              <span className={styles.kpiTrend}>Successful Transactions Only</span>
-            </div>
 
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiHeader}>
-                <span className={styles.kpiTitle}>Successful Trans.</span>
-              </div>
-              <span className={`${styles.kpiValue} ${styles.greenText}`}>{totalSuccess}</span>
-              <span className={styles.kpiTrend}>Success rate: {((totalSuccess / (totalSuccess + totalFailed + totalPending || 1)) * 100).toFixed(1)}%</span>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiHeader}>
-                <span className={styles.kpiTitle}>Failed / Pending</span>
-              </div>
-              <span className={styles.kpiValue}>
-                <span className={styles.redText}>{totalFailed}</span> / <span className={styles.orangeText}>{totalPending}</span>
+          {/* Member header bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1px solid #E8EDF5', borderRadius: 10, padding: '12px 20px', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <FaUser size={13} color="#4B5DB8" />
+              <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0D1B3E' }}>
+                {memberInfo?.id} — {memberInfo?.name}
               </span>
-              <span className={styles.kpiTrend}>Requiring reconciliation</span>
+              {memberInfo?.shop && <span style={{ fontSize: '0.78rem', color: '#64748B', marginLeft: 4 }}>· {memberInfo.shop}</span>}
             </div>
+            <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: 600 }}>{dateRange}</span>
           </div>
 
-          {/* Summary Table */}
-          <div style={{ marginTop: '24px' }}>
-            <AdminTable
-              title="BUSINESS ANALYTICS"
-              columns={[
-                'SERVICE', 
-                'SUCCESS', 
-                'FAILED', 
-                'PENDING', 
-                <div key="vol" style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
-                  TOTAL VOLUME
-                  <span style={{fontSize: '0.7rem', opacity: 0.8, fontWeight: 500, textTransform: 'none'}}>
-                    (Total: ₹{totalVolume.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
-                  </span>
+          {/* KPI Cards */}
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 20 }}>
+            {[
+              {
+                icon: <FiDollarSign size={13} />, label: 'TOTAL BUSINESS',
+                value: `₹ ${Number(summary.totalBusiness).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+                sub: 'Successful transactions only.'
+              },
+              {
+                icon: <FiTrendingUp size={13} />, label: 'TRANSACTIONS',
+                value: Number(summary.totalTxns).toLocaleString(),
+                sub: `${summary.successfulTxns} successful (${summary.successRate?.toFixed(1)}%)`
+              },
+              {
+                icon: <FaLayerGroup size={13} />, label: 'SERVICES USED',
+                value: `${summary.servicesUsedCount} of ${summary.totalServicesCount}`,
+                sub: 'Active services in this period.'
+              },
+              {
+                icon: <FaUsers size={13} />, label: 'MEMBERS COUNTED',
+                value: Number(summary.membersCounted).toLocaleString(),
+                sub: scope === 'Downline' ? 'Member + full downline.' : 'This member only.'
+              },
+            ].map(c => (
+              <div key={c.label} style={{ flex: 1, minWidth: 160, background: '#fff', border: '1px solid #E8EDF5', borderRadius: 12, padding: '18px 20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#4B5DB8', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                  {c.icon} {c.label}
                 </div>
-              ]}
-              data={analyticsData}
-              renderRow={(item, idx) => {
-                const isZero = item.successCount === 0 && item.failedCount === 0 && item.pendingCount === 0;
-                return (
-                  <tr key={item.key || idx} className={isZero ? styles.greyedRow : ''}>
-                    <td className={styles.serviceName}>{item.service}</td>
-                    <td>
-                      {item.successCount > 0 ? (
-                        <span className={styles.badgeSuccess}>
-                          <FaCheckCircle style={{ marginRight: '4px', fontSize: '0.75rem' }} />
-                          {item.successCount}
-                        </span>
-                      ) : '0'}
-                    </td>
-                    <td>
-                      {item.failedCount > 0 ? (
-                        <span className={styles.badgeFailed}>
-                          <FaTimesCircle style={{ marginRight: '4px', fontSize: '0.75rem' }} />
-                          {item.failedCount}
-                        </span>
-                      ) : '0'}
-                    </td>
-                    <td>
-                      {item.pendingCount > 0 ? (
-                        <span className={styles.badgePending}>
-                          <FaExclamationCircle style={{ marginRight: '4px', fontSize: '0.75rem' }} />
-                          {item.pendingCount}
-                        </span>
-                      ) : '0'}
-                    </td>
-                    <td style={{ fontWeight: 800 }}>
-                      {item.volume > 0 ? (
-                        `₹${item.volume.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
-                      ) : '₹0.00'}
-                    </td>
-                  </tr>
-                );
-              }}
-              searchQuery=""
-              onSearchChange={() => {}}
-              rowsPerPage={10}
-              onRowsPerPageChange={() => {}}
-              currentPage={1}
-              onPageChange={() => {}}
-              totalEntries={analyticsData.length}
-              totalPages={1}
-            />
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0D1B3E', lineHeight: 1 }}>{c.value}</div>
+                <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: 5 }}>{c.sub}</div>
+              </div>
+            ))}
           </div>
+
+          {/* Service by Service cards */}
+          {services.length > 0 && (
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <FiActivity size={14} color="#4B5DB8" />
+                <span style={{ fontWeight: 800, fontSize: '0.78rem', color: '#0D1B3E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Service by Service</span>
+              </div>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                {services.map(s => <SvcCard key={s.serviceName} svc={s} />)}
+              </div>
+            </div>
+          )}
+
+          {/* Member × Service Table */}
+          <AdminTable
+            title="BUSINESS ANALYTICS"
+            columns={TABLE_COLS}
+            data={members}
+            renderRow={(row, i) => (
+              <tr key={row.memberId || i}>
+                <td style={{ color: '#94A3B8', fontWeight: 700 }}>{i + 1}</td>
+                <td style={{ fontWeight: 800, color: '#0D1B3E' }}>
+                  <div>{row.memberName}</div>
+                  <div style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 500 }}>#{row.memberId}</div>
+                </td>
+                <td style={{ color: '#64748B', fontSize: '0.82rem' }}>{row.shopName || '—'}</td>
+                <td style={{ fontWeight: 600, color: row.aepsBusiness > 0 ? '#0369A1' : '#CBD5E1' }}>{fmt(row.aepsBusiness)}</td>
+                <td style={{ fontWeight: 600, color: row.moneyTransferBusiness > 0 ? '#0369A1' : '#CBD5E1' }}>{fmt(row.moneyTransferBusiness)}</td>
+                <td style={{ fontWeight: 600, color: row.rechargeBillsBusiness > 0 ? '#0369A1' : '#CBD5E1' }}>{fmt(row.rechargeBillsBusiness)}</td>
+                <td style={{ fontWeight: 600, color: row.settlementBusiness > 0 ? '#0369A1' : '#CBD5E1' }}>{fmt(row.settlementBusiness)}</td>
+                <td style={{ fontWeight: 600, color: row.upiTransferBusiness > 0 ? '#0369A1' : '#CBD5E1' }}>{fmt(row.upiTransferBusiness)}</td>
+                <td style={{ fontWeight: 800, color: '#0D1B3E' }}>₹{Number(row.totalBusinessValue).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                <td style={{ fontWeight: 600 }}>{row.totalTxns ?? '—'}</td>
+                <td style={{ color: '#16A34A', fontWeight: 700 }}>{row.successfulTxns ?? '—'}</td>
+              </tr>
+            )}
+            searchQuery=""
+            onSearchChange={() => {}}
+            rowsPerPage={members.length || 10}
+            onRowsPerPageChange={() => {}}
+            currentPage={1}
+            onPageChange={() => {}}
+            totalEntries={members.length}
+            totalPages={1}
+          />
         </div>
       )}
 
-      {/* ── EXPLANATORY NOTES LEGEND ── */}
+      {/* Legend */}
       <div className={styles.legendBlock}>
-        <div className={styles.legendHeader}>
-          <FaRegLightbulb className={styles.legendHeaderIcon} />
-          <span>How the numbers are worked out.</span>
-        </div>
+        <div className={styles.legendHeader}><FaRegLightbulb className={styles.legendHeaderIcon} /><span>How the numbers are worked out.</span></div>
         <ul className={styles.legendList}>
-          <li>
-            <strong>Business</strong> counts successful transactions only. Failed and pending ones show in the counts but add nothing to the value.
-          </li>
-          <li>
-            <strong>AEPS is split by transaction type.</strong> A cash withdrawal moves money; a balance enquiry or mini statement does not, but still writes a row. Lumping them together would make a member who checked two hundred balances look like two hundred transactions worth nothing.
-          </li>
-          <li>
-            A service shown greyed out was <strong>not used at all</strong> in the period — usually the more useful finding.
-          </li>
-          <li>
-            The downline walks the upline tree <strong>up to 12 levels</strong> and includes the selected member.
-          </li>
+          <li><strong>Business</strong> counts successful transactions only. Failed and pending ones show in the counts but add nothing to the value.</li>
+          <li>Service columns show the <strong>successful volume</strong> for that service. A dash (—) means no activity in the period.</li>
+          <li>The downline walks the upline tree <strong>up to 12 levels</strong> and includes the selected member.</li>
         </ul>
       </div>
     </div>

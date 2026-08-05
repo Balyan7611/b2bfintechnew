@@ -532,21 +532,7 @@ const MATMHistory = () => {
       </div>
       {activeReceipt && (
         <TransactionReceipt 
-          data={{
-            mode: 'GENERAL',
-            amount: parseFloat(activeReceipt.amount || activeReceipt.txnAmount) || 0,
-            charge: parseFloat(activeReceipt.surcharge || activeReceipt.charge) || 0,
-            date: activeReceipt.createdDate ? new Date(activeReceipt.createdDate).toLocaleString('en-IN') : new Date().toLocaleString(),
-            customerName: activeReceipt.customerName || activeReceipt.memberName || 'N/A',
-            customerMobile: activeReceipt.customerMobile || activeReceipt.mobile || activeReceipt.memberMobile || 'N/A',
-            beneficiary: activeReceipt.beniName || activeReceipt.operatorName || activeReceipt.operator || 'N/A',
-            bank: activeReceipt.bankName || 'N/A',
-            accountNo: activeReceipt.accountNo || activeReceipt.number || 'N/A',
-            total: parseFloat(activeReceipt.amount || activeReceipt.txnAmount) || 0,
-            chunks: [{ txnId: activeReceipt.orderId || activeReceipt.refid || activeReceipt.txnId || 'N/A', amount: parseFloat(activeReceipt.amount || activeReceipt.txnAmount) || 0 }],
-            status: activeReceipt.status || 'N/A',
-            remark: activeReceipt.remark || 'N/A'
-          }}
+          data={activeReceipt}
           onClose={() => setActiveReceipt(null)}
         />
       )}

@@ -8,6 +8,7 @@ import {
   setMATMCurrentPage 
 } from '../../../../store/slices/reportSlice';
 import AdminTable from '../../../../shared/components/common/AdminTable';
+import ReceiptModal from '../../../../shared/components/common/ReceiptModal';
 import StatsGrid from '../../../../shared/components/common/StatsGrid';
 import { FiBarChart2 } from 'react-icons/fi';
 import styles from './AEPSReport.module.css';
@@ -23,6 +24,8 @@ const MATMHistory = () => {
   const [masterOperators, setMasterOperators] = useState([]);
   const [masterApis, setMasterApis] = useState([]);
   const [showStats, setShowStats] = useState(false);
+  const [selectedTxn, setSelectedTxn] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchMasters = async () => {
@@ -124,9 +127,10 @@ const MATMHistory = () => {
                   </td>
                   <td>{item.remark || item.message || 'N/A'}</td>
                   <td>
-                    <button className={styles.actionBtn} title="View Receipt">
-                      <FiSearch />
-                    </button>
+                    <button
+                      onClick={() => { setSelectedTxn(item); setIsModalOpen(true); }}
+                      style={{ background: 'linear-gradient(135deg,#1756AA,#1E3A8A)', color:'#fff', border:'none', borderRadius:'6px', padding:'3px 10px', fontSize:'0.72rem', fontWeight:700, cursor:'pointer' }}
+                    >VIEW</button>
                   </td>
                 </tr>
               );
@@ -140,6 +144,7 @@ const MATMHistory = () => {
         totalEntries={filteredList.length}
         totalPages={Math.ceil(filteredList.length / rowsPerPage)}
       />
+      <ReceiptModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} data={selectedTxn} />
     </div>
   );
 };

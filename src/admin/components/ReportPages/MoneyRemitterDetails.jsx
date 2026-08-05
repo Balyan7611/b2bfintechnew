@@ -349,21 +349,7 @@ const MoneyRemitterDetails = () => {
 
       {activeReceipt && (
         <TransactionReceipt 
-          data={{
-            mode: 'REMITTER',
-            amount: parseFloat(activeReceipt.limit || 0),
-            charge: 0,
-            date: activeReceipt.regDate ? new Date(activeReceipt.regDate).toLocaleString('en-IN') : new Date().toLocaleString(),
-            customerName: activeReceipt.name || activeReceipt.firstName || 'N/A',
-            customerMobile: activeReceipt.mobile || 'N/A',
-            beneficiary: 'N/A',
-            bank: 'N/A',
-            accountNo: activeReceipt.memberId || 'N/A',
-            total: parseFloat(activeReceipt.limit || 0),
-            chunks: [{ txnId: activeReceipt.memberId || 'N/A', amount: parseFloat(activeReceipt.limit || 0) }],
-            status: activeReceipt.status || activeReceipt.kycStatus || activeReceipt.result || 'N/A',
-            remark: 'N/A'
-          }}
+          data={activeReceipt}
           onClose={() => setActiveReceipt(null)}
         />
       )}

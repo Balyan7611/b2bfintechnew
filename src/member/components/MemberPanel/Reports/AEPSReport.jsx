@@ -173,7 +173,7 @@ const AEPSReport = () => {
     fetchAEPSReport();
   };
   
-  const displayColumns = ['SNO', 'Transaction Date', 'Member Id', 'Member Name', 'AadharNumber', 'Bank Name', 'Transaction Type', 'Opening Bal', 'Amount', 'Commission', 'Closing Bal', 'Bank TransID', 'Status', 'View Receipt', 'Remark'];
+  const displayColumns = ['SNO', 'Transaction Date', 'Member Id', 'Member Name', 'AadharNumber', 'Bank Name', 'Transaction Type', 'Opening Bal', 'Amount', 'Commission', 'Closing Bal', 'Bank TransID', 'Status', 'Receipt', 'Remark'];
 
   const totalAmount = filteredList.reduce((a, t) => a + (parseFloat(t.amount) || 0), 0);
   const totalCommission = filteredList.reduce((a, t) => a + (parseFloat(t.commission || t.totalCommission) || 0), 0);
@@ -289,13 +289,10 @@ const AEPSReport = () => {
                     </span>
                   </td>
                   <td>
-                    <button 
-                      className={styles.actionBtn} 
+                    <button
                       onClick={() => handleViewReceipt(item)}
-                      title="View Receipt"
-                    >
-                      <FiSearch />
-                    </button>
+                      style={{ background: 'linear-gradient(135deg,#1756AA,#1E3A8A)', color:'#fff', border:'none', borderRadius:'6px', padding:'3px 10px', fontSize:'0.72rem', fontWeight:700, cursor:'pointer' }}
+                    >VIEW</button>
                   </td>
                   <td>{item.remark || item.message || 'N/A'}</td>
                 </tr>

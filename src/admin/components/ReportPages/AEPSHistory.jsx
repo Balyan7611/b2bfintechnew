@@ -770,25 +770,7 @@ const AEPSHistory = () => {
 
             {activeReceipt && (
         <TransactionReceipt 
-          data={{
-            mode: 'AEPS',
-            amount: parseFloat(activeReceipt.amount) || 0,
-            charge: 0,
-            date: activeReceipt.createdDate ? new Date(activeReceipt.createdDate).toLocaleString('en-IN') : new Date().toLocaleString(),
-            customerName: activeReceipt.memberName || 'N/A',
-            customerMobile: activeReceipt.memberCode || 'N/A',
-            beneficiary: activeReceipt.aadharNo || activeReceipt.number || 'N/A',
-            bank: activeReceipt.providerName || activeReceipt.serviceName || 'N/A',
-            accountNo: activeReceipt.operatorId || 'N/A',
-            total: parseFloat(activeReceipt.amount) || 0,
-            chunks: [{ txnId: activeReceipt.operatorId || 'N/A', amount: parseFloat(activeReceipt.amount) || 0 }],
-            opBal: parseFloat(activeReceipt.opBal) || 0,
-            clBal: parseFloat(activeReceipt.clBal) || 0,
-            commission: parseFloat(activeReceipt.commission) || 0,
-            tds: parseFloat(activeReceipt.tds) || 0,
-            status: activeReceipt.status || 'N/A',
-            remark: activeReceipt.remark || 'N/A'
-          }}
+          data={activeReceipt}
           onClose={() => setActiveReceipt(null)}
         />
       )}

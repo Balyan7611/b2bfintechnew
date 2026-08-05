@@ -1,6 +1,7 @@
 import React, { useState, useRef, useLayoutEffect } from 'react';
 import { FiX, FiPrinter } from 'react-icons/fi';
 import { SITE_CONFIG } from '../../../config/siteConfig';
+import { getSession } from '../../../utils/authUtils';
 
 const SIZES = ['A4', 'A5', '80mm', '58mm'];
 
@@ -71,22 +72,9 @@ function ReceiptBody({ data, cfg }) {
   const isThermal = !cfg.twoCol;
   const fs = cfg.fontSize;
 
-  const sessionStr = localStorage.getItem('bss_current_session');
-  let merchantName = 'Rabindra Kumar Kushwaha';
-  let shopName = 'Sachin Digital Store';
-  if (sessionStr) {
-    try {
-      const session = JSON.parse(sessionStr);
-      if (session?.name) merchantName = session.name;
-      if (session?.adminId) {
-        const users = JSON.parse(localStorage.getItem('bss_registered_users')) || [];
-        const user = users.find(u => u.adminId === session.adminId);
-        if (user?.shopName) shopName = user.shopName;
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
+  const session = getSession();
+  const merchantName = session?.name || session?.fullName || session?.ownerName || session?.firmName || SITE_CONFIG.name || 'Merchant';
+  const shopName = session?.shopName || session?.firmName || session?.businessName || SITE_CONFIG.name || 'Shop';
 
   const lbl = {
     fontSize: Math.max(fs - 3, 8),
@@ -203,31 +191,26 @@ function ReceiptBody({ data, cfg }) {
       {/* Top Banner Row: Logo Left, Success Pill Right */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block', margin: 0 }} />
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          background: '#ECFDF5',
-          border: '1px solid #A7F3D0',
-          borderRadius: 50,
-          padding: '5px 14px',
-          boxShadow: '0 2px 8px rgba(16, 185, 129, 0.05)',
-        }}>
-          <div style={{
-            width: 14,
-            height: 14,
-            borderRadius: '50%',
-            background: '#10B981',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-          <span style={{ fontSize: fs - 3, fontWeight: 800, color: '#065F46', letterSpacing: '0.6px' }}>SUCCESS</span>
-        </div>
+        {(() => {
+          const st = String(data?.status || 'PENDING').toUpperCase();
+          const isFail = st === 'FAILED' || st === 'REJECTED';
+          const isPending = st === 'PENDING';
+          return (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: isFail ? '#FEF2F2' : isPending ? '#FFFBEB' : '#ECFDF5',
+              border: `1px solid ${isFail ? '#FECACA' : isPending ? '#FDE68A' : '#A7F3D0'}`,
+              borderRadius: 50, padding: '5px 14px',
+            }}>
+              <div style={{ width: 14, height: 14, borderRadius: '50%', background: isFail ? '#EF4444' : isPending ? '#F59E0B' : '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round">
+                  {isFail ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <polyline points="20 6 9 17 4 12" />}
+                </svg>
+              </div>
+              <span style={{ fontSize: fs - 3, fontWeight: 800, color: isFail ? '#991B1B' : isPending ? '#92400E' : '#065F46', letterSpacing: '0.6px' }}>{st}</span>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Main Grid Table exactly matching the user request */}
@@ -287,15 +270,15 @@ function ReceiptBody({ data, cfg }) {
               <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600' }}>{data?.rrn || c.txnId}</td>
               <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', textAlign: 'center' }}>
                 <span style={{
-                  background: '#ECFDF5',
-                  border: '1px solid #A7F3D0',
-                  color: '#065F46',
+                  background: String(data?.status).toUpperCase() === 'FAILED' ? '#FEF2F2' : String(data?.status).toUpperCase() === 'PENDING' ? '#FFFBEB' : '#ECFDF5',
+                  border: `1px solid ${String(data?.status).toUpperCase() === 'FAILED' ? '#FECACA' : String(data?.status).toUpperCase() === 'PENDING' ? '#FDE68A' : '#A7F3D0'}`,
+                  color: String(data?.status).toUpperCase() === 'FAILED' ? '#991B1B' : String(data?.status).toUpperCase() === 'PENDING' ? '#92400E' : '#065F46',
                   padding: '2px 8px',
                   borderRadius: 50,
                   fontSize: 9.5,
                   fontWeight: '800',
                   display: 'inline-block'
-                }}>Success</span>
+                }}>{data?.status || 'PENDING'}</span>
               </td>
             </tr>
           ))}
@@ -327,16 +310,23 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
   const cfg = sizeConfig[size];
   const receiptPxWidth = SIZE_PX[size];
 
-  // Map incoming data schema to DMT receipt schema
+  // Map incoming data schema to receipt schema — covers all API field variants
   const mappedData = data ? {
     ...data,
-    customerName: data.customerName || data.memberName || 'Guest',
-    customerMobile: data.customerMobile || data.mobileNumber || 'N/A',
-    beneficiary: data.beneficiary || data.beneficiaryName || data.memberName || 'N/A',
-    bank: data.bank || data.bankName || 'N/A',
-    accountNo: data.accountNo || data.accountNumber || data.aadhar || 'N/A',
-    ifsc: data.ifsc || 'N/A',
-    total: data.total || (Number(data.amount || 0) + Number(data.charge || 0)),
+    date: data.createdDate || data.date || data.txnDate || data.transactionDate || data.created_at || 'N/A',
+    status: data.status || 'PENDING',
+    customerName: data.customerName || data.memberName || data.name || data.beneName || 'Guest',
+    customerMobile: data.customerMobile || data.mobileNumber || data.mobile || data.number || 'N/A',
+    beneficiary: data.beneficiary || data.beneficiaryName || data.beneName || data.beniName || data.beniVerifyName || data.memberName || 'N/A',
+    bank: data.bank || data.bankName || data.beneBankName || 'N/A',
+    accountNo: data.accountNo || data.accountNumber || data.accNo || data.aadhar || data.aadharNo || data.cardNo || 'N/A',
+    ifsc: data.ifsc || data.ifscCode || '',
+    mode: data.mode || data.transactionType || data.fromChannel || 'IMPS',
+    bankTransId: data.bankTransId || data.txnId || data.transId || data.orderId || data.vendorId || data.refid || data.rrn || 'N/A',
+    rrn: data.rrn || data.bankTransId || data.txnId || data.transId || 'N/A',
+    amount: Number(data.amount || 0),
+    charge: Number(data.surcharge || data.charge || data.serviceCharge || 0),
+    total: data.total || (Number(data.amount || 0) + Number(data.surcharge || data.charge || 0)),
   } : null;
 
   useLayoutEffect(() => {
@@ -363,22 +353,9 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
     const isTh = !cfg.twoCol;
     const fs = cfg.fontSize;
 
-    const sessionStr = localStorage.getItem('bss_current_session');
-    let merchantName = 'Rabindra Kumar Kushwaha';
-    let shopName = 'Sachin Digital Store';
-    if (sessionStr) {
-      try {
-        const session = JSON.parse(sessionStr);
-        if (session?.name) merchantName = session.name;
-        if (session?.adminId) {
-          const users = JSON.parse(localStorage.getItem('bss_registered_users')) || [];
-          const user = users.find(u => u.adminId === session.adminId);
-          if (user?.shopName) shopName = user.shopName;
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
+    const session = getSession();
+    const merchantName = session?.name || session?.fullName || session?.ownerName || session?.firmName || SITE_CONFIG.name || 'Merchant';
+    const shopName = session?.shopName || session?.firmName || session?.businessName || SITE_CONFIG.name || 'Shop';
 
     const chunksHtml = (mappedData.chunks || [{ id: 'c1', txnId: mappedData.bankTransId || mappedData.id || 'N/A', amount: mappedData.amount || 0 }]).map((c, i, arr) => `
       <tr>

@@ -172,19 +172,7 @@ const AEPSReport = () => {
 
       {activeReceipt && (
         <TransactionReceipt 
-          data={{
-            mode: 'AEPS',
-            amount: parseFloat(activeReceipt.amount) || 0,
-            charge: 0,
-            date: activeReceipt.date,
-            customerName: activeReceipt.memberName,
-            customerMobile: activeReceipt.memberId,
-            beneficiary: activeReceipt.aadhar,
-            bank: activeReceipt.type,
-            accountNo: activeReceipt.bankTransId,
-            total: parseFloat(activeReceipt.amount) || 0,
-            chunks: [{ txnId: activeReceipt.bankTransId, amount: parseFloat(activeReceipt.amount) || 0 }]
-          }}
+          data={activeReceipt}
           onClose={() => setActiveReceipt(null)}
         />
       )}

@@ -683,25 +683,7 @@ const DMTHistory = () => {
 
       {activeReceipt && (
         <TransactionReceipt 
-          data={{
-            mode: 'DMT',
-            amount: parseFloat(activeReceipt.amount) || 0,
-            charge: parseFloat(activeReceipt.surcharge || activeReceipt.charge) || 0,
-            date: activeReceipt.createdDate ? new Date(activeReceipt.createdDate).toLocaleString('en-IN') : new Date().toLocaleString(),
-            customerName: activeReceipt.customerName || 'N/A',
-            customerMobile: activeReceipt.customerMobile || 'N/A',
-            beneficiary: activeReceipt.beniName || 'N/A',
-            bank: activeReceipt.bankName || 'N/A',
-            accountNo: activeReceipt.accountNo || 'N/A',
-            total: parseFloat(activeReceipt.amount) || 0,
-            chunks: [{ txnId: activeReceipt.orderId || activeReceipt.refid || 'N/A', amount: parseFloat(activeReceipt.amount) || 0 }],
-            opBal: parseFloat(activeReceipt.openingBalance || activeReceipt.opBal) || 0,
-            clBal: parseFloat(activeReceipt.closingBalance || activeReceipt.clBal) || 0,
-            commission: parseFloat(activeReceipt.commission) || 0,
-            tds: parseFloat(activeReceipt.tds) || 0,
-            status: activeReceipt.status || 'N/A',
-            remark: activeReceipt.remark || 'N/A'
-          }}
+          data={activeReceipt}
           onClose={() => setActiveReceipt(null)}
         />
       )}

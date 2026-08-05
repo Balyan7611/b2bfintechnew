@@ -405,21 +405,7 @@ const EarningCommission = () => {
             {/* ── Receipt Modal ── */}
             {activeReceipt && (
                 <TransactionReceipt
-                    data={{
-                        mode: 'COMMISSION',
-                        amount: parseFloat(activeReceipt.amount || 0),
-                        charge: parseFloat(activeReceipt.charge || 0),
-                        date: activeReceipt.createdDate ? new Date(activeReceipt.createdDate).toLocaleString('en-IN') : new Date().toLocaleString(),
-                        customerName: activeReceipt.customerName || activeReceipt.memberName || activeReceipt.firstName || 'N/A',
-                        customerMobile: activeReceipt.customerMobile || activeReceipt.mobile || activeReceipt.memberMobile || 'N/A',
-                        beneficiary: activeReceipt.beniName || activeReceipt.operatorName || activeReceipt.operator || 'N/A',
-                        bank: activeReceipt.bankName || 'N/A',
-                        accountNo: activeReceipt.accountNo || activeReceipt.number || 'N/A',
-                        total: parseFloat(activeReceipt.amount || 0),
-                        chunks: [{ txnId: activeReceipt.orderId || activeReceipt.refid || activeReceipt.txnId || 'N/A', amount: parseFloat(activeReceipt.amount || 0) }],
-                        status: activeReceipt.status || 'N/A',
-                        remark: activeReceipt.remark || 'N/A'
-                    }}
+                    data={activeReceipt}
                     onClose={() => setActiveReceipt(null)}
                 />
             )}

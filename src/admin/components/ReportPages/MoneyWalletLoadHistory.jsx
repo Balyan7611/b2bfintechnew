@@ -383,21 +383,7 @@ const MoneyWalletLoadHistory = () => {
             {/* ── Receipt Modal ── */}
             {activeReceipt && (
                 <TransactionReceipt
-                    data={{
-                        mode: 'WALLET_LOAD',
-                        amount: parseFloat(activeReceipt.loadAmount || activeReceipt.amount || 0),
-                        charge: parseFloat(activeReceipt.apiCharge || activeReceipt.charge || 0),
-                        date: activeReceipt.loadDate || activeReceipt.createdDate ? new Date(activeReceipt.loadDate || activeReceipt.createdDate).toLocaleString('en-IN') : new Date().toLocaleString(),
-                        customerName: activeReceipt.memberName || 'N/A',
-                        customerMobile: activeReceipt.mobile || 'N/A',
-                        beneficiary: 'Wallet Load',
-                        bank: 'N/A',
-                        accountNo: activeReceipt.orderId || 'N/A',
-                        total: parseFloat(activeReceipt.loadAmount || activeReceipt.amount || 0),
-                        chunks: [{ txnId: activeReceipt.orderId || 'N/A', amount: parseFloat(activeReceipt.loadAmount || activeReceipt.amount || 0) }],
-                        status: activeReceipt.status || 'N/A',
-                        remark: activeReceipt.remark || 'N/A'
-                    }}
+                    data={activeReceipt}
                     onClose={() => setActiveReceipt(null)}
                 />
             )}

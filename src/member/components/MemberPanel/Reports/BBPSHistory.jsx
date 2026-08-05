@@ -8,6 +8,7 @@ import {
   setBBPSCurrentPage 
 } from '../../../../store/slices/reportSlice';
 import AdminTable from '../../../../shared/components/common/AdminTable';
+import ReceiptModal from '../../../../shared/components/common/ReceiptModal';
 import StatsGrid from '../../../../shared/components/common/StatsGrid';
 import { FiBarChart2 } from 'react-icons/fi';
 import styles from './AEPSReport.module.css';
@@ -23,6 +24,8 @@ const BBPSHistory = () => {
   const [masterOperators, setMasterOperators] = useState([]);
   const [masterApis, setMasterApis] = useState([]);
   const [showStats, setShowStats] = useState(false);
+  const [selectedTxn, setSelectedTxn] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchMasters = async () => {
@@ -69,7 +72,7 @@ const BBPSHistory = () => {
 
   const filteredList = list.filter(item => item.consumer?.toLowerCase().includes(searchQuery.toLowerCase()) || item.txnId?.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  const displayColumns = ['Action', 'SNO', 'Date Time', 'Recharge By', 'Operator', 'Number', 'Status', 'Opening Bal', 'Amount', 'Commission', 'TDS', 'Closing Bal', 'TXID', 'Operator Id', 'Remark'];
+  const displayColumns = ['Receipt', 'SNO', 'Date Time', 'Recharge By', 'Operator', 'Number', 'Status', 'Opening Bal', 'Amount', 'Commission', 'TDS', 'Closing Bal', 'TXID', 'Operator Id', 'Remark'];
 
   const totalAmount = filteredList.reduce((a, t) => a + (parseFloat(t.amount) || 0), 0);
   const totalCommission = filteredList.reduce((a, t) => a + (parseFloat(t.commission || t.totalCommission) || 0), 0);
@@ -130,9 +133,10 @@ const BBPSHistory = () => {
             return (
               <tr key={item.id || index}>
                 <td>
-                  <button className={styles.actionBtn} title="View Receipt">
-                    <FiSearch />
-                  </button>
+                  <button
+                    onClick={() => { setSelectedTxn(item); setIsModalOpen(true); }}
+                    style={{ background: 'linear-gradient(135deg,#1756AA,#1E3A8A)', color:'#fff', border:'none', borderRadius:'6px', padding:'3px 10px', fontSize:'0.72rem', fontWeight:700, cursor:'pointer' }}
+                  >VIEW</button>
                 </td>
                 <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
                 <td>{item.createdDate || item.date || 'N/A'}</td>
@@ -164,6 +168,7 @@ const BBPSHistory = () => {
         totalEntries={filteredList.length}
         totalPages={Math.ceil(filteredList.length / rowsPerPage)}
       />
+      <ReceiptModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} data={selectedTxn} />
     </div>
   );
 };
