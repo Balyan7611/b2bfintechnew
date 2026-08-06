@@ -13,11 +13,14 @@ import { resolveMemberId, getLoginId } from '../../../../utils/memberIdentity';
 import { getSession } from '../../../../utils/authUtils';
 import { formatLedgerDate } from '../../../../models/walletLedgerModel';
 import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
+import { FiSearch } from 'react-icons/fi';
 import styles from './AEPSReport.module.css';
 
 const AEPSWalletHistory = () => {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
+  const [focusedField, setFocusedField] = useState(null);
   const [memberOptions, setMemberOptions] = useState([]);
 
   const { list, filters, searchQuery, rowsPerPage, currentPage } =
@@ -28,13 +31,14 @@ const AEPSWalletHistory = () => {
     API.member.getAll({ pageNumber: 1, pageSize: 5000 })
       .then(res => {
         const items = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
-        setMemberOptions(
-          (Array.isArray(items) ? items : []).map(m => {
+        setMemberOptions([
+          { value: '', label: 'All Members' },
+          ...(Array.isArray(items) ? items : []).map(m => {
             const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
             const loginId = m.memberID || m.memberid || m.loginID || m.loginId || m.username || String(m.id || m.msrno || '');
             return { value: String(m.id || m.msrno), label: name ? `${name} (${loginId})` : loginId };
           })
-        );
+        ]);
       })
       .catch(err => console.warn('AEPSWallet: member list failed', err));
   }, []);
@@ -42,6 +46,7 @@ const AEPSWalletHistory = () => {
   // ── Load AEPS wallet ledger ──
   const loadHistory = useCallback(async (overrideFilters) => {
     setIsLoading(true);
+    setApiError('');
     const f = overrideFilters || filters;
     try {
       const defaultMemberId = await resolveMemberId();
@@ -60,7 +65,7 @@ const AEPSWalletHistory = () => {
 
       const session = getSession();
       let myName    = session?.name || session?.fullName || '';
-      let myLoginId = getLoginId() || queryMemberId || '';
+      let myLoginId = getLoginId() || String(queryMemberId || '');
 
       if (queryMemberId) {
         try {
@@ -71,24 +76,35 @@ const AEPSWalletHistory = () => {
         } catch (e) {}
       }
 
-      dispatch(setAEPSWalletList(items.map(r => ({
-        ...r,
-        member:     r.loginId || myLoginId,
-        name:       r.memberName || myName || '-',
-        opening:    (r.openingBalance || 0).toFixed(2),
-        amount:     (r.amount || 0).toFixed(2),
-        factor:     r.isCredit ? 'Credit' : 'Debit',
-        commission: (r.commission || 0).toFixed(2),
-        gst:        (r.gst || 0).toFixed(2),
-        tds:        (r.tds || 0).toFixed(2),
-        charge:     (r.charge || 0).toFixed(2),
-        closing:    (r.balance || 0).toFixed(2),
-        date:       formatLedgerDate(r.createdDate),
-        desc:       r.narration || r.description || '-',
-        status:     r.status || 'SUCCESS'
-      }))));
+      if (items.length === 0) {
+        setApiError(`No AEPS wallet records found${queryMemberId ? ` for member ${queryMemberId}` : ''}. Try selecting a member or changing date range.`);
+      }
+
+      dispatch(setAEPSWalletList(items.map(r => {
+        // Normalize factor: API sends CR/DR or isCredit bool
+        const rawFactor = r.factor || (r.isCredit ? 'CR' : 'DR');
+        const factor = String(rawFactor).toUpperCase().includes('CR') ? 'CR' : 'DR';
+        return {
+          ...r,
+          member:     r.loginId || myLoginId,
+          name:       r.memberName || myName || '-',
+          opening:    (r.openingBalance || 0).toFixed(2),
+          amount:     (r.amount || 0).toFixed(2),
+          factor,
+          commission: (r.commission || 0).toFixed(2),
+          gst:        (r.gst || 0).toFixed(2),
+          tds:        (r.tds || 0).toFixed(2),
+          charge:     (r.charge || 0).toFixed(2),
+          closing:    (r.balance || 0).toFixed(2),
+          date:       formatLedgerDate(r.createdDate),
+          desc:       r.narration || r.description || '-',
+          status:     r.status || 'SUCCESS'
+        };
+      })));
     } catch (err) {
       console.error('[AEPSWalletHistory] failed:', err);
+      const msg = err?.response?.data?.mess || err?.message || 'API error';
+      setApiError(`Failed to load AEPS wallet: ${msg}`);
       dispatch(setAEPSWalletList([]));
     } finally {
       setIsLoading(false);
@@ -105,58 +121,104 @@ const AEPSWalletHistory = () => {
     lower(item.desc).includes(lower(searchQuery))
   );
 
-  const displayColumns = ['SNO', 'Member', 'Opening', 'Amount', 'Factor', 'Commission', 'GST', 'TDS', 'Closing', 'Narration', 'Date'];
+  const displayColumns = ['#', 'Member', 'Opening Bal', 'Amount', 'Cr / Dr', 'Commission', 'GST', 'TDS', 'Closing Bal', 'Narration', 'Date'];
 
   return (
     <div className={styles.container}>
       <AdminTable
         title="AEPS EWALLET SUMMARY"
         topContent={
-          <div className={styles.filterSection}>
-            <div className={styles.filterRow}>
-              <div className={styles.formGroup}>
-                <label>From Date</label>
-                <input type="date" className={styles.inputControl}
-                  value={filters.fromDate}
-                  onChange={e => dispatch(updateAEPSWalletFilters({ fromDate: e.target.value }))} />
+          <div style={{ padding: '18px 20px', borderBottom: '1px solid #E8EDF5' }}>
+            <form onSubmit={e => { e.preventDefault(); loadHistory(filters); }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
+
+                {/* From Date */}
+                <div className={styles.formGroup}>
+                  <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>From Date</label>
+                  <input
+                    type="date"
+                    className={styles.inputControl}
+                    value={filters.fromDate}
+                    onChange={e => dispatch(updateAEPSWalletFilters({ fromDate: e.target.value }))}
+                    onFocus={() => setFocusedField('fromDate')}
+                    onBlur={() => setFocusedField(null)}
+                    style={{ paddingLeft: 12, paddingRight: 12, height: 38, borderRadius: 10, fontSize: '0.825rem', border: focusedField === 'fromDate' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'fromDate' ? '0 0 0 3px rgba(23,86,170,0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }}
+                  />
+                </div>
+
+                {/* To Date */}
+                <div className={styles.formGroup}>
+                  <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>To Date</label>
+                  <input
+                    type="date"
+                    className={styles.inputControl}
+                    value={filters.toDate}
+                    onChange={e => dispatch(updateAEPSWalletFilters({ toDate: e.target.value }))}
+                    onFocus={() => setFocusedField('toDate')}
+                    onBlur={() => setFocusedField(null)}
+                    style={{ paddingLeft: 12, paddingRight: 12, height: 38, borderRadius: 10, fontSize: '0.825rem', border: focusedField === 'toDate' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'toDate' ? '0 0 0 3px rgba(23,86,170,0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }}
+                  />
+                </div>
+
+                {/* Member */}
+                <div className={styles.formGroup}>
+                  <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>Member</label>
+                  <SearchableSelect
+                    options={memberOptions}
+                    value={filters.memberId}
+                    onChange={val => dispatch(updateAEPSWalletFilters({ memberId: val || '' }))}
+                    placeholder="All Members"
+                  />
+                </div>
+
+                {/* Search Button */}
+                <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'flex-end' }}>
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    style={{ width: '100%', height: 38, background: 'linear-gradient(135deg,#1756AA,#1E3A8A)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(23,86,170,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.2s' }}
+                  >
+                    <FiSearch size={14} />
+                    {isLoading ? 'Loading…' : 'Search'}
+                  </button>
+                </div>
+
               </div>
-              <div className={styles.formGroup}>
-                <label>To Date</label>
-                <input type="date" className={styles.inputControl}
-                  value={filters.toDate}
-                  onChange={e => dispatch(updateAEPSWalletFilters({ toDate: e.target.value }))} />
+            </form>
+            {apiError && (
+              <div style={{ margin: '10px 0 0', padding: '10px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#b91c1c', fontSize: '0.8rem', fontWeight: 600 }}>
+                ⚠️ {apiError}
               </div>
-              <div className={styles.formGroup}>
-                <label>Member</label>
-                <SearchableSelect
-                  options={memberOptions}
-                  value={filters.memberId}
-                  onChange={val => dispatch(updateAEPSWalletFilters({ memberId: val }))}
-                  placeholder="All / Select Member"
-                />
-              </div>
-              <button className={styles.submitBtn} disabled={isLoading}
-                onClick={() => loadHistory(filters)}>
-                {isLoading ? 'Loading...' : 'Search'}
-              </button>
-            </div>
+            )}
           </div>
         }
         columns={displayColumns}
         data={filteredList}
         renderRow={(item, index) => (
           <tr key={item.id || index}>
-            <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
-            <td>{`${item.name || 'N/A'} (${item.member || 'N/A'})`}</td>
-            <td>₹{item.opening}</td>
-            <td>₹{item.amount}</td>
-            <td>{item.factor}</td>
-            <td>₹{item.commission}</td>
-            <td>₹{item.gst}</td>
-            <td>₹{item.tds}</td>
-            <td>₹{item.closing}</td>
-            <td>{item.desc}</td>
-            <td>{item.date}</td>
+            <td style={{ width: 40, color: '#94A3B8', fontWeight: 700, fontSize: '0.78rem' }}>
+              {(currentPage - 1) * rowsPerPage + index + 1}
+            </td>
+            <td style={{ minWidth: 140 }}>
+              <div style={{ fontWeight: 700, color: '#0D1B3E', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>{item.name || 'N/A'}</div>
+              <div style={{ fontSize: '0.72rem', color: '#94A3B8' }}>{item.member || ''}</div>
+            </td>
+            <td style={{ fontWeight: 600, color: '#475569', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>₹{item.opening}</td>
+            <td style={{ fontWeight: 800, color: '#0D1B3E', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>₹{item.amount}</td>
+            <td style={{ width: 70 }}>
+              <span style={{
+                display: 'inline-block', padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700,
+                background: item.factor === 'Credit' ? '#D1FAE5' : '#FEE2E2',
+                color: item.factor === 'Credit' ? '#065F46' : '#991B1B'
+              }}>{item.factor}</span>
+            </td>
+            <td style={{ fontSize: '0.82rem', color: '#64748B', whiteSpace: 'nowrap' }}>₹{item.commission}</td>
+            <td style={{ fontSize: '0.82rem', color: '#64748B', whiteSpace: 'nowrap' }}>₹{item.gst}</td>
+            <td style={{ fontSize: '0.82rem', color: '#64748B', whiteSpace: 'nowrap' }}>₹{item.tds}</td>
+            <td style={{ fontWeight: 700, color: '#1756AA', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>₹{item.closing}</td>
+            <td style={{ fontSize: '0.78rem', color: '#64748B', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+              title={item.desc}>{item.desc}</td>
+            <td style={{ fontSize: '0.78rem', color: '#475569', whiteSpace: 'nowrap' }}>{item.date}</td>
           </tr>
         )}
         searchQuery={searchQuery}

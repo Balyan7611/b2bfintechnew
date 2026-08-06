@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { FiDatabase } from 'react-icons/fi';
+import { FiDatabase, FiMapPin } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { useDispatch } from 'react-redux';
 import { API } from '../../../api/endpoints';
@@ -19,6 +19,8 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
   const dispatch = useDispatch();
 
   // ── STATE DECLARATIONS ──
+  const [resetLocationModal, setResetLocationModal] = useState(false);
+  const [resetLocationLoading, setResetLocationLoading] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(initialEdit);
   const [showTpinModal, setShowTpinModal] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
@@ -348,6 +350,19 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
   // ── BLOCK / UNBLOCK MEMBER TENTATIVE ──
   const handleToggleMemberStatus = () => {
     setPendingStatusToggle(true);
+  };
+
+  const handleResetLocationHistory = async () => {
+    setResetLocationLoading(true);
+    try {
+      await API.member.resetLocationHistory(activeMemberData.id || activeMemberData.memberId);
+      setResetLocationModal(false);
+      dispatch({ type: 'ui/setNotification', payload: { type: 'success', message: 'Location history reset successfully! Member can now login from a new location.' } });
+    } catch (e) {
+      dispatch({ type: 'ui/setNotification', payload: { type: 'error', message: e?.response?.data?.mess || e?.message || 'Failed to reset location history.' } });
+    } finally {
+      setResetLocationLoading(false);
+    }
   };
 
   return (
@@ -1043,6 +1058,32 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 holdAmt={activeMemberData.holdAmt}
                 creditLimit={activeMemberData.creditLimit}
               />
+
+              {/* ── Reset Location History ── */}
+              <div style={{ marginTop: 16, borderTop: '1px solid #F1F5F9', paddingTop: 14 }}>
+                <p style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                  Security Actions
+                </p>
+                <button
+                  onClick={() => setResetLocationModal(true)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    width: '100%', padding: '10px 14px',
+                    background: 'linear-gradient(135deg, #FEF3C7, #FDE68A)',
+                    border: '1.5px solid #F59E0B',
+                    borderRadius: 10, cursor: 'pointer',
+                    fontWeight: 700, fontSize: '0.82rem', color: '#92400E',
+                    boxShadow: '0 2px 8px rgba(245,158,11,0.15)',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={e => e.currentTarget.style.boxShadow = '0 4px 14px rgba(245,158,11,0.3)'}
+                  onMouseOut={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(245,158,11,0.15)'}
+                >
+                  <FiMapPin size={15} />
+                  Reset Location History
+                </button>
+              </div>
+
             </div>
           </div>
         </>
@@ -1300,6 +1341,46 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
           </div>
         </div>
       )}
+      {/* ── Reset Location History Confirmation Modal ── */}
+      {resetLocationModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(13,27,62,0.45)', backdropFilter: 'blur(4px)', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => !resetLocationLoading && setResetLocationModal(false)}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: 28, width: '90%', maxWidth: 380, textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}
+            onClick={e => e.stopPropagation()}>
+            {/* Icon */}
+            <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#FEF3C7', color: '#D97706', fontSize: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <FiMapPin />
+            </div>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0D1B3E', margin: '0 0 10px' }}>Reset Location History?</h3>
+            <p style={{ fontSize: '0.85rem', color: '#475569', margin: '0 0 8px', lineHeight: 1.5 }}>
+              You are about to reset the location history for
+            </p>
+            <p style={{ fontWeight: 700, color: '#1756AA', fontSize: '0.95rem', margin: '0 0 16px' }}>
+              {activeMemberData.name} ({activeMemberData.memberId || activeMemberData.id})
+            </p>
+            <p style={{ fontSize: '0.82rem', color: '#64748B', margin: '0 0 24px', lineHeight: 1.5, background: '#FEF9EC', border: '1px solid #FDE68A', borderRadius: 8, padding: '10px 12px' }}>
+              This will clear the velocity check history. The member will be able to login from a new location without getting blocked.
+            </p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                disabled={resetLocationLoading}
+                onClick={() => setResetLocationModal(false)}
+                style={{ flex: 1, padding: '11px', background: '#F1F5F9', border: 'none', borderRadius: 9, color: '#475569', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                disabled={resetLocationLoading}
+                onClick={handleResetLocationHistory}
+                style={{ flex: 1, padding: '11px', background: 'linear-gradient(135deg,#D97706,#B45309)', border: 'none', borderRadius: 9, color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(217,119,6,0.3)' }}
+              >
+                {resetLocationLoading ? 'Resetting…' : 'Yes, Reset'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

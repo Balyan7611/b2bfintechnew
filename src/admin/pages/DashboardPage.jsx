@@ -61,7 +61,7 @@ import PrivacyPolicy from '../components/LegalPages/PrivacyPolicy';
 import RefundPolicy from '../components/LegalPages/RefundPolicy';
 import AdminChat from '../components/AdminChat/AdminChat';
 import SecurityTips from '../components/LegalPages/SecurityTips';
-import AEPSReport from '../components/WalletPages/AEPSReport';
+import AEPSReport from '../components/ReportPages/AEPSHistory';
 import MainWallet from '../components/WalletPages/MainWallet';
 import WalletSummary from '../components/WalletPages/WalletSummary';
 import FundTransferReport from '../components/WalletPages/FundTransferReport';
@@ -113,6 +113,7 @@ import DisputeRecharge from '../components/ReportPages/DisputeRecharge';
 import QueuedRecharge from '../components/ReportPages/QueuedRecharge';
 import BusinessSummary from '../components/ReportPages/BusinessSummary';
 import EarningCommission from '../components/ReportPages/EarningCommission';
+import CommissionLedger from '../components/ReportPages/CommissionLedger';
 import NSDLHistory from '../components/ReportPages/NSDLHistory';
 import UpgradePopup from '../../member/components/MemberPanel/UpgradePopup';
 import { BarChart, Bar } from 'recharts';
@@ -225,6 +226,7 @@ const SIDEBAR_LINKS = [
       { id: 'queued_recharge', label: 'Queued Recharge' },
       { id: 'business_summary', label: 'Business Summary' },
       { id: 'earning_commission', label: 'Earning Commission' },
+      { id: 'commission_ledger', label: 'Commission Ledger' },
       { id: 'nsdl_history', label: 'NSDL History' },
       { id: 'dmt_ppi_history', label: 'DMT PPI History' },
       { id: 'money_remitter_details', label: 'Money Remitter Details' },
@@ -1340,6 +1342,8 @@ const DashboardPage = () => {
             <BusinessSummary />
           ) : activeTab === 'earning_commission' ? (
             <EarningCommission />
+          ) : activeTab === 'commission_ledger' ? (
+            <CommissionLedger />
           ) : activeTab === 'all_member_balance' ? (
             <AllMemberBalance />
           ) : activeTab === 'nsdl_history' ? (

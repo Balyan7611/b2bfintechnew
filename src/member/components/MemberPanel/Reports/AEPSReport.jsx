@@ -1,5 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
+import { Cells as UplineCells, getUplineShape } from '../../../../shared/components/common/UplineCommissionCols';
 import { useDispatch, useSelector } from 'react-redux';
+import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 import { FiFilter, FiSearch } from 'react-icons/fi';
 import { 
   setAEPSList, 
@@ -13,8 +16,8 @@ import StatsGrid from '../../../../shared/components/common/StatsGrid';
 import { FiBarChart2 } from 'react-icons/fi';
 import ReceiptModal from '../../../../shared/components/common/ReceiptModal';
 import styles from './AEPSReport.module.css';
-import { useState } from 'react';
 import { API } from '../../../../api/endpoints';
+import { normalizeTxnResponse } from '../../../../services/transaction.service';
 import { getSession } from '../../../../utils/authUtils';
 
 const AEPSReport = () => {
@@ -40,6 +43,8 @@ const AEPSReport = () => {
   const [masterOperators, setMasterOperators] = useState([]);
   const [masterApis, setMasterApis] = useState([]);
   const [showStats, setShowStats] = useState(false);
+  const [breakdownTxn, setBreakdownTxn] = useState(null);
+  const [memberOptions, setMemberOptions] = useState([]);
 
   useEffect(() => {
     const fetchMasters = async () => {
@@ -54,6 +59,18 @@ const AEPSReport = () => {
       try {
         const apiRes = await API.masterApi.getAll({ pageSize: 500 });
         setMasterApis(Array.isArray(apiRes?.data?.items) ? apiRes.data.items : Array.isArray(apiRes?.data) ? apiRes.data : Array.isArray(apiRes) ? apiRes : []);
+      } catch (e) {}
+      try {
+        const mRes = await API.member.getAll({ pageNumber: 1, pageSize: 5000 });
+        const mList = mRes?.data?.items || mRes?.data || (Array.isArray(mRes) ? mRes : []);
+        setMemberOptions([
+          { value: '', label: 'All Members' },
+          ...(Array.isArray(mList) ? mList : []).map(m => {
+            const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
+            const loginId = m.memberID || m.memberid || m.loginID || m.loginId || String(m.id || m.msrno || '');
+            return { value: String(m.id || m.msrno), label: name ? `${name} (${loginId})` : loginId };
+          })
+        ]);
       } catch (e) {}
     };
     fetchMasters();
@@ -153,17 +170,13 @@ const AEPSReport = () => {
         pageSize: rowsPerPage,
         fromDate: filters.fromDate || '',
         toDate: filters.toDate || '',
-        serviceId: '',
+        serviceId: filters.serviceId || '',
         sectionType: '9,10',
         operatorId: filters.operatorId || '',
-        memberId: '',
+        memberId: filters.memberId || '',
         status: filters.status || ''
       });
-      let rawData = [];
-      if (res?.status === true) rawData = Array.isArray(res.data) ? res.data : (res.data?.items || []);
-      else if (Array.isArray(res?.data)) rawData = res.data;
-      else if (Array.isArray(res?.data?.items)) rawData = res.data.items;
-      else if (Array.isArray(res)) rawData = res;
+      const { items: rawData } = normalizeTxnResponse(res);
       console.log('[AEPSReport.jsx] rows:', rawData.length);
       dispatch(setAEPSList(rawData));
     } catch (e) {
@@ -174,7 +187,7 @@ const AEPSReport = () => {
 
   // Auto-fetch on mount and when filters/page change
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
+  useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status, filters.memberId, filters.serviceId]);
 
   const filteredList = list.filter(item => {
     const name = item.memberName || '';
@@ -201,7 +214,9 @@ const AEPSReport = () => {
     fetchAEPSReport();
   };
   
-  const displayColumns = ['SNO', 'Transaction Date', 'Member Id', 'Member Name', 'AadharNumber', 'Bank Name', 'Transaction Type', 'Opening Bal', 'Amount', 'Commission', 'Closing Bal', 'Bank TransID', 'Status', 'Receipt', 'Remark'];
+  const { roles: uplineRoles, cols: uplineCols } = getUplineShape(list);
+  const uplineColNames = Array.from({ length: uplineCols }, (_, i) => uplineRoles[i]?.roleName?.toUpperCase() || `L${i+1}`);
+  const displayColumns = ['SNO', 'Transaction Date', 'Member Id', 'Member Name', 'AadharNumber', 'Bank Name', 'Transaction Type', 'Opening Bal', 'Amount', 'Closing Bal', 'Bank TransID', 'Status', 'Receipt', 'Remark', 'ADMIN', 'TDS', 'UPLINE TOTAL', ...uplineColNames];
 
   const totalAmount = filteredList.reduce((a, t) => a + (parseFloat(t.amount) || 0), 0);
   const totalCommission = filteredList.reduce((a, t) => a + (parseFloat(t.commission || t.totalCommission) || 0), 0);
@@ -259,9 +274,39 @@ const AEPSReport = () => {
                       onChange={handleFilterChange}
                     />
                   </div>
+                  {/* Member */}
+                  <div className={styles.formGroup}>
+                    <label>Member</label>
+                    <SearchableSelect
+                      options={memberOptions}
+                      value={filters.memberId || ''}
+                      onChange={val => dispatch(updateAEPSFilters({ memberId: val || '' }))}
+                      placeholder="All Members"
+                    />
+                  </div>
+
+                  {/* Service */}
+                  <div className={styles.formGroup}>
+                    <label>Service</label>
+                    <select
+                      className={styles.inputControl}
+                      name="serviceId"
+                      value={filters.serviceId || ''}
+                      onChange={handleFilterChange}
+                    >
+                      <option value="">All Services</option>
+                      {masterServices.map(s => (
+                        <option key={s.id || s.serviceId} value={s.id || s.serviceId}>
+                          {s.name || s.serviceName || s.title || s.id}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Status */}
                   <div className={styles.formGroup}>
                     <label>Status</label>
-                    <select 
+                    <select
                       className={styles.inputControl}
                       name="status"
                       value={filters.status}
@@ -308,7 +353,6 @@ const AEPSReport = () => {
                   <td>{item.transactionType || item.mode || item.serviceName || 'N/A'}</td>
                   <td>₹{item.openingBalance || '0.00'}</td>
                   <td>₹{item.amount || '0.00'}</td>
-                  <td>₹{item.commission || item.totalCommission || '0.00'}</td>
                   <td>₹{item.closingBalance || '0.00'}</td>
                   <td>{item.rrn || item.vendorId || item.bankTransId || 'N/A'}</td>
                   <td>
@@ -323,6 +367,7 @@ const AEPSReport = () => {
                     >VIEW</button>
                   </td>
                   <td>{item.remark || item.message || 'N/A'}</td>
+                  <UplineCells txn={item} transactions={list} onBreakdown={setBreakdownTxn} />
                 </tr>
               );
             }}
@@ -413,6 +458,38 @@ const AEPSReport = () => {
             data={selectedTxn} 
           />
         </div>
+      )}
+      {breakdownTxn && ReactDOM.createPortal(
+        <>
+          <div onClick={() => setBreakdownTxn(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 9998 }} />
+          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 9999, background: 'linear-gradient(135deg,#0D1B5E,#1a2f8a)', borderRadius: 16, padding: '24px 28px', minWidth: 320, maxWidth: 440, boxShadow: '0 24px 60px rgba(0,0,0,0.4)', color: '#fff' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: '1rem', fontWeight: 900 }}>UPLINE BREAKDOWN</div>
+                <p style={{ margin: '3px 0 0', color: 'rgba(255,255,255,0.65)', fontSize: '0.72rem' }}>TXN: {breakdownTxn.orderId || breakdownTxn.id || '—'}</p>
+              </div>
+              <button onClick={() => setBreakdownTxn(null)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: 28, height: 28, borderRadius: '50%', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.07)', borderRadius: 8, padding: '10px 14px', marginBottom: 14 }}>
+              <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>Total Upline</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#15803d' }}>₹{Number(breakdownTxn.uplineCommission || 0).toFixed(2)}</span>
+            </div>
+            {(breakdownTxn.uplineBreakdown || []).map((row, i) => {
+              const colors = ['#1756AA','#7C3AED','#0891B2'];
+              const bg = ['rgba(23,86,170,0.15)','rgba(124,58,237,0.15)','rgba(8,145,178,0.15)'];
+              return (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: bg[i]||bg[2], borderRadius: 8, padding: '10px 14px', marginBottom: 8, borderLeft: `3px solid ${colors[i]||colors[2]}` }}>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#e2e8f0' }}>{row.roleName || `L${i+1}`}</div>
+                    <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{row.memberName || '—'}</div>
+                  </div>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#4ade80' }}>₹{Number(row.amount || 0).toFixed(2)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </>,
+        document.body
       )}
     </div>
   );

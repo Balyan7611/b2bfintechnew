@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import StatsGrid from '../../../shared/components/common/StatsGrid';
 import { API } from '../../../api/endpoints';
+import { normalizeTxnResponse } from '../../../services/transaction.service';
 import {
     FiSearch, FiChevronLeft, FiChevronRight, FiCheckCircle,
     FiDatabase, FiAlertCircle, FiXCircle, FiBarChart2, FiInfo
@@ -10,7 +11,7 @@ import styles from '../MemberPages/MemberPages.module.css';
 import TransactionReceipt from '../../../member/components/MemberPanel/Services/TransactionReceipt';
 
 // Adjust this constant to match your NSDL service ID
-const NSDL_SERVICE_ID = '12'; // Change as per your backend
+const NSDL_SERVICE_ID = '19'; // Change as per your backend
 
 const NSDLHistory = () => {
     // ─── State ──────────────────────────────────────────────
@@ -78,30 +79,16 @@ const NSDLHistory = () => {
                 pageSize,
                 fromDate,
                 toDate,
+                sectionType: '1',   // Recharge (PAN/Bank verification)
                 serviceId: selectedService || NSDL_SERVICE_ID,
                 memberId: selectedMember,
                 status: selectedStatus,
                 search: searchKeyword,
             });
 
-            if (res && res.status === true) {
-                if (Array.isArray(res.data)) {
-                    setTransactions(res.data);
-                    setTotalRecords(res.totalRecords || res.data.length);
-                } else if (res.data && Array.isArray(res.data.items)) {
-                    setTransactions(res.data.items);
-                    setTotalRecords(res.data.totalItems || res.data.items.length);
-                } else {
-                    setTransactions([]);
-                    setTotalRecords(0);
-                }
-            } else if (Array.isArray(res)) {
-                setTransactions(res);
-                setTotalRecords(res.length);
-            } else {
-                setTransactions([]);
-                setTotalRecords(0);
-            }
+                  const { items: _txns, totalItems: _total, totalSuccess: _succ, totalPending: _pend, totalFailed: _fail } = normalizeTxnResponse(res);
+      setTransactions(_txns);
+      setTotalRecords(_total);
         } catch (err) {
             console.error("Failed to fetch NSDL transactions:", err);
             setTransactions([]);
@@ -369,7 +356,7 @@ const NSDLHistory = () => {
                                             <td style={{ textAlign: 'center' }}>
                                                 {renderStatusBadge(txn.status)}
                                             </td>
-                                            <td>{txn.operatorId || txn.refid || txn.refNo || 'N/A'}</td>
+                                            <td>{txn.operatorName || txn.operatorId || txn.refid || txn.refNo || 'N/A'}</td>
                                             <td style={{ color: '#64748B', fontSize: '0.8rem', fontStyle: 'italic' }}>{txn.remark || 'N/A'}</td>
                                             <td style={{ textAlign: 'center' }}>
                                                 <button

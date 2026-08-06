@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { GroupHeader, SubHeader, Cells as UplineCells } from '../../../shared/components/common/UplineCommissionCols';
 import { API } from '../../../api/endpoints';
+import { normalizeTxnResponse } from '../../../services/transaction.service';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { useLocation } from 'react-router-dom';
 import { 
@@ -21,6 +24,7 @@ import StatsGrid from '../../../shared/components/common/StatsGrid';
 const PayoutHistory = () => { 
   const [showStats, setShowStats] = useState(false);
   const [transactions, setTransactions] = useState([]);
+  const [breakdownTxn, setBreakdownTxn] = useState(null);
   const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
   const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
   const failedCount = transactions.filter(t => t.status?.toLowerCase() === 'failed').length;
@@ -84,15 +88,12 @@ const PayoutHistory = () => {
       const res = await API.transaction.getAll({
         pageNumber, pageSize, fromDate, toDate,
         serviceId: selectedService || '',
-        sectionType: '5',
+        sectionType: '3',
         operatorId: selectedOperator, apiId: '', memberId: selectedMember, status: selectedStatus
       });
-      if (res?.status === true) {
-        if (Array.isArray(res.data)) { setTransactions(res.data); setTotalRecords(res.totalRecords || res.data.length); }
-        else if (res.data?.items) { setTransactions(res.data.items); setTotalRecords(res.data.totalItems || res.data.items.length); }
-        else setTransactions([]);
-      } else if (Array.isArray(res)) { setTransactions(res); setTotalRecords(res.length); }
-      else setTransactions([]);
+      const { items: _txns, totalItems: _total } = normalizeTxnResponse(res);
+      setTransactions(_txns);
+      setTotalRecords(_total);
     } catch (e) { console.error('PayoutHistory fetch error:', e); setTransactions([]); }
     finally { setLoading(false); }
   };
@@ -552,29 +553,65 @@ const PayoutHistory = () => {
           <table className={styles.table} style={{ minWidth: '2000px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '60px' }}>#</th>
-                <th style={{ textAlign: 'center' }}>ACTION</th>
-                <th>DATE & TIME</th>
-                <th>MEMBER NAME</th>
-                <th>OP BAL</th>
-                <th>AMOUNT</th>
-                <th>CHARGE</th>
-                <th>DEBIT</th>
-                <th>CL BAL</th>
-                <th>GST</th>
-                <th>ORDER ID</th>
-                <th>VENDOR ID</th>
-                <th>RRN</th>
-                <th style={{ textAlign: 'center' }}>STATUS</th>
-                <th>MODE</th>
-                </tr>
+                <th rowSpan="2" style={{ width: '60px' }}>#</th>
+                <th rowSpan="2" style={{ textAlign: 'center' }}>ACTION</th>
+                <th rowSpan="2">DATE & TIME</th>
+                <th rowSpan="2">MEMBER NAME</th>
+                <th rowSpan="2">OP BAL</th>
+                <th rowSpan="2">AMOUNT</th>
+                <th rowSpan="2">CHARGE</th>
+                <th rowSpan="2">DEBIT</th>
+                <th rowSpan="2">CL BAL</th>
+                <th rowSpan="2">GST</th>
+                <th rowSpan="2">ORDER ID</th>
+                <th rowSpan="2">VENDOR ID</th>
+                <th rowSpan="2">RRN</th>
+                <th rowSpan="2" style={{ textAlign: 'center' }}>STATUS</th>
+                <th rowSpan="2">MODE</th>
+                <GroupHeader transactions={transactions} />
+              </tr>
+              <tr style={{ background: 'linear-gradient(90deg, #1a2f8a 0%, #0D1B5E 100%)' }}>
+                <SubHeader transactions={transactions} />
+              </tr>
             </thead>
             <tbody>
-              <tr>
-                <td colSpan="14" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
-                     <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No payout data found</span>
-                </td>
-              </tr>
+              {transactions.length > 0 ? (
+                transactions.map((txn, index) => (
+                  <tr key={txn.id || index}>
+                    <td style={{ color: '#94A3B8', fontWeight: 700, fontSize: '0.78rem' }}>{index + 1}</td>
+                    <td style={{ textAlign: 'center', overflow: 'visible' }}>
+                      <ActionMenu txn={txn} onViewReceipt={setActiveReceipt} onAction={handleMenuAction} alignUp={index >= transactions.length - 2} />
+                    </td>
+                    <td style={{ fontSize: '0.82rem' }}>{txn.createdDate || txn.date || 'N/A'}</td>
+                    <td>
+                      <div style={{ fontWeight: 700, color: '#0D1B3E', fontSize: '0.82rem' }}>{txn.memberName || 'N/A'}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>{txn.memberMobile || ''}</div>
+                    </td>
+                    <td>₹{(parseFloat(txn.openingBalance || txn.opBal) || 0).toFixed(2)}</td>
+                    <td><span style={{ fontWeight: 800, color: '#0369A1' }}>₹{(parseFloat(txn.amount) || 0).toFixed(2)}</span></td>
+                    <td>₹{(parseFloat(txn.surcharge || txn.charge) || 0).toFixed(2)}</td>
+                    <td>₹{(parseFloat(txn.debit || txn.amount) || 0).toFixed(2)}</td>
+                    <td>₹{(parseFloat(txn.closingBalance || txn.clBal) || 0).toFixed(2)}</td>
+                    <td>₹{(parseFloat(txn.gst) || 0).toFixed(2)}</td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{txn.orderId || 'N/A'}</td>
+                    <td style={{ fontSize: '0.8rem' }}>{txn.vendorId || txn.operatorId || 'N/A'}</td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{txn.rrn || txn.refid || 'N/A'}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span style={{ padding: '3px 10px', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700, background: txn.status?.toLowerCase() === 'success' ? '#DCFCE7' : txn.status?.toLowerCase() === 'pending' ? '#FEF3C7' : '#FEE2E2', color: txn.status?.toLowerCase() === 'success' ? '#15803D' : txn.status?.toLowerCase() === 'pending' ? '#B45309' : '#B91C1C' }}>
+                        {txn.status || 'N/A'}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: '0.8rem' }}>{txn.mode || txn.payMode || 'N/A'}</td>
+                    <UplineCells txn={txn} transactions={transactions} onBreakdown={setBreakdownTxn} />
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="21" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No payout data found</span>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -607,9 +644,42 @@ const PayoutHistory = () => {
       <PopupModal show={popup.show} type={popup.type} title={popup.title} message={popup.message} onClose={closePopup} />
       <LogModal 
         show={logModalData.show} 
-        txn={logModalData.txn} 
-        onClose={() => setLogModalData({ show: false, txn: null })} 
+        txn={logModalData.txn}
+        onClose={() => setLogModalData({ show: false, txn: null })}
       />
+
+      {breakdownTxn && ReactDOM.createPortal(
+        <>
+          <div onClick={() => setBreakdownTxn(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 9998 }} />
+          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 9999, background: 'linear-gradient(135deg,#0D1B5E,#1a2f8a)', borderRadius: 16, padding: '24px 28px', minWidth: 320, maxWidth: 440, boxShadow: '0 24px 60px rgba(0,0,0,0.4)', color: '#fff' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: '1rem', fontWeight: 900 }}>UPLINE BREAKDOWN</div>
+                <p style={{ margin: '3px 0 0', color: 'rgba(255,255,255,0.65)', fontSize: '0.72rem' }}>TXN: {breakdownTxn.orderId || breakdownTxn.id || '—'}</p>
+              </div>
+              <button onClick={() => setBreakdownTxn(null)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: 28, height: 28, borderRadius: '50%', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.07)', borderRadius: 8, padding: '10px 14px', marginBottom: 14 }}>
+              <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>Total Upline</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#15803d' }}>₹{Number(breakdownTxn.uplineCommission || 0).toFixed(2)}</span>
+            </div>
+            {(breakdownTxn.uplineBreakdown || []).map((row, i) => {
+              const colors = ['#1756AA','#7C3AED','#0891B2'];
+              const bg = ['rgba(23,86,170,0.15)','rgba(124,58,237,0.15)','rgba(8,145,178,0.15)'];
+              return (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: bg[i]||bg[2], borderRadius: 8, padding: '10px 14px', marginBottom: 8, borderLeft: `3px solid ${colors[i]||colors[2]}` }}>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#e2e8f0' }}>{row.roleName || `L${i+1}`}</div>
+                    <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{row.memberName || '—'}</div>
+                  </div>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#4ade80' }}>₹{Number(row.amount || 0).toFixed(2)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </>,
+        document.body
+      )}
 
     </div>
   );

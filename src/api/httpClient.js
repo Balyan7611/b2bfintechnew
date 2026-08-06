@@ -101,6 +101,15 @@ httpClient.interceptors.request.use((config) => {
         }
     }
 
+    // GPS Location Headers (for velocity/fraud check by backend)
+    const lat = localStorage.getItem('user_latitude');
+    const lng = localStorage.getItem('user_longitude');
+    if (lat && lng) {
+        config.headers = config.headers || {};
+        config.headers['X-Latitude']  = lat;
+        config.headers['X-Longitude'] = lng;
+    }
+
     if (token === 'undefined' || token === 'null') {
         token = null;
     }
@@ -169,6 +178,13 @@ httpClient.interceptors.response.use((response) => {
         stopLoading();
     }
     
+    // 403 — Suspicious location / velocity fraud detected by backend
+    if (error.response && error.response.status === 403) {
+        const msg = error.response.data?.mess || error.response.data?.message || 'Access blocked due to unexpected location change. Please contact support.';
+        store.dispatch(setNotification({ type: 'error', message: `🚨 Security Alert: ${msg}` }));
+        return Promise.reject(error);
+    }
+
     if (error.response && error.response.status === 401) {
         const isAuthRequest = error.config?.url && (error.config.url.includes('/login') || error.config.url.includes('/register') || error.config.url.includes('/forgot') || error.config.url.includes('/otp'));
         const isLoginPath = window.location.pathname.includes('/login');

@@ -32,7 +32,7 @@ export const SupportTicketService = {
 
         const queryString = queryParams.toString();
         const url = `/SupportTicket/get-all${queryString ? `?${queryString}` : ''}`;
-        return await apiService.get(url, getAuthConfig());
+        return await apiService.get(url, { ...getAuthConfig(), ignoreError: true });
     },
 
     getById: async (id) => {

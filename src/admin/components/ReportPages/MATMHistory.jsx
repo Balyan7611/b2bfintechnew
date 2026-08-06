@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { GroupHeader, SubHeader, Cells as UplineCells } from '../../../shared/components/common/UplineCommissionCols';
 import { API } from '../../../api/endpoints';
+import { normalizeTxnResponse } from '../../../services/transaction.service';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { 
   FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo, 
@@ -20,6 +23,7 @@ import StatsGrid from '../../../shared/components/common/StatsGrid';
 const MATMHistory = () => { 
   const [showStats, setShowStats] = useState(false);
   const [transactions, setTransactions] = useState([]);
+  const [breakdownTxn, setBreakdownTxn] = useState(null);
   const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
   const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
   const failedCount = transactions.filter(t => t.status?.toLowerCase() === 'failed').length;
@@ -80,15 +84,12 @@ const MATMHistory = () => {
       const res = await API.transaction.getAll({
         pageNumber, pageSize, fromDate, toDate,
         serviceId: selectedService || '',
-        sectionType: '3',
+        sectionType: '9',
         operatorId: selectedOperator, apiId: '', memberId: selectedMember, status: selectedStatus
       });
-      if (res?.status === true) {
-        if (Array.isArray(res.data)) { setTransactions(res.data); setTotalRecords(res.totalRecords || res.data.length); }
-        else if (res.data?.items) { setTransactions(res.data.items); setTotalRecords(res.data.totalItems || res.data.items.length); }
-        else setTransactions([]);
-      } else if (Array.isArray(res)) { setTransactions(res); setTotalRecords(res.length); }
-      else setTransactions([]);
+      const { items: _txns, totalItems: _total } = normalizeTxnResponse(res);
+      setTransactions(_txns);
+      setTotalRecords(_total);
     } catch (e) { console.error('MATMHistory fetch error:', e); setTransactions([]); }
     finally { setLoading(false); }
   };
@@ -494,29 +495,59 @@ const MATMHistory = () => {
           <table className={styles.table} style={{ minWidth: '2200px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '60px' }}>Sr.No.</th>
-                <th>Date</th>
-                <th>Name</th>
-                <th>Operator</th>
-                <th>Op Bal</th>
-                <th>Amount</th>
-                <th>TDS</th>
-                <th>Commission</th>
-                <th>Cl Bal</th>
-                <th style={{ textAlign: 'center' }}>Status</th>
-                <th>Card Number</th>
-                <th>Op ID</th>
-                <th>Provider</th>
-                <th>Remark</th>
-                <th>Request ID</th>
+                <th rowSpan="2" style={{ width: '60px' }}>Sr.No.</th>
+                <th rowSpan="2">Date</th>
+                <th rowSpan="2">Name</th>
+                <th rowSpan="2">Operator</th>
+                <th rowSpan="2">Op Bal</th>
+                <th rowSpan="2">Amount</th>
+                <th rowSpan="2">Cl Bal</th>
+                <th rowSpan="2" style={{ textAlign: 'center' }}>Status</th>
+                <th rowSpan="2">Card Number</th>
+                <th rowSpan="2">Op ID</th>
+                <th rowSpan="2">Provider</th>
+                <th rowSpan="2">Remark</th>
+                <th rowSpan="2">Request ID</th>
+                <GroupHeader transactions={transactions} />
+              </tr>
+              <tr style={{ background: 'linear-gradient(90deg, #1a2f8a 0%, #0D1B5E 100%)' }}>
+                <SubHeader transactions={transactions} />
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td colSpan="15" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
-                     <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No MATM data found</span>
-                </td>
-              </tr>
+              {transactions.length > 0 ? (
+                transactions.map((txn, index) => (
+                  <tr key={txn.id || index}>
+                    <td style={{ color: '#94A3B8', fontWeight: 700, fontSize: '0.78rem' }}>{index + 1}</td>
+                    <td style={{ fontSize: '0.82rem' }}>{txn.createdDate || txn.date || 'N/A'}</td>
+                    <td>
+                      <div style={{ fontWeight: 700, color: '#0D1B3E', fontSize: '0.82rem' }}>{txn.memberName || txn.customerName || 'N/A'}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>{txn.memberMobile || ''}</div>
+                    </td>
+                    <td style={{ fontSize: '0.82rem' }}>{txn.operatorName || txn.operator || 'N/A'}</td>
+                    <td>₹{(txn.openingBalance || txn.opBal || 0).toFixed ? (txn.openingBalance || txn.opBal || 0).toFixed(2) : '0.00'}</td>
+                    <td><span style={{ fontWeight: 800, color: '#0369A1' }}>₹{(parseFloat(txn.amount) || 0).toFixed(2)}</span></td>
+                    <td>₹{(txn.closingBalance || txn.clBal || 0).toFixed ? (txn.closingBalance || txn.clBal || 0).toFixed(2) : '0.00'}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span style={{ padding: '3px 10px', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700, background: txn.status?.toLowerCase() === 'success' ? '#DCFCE7' : txn.status?.toLowerCase() === 'pending' ? '#FEF3C7' : '#FEE2E2', color: txn.status?.toLowerCase() === 'success' ? '#15803D' : txn.status?.toLowerCase() === 'pending' ? '#B45309' : '#B91C1C' }}>
+                        {txn.status || 'N/A'}
+                      </span>
+                    </td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}>{txn.cardNumber || txn.accountNo || 'N/A'}</td>
+                    <td style={{ fontSize: '0.82rem' }}>{txn.operatorId || txn.opId || 'N/A'}</td>
+                    <td style={{ fontSize: '0.82rem' }}>{txn.provider || txn.apiName || 'N/A'}</td>
+                    <td style={{ fontSize: '0.78rem', color: '#64748B' }}>{txn.remark || txn.message || 'N/A'}</td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>{txn.orderId || txn.requestId || txn.refid || 'N/A'}</td>
+                    <UplineCells txn={txn} transactions={transactions} onBreakdown={setBreakdownTxn} />
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="19" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No MATM data found</span>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -549,9 +580,42 @@ const MATMHistory = () => {
       <PopupModal show={popup.show} type={popup.type} title={popup.title} message={popup.message} onClose={closePopup} />
       <LogModal 
         show={logModalData.show} 
-        txn={logModalData.txn} 
-        onClose={() => setLogModalData({ show: false, txn: null })} 
+        txn={logModalData.txn}
+        onClose={() => setLogModalData({ show: false, txn: null })}
       />
+
+      {breakdownTxn && ReactDOM.createPortal(
+        <>
+          <div onClick={() => setBreakdownTxn(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 9998 }} />
+          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 9999, background: 'linear-gradient(135deg,#0D1B5E,#1a2f8a)', borderRadius: 16, padding: '24px 28px', minWidth: 320, maxWidth: 440, boxShadow: '0 24px 60px rgba(0,0,0,0.4)', color: '#fff' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: '1rem', fontWeight: 900 }}>UPLINE BREAKDOWN</div>
+                <p style={{ margin: '3px 0 0', color: 'rgba(255,255,255,0.65)', fontSize: '0.72rem' }}>TXN: {breakdownTxn.orderId || breakdownTxn.id || '—'}</p>
+              </div>
+              <button onClick={() => setBreakdownTxn(null)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: 28, height: 28, borderRadius: '50%', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.07)', borderRadius: 8, padding: '10px 14px', marginBottom: 14 }}>
+              <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>Total Upline</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#15803d' }}>₹{Number(breakdownTxn.uplineCommission || 0).toFixed(2)}</span>
+            </div>
+            {(breakdownTxn.uplineBreakdown || []).map((row, i) => {
+              const colors = ['#1756AA','#7C3AED','#0891B2'];
+              const bg = ['rgba(23,86,170,0.15)','rgba(124,58,237,0.15)','rgba(8,145,178,0.15)'];
+              return (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: bg[i]||bg[2], borderRadius: 8, padding: '10px 14px', marginBottom: 8, borderLeft: `3px solid ${colors[i]||colors[2]}` }}>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#e2e8f0' }}>{row.roleName || `L${i+1}`}</div>
+                    <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{row.memberName || '—'}</div>
+                  </div>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#4ade80' }}>₹{Number(row.amount || 0).toFixed(2)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </>,
+        document.body
+      )}
 
     </div>
   );

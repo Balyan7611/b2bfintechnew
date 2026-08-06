@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { GroupHeader, SubHeader, Cells as UplineCells } from '../../../shared/components/common/UplineCommissionCols';
 import { API } from '../../../api/endpoints';
+import { normalizeTxnResponse } from '../../../services/transaction.service';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { useLocation } from 'react-router-dom';
 import { 
@@ -18,7 +21,8 @@ import PopupModal, { usePopup } from '../../../shared/components/common/PopupMod
 import LogModal from '../../../shared/components/common/LogModal';
 import StatsGrid from '../../../shared/components/common/StatsGrid';
 
-const RechargeHistory = () => { 
+const RechargeHistory = () => {
+  const [breakdownTxn, setBreakdownTxn] = useState(null);
   const [showStats, setShowStats] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
@@ -93,12 +97,9 @@ const RechargeHistory = () => {
         memberId: selectedMember,
         status: selectedStatus
       });
-      if (res && res.status === true) {
-        if (Array.isArray(res.data)) { setTransactions(res.data); setTotalRecords(res.totalRecords || res.data.length); }
-        else if (res.data && Array.isArray(res.data.items)) { setTransactions(res.data.items); setTotalRecords(res.data.totalItems || res.data.items.length); }
-        else setTransactions([]);
-      } else if (Array.isArray(res)) { setTransactions(res); setTotalRecords(res.length); }
-      else setTransactions([]);
+      const { items: _txns, totalItems: _total } = normalizeTxnResponse(res);
+      setTransactions(_txns);
+      setTotalRecords(_total);
     } catch (e) { console.error('RechargeHistory fetch error:', e); setTransactions([]); }
     finally { setLoading(false); }
   };
@@ -594,27 +595,28 @@ const RechargeHistory = () => {
           <table className={styles.table} style={{ minWidth: '3800px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '80px', textAlign: 'center' }}>Action</th>
-                <th style={{ width: '60px' }}>SNO</th>
-                <th>Date</th>
-                <th>Name</th>
-                <th>Operator</th>
-                <th>Image</th>
-                <th>Number</th>
-                <th style={{ textAlign: 'center' }}>Status</th>
-                <th>Reason</th>
-                <th>OP Bal</th>
-                <th>Amount</th>
-                <th>Dis/Commission Info</th>
-                <th>Commission</th>
-                <th>TDS</th>
-                <th>CL Bal</th>
-                <th>Through</th>
-                <th>Provider</th>
-                <th>IP</th>
-                <th>Recharge ID</th>
-                <th>Admin Profit</th>
-                <th>Provider RequestID</th>
+                <th rowSpan="2" style={{ width: '80px', textAlign: 'center' }}>Action</th>
+                <th rowSpan="2" style={{ width: '60px' }}>SNO</th>
+                <th rowSpan="2">Date</th>
+                <th rowSpan="2">Name</th>
+                <th rowSpan="2">Operator</th>
+                <th rowSpan="2">Image</th>
+                <th rowSpan="2">Number</th>
+                <th rowSpan="2" style={{ textAlign: 'center' }}>Status</th>
+                <th rowSpan="2">Reason</th>
+                <th rowSpan="2">OP Bal</th>
+                <th rowSpan="2">Amount</th>
+                <th rowSpan="2">CL Bal</th>
+                <th rowSpan="2">Through</th>
+                <th rowSpan="2">Provider</th>
+                <th rowSpan="2">IP</th>
+                <th rowSpan="2">Recharge ID</th>
+                <th rowSpan="2">Admin Profit</th>
+                <th rowSpan="2">Provider RequestID</th>
+                <GroupHeader transactions={transactions} />
+              </tr>
+              <tr style={{ background: 'linear-gradient(90deg, #1a2f8a 0%, #0D1B5E 100%)' }}>
+                <SubHeader transactions={transactions} />
               </tr>
             </thead>
             <tbody>
@@ -636,9 +638,6 @@ const RechargeHistory = () => {
                     <td>{txn.reason || txn.remark || txn.message || '-'}</td>
                     <td>₹{txn.openingBalance || txn.opBal || '0.00'}</td>
                     <td>₹{txn.amount || txn.txnAmount || '0.00'}</td>
-                    <td>-</td>
-                    <td>₹{txn.commission || '0.00'}</td>
-                    <td>₹{txn.tds || '0.00'}</td>
                     <td>₹{txn.closingBalance || txn.clBal || '0.00'}</td>
                     <td>{txn.through || txn.fromChannel || txn.source || 'N/A'}</td>
                     <td>{txn.provider || txn.apiName || 'N/A'}</td>
@@ -646,6 +645,7 @@ const RechargeHistory = () => {
                     <td>{txn.orderId || txn.txnId || txn.refid || 'N/A'}</td>
                     <td>₹{txn.adminProfit || '0.00'}</td>
                     <td>{txn.providerRequestId || txn.vendorId || 'N/A'}</td>
+                    <UplineCells txn={txn} transactions={transactions} onBreakdown={setBreakdownTxn} />
                   </tr>
                 ))
               ) : (
@@ -685,12 +685,47 @@ const RechargeHistory = () => {
         onCancel={() => setConfirmData({ show: false, action: null, txn: null })}
       />
       <PopupModal show={popup.show} type={popup.type} title={popup.title} message={popup.message} onClose={closePopup} />
-      <LogModal 
-        show={logModalData.show} 
-        txn={logModalData.txn} 
-        onClose={() => setLogModalData({ show: false, txn: null })} 
+      <LogModal
+        show={logModalData.show}
+        txn={logModalData.txn}
+        onClose={() => setLogModalData({ show: false, txn: null })}
       />
 
+      {/* ── Upline Breakdown Portal ── */}
+      {breakdownTxn && ReactDOM.createPortal(
+        <>
+          <div onClick={() => setBreakdownTxn(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(10,20,50,0.55)', backdropFilter: 'blur(4px)', zIndex: 9500 }} />
+          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 9501, width: '100%', maxWidth: 480, background: '#fff', borderRadius: 16, boxShadow: '0 24px 64px rgba(10,20,50,0.28)', overflow: 'hidden', fontFamily: 'Arial,sans-serif' }}>
+            <div style={{ background: 'linear-gradient(135deg,#0A1428,#1756AA)', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <h3 style={{ margin: 0, color: '#fff', fontSize: '0.95rem', fontWeight: 800 }}>Upline Commission Breakdown</h3>
+                <p style={{ margin: '3px 0 0', color: 'rgba(255,255,255,0.65)', fontSize: '0.72rem' }}>TXN: {breakdownTxn.orderId || breakdownTxn.txnId || '—'}</p>
+              </div>
+              <button onClick={() => setBreakdownTxn(null)} style={{ background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%', width: 28, height: 28, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+            </div>
+            <div style={{ background: '#f0fdf4', borderBottom: '1px solid #bbf7d0', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#15803d' }}>Total Upline Earning</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#15803d' }}>₹{Number(breakdownTxn.uplineCommission).toFixed(2)}</span>
+            </div>
+            <div style={{ padding: '12px 20px 20px', maxHeight: 340, overflowY: 'auto' }}>
+              {(breakdownTxn.uplineBreakdown || []).map((row, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', marginBottom: 8, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, background: i === 0 ? 'linear-gradient(135deg,#1756AA,#0A1428)' : 'linear-gradient(135deg,#7c3aed,#4c1d95)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 900 }}>L{row.levelNo || i + 1}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.82rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.memberName || 'N/A'}</div>
+                    <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: 2 }}>{row.roleName || `Level ${row.levelNo || i + 1}`}{row.memberMobile ? ` · ${row.memberMobile}` : ''}</div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#15803d' }}>+₹{Number(row.amount || 0).toFixed(2)}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: 1 }}>{row.createdOn ? new Date(row.createdOn).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
     </div>
   );
 };

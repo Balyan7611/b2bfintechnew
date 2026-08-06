@@ -154,7 +154,7 @@ const RechargeReport = () => {
               <td>{item.number}</td>
               <td>{item.amount.toFixed(2)}</td>
               <td>{item.commission.toFixed(2)}</td>
-              <td>{item.operatorId}</td>
+              <td>{item.operatorName || item.operatorId || 'N/A'}</td>
               <td>{item.receipt}</td>
             </tr>
           );

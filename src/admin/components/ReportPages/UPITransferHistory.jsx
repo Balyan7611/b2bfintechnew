@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { GroupHeader, SubHeader, Cells as UplineCells } from '../../../shared/components/common/UplineCommissionCols';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import StatsGrid from '../../../shared/components/common/StatsGrid';
 import { API } from '../../../api/endpoints';
+import { normalizeTxnResponse } from '../../../services/transaction.service';
 import {
     FiSearch, FiChevronLeft, FiChevronRight, FiCheckCircle,
     FiDatabase, FiAlertCircle, FiXCircle, FiBarChart2
@@ -14,11 +17,12 @@ import PopupModal, { usePopup } from '../../../shared/components/common/PopupMod
 import LogModal from '../../../shared/components/common/LogModal';
 
 // Adjust this constant to match your UPI Transfer service ID
-const UPI_SERVICE_ID = '6'; // Change as per your backend
+const UPI_SERVICE_ID = '12'; // UPI Transfer sectionTypeId // Change as per your backend
 
 const UPITransferHistory = () => {
     // ─── State ──────────────────────────────────────────────
     const [transactions, setTransactions] = useState([]);
+    const [breakdownTxn, setBreakdownTxn] = useState(null);
     const [totalRecords, setTotalRecords] = useState(0);
     const [pageNumber, setPageNumber] = useState(1);
     const [pageSize, setPageSize] = useState(10);
@@ -90,7 +94,7 @@ const UPITransferHistory = () => {
                 pageSize,
                 fromDate,
                 toDate,
-                serviceId: selectedService || UPI_SERVICE_ID, // fallback to fixed if not selected
+                sectionType: selectedService || UPI_SERVICE_ID, // sectionType 12 = UPI Transfer // fallback to fixed if not selected
                 operatorId: selectedOperator,
                 memberId: selectedMember,
                 status: selectedStatus,
@@ -98,24 +102,9 @@ const UPITransferHistory = () => {
                 // providerId: selectedProvider, // if needed
             });
 
-            if (res && res.status === true) {
-                if (Array.isArray(res.data)) {
-                    setTransactions(res.data);
-                    setTotalRecords(res.totalRecords || res.data.length);
-                } else if (res.data && Array.isArray(res.data.items)) {
-                    setTransactions(res.data.items);
-                    setTotalRecords(res.data.totalItems || res.data.items.length);
-                } else {
-                    setTransactions([]);
-                    setTotalRecords(0);
-                }
-            } else if (Array.isArray(res)) {
-                setTransactions(res);
-                setTotalRecords(res.length);
-            } else {
-                setTransactions([]);
-                setTotalRecords(0);
-            }
+                  const { items: _txns, totalItems: _total, totalSuccess: _succ, totalPending: _pend, totalFailed: _fail } = normalizeTxnResponse(res);
+      setTransactions(_txns);
+      setTotalRecords(_total);
         } catch (err) {
             console.error("Failed to fetch UPI transfer transactions:", err);
             setTransactions([]);
@@ -375,24 +364,27 @@ const UPITransferHistory = () => {
                     <table className={styles.table} style={{ minWidth: '2400px' }}>
                         <thead>
                             <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                                <th style={{ width: '60px' }}>S.No</th>
-                                <th style={{ width: '80px', textAlign: 'center' }}>Actions</th>
-                                <th>Date</th>
-                                <th style={{ textAlign: 'center' }}>Status</th>
-                                <th>Amount</th>
-                                <th>Member</th>
-                                <th>UPI ID</th>
-                                <th>UPI name</th>
-                                <th>Op. bal</th>
-                                <th>Cl. bal</th>
-                                <th>Surcharge</th>
-                                <th>GST</th>
-                                <th>Commission</th>
-                                <th>Order ID</th>
-                                <th>Remark</th>
-                                <th>Source</th>
-                                <th>Chain comm.</th>
-                                <th>Admin profit</th>
+                                <th rowSpan="2" style={{ width: '60px' }}>S.No</th>
+                                <th rowSpan="2" style={{ width: '80px', textAlign: 'center' }}>Actions</th>
+                                <th rowSpan="2">Date</th>
+                                <th rowSpan="2" style={{ textAlign: 'center' }}>Status</th>
+                                <th rowSpan="2">Amount</th>
+                                <th rowSpan="2">Member</th>
+                                <th rowSpan="2">UPI ID</th>
+                                <th rowSpan="2">UPI name</th>
+                                <th rowSpan="2">Op. bal</th>
+                                <th rowSpan="2">Cl. bal</th>
+                                <th rowSpan="2">Surcharge</th>
+                                <th rowSpan="2">GST</th>
+                                <th rowSpan="2">Order ID</th>
+                                <th rowSpan="2">Remark</th>
+                                <th rowSpan="2">Source</th>
+                                <th rowSpan="2">Chain comm.</th>
+                                <th rowSpan="2">Admin profit</th>
+                                <GroupHeader transactions={transactions} />
+                            </tr>
+                            <tr style={{ background: 'linear-gradient(90deg, #1a2f8a 0%, #0D1B5E 100%)' }}>
+                                <SubHeader transactions={transactions} />
                             </tr>
                         </thead>
                         <tbody>
@@ -450,12 +442,12 @@ const UPITransferHistory = () => {
                                         <td>₹{(txn.closingBalance || txn.clBal || 0).toFixed(2)}</td>
                                         <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.surcharge || 0).toFixed(2)}</td>
                                         <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.gst || 0).toFixed(2)}</td>
-                                        <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.commission || 0).toFixed(2)}</td>
                                         <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{txn.orderId || txn.txnId || txn.refid || 'N/A'}</td>
                                         <td>{txn.remark || txn.message || txn.reason || 'N/A'}</td>
                                         <td>{txn.source || txn.fromChannel || 'N/A'}</td>
                                         <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.chainComm || 0).toFixed(2)}</td>
                                         <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.adminProfit || 0).toFixed(2)}</td>
+                                        <UplineCells txn={txn} transactions={transactions} onBreakdown={setBreakdownTxn} />
                                     </tr>
                                 ))
                             )}
@@ -502,6 +494,39 @@ const UPITransferHistory = () => {
                 txn={logModalData.txn}
                 onClose={() => setLogModalData({ show: false, txn: null })}
             />
+
+            {breakdownTxn && ReactDOM.createPortal(
+              <>
+                <div onClick={() => setBreakdownTxn(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 9998 }} />
+                <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 9999, background: 'linear-gradient(135deg,#0D1B5E,#1a2f8a)', borderRadius: 16, padding: '24px 28px', minWidth: 320, maxWidth: 440, boxShadow: '0 24px 60px rgba(0,0,0,0.4)', color: '#fff' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+                    <div>
+                      <div style={{ fontSize: '1rem', fontWeight: 900 }}>UPLINE BREAKDOWN</div>
+                      <p style={{ margin: '3px 0 0', color: 'rgba(255,255,255,0.65)', fontSize: '0.72rem' }}>TXN: {breakdownTxn.orderId || breakdownTxn.id || '—'}</p>
+                    </div>
+                    <button onClick={() => setBreakdownTxn(null)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: 28, height: 28, borderRadius: '50%', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.07)', borderRadius: 8, padding: '10px 14px', marginBottom: 14 }}>
+                    <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>Total Upline</span>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#15803d' }}>₹{Number(breakdownTxn.uplineCommission || 0).toFixed(2)}</span>
+                  </div>
+                  {(breakdownTxn.uplineBreakdown || []).map((row, i) => {
+                    const colors = ['#1756AA','#7C3AED','#0891B2'];
+                    const bg = ['rgba(23,86,170,0.15)','rgba(124,58,237,0.15)','rgba(8,145,178,0.15)'];
+                    return (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: bg[i]||bg[2], borderRadius: 8, padding: '10px 14px', marginBottom: 8, borderLeft: `3px solid ${colors[i]||colors[2]}` }}>
+                        <div>
+                          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#e2e8f0' }}>{row.roleName || `L${i+1}`}</div>
+                          <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{row.memberName || '—'}</div>
+                        </div>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#4ade80' }}>₹{Number(row.amount || 0).toFixed(2)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>,
+              document.body
+            )}
         </div>
     );
 };

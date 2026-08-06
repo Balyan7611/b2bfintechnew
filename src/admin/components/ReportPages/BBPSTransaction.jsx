@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { GroupHeader, SubHeader, Cells as UplineCells } from '../../../shared/components/common/UplineCommissionCols';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { API } from '../../../api/endpoints';
+import { normalizeTxnResponse } from '../../../services/transaction.service';
 import { 
   FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo, 
   FiActivity, FiDatabase, FiAlertCircle, FiXCircle, FiActivity as FiSignal,
@@ -24,6 +27,7 @@ const BBPSTransaction = () => {
   const [logModalData, setLogModalData] = useState({ show: false, txn: null });
   const { popup, showPopup, closePopup } = usePopup();
   const [transactions, setTransactions] = useState([]);
+  const [breakdownTxn, setBreakdownTxn] = useState(null);
   const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
   const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
   const failedCount = transactions.filter(t => t.status?.toLowerCase() === 'failed').length;
@@ -90,12 +94,9 @@ const BBPSTransaction = () => {
         memberId: selectedMember,
         status: selectedStatus
       });
-      if (res && res.status === true) {
-        if (Array.isArray(res.data)) { setTransactions(res.data); setTotalRecords(res.totalRecords || res.data.length); }
-        else if (res.data && Array.isArray(res.data.items)) { setTransactions(res.data.items); setTotalRecords(res.data.totalItems || res.data.items.length); }
-        else setTransactions([]);
-      } else if (Array.isArray(res)) { setTransactions(res); setTotalRecords(res.length); }
-      else setTransactions([]);
+      const { items: _txns, totalItems: _total } = normalizeTxnResponse(res);
+      setTransactions(_txns);
+      setTotalRecords(_total);
     } catch (e) { console.error('BBPSTransaction fetch error:', e); setTransactions([]); }
     finally { setLoading(false); }
   };
@@ -494,29 +495,31 @@ const BBPSTransaction = () => {
           <table className={styles.table} style={{ minWidth: '1800px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '80px', textAlign: 'center' }}>Action</th>
-                <th style={{ width: '60px' }}>SNO</th>
-                <th>Date</th>
-                <th>Name</th>
-                <th>Operator</th>
-                <th>Image</th>
-                <th>Number</th>
-                <th style={{ textAlign: 'center' }}>Status</th>
-                <th>Api Name</th>
-                <th>OP Bal</th>
-                <th>Amount</th>
-                <th>Dis/Commission.Info</th>
-                <th>TDS</th>
-                <th>Debit</th>
-                <th>CL Bal</th>
-                <th>Through</th>
-                <th>Circle</th>
-                <th>API Req</th>
-                <th>Provider</th>
-                <th>IP</th>
-                <th>Recharge ID</th>
-                <th>Admin Profit</th>
-                <th>Provider RequestID</th>
+                <th rowSpan="2" style={{ width: '80px', textAlign: 'center' }}>Action</th>
+                <th rowSpan="2" style={{ width: '60px' }}>SNO</th>
+                <th rowSpan="2">Date</th>
+                <th rowSpan="2">Name</th>
+                <th rowSpan="2">Operator</th>
+                <th rowSpan="2">Image</th>
+                <th rowSpan="2">Number</th>
+                <th rowSpan="2" style={{ textAlign: 'center' }}>Status</th>
+                <th rowSpan="2">Api Name</th>
+                <th rowSpan="2">OP Bal</th>
+                <th rowSpan="2">Amount</th>
+                <th rowSpan="2">Debit</th>
+                <th rowSpan="2">CL Bal</th>
+                <th rowSpan="2">Through</th>
+                <th rowSpan="2">Circle</th>
+                <th rowSpan="2">API Req</th>
+                <th rowSpan="2">Provider</th>
+                <th rowSpan="2">IP</th>
+                <th rowSpan="2">Recharge ID</th>
+                <th rowSpan="2">Admin Profit</th>
+                <th rowSpan="2">Provider RequestID</th>
+                <GroupHeader transactions={transactions} />
+              </tr>
+              <tr style={{ background: 'linear-gradient(90deg, #1a2f8a 0%, #0D1B5E 100%)' }}>
+                <SubHeader transactions={transactions} />
               </tr>
             </thead>
             <tbody>
@@ -537,8 +540,6 @@ const BBPSTransaction = () => {
                     <td>₹{txn.openingBalance || txn.opBal || '0.00'}</td>
                     <td>₹{txn.amount || txn.txnAmount || '0.00'}</td>
                     <td>-</td>
-                    <td>₹{txn.tds || '0.00'}</td>
-                    <td>-</td>
                     <td>₹{txn.closingBalance || txn.clBal || '0.00'}</td>
                     <td>{txn.through || txn.source || txn.fromChannel || 'N/A'}</td>
                     <td>-</td>
@@ -548,6 +549,7 @@ const BBPSTransaction = () => {
                     <td>{txn.orderId || txn.txnId || txn.refid || 'N/A'}</td>
                     <td>₹{txn.adminProfit || '0.00'}</td>
                     <td>{txn.providerRequestId || txn.vendorId || 'N/A'}</td>
+                    <UplineCells txn={txn} transactions={transactions} onBreakdown={setBreakdownTxn} />
                   </tr>
                 ))
               ) : (
@@ -595,8 +597,41 @@ const BBPSTransaction = () => {
       <LogModal 
         show={logModalData.show} 
         txn={logModalData.txn} 
-        onClose={() => setLogModalData({ show: false, txn: null })} 
+        onClose={() => setLogModalData({ show: false, txn: null })}
       />
+
+      {breakdownTxn && ReactDOM.createPortal(
+        <>
+          <div onClick={() => setBreakdownTxn(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 9998 }} />
+          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 9999, background: 'linear-gradient(135deg,#0D1B5E,#1a2f8a)', borderRadius: 16, padding: '24px 28px', minWidth: 320, maxWidth: 440, boxShadow: '0 24px 60px rgba(0,0,0,0.4)', color: '#fff' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: '1rem', fontWeight: 900 }}>UPLINE BREAKDOWN</div>
+                <p style={{ margin: '3px 0 0', color: 'rgba(255,255,255,0.65)', fontSize: '0.72rem' }}>TXN: {breakdownTxn.orderId || breakdownTxn.id || '—'}</p>
+              </div>
+              <button onClick={() => setBreakdownTxn(null)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: 28, height: 28, borderRadius: '50%', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.07)', borderRadius: 8, padding: '10px 14px', marginBottom: 14 }}>
+              <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>Total Upline</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#15803d' }}>₹{Number(breakdownTxn.uplineCommission || 0).toFixed(2)}</span>
+            </div>
+            {(breakdownTxn.uplineBreakdown || []).map((row, i) => {
+              const colors = ['#1756AA','#7C3AED','#0891B2'];
+              const bg = ['rgba(23,86,170,0.15)','rgba(124,58,237,0.15)','rgba(8,145,178,0.15)'];
+              return (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: bg[i]||bg[2], borderRadius: 8, padding: '10px 14px', marginBottom: 8, borderLeft: `3px solid ${colors[i]||colors[2]}` }}>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#e2e8f0' }}>{row.roleName || `L${i+1}`}</div>
+                    <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{row.memberName || '—'}</div>
+                  </div>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#4ade80' }}>₹{Number(row.amount || 0).toFixed(2)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </>,
+        document.body
+      )}
 
     </div>
   );

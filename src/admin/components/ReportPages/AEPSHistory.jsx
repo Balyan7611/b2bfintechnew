@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { API } from '../../../api/endpoints';
+import { normalizeTxnResponse } from '../../../services/transaction.service';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { useLocation } from 'react-router-dom';
 import { 
@@ -11,6 +13,7 @@ import {
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint, FaFingerprint
 } from 'react-icons/fa';
 import styles from '../MemberPages/MemberPages.module.css';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import TransactionReceipt from '../../../member/components/MemberPanel/Services/TransactionReceipt';
 import ActionMenu from '../../../shared/components/common/ActionMenu';
 import ConfirmModal from '../../../shared/components/common/ConfirmModal';
@@ -31,6 +34,7 @@ const AEPSHistory = () => {
   const [logModalData, setLogModalData] = useState({ show: false, txn: null });
   const { popup, showPopup, closePopup } = usePopup();
   const [editAadhaarValue, setEditAadhaarValue] = useState('');
+  const [breakdownTxn, setBreakdownTxn] = useState(null);
 
   const handleMenuAction = (actionName, txn) => {
     if (actionName === 'Force Fail' || actionName === 'Force Success' || actionName === 'Check Status') {
@@ -81,6 +85,7 @@ const AEPSHistory = () => {
   const [fromDate, setFromDate] = useState(today);
   const [toDate, setToDate] = useState(today);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [tableFilter, setTableFilter] = useState('');
   const [transactions, setTransactions] = useState([]);
   const [totalRecords, setTotalRecords] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
@@ -91,25 +96,32 @@ const AEPSHistory = () => {
   const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
   const failedCount = transactions.filter(t => t.status?.toLowerCase() === 'failed').length;
 
-  // Stats Card Computations
-  const totalTxns = totalRecords || transactions.length;
-  const totalAmount = transactions.reduce((acc, t) => acc + (parseFloat(t.amount) || 0), 0);
-  const successTxns = successCount;
-  const failedTxns = failedCount;
-  const pendingTxns = pendingCount;
-  const totalCommission = transactions.reduce((acc, t) => acc + (parseFloat(t.commission) || 0), 0);
-  const uplineCommission = totalCommission * 0.6;
-  const adminCommission = totalCommission * 0.4;
-  const totalTds = transactions.reduce((acc, t) => acc + (parseFloat(t.tds) || 0), 0);
-  const adminProfit = totalCommission * 0.15;
-  const tdsPayable = totalTds * 0.95;
-  const netPayable = totalAmount - totalCommission;
+  // Stats Card Computations — all from real API data
+  const totalTxns      = totalRecords || transactions.length;
+  const totalAmount    = transactions.reduce((acc, t) => acc + (parseFloat(t.amount)           || 0), 0);
+  const successTxns    = successCount;
+  const failedTxns     = failedCount;
+  const pendingTxns    = pendingCount;
+  const totalCommission= transactions.reduce((acc, t) => acc + (parseFloat(t.commission)       || 0), 0);
+  // Use actual uplineCommission from API; fallback to breakdown sum; last resort 0
+  const uplineCommission = transactions.reduce((acc, t) => {
+    if (t.uplineCommission != null) return acc + (parseFloat(t.uplineCommission) || 0);
+    if (Array.isArray(t.uplineBreakdown))
+      return acc + t.uplineBreakdown.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+    return acc;
+  }, 0);
+  const adminCommission= totalCommission - uplineCommission;
+  const totalTds       = transactions.reduce((acc, t) => acc + (parseFloat(t.tds)             || 0), 0);
+  const totalCharge    = transactions.reduce((acc, t) => acc + (parseFloat(t.charge)           || 0), 0);
+  const adminProfit    = adminCommission - totalTds;
+  const tdsPayable     = totalTds;
+  const netPayable     = totalAmount - totalCommission;
 
   const fetchTransactions = async () => {
     setLoading(true);
     try {
       // AEPS: serviceId 17,18 / sectionType 9,10
-      const res = await API.transaction.getAll({
+      const params = {
         pageNumber,
         pageSize,
         fromDate,
@@ -119,27 +131,15 @@ const AEPSHistory = () => {
         operatorId: selectedOperator,
         apiId: '',
         memberId: selectedMember,
-        status: selectedStatus
-      });
+        status: selectedStatus,
+      };
+      // Pass keyword to API for server-side search by txnId/orderId
+      if (searchKeyword.trim()) params.keyword = searchKeyword.trim();
+      const res = await API.transaction.getAll(params);
 
-      if (res && res.status === true) {
-        if (Array.isArray(res.data)) {
-          setTransactions(res.data);
-          setTotalRecords(res.totalRecords || res.data.length);
-        } else if (res.data && Array.isArray(res.data.items)) {
-          setTransactions(res.data.items);
-          setTotalRecords(res.data.totalItems || res.data.items.length);
-        } else {
-          setTransactions([]);
-          setTotalRecords(0);
-        }
-      } else if (Array.isArray(res)) {
-        setTransactions(res);
-        setTotalRecords(res.length);
-      } else {
-        setTransactions([]);
-        setTotalRecords(0);
-      }
+            const { items: _txns, totalItems: _total, totalSuccess: _succ, totalPending: _pend, totalFailed: _fail } = normalizeTxnResponse(res);
+      setTransactions(_txns);
+      setTotalRecords(_total);
     } catch (err) {
       console.error("Failed to fetch transactions:", err);
       setTransactions([]);
@@ -201,8 +201,9 @@ const AEPSHistory = () => {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const res = await API.member.search('');
-        setMemberList(res || []);
+        const res = await API.member.getAll({ pageNumber: 1, pageSize: 5000 });
+        const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+        setMemberList(Array.isArray(list) ? list : []);
       } catch (err) {
         console.error("Failed to fetch members:", err);
       }
@@ -407,34 +408,19 @@ const AEPSHistory = () => {
             </div>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Member</label>
-              <select 
-                className={styles.inputControl} 
-                style={{ 
-                  paddingLeft: '12px', 
-                  paddingRight: '12px',
-                  height: '38px', 
-                  borderRadius: '10px', 
-                  fontSize: '0.825rem', 
-                  border: focusedField === 'member' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
-                  boxShadow: focusedField === 'member' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
-                  transition: 'all 0.25s', 
-                  width: '100%', 
-                  background: '#FCFDFE',
-                  color: '#334155',
-                  fontWeight: 500
-                }} 
-                onFocus={() => setFocusedField('member')}
-                onBlur={() => setFocusedField(null)}
+              <SearchableSelect
+                options={[
+                  { value: '', label: 'All Members' },
+                  ...memberList.map(m => {
+                    const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
+                    const loginId = m.memberID || m.memberid || m.loginID || m.loginId || String(m.id || m.msrno || '');
+                    return { value: String(m.id || m.msrno), label: name ? `${name} (${loginId})` : loginId };
+                  })
+                ]}
                 value={selectedMember}
-                onChange={(e) => setSelectedMember(e.target.value)}
-              >
-                <option value="">All Members</option>
-                {Array.isArray(memberList) && memberList.map((m) => (
-                  <option key={m.id || m.memberId} value={m.id || m.memberId}>
-                    {m.name || m.memberId} ({m.mobile})
-                  </option>
-                ))}
-              </select>
+                onChange={val => setSelectedMember(val || '')}
+                placeholder="All Members"
+              />
             </div>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Provider</label>
@@ -571,6 +557,7 @@ const AEPSHistory = () => {
         uplineCommission,
         adminCommission,
         totalTds,
+        totalCharge,
         adminProfit,
         tdsPayable,
         netPayable
@@ -600,7 +587,12 @@ const AEPSHistory = () => {
 
           <div className="global-search-box">
             <FiSearch />
-            <input type="text" placeholder="Filter results..." />
+            <input
+              type="text"
+              placeholder="Filter by TXN ID, name, mobile..."
+              value={tableFilter}
+              onChange={e => setTableFilter(e.target.value)}
+            />
           </div>
         </div>
 
@@ -623,26 +615,66 @@ const AEPSHistory = () => {
                 <th rowSpan="2" style={{ width: '120px' }}>AADHAAR NO</th>
                 <th rowSpan="2" style={{ width: '100px' }}>OP BAL</th>
                 <th rowSpan="2" style={{ width: '100px' }}>CL BAL</th>
-                <th colSpan="3" style={{ textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '4px 10px', height: '20px', lineHeight: '1' }}>COMMISSION</th>
+                {/* COMMISSION group: ADMIN + TDS only (UPPER LINE removed — now part of UPLINE group) */}
+                <th colSpan="2" style={{ textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '4px 10px', height: '20px', lineHeight: '1' }}>COMMISSION</th>
+                {/* UPLINE COMMISSION group — TOTAL + per-role sub-cols */}
+                {(() => {
+                  const sample = transactions.find(t => (t.uplineBreakdown || []).length > 0);
+                  const roles = sample ? sample.uplineBreakdown : [];
+                  const cols = roles.length > 0 ? roles.length : 2;
+                  return (
+                    <th colSpan={cols + 1} style={{ textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '4px 10px', height: '20px', lineHeight: '1', background: 'rgba(21,128,61,0.25)', borderLeft: '2px solid rgba(21,128,61,0.5)' }}>
+                      UPLINE COMMISSION
+                    </th>
+                  );
+                })()}
                 <th rowSpan="2" style={{ width: '120px' }}>OPERATOR ID</th>
                 <th rowSpan="2" style={{ width: '120px' }}>PROVIDER</th>
                 <th rowSpan="2" style={{ width: '180px' }}>REMARK</th>
               </tr>
               <tr style={{ background: 'linear-gradient(90deg, #1a2f8a 0%, #0D1B5E 100%)' }}>
-                <th style={{ width: '60px', fontSize: '0.65rem', padding: '4px 10px', height: '20px', lineHeight: '1' }}>UPPER LINE</th>
-                <th style={{ width: '60px', fontSize: '0.65rem', padding: '4px 10px', height: '20px', lineHeight: '1' }}>ADMIN</th>
+                <th style={{ width: '70px', fontSize: '0.65rem', padding: '4px 10px', height: '20px', lineHeight: '1' }}>ADMIN</th>
                 <th style={{ width: '60px', fontSize: '0.65rem', padding: '4px 10px', height: '20px', lineHeight: '1' }}>TDS</th>
+                {/* UPLINE sub-col headers: TOTAL + roleName from first sample row */}
+                {(() => {
+                  const sample = transactions.find(t => (t.uplineBreakdown || []).length > 0);
+                  const roles = sample ? sample.uplineBreakdown : [];
+                  const cols = roles.length > 0 ? roles.length : 2;
+                  return (
+                    <>
+                      <th style={{ width: '75px', fontSize: '0.65rem', padding: '4px 8px', height: '20px', lineHeight: '1', background: 'rgba(21,128,61,0.2)', color: '#bbf7d0', borderLeft: '2px solid rgba(21,128,61,0.5)', fontWeight: 900 }}>TOTAL</th>
+                      {Array.from({ length: cols }, (_, i) => (
+                        <th key={i} style={{ width: '80px', fontSize: '0.6rem', padding: '4px 6px', height: '20px', lineHeight: '1', background: 'rgba(21,128,61,0.15)', color: '#86efac', whiteSpace: 'nowrap' }}>
+                          {roles[i]?.roleName ? roles[i].roleName.toUpperCase() : `L${i + 1}`}
+                        </th>
+                      ))}
+                    </>
+                  );
+                })()}
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="21" style={{ padding: '40px 0', textAlign: 'center' }}>
+                  <td colSpan="25" style={{ padding: '40px 0', textAlign: 'center' }}>
                     <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#1756AA' }}>Loading transactions...</span>
                   </td>
                 </tr>
-              ) : transactions.length > 0 ? (
-                transactions.map((txn, index) => (
+              ) : (() => {
+                const q = tableFilter.trim().toLowerCase();
+                const displayTxns = q
+                  ? transactions.filter(t =>
+                      (t.orderId   || '').toLowerCase().includes(q) ||
+                      (t.memberName|| '').toLowerCase().includes(q) ||
+                      (t.customerName || '').toLowerCase().includes(q) ||
+                      (t.memberMobile || '').includes(q) ||
+                      (t.customerMobile || '').includes(q) ||
+                      (t.rrn       || '').toLowerCase().includes(q) ||
+                      (t.status    || '').toLowerCase().includes(q)
+                    )
+                  : transactions;
+                return displayTxns.length > 0 ? (
+                displayTxns.map((txn, index) => (
                   <tr key={txn.id || index}>
                     <td>{((pageNumber - 1) * pageSize) + index + 1}</td>
                     <td style={{ textAlign: 'center', overflow: 'visible' }}>
@@ -657,7 +689,7 @@ const AEPSHistory = () => {
                       ) : 'N/A'}
                     </td>
                     <td style={{ fontSize: '0.85rem', fontWeight: '600', color: '#1E293B' }}>
-                      {txn.id || txn.orderId || ('TXN' + (index + 203841))}
+                      {txn.orderId || txn.id || ('TXN' + (index + 203841))}
                     </td>
                     <td>
                       <div style={{ fontWeight: '700', color: '#1E293B', fontSize: '0.9rem' }}>{txn.memberName || 'N/A'}</div>
@@ -724,9 +756,7 @@ const AEPSHistory = () => {
                     </td>
                     <td style={{ fontWeight: '600', color: '#64748B' }}>₹{(txn.opBal || 0).toFixed(2)}</td>
                     <td style={{ fontWeight: '700', color: '#334155' }}>₹{(txn.clBal || 0).toFixed(2)}</td>
-                    <td style={{ fontSize: '0.75rem', fontWeight: '700', color: '#166534' }}>
-                      ₹{((parseFloat(txn.commission) || 0) * 0.6).toFixed(2)}
-                    </td>
+                    {/* COMMISSION: ADMIN + TDS */}
                     <td style={{ fontSize: '0.75rem', fontWeight: '700', color: '#166534' }}>
                       ₹{((parseFloat(txn.commission) || 0) * 0.4).toFixed(2)}
                     </td>
@@ -735,7 +765,45 @@ const AEPSHistory = () => {
                         ₹{(txn.tds || 0).toFixed(2)}
                       </span>
                     </td>
-                    <td style={{ fontSize: '0.85rem', fontWeight: '600', color: '#475569' }}>{txn.operatorId || 'N/A'}</td>
+                    {/* UPLINE COMMISSION — TOTAL + per-role cells (aligned after TDS) */}
+                    {(() => {
+                      const sample = transactions.find(t => (t.uplineBreakdown || []).length > 0);
+                      const roles = sample ? sample.uplineBreakdown : [];
+                      const cols = roles.length > 0 ? roles.length : 2;
+                      const breakdown = txn.uplineBreakdown || [];
+
+                      debugger;
+                      return (
+                        <>
+                          {/* TOTAL */}
+                          <td style={{ borderLeft: '2px solid rgba(21,128,61,0.3)', background: 'rgba(240,253,244,0.4)' }}>
+                            {txn.uplineCommission != null ? (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#15803d' }}>₹{Number(txn.uplineCommission).toFixed(2)}</span>
+                                {breakdown.length > 0 && (
+                                  <button onClick={() => setBreakdownTxn(txn)} title="View breakdown" style={{ width: 15, height: 15, borderRadius: '50%', border: 'none', background: '#1756AA', color: '#fff', fontSize: '0.5rem', fontWeight: 900, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>i</button>
+                                )}
+                              </div>
+                            ) : <span style={{ color: '#94a3b8', fontSize: '0.72rem' }}>—</span>}
+                          </td>
+                          {/* Per-role cells: amount + memberName */}
+                          {Array.from({ length: cols }, (_, i) => {
+                            const row = breakdown[i];
+                            return (
+                              <td key={i} style={{ background: 'rgba(240,253,244,0.2)', fontSize: '0.72rem' }}>
+                                {row ? (
+                                  <div>
+                                    <div style={{ fontWeight: 700, color: '#166534' }}>₹{Number(row.amount || 0).toFixed(2)}</div>
+                                    <div style={{ fontSize: '0.62rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 75 }} title={row.memberName}>{row.memberName || '—'}</div>
+                                  </div>
+                                ) : <span style={{ color: '#cbd5e1' }}>—</span>}
+                              </td>
+                            );
+                          })}
+                        </>
+                      );
+                    })()}
+                    <td style={{ fontSize: '0.85rem', fontWeight: '600', color: '#475569' }}>{txn.operatorName || txn.operatorId || 'N/A'}</td>
                     <td>
                       <span style={{ background: '#F1F5F9', color: '#475569', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '600', border: '1px solid #E2E8F0' }}>
                         {txn.providerName || txn.serviceName || 'N/A'}
@@ -744,28 +812,70 @@ const AEPSHistory = () => {
                     <td style={{ color: '#64748B', fontSize: '0.8rem', fontStyle: 'italic', whiteSpace: 'normal', maxWidth: '180px', lineHeight: '1.3' }}>{txn.remark || 'N/A'}</td>
                   </tr>
                 ))
-              ) : (
-                <tr>
-                  <td colSpan="21" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
-                    <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>No data available in table</span>
-                  </td>
-                </tr>
-              )}
+                ) : (
+                  <tr>
+                    <td colSpan="25" style={{ padding: '40px 0', color: '#A0AEC0', textAlign: 'center' }}>
+                      <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#64748B' }}>
+                        {tableFilter ? `No results for "${tableFilter}"` : 'No data available in table'}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })()}
             </tbody>
           </table>
         </div>
 
         {/* PAGINATION */}
-        <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
-            Showing {transactions.length > 0 ? ((pageNumber - 1) * pageSize) + 1 : 0} to {Math.min(pageNumber * pageSize, totalRecords)} of {totalRecords} records
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="global-page-btn" onClick={() => setPageNumber(p => Math.max(p - 1, 1))} disabled={pageNumber === 1}><FiChevronLeft /></button>
-            <button className="global-page-btn global-page-active">{pageNumber}</button>
-            <button className="global-page-btn" onClick={() => setPageNumber(p => p + 1)} disabled={pageNumber * pageSize >= totalRecords}><FiChevronRight /></button>
-          </div>
-        </div>
+        {(() => {
+          const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+          // Build smart page list: always show first, last, current ±2, with ellipsis
+          const getPages = () => {
+            const pages = [];
+            const delta = 2;
+            const left  = pageNumber - delta;
+            const right = pageNumber + delta;
+            let prev = null;
+            for (let i = 1; i <= totalPages; i++) {
+              if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+                if (prev !== null && i - prev > 1) pages.push('...');
+                pages.push(i);
+                prev = i;
+              }
+            }
+            return pages;
+          };
+          return (
+            <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ fontSize: '0.82rem', color: '#718096', fontWeight: 600 }}>
+                Showing {transactions.length > 0 ? ((pageNumber - 1) * pageSize) + 1 : 0}–{Math.min(pageNumber * pageSize, totalRecords)} of <strong>{totalRecords}</strong> records &nbsp;|&nbsp; Page {pageNumber} of {totalPages}
+              </div>
+              <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap' }}>
+                {/* Prev */}
+                <button className="global-page-btn" onClick={() => setPageNumber(p => Math.max(p - 1, 1))} disabled={pageNumber === 1}><FiChevronLeft /></button>
+                {/* Smart page numbers */}
+                {getPages().map((pg, i) =>
+                  pg === '...'
+                    ? <span key={`dot-${i}`} style={{ padding: '0 4px', color: '#94a3b8', fontSize: '0.85rem', lineHeight: '36px' }}>…</span>
+                    : <button
+                        key={pg}
+                        onClick={() => setPageNumber(pg)}
+                        style={{
+                          minWidth: 36, height: 36, borderRadius: 8, border: '1.5px solid',
+                          borderColor: pg === pageNumber ? '#1756AA' : '#e2e8f0',
+                          background: pg === pageNumber ? '#1756AA' : '#fff',
+                          color: pg === pageNumber ? '#fff' : '#475569',
+                          fontWeight: pg === pageNumber ? 800 : 500,
+                          fontSize: '0.82rem', cursor: 'pointer',
+                        }}
+                      >{pg}</button>
+                )}
+                {/* Next */}
+                <button className="global-page-btn" onClick={() => setPageNumber(p => Math.min(p + 1, totalPages))} disabled={pageNumber >= totalPages}><FiChevronRight /></button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
             {activeReceipt && (
@@ -791,11 +901,47 @@ const AEPSHistory = () => {
         onCancel={() => setConfirmData({ show: false, action: null, txn: null })}
       />
       <PopupModal show={popup.show} type={popup.type} title={popup.title} message={popup.message} onClose={closePopup} />
-      <LogModal 
-        show={logModalData.show} 
-        txn={logModalData.txn} 
-        onClose={() => setLogModalData({ show: false, txn: null })} 
+      <LogModal
+        show={logModalData.show}
+        txn={logModalData.txn}
+        onClose={() => setLogModalData({ show: false, txn: null })}
       />
+
+      {/* Upline Breakdown Portal */}
+      {breakdownTxn && ReactDOM.createPortal(
+        <>
+          <div onClick={() => setBreakdownTxn(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(10,20,50,0.55)', backdropFilter: 'blur(4px)', zIndex: 9500 }} />
+          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 9501, width: '100%', maxWidth: 480, background: '#fff', borderRadius: 16, boxShadow: '0 24px 64px rgba(10,20,50,0.28)', overflow: 'hidden', fontFamily: 'Arial, sans-serif' }}>
+            <div style={{ background: 'linear-gradient(135deg,#0A1428,#1756AA)', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <h3 style={{ margin: 0, color: '#fff', fontSize: '0.95rem', fontWeight: 800 }}>Upline Commission Breakdown</h3>
+                <p style={{ margin: '3px 0 0', color: 'rgba(255,255,255,0.65)', fontSize: '0.72rem' }}>TXN: {breakdownTxn.orderId || breakdownTxn.id || '—'}</p>
+              </div>
+              <button onClick={() => setBreakdownTxn(null)} style={{ background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%', width: 28, height: 28, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+            </div>
+            <div style={{ background: '#f0fdf4', borderBottom: '1px solid #bbf7d0', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#15803d' }}>Total Upline Earning</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#15803d' }}>₹{Number(breakdownTxn.uplineCommission || 0).toFixed(2)}</span>
+            </div>
+            <div style={{ padding: '12px 20px 20px', maxHeight: 340, overflowY: 'auto' }}>
+              {(breakdownTxn.uplineBreakdown || []).map((row, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', marginBottom: 8, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, background: i === 0 ? 'linear-gradient(135deg,#1756AA,#0A1428)' : i === 1 ? 'linear-gradient(135deg,#7c3aed,#4c1d95)' : 'linear-gradient(135deg,#0891b2,#0e7490)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 900 }}>L{row.levelNo || i + 1}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.82rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.memberName || 'N/A'}</div>
+                    <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: 2 }}>{row.roleName || `Level ${row.levelNo || i + 1}`}{row.memberMobile ? ` · ${row.memberMobile}` : ''}</div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#15803d' }}>+₹{Number(row.amount || 0).toFixed(2)}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: 1 }}>{row.createdOn ? new Date(row.createdOn).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
 
     </div>
   );

@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 
-// Lightweight searchable dropdown. Styles are inline so it drops into any
-// panel without needing that panel's CSS module.
+// Lightweight searchable dropdown — uses a fixed-position portal so the menu
+// always renders on top of any parent with overflow:hidden or z-index stacking.
 //
 // Props:
 //   options      - [{ value, label, meta }]
@@ -9,6 +10,7 @@ import React, { useState, useRef, useEffect } from 'react';
 //   onChange     - (value, option) => void
 //   placeholder  - text shown when nothing is selected
 //   disabled     - blocks interaction
+//   required     - native form validation
 const SearchableSelect = ({
     options = [],
     value = '',
@@ -19,20 +21,68 @@ const SearchableSelect = ({
 }) => {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState('');
+    const [menuStyle, setMenuStyle] = useState({});
     const wrapRef = useRef(null);
+    const menuRef = useRef(null);
 
     const selected = options.find(o => String(o.value) === String(value));
 
+    // Calculate fixed position based on trigger rect
+    const calcMenuStyle = useCallback(() => {
+        if (!wrapRef.current) return;
+        const rect = wrapRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const menuH = 280;
+        const openUpward = spaceBelow < menuH + 8 && rect.top > menuH;
+        setMenuStyle({
+            position: 'fixed',
+            left: rect.left,
+            width: rect.width,
+            zIndex: 99999,
+            background: '#fff',
+            border: '1px solid #E2E8F0',
+            borderRadius: '8px',
+            boxShadow: '0 10px 30px rgba(15,23,42,0.15)',
+            maxHeight: '260px',
+            overflowY: 'auto',
+            ...(openUpward
+                ? { bottom: window.innerHeight - rect.top + 4 }
+                : { top: rect.bottom + 4 })
+        });
+    }, []);
+
+    const handleOpen = () => {
+        if (disabled) return;
+        if (!open) calcMenuStyle();
+        setOpen(o => !o);
+    };
+
+    // Close on outside click
     useEffect(() => {
-        const onClickOutside = (e) => {
-            if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        const handler = (e) => {
+            if (
+                wrapRef.current && !wrapRef.current.contains(e.target) &&
+                menuRef.current && !menuRef.current.contains(e.target)
+            ) {
                 setOpen(false);
                 setQuery('');
             }
         };
-        document.addEventListener('mousedown', onClickOutside);
-        return () => document.removeEventListener('mousedown', onClickOutside);
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
     }, []);
+
+    // Recalc on scroll/resize so menu tracks the trigger
+    useEffect(() => {
+        if (!open) return;
+        const update = () => calcMenuStyle();
+        window.addEventListener('scroll', update, true);
+        window.addEventListener('resize', update);
+        return () => {
+            window.removeEventListener('scroll', update, true);
+            window.removeEventListener('resize', update);
+        };
+    }, [open, calcMenuStyle]);
 
     const filtered = query.trim()
         ? options.filter(o =>
@@ -40,38 +90,24 @@ const SearchableSelect = ({
             String(o.meta || '').toLowerCase().includes(query.toLowerCase()))
         : options;
 
-    const box = {
-        position: 'relative',
-        width: '100%'
-    };
-
     const control = {
         width: '100%',
-        padding: '10px 12px',
-        border: '1px solid #CBD5E1',
+        height: '38px',
+        padding: '0 12px',
+        border: open ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1',
         borderRadius: '8px',
-        background: disabled ? '#F1F5F9' : '#fff',
-        fontSize: '0.85rem',
+        background: disabled ? '#F1F5F9' : '#FCFDFE',
+        fontSize: '0.825rem',
         color: selected ? '#0F172A' : '#94A3B8',
         cursor: disabled ? 'not-allowed' : 'pointer',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '8px'
-    };
-
-    const menu = {
-        position: 'absolute',
-        top: 'calc(100% + 4px)',
-        left: 0,
-        right: 0,
-        zIndex: 10050,
-        background: '#fff',
-        border: '1px solid #E2E8F0',
-        borderRadius: '8px',
-        boxShadow: '0 10px 30px rgba(15,23,42,0.12)',
-        maxHeight: '260px',
-        overflowY: 'auto'
+        gap: '8px',
+        boxShadow: open ? '0 0 0 3px rgba(23,86,170,0.06)' : 'none',
+        transition: 'border 0.2s, box-shadow 0.2s',
+        boxSizing: 'border-box',
+        fontWeight: 500,
     };
 
     const searchInput = {
@@ -83,25 +119,73 @@ const SearchableSelect = ({
         fontSize: '0.82rem',
         position: 'sticky',
         top: 0,
-        background: '#fff'
+        background: '#fff',
+        boxSizing: 'border-box',
     };
 
+    const menu = (
+        <div style={menuStyle} ref={menuRef}>
+            <input
+                autoFocus
+                style={searchInput}
+                placeholder="Search..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+            />
+            {filtered.length === 0 ? (
+                <div style={{ padding: '14px 12px', color: '#94A3B8', fontSize: '0.82rem' }}>
+                    No match found
+                </div>
+            ) : filtered.map(opt => (
+                <div
+                    key={String(opt.value)}
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                        onChange?.(opt.value, opt);
+                        setOpen(false);
+                        setQuery('');
+                    }}
+                    style={{
+                        padding: '10px 12px',
+                        fontSize: '0.83rem',
+                        cursor: 'pointer',
+                        background: String(opt.value) === String(value) ? '#EFF6FF' : 'transparent',
+                        color: '#0F172A',
+                        borderBottom: '1px solid #F1F5F9',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#F8FAFC'; }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background =
+                            String(opt.value) === String(value) ? '#EFF6FF' : 'transparent';
+                    }}
+                >
+                    <div style={{ fontWeight: 600 }}>{opt.label}</div>
+                    {opt.meta && (
+                        <div style={{ fontSize: '0.73rem', color: '#64748B', marginTop: '2px' }}>{opt.meta}</div>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+
     return (
-        <div style={box} ref={wrapRef}>
+        <div style={{ position: 'relative', width: '100%' }} ref={wrapRef}>
             <div
                 style={control}
-                onClick={() => { if (!disabled) setOpen(o => !o); }}
+                onClick={handleOpen}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !disabled) setOpen(o => !o); }}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleOpen(); }}
             >
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                     {selected ? selected.label : placeholder}
                 </span>
-                <span style={{ color: '#64748B', fontSize: '0.7rem' }}>▼</span>
+                <span style={{ color: '#64748B', fontSize: '0.65rem', flexShrink: 0 }}>
+                    {open ? '▲' : '▼'}
+                </span>
             </div>
 
-            {/* Keeps native form validation working for `required` fields. */}
             {required && (
                 <input
                     tabIndex={-1}
@@ -112,50 +196,7 @@ const SearchableSelect = ({
                 />
             )}
 
-            {open && !disabled && (
-                <div style={menu}>
-                    <input
-                        autoFocus
-                        style={searchInput}
-                        placeholder="Search..."
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        onClick={(e) => e.stopPropagation()}
-                    />
-                    {filtered.length === 0 ? (
-                        <div style={{ padding: '14px 12px', color: '#94A3B8', fontSize: '0.82rem' }}>
-                            No match found
-                        </div>
-                    ) : filtered.map(opt => (
-                        <div
-                            key={opt.value}
-                            onClick={() => {
-                                onChange?.(opt.value, opt);
-                                setOpen(false);
-                                setQuery('');
-                            }}
-                            style={{
-                                padding: '10px 12px',
-                                fontSize: '0.83rem',
-                                cursor: 'pointer',
-                                background: String(opt.value) === String(value) ? '#EFF6FF' : 'transparent',
-                                color: '#0F172A',
-                                borderBottom: '1px solid #F1F5F9'
-                            }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = '#F8FAFC'; }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background =
-                                    String(opt.value) === String(value) ? '#EFF6FF' : 'transparent';
-                            }}
-                        >
-                            <div style={{ fontWeight: 600 }}>{opt.label}</div>
-                            {opt.meta && (
-                                <div style={{ fontSize: '0.73rem', color: '#64748B', marginTop: '2px' }}>{opt.meta}</div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
+            {open && !disabled && ReactDOM.createPortal(menu, document.body)}
         </div>
     );
 };

@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
+import { Cells as UplineCells, getUplineShape } from '../../../../shared/components/common/UplineCommissionCols';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   setBBPSList, 
@@ -13,8 +15,8 @@ import StatsGrid from '../../../../shared/components/common/StatsGrid';
 import { FiBarChart2 } from 'react-icons/fi';
 import styles from './AEPSReport.module.css';
 import { FiSearch } from 'react-icons/fi';
-import { useState } from 'react';
 import { API } from '../../../../api/endpoints';
+import { normalizeTxnResponse } from '../../../../services/transaction.service';
 
 const BBPSHistory = () => {
   const dispatch = useDispatch();
@@ -24,6 +26,7 @@ const BBPSHistory = () => {
   const [masterOperators, setMasterOperators] = useState([]);
   const [masterApis, setMasterApis] = useState([]);
   const [showStats, setShowStats] = useState(false);
+  const [breakdownTxn, setBreakdownTxn] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -60,11 +63,7 @@ const BBPSHistory = () => {
         memberId: '',
         status: filters.status || ''
       });
-      let rawData = [];
-      if (res?.status === true) rawData = Array.isArray(res.data) ? res.data : (res.data?.items || []);
-      else if (Array.isArray(res?.data)) rawData = res.data;
-      else if (Array.isArray(res?.data?.items)) rawData = res.data.items;
-      else if (Array.isArray(res)) rawData = res;
+      const { items: rawData } = normalizeTxnResponse(res);
       console.log('[BBPSHistory.jsx] rows:', rawData.length);
       dispatch(setBBPSList(rawData));
     } catch (e) {
@@ -79,7 +78,9 @@ const BBPSHistory = () => {
 
   const filteredList = list.filter(item => item.consumer?.toLowerCase().includes(searchQuery.toLowerCase()) || item.txnId?.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  const displayColumns = ['Receipt', 'SNO', 'Date Time', 'Recharge By', 'Operator', 'Number', 'Status', 'Opening Bal', 'Amount', 'Commission', 'TDS', 'Closing Bal', 'TXID', 'Operator Id', 'Remark'];
+  const { roles: uplineRoles, cols: uplineCols } = getUplineShape(filteredList);
+  const uplineColNames = Array.from({ length: uplineCols }, (_, i) => uplineRoles[i]?.roleName?.toUpperCase() || `L${i+1}`);
+  const displayColumns = ['Receipt', 'SNO', 'Date Time', 'Recharge By', 'Operator', 'Number', 'Status', 'Opening Bal', 'Amount', 'Closing Bal', 'TXID', 'Operator Id', 'Remark', 'ADMIN', 'TDS', 'UPLINE TOTAL', ...uplineColNames];
 
   const totalAmount = filteredList.reduce((a, t) => a + (parseFloat(t.amount) || 0), 0);
   const totalCommission = filteredList.reduce((a, t) => a + (parseFloat(t.commission || t.totalCommission) || 0), 0);
@@ -157,12 +158,11 @@ const BBPSHistory = () => {
                 </td>
                 <td>₹{item.openingBalance || '0.00'}</td>
                 <td>₹{item.amount || '0.00'}</td>
-                <td>₹{item.commission || item.totalCommission || '0.00'}</td>
-                <td>₹{item.tds || item.totalTds || '0.00'}</td>
                 <td>₹{item.closingBalance || '0.00'}</td>
-                <td>{item.txnId || item.transId || item.orderId || 'N/A'}</td>
-                <td>{item.operatorId || 'N/A'}</td>
+                <td>{item.orderId || item.txnId || item.transId || 'N/A'}</td>
+                <td>{item.operatorName || item.operatorId || 'N/A'}</td>
                 <td>{item.remark || item.message || 'N/A'}</td>
+                <UplineCells txn={item} transactions={filteredList} onBreakdown={setBreakdownTxn} />
               </tr>
             );
         }}
@@ -176,6 +176,38 @@ const BBPSHistory = () => {
         totalPages={Math.ceil(filteredList.length / rowsPerPage)}
       />
       <ReceiptModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} data={selectedTxn} />
+      {breakdownTxn && ReactDOM.createPortal(
+        <>
+          <div onClick={() => setBreakdownTxn(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 9998 }} />
+          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 9999, background: 'linear-gradient(135deg,#0D1B5E,#1a2f8a)', borderRadius: 16, padding: '24px 28px', minWidth: 320, maxWidth: 440, boxShadow: '0 24px 60px rgba(0,0,0,0.4)', color: '#fff' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: '1rem', fontWeight: 900 }}>UPLINE BREAKDOWN</div>
+                <p style={{ margin: '3px 0 0', color: 'rgba(255,255,255,0.65)', fontSize: '0.72rem' }}>TXN: {breakdownTxn.orderId || breakdownTxn.id || '—'}</p>
+              </div>
+              <button onClick={() => setBreakdownTxn(null)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: 28, height: 28, borderRadius: '50%', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.07)', borderRadius: 8, padding: '10px 14px', marginBottom: 14 }}>
+              <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>Total Upline</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#15803d' }}>₹{Number(breakdownTxn.uplineCommission || 0).toFixed(2)}</span>
+            </div>
+            {(breakdownTxn.uplineBreakdown || []).map((row, i) => {
+              const colors = ['#1756AA','#7C3AED','#0891B2'];
+              const bg = ['rgba(23,86,170,0.15)','rgba(124,58,237,0.15)','rgba(8,145,178,0.15)'];
+              return (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: bg[i]||bg[2], borderRadius: 8, padding: '10px 14px', marginBottom: 8, borderLeft: `3px solid ${colors[i]||colors[2]}` }}>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#e2e8f0' }}>{row.roleName || `L${i+1}`}</div>
+                    <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{row.memberName || '—'}</div>
+                  </div>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#4ade80' }}>₹{Number(row.amount || 0).toFixed(2)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </>,
+        document.body
+      )}
     </div>
   );
 };

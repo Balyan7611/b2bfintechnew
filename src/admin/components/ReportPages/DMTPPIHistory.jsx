@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API } from '../../../api/endpoints';
+import { normalizeTxnResponse } from '../../../services/transaction.service';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import StatsGrid from '../../../shared/components/common/StatsGrid';
 import {
@@ -10,7 +11,7 @@ import styles from '../MemberPages/MemberPages.module.css';
 import TransactionReceipt from '../../../member/components/MemberPanel/Services/TransactionReceipt';
 
 // Fixed service ID for DMT PPI – adjust as needed
-const DMT_PPI_SERVICE_ID = '7'; // Example ID, change to actual
+const DMT_PPI_SERVICE_ID = '16'; // Example ID, change to actual
 
 const DMTPPIHistory = () => {
     // ─── State ──────────────────────────────────────────────
@@ -77,6 +78,7 @@ const DMTPPIHistory = () => {
                 pageSize,
                 fromDate,
                 toDate,
+                sectionType: '7',    // DMT
                 serviceId: DMT_PPI_SERVICE_ID,
                 memberId: selectedMember,
                 status: selectedStatus,
@@ -84,24 +86,9 @@ const DMTPPIHistory = () => {
                 // additional filters like txnMode if needed
             });
 
-            if (res && res.status === true) {
-                if (Array.isArray(res.data)) {
-                    setTransactions(res.data);
-                    setTotalRecords(res.totalRecords || res.data.length);
-                } else if (res.data && Array.isArray(res.data.items)) {
-                    setTransactions(res.data.items);
-                    setTotalRecords(res.data.totalItems || res.data.items.length);
-                } else {
-                    setTransactions([]);
-                    setTotalRecords(0);
-                }
-            } else if (Array.isArray(res)) {
-                setTransactions(res);
-                setTotalRecords(res.length);
-            } else {
-                setTransactions([]);
-                setTotalRecords(0);
-            }
+                  const { items: _txns, totalItems: _total, totalSuccess: _succ, totalPending: _pend, totalFailed: _fail } = normalizeTxnResponse(res);
+      setTransactions(_txns);
+      setTotalRecords(_total);
         } catch (err) {
             console.error("Failed to fetch DMT PPI transactions:", err);
             setTransactions([]);

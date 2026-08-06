@@ -59,6 +59,35 @@ const formatCardNumber = (accNo) => {
   return accNo.replace(/(\d{4})/g, '$1 ').trim();
 };
 
+// Shows slip image if it loads; otherwise falls back to null so parent shows default summary.
+const SlipViewer = ({ slip, fallback }) => {
+  const [imgFailed, setImgFailed] = React.useState(false);
+
+  if (imgFailed) return fallback;
+
+  const isPdf = String(slip).toLowerCase().endsWith('.pdf');
+  if (isPdf) {
+    return (
+      <div style={{ textAlign: 'center', padding: '24px 0' }}>
+        <embed src={slip} type="application/pdf" width="100%" height="420px" style={{ borderRadius: 8 }} />
+        <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#64748b' }}>📎 Payment receipt (PDF)</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <img
+        src={slip}
+        alt="Payment Receipt Slip"
+        style={{ maxWidth: '100%', maxHeight: '420px', borderRadius: 8, objectFit: 'contain', display: 'block', margin: '0 auto', border: '1px solid #e2e8f0' }}
+        onError={() => setImgFailed(true)}
+      />
+      <p style={{ margin: '8px 0 0', fontSize: '0.75rem', color: '#64748b' }}>📎 Payment receipt attached</p>
+    </div>
+  );
+};
+
 const FundRequest = () => {
   const isApiPanel = typeof window !== 'undefined' && window.location.pathname.startsWith('/api-panel');
 
@@ -101,8 +130,23 @@ const FundRequest = () => {
   };
 
   // Maps a FundRequest row from the API into the shape this table renders.
+  // Resolves a raw cashslip value (filename, relative path, or full URL) into a usable URL.
+  const resolveSlipUrl = useCallback((raw) => {
+    if (!raw) return null;
+    // Already a full URL
+    if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+    // If it already contains the UploadedFiles path, prepend base only
+    if (raw.includes('UploadedFiles/')) {
+      return `https://api.sahayatamoney.in/${raw.replace(/^\/+/, '')}`;
+    }
+    // Plain filename — build with folder
+    return getImageUrl(raw, 'FundRequest');
+  }, []);
+
   const toRow = useCallback((r, banks) => {
     const bank = (banks || []).find(b => Number(b.id) === Number(r.companyBankId));
+    const rawSlip = r.cashslip || r.slipFile || r.SlipFile || r.slipUrl || null;
+    const slip = resolveSlipUrl(rawSlip) || slipMapRef.current[r.bankRefId] || null;
     return {
       id: r.id,
       requestId: `FR${String(r.id).padStart(6, '0')}`,
@@ -115,12 +159,12 @@ const FundRequest = () => {
       addDate: (r.createdDate || r.paymentDate || '').replace('T', ' ').slice(0, 16) || '-',
       approveDate: r.approveDate ? r.approveDate.replace('T', ' ').slice(0, 16) : 'Pending',
       compRemarks: r.remark || '-',
-      slip: getImageUrl(r.cashslip, 'FundRequest') || r.slipUrl || slipMapRef.current[r.bankRefId] || null,
-      cashslip: r.cashslip || null,
+      slip,
+      cashslip: rawSlip || null,
       status: normalizeStatus(r.status),
       reason: normalizeStatus(r.status) === 'rejected' ? (r.reason || r.remark || 'N/A') : 'N/A'
     };
-  }, []);
+  }, [resolveSlipUrl]);
 
   const loadRequests = useCallback(async (id, banks) => {
     if (!id) return;
@@ -591,11 +635,11 @@ const FundRequest = () => {
                     <td>{row.approveDate}</td>
                     <td>{row.compRemarks}</td>
                     <td>
-                      <button 
+                      <button
                         className={styles.viewSlipBtn}
                         onClick={() => setActiveSlip(row)}
                       >
-                        View Slip
+                        📎 View Slip
                       </button>
                     </td>
                     <td>{getStatusBadge(row.status)}</td>
@@ -680,60 +724,29 @@ const FundRequest = () => {
               <button className={styles.modalCloseBtn} onClick={() => setActiveSlip(null)}>✕</button>
             </div>
             <div className={styles.slipModalBody}>
-              {activeSlip.slip ? (
-                /* ── User uploaded a slip — show actual image or PDF link ── */
-                <>
-                  {String(activeSlip.slip).toLowerCase().endsWith('.pdf') ? (
-                    <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                      <a
-                        href={activeSlip.slip}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ display: 'inline-block', padding: '10px 20px', background: '#3b82f6', color: '#fff', borderRadius: '8px', fontWeight: 600, textDecoration: 'none' }}
-                      >
-                        📄 View Receipt (PDF)
-                      </a>
+              {(() => {
+                const defaultSummary = (
+                  <>
+                    <div className={styles.slipMockContainer}>
+                      <div className={styles.slipMockHeader}>
+                        <h4>{activeSlip.companyBank} Transaction Log</h4>
+                        <span>UTR ID: {activeSlip.refId}</span>
+                      </div>
+                      <div style={{ height: '1.5px', background: '#cbd5e1', borderStyle: 'dashed', margin: '14px 0' }}></div>
+                      <div className={styles.slipDetailGrid}>
+                        <div><span>REQUEST ID</span><strong>{activeSlip.requestId}</strong></div>
+                        <div><span>PAYMENT DATE</span><strong>{activeSlip.date}</strong></div>
+                        <div><span>PAYMENT MODE</span><strong>{activeSlip.payMode}</strong></div>
+                        <div><span>AMOUNT</span><strong style={{ color: '#16a34a', fontSize: '1.15rem' }}>₹{activeSlip.amount.toLocaleString('en-IN')}</strong></div>
+                      </div>
                     </div>
-                  ) : (
-                    <img
-                      src={activeSlip.slip}
-                      alt="Payment Receipt Slip"
-                      style={{ maxWidth: '100%', maxHeight: '420px', borderRadius: '8px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
-                      onError={e => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'block';
-                      }}
-                    />
-                  )}
-                  <a
-                    href={activeSlip.slip}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ display: 'none', textAlign: 'center', marginTop: '8px', color: '#3b82f6', fontWeight: 600 }}
-                  >
-                    Open Receipt File ↗
-                  </a>
-                  <span className={styles.slipAttachedName}>📎 Payment receipt attached</span>
-                </>
-              ) : (
-                /* ── No slip uploaded — show default transaction summary ── */
-                <>
-                  <div className={styles.slipMockContainer}>
-                    <div className={styles.slipMockHeader}>
-                      <h4>{activeSlip.companyBank} Transaction Log</h4>
-                      <span>UTR ID: {activeSlip.refId}</span>
-                    </div>
-                    <div style={{ height: '1.5px', background: '#cbd5e1', borderStyle: 'dashed', margin: '14px 0' }}></div>
-                    <div className={styles.slipDetailGrid}>
-                      <div><span>REQUEST ID</span><strong>{activeSlip.requestId}</strong></div>
-                      <div><span>PAYMENT DATE</span><strong>{activeSlip.date}</strong></div>
-                      <div><span>PAYMENT MODE</span><strong>{activeSlip.payMode}</strong></div>
-                      <div><span>AMOUNT</span><strong style={{ color: '#16a34a', fontSize: '1.15rem' }}>₹{activeSlip.amount.toLocaleString('en-IN')}</strong></div>
-                    </div>
-                  </div>
-                  <span className={styles.slipAttachedName}>📎 No receipt uploaded for this request</span>
-                </>
-              )}
+                    <span className={styles.slipAttachedName}>📎 No receipt uploaded for this request</span>
+                  </>
+                );
+                return activeSlip.slip
+                  ? <SlipViewer slip={activeSlip.slip} fallback={defaultSummary} />
+                  : defaultSummary;
+              })()}
             </div>
           </div>
         </div>

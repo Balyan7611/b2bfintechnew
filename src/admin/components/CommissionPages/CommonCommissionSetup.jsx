@@ -1,34 +1,52 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
+import {
   FiGrid, FiArrowRight, FiFilter, FiChevronDown
 } from 'react-icons/fi';
-import { 
-  setCommonService, 
-  setCommonSearchQuery, 
-  setCommonRowsPerPage, 
+import {
+  setCommonService,
+  setCommonSearchQuery,
+  setCommonRowsPerPage,
   setCommonCurrentPage
 } from '../../../store/slices/commissionSlice';
 import AdminTable from '../../../shared/components/common/AdminTable';
+import { API } from '../../../api/endpoints';
 import styles from './CommonCommissionSetup.module.css';
 
 const CommonCommissionSetup = () => {
   const dispatch = useDispatch();
-  const { 
-    selectedService, 
-    list, 
-    searchQuery, 
-    rowsPerPage, 
-    currentPage 
+  const {
+    selectedService,
+    list,
+    searchQuery,
+    rowsPerPage,
+    currentPage
   } = useSelector(state => state.commission.commonCommission);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const dropdownRef = React.useRef(null);
+  const [services, setServices] = useState([]);
 
-  // Mock services list
-  const services = [
-    'Prepaid Mobile', 'Postpaid Mobile', 'DTH', 'Electricity', 
-    'Gas', 'Water', 'Insurance', 'DMT', 'AEPS'
-  ];
+  // Load services from API
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        const res = await API.service.getAll();
+        // Normalize — API may return array directly or wrapped in data/items
+        const raw = Array.isArray(res) ? res
+          : Array.isArray(res?.data) ? res.data
+          : Array.isArray(res?.data?.items) ? res.data.items
+          : Array.isArray(res?.items) ? res.items
+          : [];
+        const mapped = raw.map(s => ({ id: s.id || s.Id, name: s.name || s.Name || s.serviceName || s.ServiceName || '' }))
+          .filter(s => s.name);
+        console.log('[CommissionSetup] services loaded:', mapped);
+        setServices(mapped);
+      } catch (err) {
+        console.error('CommonCommissionSetup: failed to load services', err);
+      }
+    };
+    loadServices();
+  }, []);
 
   // Commission data will be fetched from API based on selected service
 
@@ -82,16 +100,21 @@ const CommonCommissionSetup = () => {
                   >
                     Select Service
                   </div>
+                  {services.length === 0 && (
+                    <div className={styles.dropdownItem} style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
+                      Loading services…
+                    </div>
+                  )}
                   {services.map(s => (
-                    <div 
-                      key={s} 
-                      className={`${styles.dropdownItem} ${selectedService === s ? styles.itemActive : ''}`}
+                    <div
+                      key={s.id || s.name}
+                      className={`${styles.dropdownItem} ${selectedService === s.name ? styles.itemActive : ''}`}
                       onClick={() => {
-                        dispatch(setCommonService(s));
+                        dispatch(setCommonService(s.name));
                         setIsDropdownOpen(false);
                       }}
                     >
-                      {s}
+                      {s.name}
                     </div>
                   ))}
                 </div>

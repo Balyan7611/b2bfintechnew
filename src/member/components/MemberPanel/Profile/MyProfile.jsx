@@ -13,6 +13,7 @@ import { getSession, saveSession } from '../../../../utils/authUtils';
 import { resolveMemberId, getLoginId } from '../../../../utils/memberIdentity';
 import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 import { API } from '../../../../api/endpoints';
+import { SITE_CONFIG } from '../../../../config/siteConfig';
 import styles from './MyProfile.module.css';
 
 const MyProfile = () => {
@@ -1483,54 +1484,127 @@ const MyProfile = () => {
             {/* TAB 7: CERTIFICATE */}
             {activeTab === 'Certificate' && (
               <div className={styles.certifiedWrapper}>
-                <div ref={certRef} className={styles.certificateCard} id="certificate-card">
-                  <div className={styles.certTopStripe}></div>
-                  
-                  <div className={styles.certHeader}>
-                    <div className={styles.certBrandText}>
-                      <span className={styles.certBrandName}>BYPE DIGITAL SERVICES</span>
-                      <span className={styles.certBrandTagline}>Government Registered Financial Solutions Partner</span>
-                    </div>
-                  </div>
 
-                  <div className={styles.certTitleSection}>
-                    <h2 className={styles.certTitle}>AUTHORIZATION CERTIFICATE</h2>
-                  </div>
+                {/* scroll-wrapper so cert stays full width on small screens */}
+                <div className={styles.certScrollOuter}>
+                  <div ref={certRef} className={styles.certificateCard} id="certificate-card">
 
-                  <div className={styles.certBody}>
-                    <p className={styles.certSubtext}>This is to certify that</p>
-                    <h3 className={styles.certMemberName}>{formData.name || 'Retailer Name'}</h3>
-                    <div className={styles.certDivider}></div>
-                    <p className={styles.certAppointText}>
-                      is an Authorized <strong>{formData.role}</strong> of <strong>{formData.shopName || 'Retail Point'}</strong>.
-                    </p>
-                    <p className={styles.certCity}>Location: {formData.city || 'Jaipur'}, {formData.state || 'Rajasthan'}</p>
-                  </div>
+                    {/* ── OUTER GOLD BORDER FRAME ── */}
+                    <div className={styles.certFrame}>
 
-                  <div className={styles.certFooter}>
-                    <div className={styles.certFooterLeft}>
-                      <span className={styles.certFooterLabel}>MERCHANT CODE</span>
-                      <span className={styles.certFooterValue}>{formData.loginId || 'RT1001'}</span>
-                    </div>
-                    <div className={styles.certFooterCenter}>
-                      <div className={styles.certPoweredBox}>
-                        <span className={styles.certPoweredBy}>OFFICIAL SEAL</span>
-                        <FaBuilding style={{ fontSize: '2rem', color: '#1756AA', marginTop: '4px' }} />
+                      {/* Corner ornaments */}
+                      <span className={styles.cTL}>❋</span>
+                      <span className={styles.cTR}>❋</span>
+                      <span className={styles.cBL}>❋</span>
+                      <span className={styles.cBR}>❋</span>
+
+                      {/* ── HEADER ROW ── */}
+                      <div className={styles.certHdr}>
+                        <div className={styles.certHdrLeft}>
+                          <img src={SITE_CONFIG.logo} alt="" crossOrigin="anonymous" className={styles.certHdrLogo} />
+                        </div>
+                        <div className={styles.certHdrCenter}>
+                          <p className={styles.certHdrBrand}>{SITE_CONFIG.companyName}</p>
+                          <p className={styles.certHdrSub}>Authorized Partner Network</p>
+                        </div>
+                        <div className={styles.certHdrRight}>
+                          <div className={styles.certHdrSeal}>
+                            <FaShieldAlt className={styles.certHdrSealIcon} />
+                            <span className={styles.certHdrSealTxt}>OFFICIAL</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className={styles.certSignatureLine}></div>
-                      <span className={styles.certFooterLabel}>AUTHORIZED SIGNATURE</span>
-                    </div>
-                    <div className={styles.certFooterRight}>
-                      <span className={styles.certFooterLabel}>VERIFIED ON</span>
-                      <span className={styles.certFooterValue}>{new Date().toLocaleDateString('en-IN')}</span>
-                    </div>
-                  </div>
 
-                  <div className={styles.certBottomStripe}></div>
-                </div>
+                      {/* Gold rule */}
+                      <div className={styles.certGoldRule}>
+                        <div className={styles.certGoldLine}/>
+                        <span className={styles.certGoldDiamond}>◆ ◆ ◆</span>
+                        <div className={styles.certGoldLine}/>
+                      </div>
+
+                      {/* ── TITLE ── */}
+                      <div className={styles.certTitleWrap}>
+                        <p className={styles.certOfLabel}>C E R T I F I C A T E &nbsp; O F</p>
+                        <h1 className={styles.certMainTitle}>Authorization</h1>
+                      </div>
+
+                      {/* ── BODY ── */}
+                      <div className={styles.certMainBody}>
+
+                        {/* faint watermark */}
+                        <div className={styles.certWM}>
+                          <img src={SITE_CONFIG.logo} alt="" crossOrigin="anonymous" className={styles.certWMImg}/>
+                        </div>
+
+                        <p className={styles.certThis}>This is to certify that</p>
+
+                        {/* Name block */}
+                        <div className={styles.certNameWrap}>
+                          <p className={styles.certMrMs}>Mr / Ms</p>
+                          <h2 className={styles.certMemberName}>{formData.name || 'Member Name'}</h2>
+                          <div className={styles.certNameUnderline}/>
+                        </div>
+
+                        <p className={styles.certAppoint}>
+                          has been duly appointed as an Authorized&nbsp;
+                          <em className={styles.certRole}>{formData.role || 'Customer Service Point (CSP)'}</em>
+                        </p>
+                        <p className={styles.certOfCo}>
+                          of &nbsp;<strong className={styles.certCoName}>{SITE_CONFIG.companyName}</strong>
+                        </p>
+                        {(formData.city || formData.state) && (
+                          <p className={styles.certLocation}>
+                            📍 &nbsp;{[formData.city, formData.state].filter(Boolean).join(', ')}
+                          </p>
+                        )}
+                        <p className={styles.certParaText}>
+                          and is hereby authorized to provide financial and digital services on behalf
+                          of the company in accordance with the terms and conditions of the service agreement.
+                        </p>
+                      </div>
+
+                      {/* Gold rule */}
+                      <div className={styles.certGoldRule} style={{margin:'0 0 14px'}}>
+                        <div className={styles.certGoldLine}/>
+                        <span className={styles.certGoldDiamond}>◆ ◆ ◆</span>
+                        <div className={styles.certGoldLine}/>
+                      </div>
+
+                      {/* ── FOOTER ROW ── */}
+                      <div className={styles.certFtr}>
+                        <div className={styles.certFtrCol}>
+                          <span className={styles.certFtrVal}>{formData.loginId || 'N/A'}</span>
+                          <div className={styles.certFtrLine}/>
+                          <span className={styles.certFtrLabel}>AGENT CODE</span>
+                        </div>
+                        <div className={styles.certFtrCol}>
+                          <div className={styles.certFtrSignSpace}/>
+                          <div className={styles.certFtrLine}/>
+                          <span className={styles.certFtrLabel}>AUTHORIZED SIGNATORY</span>
+                        </div>
+                        <div className={`${styles.certFtrCol} ${styles.certFtrLogoCol}`}>
+                          <img src={SITE_CONFIG.logo} alt="Logo" crossOrigin="anonymous" className={styles.certFtrLogo}/>
+                        </div>
+                        <div className={styles.certFtrCol}>
+                          <div className={styles.certFtrSignSpace}/>
+                          <div className={styles.certFtrLine}/>
+                          <span className={styles.certFtrLabel}>MEMBER SIGNATURE</span>
+                        </div>
+                        <div className={styles.certFtrCol}>
+                          <span className={styles.certFtrVal} style={{fontSize:'0.7rem'}}>
+                            {new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase()}
+                          </span>
+                          <div className={styles.certFtrLine}/>
+                          <span className={styles.certFtrLabel}>ISSUED ON</span>
+                        </div>
+                      </div>
+
+                    </div>{/* /certFrame */}
+                  </div>{/* /certificateCard */}
+                </div>{/* /certScrollOuter */}
 
                 <button className={styles.certDownloadBtn} onClick={handleDownloadCertificate}>
-                  <FaDownload /> Download Official Certificate
+                  <FaDownload /> Download Certificate
                 </button>
               </div>
             )}

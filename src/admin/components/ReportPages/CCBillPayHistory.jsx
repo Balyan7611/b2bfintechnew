@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { API } from '../../../api/endpoints';
 import { 
@@ -60,6 +60,13 @@ const CCBillPayHistory = () => {
 
   const [memberList, setMemberList] = useState([]);
   const [selectedMember, setSelectedMember] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize] = useState(50);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -72,6 +79,39 @@ const CCBillPayHistory = () => {
     };
     fetchMembers();
   }, []);
+
+  // ── Fetch BBPS / CC Bill Pay transactions ──
+  const loadTransactions = useCallback(async (pg = 1) => {
+    setIsLoading(true);
+    try {
+      const params = {
+        sectionType: '2',   // BBPS
+        pageNumber: pg,
+        pageSize,
+        ...(selectedMember && { memberId: selectedMember }),
+        ...(fromDate        && { fromDate }),
+        ...(toDate          && { toDate }),
+        ...(searchKeyword.trim() && { keyword: searchKeyword.trim() }),
+      };
+      const res = await API.transaction.getAll(params);
+      const data = res?.data?.data || res?.data || res || {};
+      const items = Array.isArray(data.items) ? data.items
+        : Array.isArray(data.data)  ? data.data
+        : Array.isArray(data)       ? data
+        : [];
+      setTransactions(items);
+      setTotalPages(data.totalPages || Math.ceil((data.totalCount || items.length) / pageSize) || 1);
+      setPageNumber(pg);
+    } catch (err) {
+      console.error('[CCBillPay] fetch failed:', err);
+      setTransactions([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedMember, fromDate, toDate, searchKeyword, pageSize]);
+
+  // Initial load
+  useEffect(() => { loadTransactions(1); }, []); // eslint-disable-line
 
   return (
     <div className={styles.container} style={{ padding: '20px' }}>
@@ -140,7 +180,7 @@ const CCBillPayHistory = () => {
           </div>
         </div>
 
-        <form onSubmit={(e) => e.preventDefault()}>
+        <form onSubmit={(e) => { e.preventDefault(); loadTransactions(1); }}>
           {/* Row 1: 3 columns */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', alignItems: 'flex-end' }}>
             <div className={styles.formGroup}>
@@ -162,29 +202,33 @@ const CCBillPayHistory = () => {
                   color: '#334155',
                   fontWeight: 500
                 }} 
+                value={fromDate}
+                onChange={e => setFromDate(e.target.value)}
                 onFocus={() => setFocusedField('fromDate')}
                 onBlur={() => setFocusedField(null)}
               />
             </div>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>To Date</label>
-              <input 
-                type="date" 
-                className={styles.inputControl} 
-                style={{ 
-                  paddingLeft: '12px', 
+              <input
+                type="date"
+                className={styles.inputControl}
+                style={{
+                  paddingLeft: '12px',
                   paddingRight: '12px',
-                  height: '38px', 
-                  borderRadius: '10px', 
-                  fontSize: '0.825rem', 
-                  border: focusedField === 'toDate' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
-                  boxShadow: focusedField === 'toDate' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
-                  transition: 'all 0.25s', 
-                  width: '100%', 
+                  height: '38px',
+                  borderRadius: '10px',
+                  fontSize: '0.825rem',
+                  border: focusedField === 'toDate' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1',
+                  boxShadow: focusedField === 'toDate' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none',
+                  transition: 'all 0.25s',
+                  width: '100%',
                   background: '#FCFDFE',
                   color: '#334155',
                   fontWeight: 500
-                }} 
+                }}
+                value={toDate}
+                onChange={e => setToDate(e.target.value)}
                 onFocus={() => setFocusedField('toDate')}
                 onBlur={() => setFocusedField(null)}
               />
@@ -244,6 +288,8 @@ const CCBillPayHistory = () => {
                     color: '#334155',
                     fontWeight: 500
                   }} 
+                  value={searchKeyword}
+                  onChange={e => setSearchKeyword(e.target.value)}
                   onFocus={() => setFocusedField('search')}
                   onBlur={() => setFocusedField(null)}
                 />
@@ -283,7 +329,7 @@ const CCBillPayHistory = () => {
                 }}
               >
                 <FiSearch size={15} />
-                Search
+                {isLoading ? 'Loading…' : 'Search'}
               </button>
             </div>
           </div>

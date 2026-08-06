@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API } from '../../../api/endpoints';
+import { normalizeTxnResponse } from '../../../services/transaction.service';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import StatsGrid from '../../../shared/components/common/StatsGrid';
 import {
@@ -89,24 +90,9 @@ const QueuedRecharge = () => {
                 // Add other filters like isQueued = true if needed
             });
 
-            if (res && res.status === true) {
-                if (Array.isArray(res.data)) {
-                    setTransactions(res.data);
-                    setTotalRecords(res.totalRecords || res.data.length);
-                } else if (res.data && Array.isArray(res.data.items)) {
-                    setTransactions(res.data.items);
-                    setTotalRecords(res.data.totalItems || res.data.items.length);
-                } else {
-                    setTransactions([]);
-                    setTotalRecords(0);
-                }
-            } else if (Array.isArray(res)) {
-                setTransactions(res);
-                setTotalRecords(res.length);
-            } else {
-                setTransactions([]);
-                setTotalRecords(0);
-            }
+                  const { items: _txns, totalItems: _total, totalSuccess: _succ, totalPending: _pend, totalFailed: _fail } = normalizeTxnResponse(res);
+      setTransactions(_txns);
+      setTotalRecords(_total);
         } catch (err) {
             console.error("Failed to fetch queued recharge transactions:", err);
             setTransactions([]);
@@ -393,7 +379,7 @@ const QueuedRecharge = () => {
                                             <td style={{ textAlign: 'center' }}>
                                                 {renderStatusBadge(txn.status)}
                                             </td>
-                                            <td>{txn.operatorId || txn.opid || 'N/A'}</td>
+                                            <td>{txn.operatorName || txn.operatorId || txn.opid || 'N/A'}</td>
                                             <td>{txn.rechargeBy || txn.by || 'N/A'}</td>
                                             <td style={{ fontSize: '0.8rem', color: '#4E6080' }}>
                                                 {txn.dateTime || txn.date || txn.createdDate || 'N/A'}

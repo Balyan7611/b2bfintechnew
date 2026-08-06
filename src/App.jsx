@@ -65,11 +65,32 @@ import { setNavScrolled, setNotification } from './store/slices/uiSlice';
 import GlobalLoaderAndToast from './components/GlobalLoaderAndToast';
 import ActivityTracker from './components/ActivityTracker';
 
+// Capture GPS coords on app load; stored in localStorage so the httpClient
+// interceptor can attach X-Latitude / X-Longitude to every API request.
+function captureUserCoordinates() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      localStorage.setItem('user_latitude',  String(pos.coords.latitude));
+      localStorage.setItem('user_longitude', String(pos.coords.longitude));
+    },
+    () => { /* silently ignore — headers simply won't be sent */ },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
 function App() {
   const [sessionExpiredModal, setSessionExpiredModal] = useState({ show: false, message: '', redirectUrl: '' });
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Grab GPS once on mount; refreshed every 10 minutes so coords stay fresh
+  useEffect(() => {
+    captureUserCoordinates();
+    const gpsInterval = setInterval(captureUserCoordinates, 10 * 60 * 1000);
+    return () => clearInterval(gpsInterval);
+  }, []);
 
   useEffect(() => {
     // 1 hour of inactivity limit (3,600,000 ms)

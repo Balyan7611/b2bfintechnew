@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { FaHistory, FaSearch, FaChevronLeft, FaChevronRight, FaCalendarAlt, FaUser, FaChevronDown } from 'react-icons/fa';
+import { FaHistory, FaSearch, FaChevronLeft, FaChevronRight, FaCalendarAlt, FaUser, FaChevronDown, FaDesktop, FaMobileAlt, FaTabletAlt, FaGlobe, FaMapMarkerAlt, FaNetworkWired } from 'react-icons/fa';
 import { FiDatabase } from 'react-icons/fi';
 import { API } from '../../../api/endpoints';
 import { getSession } from '../../../utils/authUtils';
@@ -179,6 +179,7 @@ const LoginHistory = () => {
 
   return (
     <div style={{ padding: '24px 32px 24px 32px', width: '100%', boxSizing: 'border-box', margin: '0' }}>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <div style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '16px' }}>
         <div style={{
           width: '48px', height: '48px', borderRadius: '12px',
@@ -368,83 +369,189 @@ const LoginHistory = () => {
         </div>
 
         <div className={sharedStyles.tableWrapper}>
-          <table className={sharedStyles.table}>
+          <table className={sharedStyles.table} style={{ tableLayout: 'fixed', width: '100%' }}>
+            <colgroup>
+              <col style={{ width: '52px' }} />
+              <col style={{ width: '180px' }} />
+              <col style={{ width: '140px' }} />
+              <col style={{ width: '200px' }} />
+              <col style={{ width: '140px' }} />
+              <col style={{ width: '160px' }} />
+              <col style={{ width: '96px' }} />
+            </colgroup>
             <thead>
               <tr>
-                <th>S.No</th>
+                <th style={{ textAlign: 'center' }}>#</th>
                 <th>User / Member</th>
                 <th>IP Address</th>
                 <th>Device / Browser</th>
                 <th>Location</th>
                 <th>Login Time</th>
-                <th>Status</th>
+                <th style={{ textAlign: 'center' }}>Status</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="7" style={{ textAlign: 'center', padding: '40px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                      <div className={sharedStyles.spinner}></div>
-                      <span style={{ color: '#64748b' }}>Loading history...</span>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '48px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', color: '#64748b' }}>
+                      <div style={{ width: 18, height: 18, border: '2px solid #e2e8f0', borderTopColor: '#1756AA', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                      Loading history…
                     </div>
                   </td>
                 </tr>
               ) : pagedData.length > 0 ? (
                 pagedData.map((item, index) => {
+                  // ── time ──
                   let rawTime = item.loginTime || item.createdAt || item.createdOn || item.LoginTime;
                   if (rawTime && typeof rawTime === 'string' && !rawTime.endsWith('Z') && !rawTime.includes('+')) {
                     rawTime += 'Z';
                   }
                   const dateObj = rawTime ? new Date(rawTime) : null;
-                  const formattedDate = dateObj && !isNaN(dateObj) ? dateObj.toLocaleString() : 'N/A';
-                  
+                  const isValidDate = dateObj && !isNaN(dateObj);
+                  const datePart = isValidDate ? dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+                  const timePart = isValidDate ? dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
+
+                  // ── status ──
                   const status = item.status || item.Status || 'Success';
                   const isSuccess = status.toLowerCase() === 'success' || status === '1' || status === true;
 
+                  // ── member display ──
                   const matchedMember = memberOptions.find(m => String(m.id) === String(item.msrno));
                   const session = getSession();
-                  const displayName = isAdmin 
-                    ? (matchedMember ? matchedMember.name : (item.loginType || 'N/A')) 
+                  const displayName = isAdmin
+                    ? (matchedMember ? matchedMember.name : (item.loginType || 'Unknown'))
                     : (session?.fullName || session?.name || 'Member');
-                  const displayCode = isAdmin 
-                    ? (matchedMember ? (matchedMember.memberId || `MSRNO: ${item.msrno}`) : `MSRNO: ${item.msrno}`) 
-                    : (session?.memberId || `MSRNO: ${item.msrno}`);
+                  const displayCode = isAdmin
+                    ? (matchedMember ? (matchedMember.memberId || '') : (item.msrno ? `#${item.msrno}` : ''))
+                    : (session?.memberId || '');
+                  const initials = displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
+
+                  // ── IP ──
+                  const ipRaw = item.loginIpaddress || item.ipAddress || item.ip || item.IPAddress || '';
+
+                  // ── device ──
+                  const deviceRaw = (item.device || item.browser || item.Device || '').trim();
+                  const isMobile = /mobile|android|iphone|ipad/i.test(deviceRaw);
+                  const isTablet = /tablet|ipad/i.test(deviceRaw);
+                  const DeviceIcon = isTablet ? FaTabletAlt : isMobile ? FaMobileAlt : FaDesktop;
+                  const deviceColor = isMobile ? '#7c3aed' : isTablet ? '#0891b2' : '#1756AA';
+
+                  // ── location ──
+                  const locationRaw = item.location || item.Location || '';
 
                   return (
                     <tr key={item.id || item.Id || index}>
-                      <td>{(page - 1) * pageSize + index + 1}</td>
+                      {/* # */}
+                      <td style={{ textAlign: 'center' }}>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                          width: 26, height: 26, borderRadius: '50%',
+                          background: '#f1f5f9', color: '#64748b',
+                          fontSize: '0.7rem', fontWeight: 700
+                        }}>
+                          {(page - 1) * pageSize + index + 1}
+                        </span>
+                      </td>
+
+                      {/* User */}
                       <td>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ fontWeight: 600, color: '#1e293b' }}>{displayName}</span>
-                          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{displayCode}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                          <div style={{
+                            width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+                            background: 'linear-gradient(135deg, #1756AA, #0D1B3E)',
+                            color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '0.65rem', fontWeight: 800, letterSpacing: 0.5
+                          }}>{initials}</div>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.78rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</div>
+                            {displayCode && <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: 1 }}>{displayCode}</div>}
+                          </div>
                         </div>
                       </td>
-                      <td style={{ fontWeight: 600, color: '#334155' }}>{item.loginIpaddress || item.ipAddress || item.ip || item.IPAddress || '-'}</td>
-                      <td>{item.device || item.browser || item.Device || '-'}</td>
-                      <td>{item.location || item.Location || 'Unknown'}</td>
-                      <td>{formattedDate}</td>
+
+                      {/* IP */}
                       <td>
-                        <span style={{
-                          padding: '4px 10px',
-                          borderRadius: '20px',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          backgroundColor: isSuccess ? '#dcfce7' : '#fee2e2',
-                          color: isSuccess ? '#166534' : '#991b1b'
+                        {ipRaw ? (
+                          <span style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 5,
+                            background: '#f8fafc', border: '1px solid #e2e8f0',
+                            borderRadius: 6, padding: '3px 8px',
+                            fontFamily: 'monospace', fontSize: '0.72rem', color: '#334155', fontWeight: 600,
+                            maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis'
+                          }}>
+                            <FaNetworkWired style={{ color: '#94a3b8', fontSize: '0.6rem', flexShrink: 0 }} />
+                            {ipRaw}
+                          </span>
+                        ) : <span style={{ color: '#cbd5e1' }}>—</span>}
+                      </td>
+
+                      {/* Device */}
+                      <td>
+                        {deviceRaw ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{
+                              width: 26, height: 26, borderRadius: 6, flexShrink: 0,
+                              background: `${deviceColor}15`,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}>
+                              <DeviceIcon style={{ color: deviceColor, fontSize: '0.7rem' }} />
+                            </span>
+                            <span style={{
+                              fontSize: '0.72rem', color: '#475569', fontWeight: 500,
+                              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                              maxWidth: 148
+                            }} title={deviceRaw}>{deviceRaw}</span>
+                          </div>
+                        ) : <span style={{ color: '#cbd5e1' }}>—</span>}
+                      </td>
+
+                      {/* Location */}
+                      <td>
+                        {locationRaw ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <FaMapMarkerAlt style={{ color: '#ef4444', fontSize: '0.65rem', flexShrink: 0 }} />
+                            <span style={{
+                              fontSize: '0.72rem', color: '#475569',
+                              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                              maxWidth: 110
+                            }} title={locationRaw}>{locationRaw}</span>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.7rem', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <FaGlobe style={{ fontSize: '0.65rem' }} /> Unknown
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Login Time */}
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#334155' }}>{datePart}</span>
+                          {timePart && <span style={{ fontSize: '0.67rem', color: '#94a3b8' }}>{timePart}</span>}
+                        </div>
+                      </td>
+
+                      {/* Status */}
+                      <td style={{ textAlign: 'center' }}>
+                        <span className={isSuccess ? sharedStyles.success : sharedStyles.failed} style={{
+                          padding: '3px 10px', borderRadius: 20, fontSize: '0.67rem', fontWeight: 800,
+                          display: 'inline-flex', alignItems: 'center', gap: 4
                         }}>
+                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor', display: 'inline-block', flexShrink: 0 }} />
                           {isSuccess ? 'Success' : 'Failed'}
                         </span>
                       </td>
                     </tr>
-                  )
+                  );
                 })
               ) : (
                 <tr>
-                  <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                      <FiDatabase style={{ fontSize: '1.5rem', opacity: 0.3 }} />
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '48px', color: '#94a3b8' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                      <FiDatabase style={{ fontSize: '2rem', opacity: 0.25 }} />
                       <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No login history found</span>
+                      <span style={{ fontSize: '0.75rem' }}>Try adjusting the date range or filters</span>
                     </div>
                   </td>
                 </tr>

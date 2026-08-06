@@ -99,6 +99,10 @@ export const MemberService = {
         return await apiService.put(`/Member/update-member/${id}`, data);
     },
 
+    resetLocationHistory: async (memberId) => {
+        return await apiService.post(`/Member/reset-location-history/${memberId}`, {});
+    },
+
     changePassword: async (data) => {
         return await apiService.post('/Member/change-password', {
             memberId: parseInt(data.memberId) || 0,

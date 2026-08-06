@@ -1,194 +1,185 @@
-import React, { useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { FaDownload, FaMedal, FaEye, FaTimes } from 'react-icons/fa';
+import React, { useRef, useState, useEffect } from 'react';
+import { FaDownload, FaMedal, FaEye, FaTimes, FaShieldAlt, FaStar } from 'react-icons/fa';
 import { SITE_CONFIG } from '../../../../config/siteConfig';
+import { getSession } from '../../../../utils/authUtils';
+import { API } from '../../../../api/endpoints';
 import styles from './MemberCertificate.module.css';
 
 const MemberCertificate = () => {
-  const { isDarkMode } = useSelector(state => state.memberPanel);
   const certRef = useRef(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [profile, setProfile] = useState(null);
 
-  const member = {
-    name: 'Sachin Balyan',
-    agentCode: 'RT1236',
-    city: 'Jaipur',
-    validUpto: '31 OCTOBER 2025',
-  };
+  const session = getSession() || {};
+  const memberName = session.fullName || session.name || 'Member Name';
+  const agentCode  = session.loginId || session.memberId || session.username || 'N/A';
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await API.member.getProfile?.() || await API.member.getMyProfile?.();
+        if (res?.data) setProfile(res.data);
+        else if (res) setProfile(res);
+      } catch { /* silent */ }
+    };
+    load();
+  }, []);
+
+  const city      = profile?.city || profile?.district || profile?.address || '';
+  const validUpto = profile?.validTill || profile?.validUpto || profile?.membershipExpiry || '';
+  const validStr  = validUpto
+    ? new Date(validUpto).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase()
+    : '31 MARCH 2026';
+
+  const surname   = memberName.split(' ').pop().toUpperCase();
+  const initials  = memberName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
   const handleDownload = async () => {
     if (!certRef.current) return;
     try {
       await document.fonts.ready;
-
-      // Saari images load hone ka wait karo
       const images = certRef.current.querySelectorAll('img');
-      await Promise.all(
-        [...images].map(img =>
-          img.complete
-            ? Promise.resolve()
-            : new Promise(res => { img.onload = res; img.onerror = res; })
-        )
-      );
-
+      await Promise.all([...images].map(img =>
+        img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; })
+      ));
       const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(certRef.current, {
-        scale: 3,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        onclone: async (clonedDoc) => {
-          await clonedDoc.fonts.ready;
-          await new Promise(res => setTimeout(res, 400));
-
-          // Cloned doc mein bhi logo size fix karo
-          const logos = clonedDoc.querySelectorAll('img');
-          logos.forEach(img => {
-            if (img.className && img.className.toString().includes('poweredLogo')) {
-              img.style.width = '94px';
-              img.style.height = '44px';
-              img.style.maxWidth = '94px';
-            }
-          });
-        },
+        scale: 3, useCORS: true, allowTaint: true,
+        backgroundColor: '#ffffff', logging: false,
+        onclone: async (d) => { await d.fonts.ready; await new Promise(r => setTimeout(r, 400)); }
       });
       const link = document.createElement('a');
-      link.download = `Certificate_${member.name.replace(/\s+/g, '_')}.png`;
+      link.download = `Certificate_${memberName.replace(/\s+/g, '_')}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
-    } catch (err) {
-      console.error('Certificate download failed:', err);
-    }
+    } catch (err) { console.error('Certificate download failed:', err); }
   };
 
-  const surname = member.name.split(' ').pop().toUpperCase();
-
-  const CertificateContent = React.forwardRef(({ isPreview }, ref) => (
-    <div className={isPreview ? styles.previewCertCard : styles.certCard} ref={ref}>
-      {/* Watermark */}
-      <div className={styles.watermark}>
-        <img src={SITE_CONFIG.logo} alt="" className={styles.watermarkImg} crossOrigin="anonymous" />
+  const Cert = React.forwardRef((_, ref) => (
+    <div className={styles.certCard} ref={ref}>
+      {/* Deep blue top bar */}
+      <div className={styles.topBar}>
+        <div className={styles.topBarInner}>
+          <img src={SITE_CONFIG.logo} alt={SITE_CONFIG.brandName} className={styles.topBarLogo} crossOrigin="anonymous" />
+          <div className={styles.topBarText}>
+            <span className={styles.topBarBrand}>{SITE_CONFIG.companyName}</span>
+            <span className={styles.topBarTagline}>Authorized Service Partner Network</span>
+          </div>
+          <div className={styles.topBarStars}>
+            {[0,1,2].map(i => <FaStar key={i} className={styles.starIcon} />)}
+          </div>
+        </div>
       </div>
 
-      <div className={styles.innerFrame}>
-        <span className={`${styles.corner} ${styles.cornerTL}`}>❋</span>
-        <span className={`${styles.corner} ${styles.cornerTR}`}>❋</span>
-        <span className={`${styles.corner} ${styles.cornerBL}`}>❋</span>
-        <span className={`${styles.corner} ${styles.cornerBR}`}>❋</span>
+      {/* Gold ribbon strip */}
+      <div className={styles.goldRibbon} />
 
-        {/* Header */}
-        <div className={styles.certHeader}>
-          <img src={SITE_CONFIG.logo} alt={SITE_CONFIG.brandName} className={styles.logo} crossOrigin="anonymous" />
-        </div>
-
-        {/* Top Gold Divider */}
-        <div className={styles.goldDivider}>
-          <div className={styles.goldLine} />
-          <span style={{
-            fontSize: '0.65rem',
-            color: '#C9A84C',
-            flexShrink: 0,
-            display: 'inline-block',
-            lineHeight: 1,
-          }}>◆</span>
-          <div className={styles.goldLine} />
+      {/* Main body */}
+      <div className={styles.certBody}>
+        {/* Watermark */}
+        <div className={styles.watermark}>
+          <img src={SITE_CONFIG.logo} alt="" crossOrigin="anonymous" className={styles.watermarkImg} />
         </div>
 
         {/* Title */}
         <div className={styles.titleBlock}>
-          <p className={styles.certOfText}>C E R T I F I C A T E &nbsp; O F</p>
+          <p className={styles.certOfText}>C E R T I F I C A T E &nbsp;&nbsp; O F</p>
           <h2 className={styles.certTitle}>Authorization</h2>
-          <hr className={styles.titleUnderline} />
+          <div className={styles.titleDivider}>
+            <div className={styles.divLine} />
+            <span className={styles.divDiamond}>◆</span>
+            <div className={styles.divLine} />
+          </div>
         </div>
 
-        {/* Body */}
-        <div className={styles.certBody}>
-          <p className={styles.subtext}>This is to certify that</p>
-          <p className={styles.memberName}>
-            Mr/Ms&nbsp;<span className={styles.nameBold}>{member.name}</span>&nbsp;({surname})
-          </p>
+        {/* Certify block */}
+        <div className={styles.certifyBlock}>
+          <p className={styles.certifyText}>This is to certify that</p>
+
+          {/* Name panel */}
+          <div className={styles.namePanel}>
+            <div className={styles.nameAvatar}>{initials}</div>
+            <div className={styles.nameDetails}>
+              <span className={styles.nameTitle}>Mr / Ms</span>
+              <span className={styles.nameBig}>{memberName}</span>
+              {city && <span className={styles.nameCity}>📍 {city}</span>}
+            </div>
+          </div>
+
           <p className={styles.appointText}>
-            is appointed as the <em>Customer Service Point</em> of
+            has been duly appointed as an <em><strong>Authorized Customer Service Point (CSP)</strong></em>
           </p>
-          <p className={styles.companyName}>{SITE_CONFIG.companyName}</p>
-          <p className={styles.cityText}>{member.city}</p>
+          <p className={styles.companyLine}>
+            of <strong className={styles.companyNameSpan}>{SITE_CONFIG.companyName}</strong>
+          </p>
+          <p className={styles.descText}>
+            and is authorized to provide financial and digital services on behalf of the company
+            in accordance with the terms and conditions of the service agreement.
+          </p>
+        </div>
+
+        {/* Three info boxes */}
+        <div className={styles.infoBoxRow}>
+          <div className={styles.infoBox}>
+            <span className={styles.infoLabel}>AGENT CODE</span>
+            <span className={styles.infoValue}>{agentCode}</span>
+          </div>
+          <div className={`${styles.infoBox} ${styles.infoBoxCenter}`}>
+            <FaShieldAlt className={styles.sealIcon} />
+            <span className={styles.infoLabel} style={{ marginTop: 4 }}>VERIFIED</span>
+          </div>
+          <div className={styles.infoBox}>
+            <span className={styles.infoLabel}>VALID UPTO</span>
+            <span className={styles.infoValue} style={{ fontSize: '0.72rem' }}>{validStr}</span>
+          </div>
         </div>
 
         {/* Footer */}
         <div className={styles.certFooter}>
           <div className={styles.footerCol}>
-            <div className={styles.footerSignLine} />
+            <div className={styles.signSpace} />
+            <div className={styles.signLine} />
             <span className={styles.footerLabel}>AUTHORIZED SIGNATORY</span>
           </div>
-          <div className={styles.footerCol}>
-            <span className={styles.footerValue}>{member.agentCode}</span>
-            <div className={styles.footerSignLine} />
-            <span className={styles.footerLabel}>AGENT CODE</span>
+          <div className={styles.footerCenter}>
+            <img src={SITE_CONFIG.logo} alt="Logo" className={styles.footerLogo} crossOrigin="anonymous" />
           </div>
           <div className={styles.footerCol}>
-            <img src={SITE_CONFIG.logo} alt="Logo" className={styles.poweredLogo} crossOrigin="anonymous" />
-            <div className={styles.footerSignLine} />
-            <span className={styles.poweredByLabel}>POWERED BY</span>
+            <div className={styles.signSpace} />
+            <div className={styles.signLine} />
+            <span className={styles.footerLabel}>MEMBER SIGNATURE</span>
           </div>
-          <div className={styles.footerCol}>
-            <span className={styles.footerValue}>{member.validUpto}</span>
-            <div className={styles.footerSignLine} />
-            <span className={styles.footerLabel}>VALID UPTO</span>
-          </div>
-        </div>
-
-        {/* Bottom Gold Divider */}
-        <div className={styles.goldDivider} style={{ marginBottom: '18px' }}>
-          <div className={styles.goldLine} />
-          <span style={{
-            fontSize: '0.65rem',
-            color: '#C9A84C',
-            flexShrink: 0,
-            display: 'inline-block',
-            lineHeight: 1,
-          }}>◆</span>
-          <div className={styles.goldLine} />
         </div>
       </div>
+
+      {/* Gold bottom bar */}
+      <div className={styles.bottomBar} />
     </div>
   ));
 
   return (
-    <div className={`${styles.page} ${isDarkMode ? styles.dark : ''}`}>
-
-      {/* Page Heading Row */}
+    <div className={styles.page}>
       <div className={styles.pageHeading}>
         <FaMedal className={styles.headingIcon} />
         <span>Certificate of Authorization</span>
-        <button className={styles.previewBtn} onClick={() => setShowPreview(true)} title="Preview Certificate">
+        <button className={styles.previewBtn} onClick={() => setShowPreview(true)}>
           <FaEye /> Preview
         </button>
       </div>
 
       <div className={styles.certWrapper}>
-        <CertificateContent ref={certRef} />
-
-        {/* Download Button */}
+        <Cert ref={certRef} />
         <button className={styles.downloadBtn} onClick={handleDownload}>
           <FaDownload /> Download Certificate
         </button>
       </div>
 
-      {/* ── PREVIEW MODAL ── */}
       {showPreview && (
         <div className={styles.modalOverlay} onClick={() => setShowPreview(false)}>
           <div className={styles.modalBox} onClick={e => e.stopPropagation()}>
-            <button className={styles.modalClose} onClick={() => setShowPreview(false)}>
-              <FaTimes />
-            </button>
+            <button className={styles.modalClose} onClick={() => setShowPreview(false)}><FaTimes /></button>
             <p className={styles.modalTitle}><FaMedal /> Certificate Preview</p>
-
-            {/* Certificate preview (read-only, scaled down) */}
-            <div className={styles.previewScaler}>
-              <CertificateContent isPreview={true} />
-            </div>
-
+            <div className={styles.previewScaler}><Cert /></div>
             <button className={styles.downloadBtn} onClick={handleDownload}>
               <FaDownload /> Download Certificate
             </button>

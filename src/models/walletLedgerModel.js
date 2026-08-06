@@ -14,19 +14,22 @@ export const isCreditFactor = (factor) =>
 export const WalletLedgerResponseModel = (res) => {
     let items = [];
     try {
-        if (Array.isArray(res)) items = res;
-        else if (Array.isArray(res?.data?.items)) items = res.data.items;
-        else if (Array.isArray(res?.data?.data)) items = res.data.data;
-        else if (Array.isArray(res?.data)) items = res.data;
-        else if (Array.isArray(res?.items)) items = res.items;
-        else if (res?.data?.data && typeof res.data.data === 'object' && !Array.isArray(res.data.data)) {
-            // Some endpoints wrap in { data: { data: [...] } }
-            const inner = Object.values(res.data.data);
-            if (inner.length && Array.isArray(inner[0])) items = inner[0];
+        // httpClient returns response.data already, so res = the JSON body
+        // Try every known shape the backend might send:
+        if (Array.isArray(res))                           items = res;
+        else if (Array.isArray(res?.data?.items))         items = res.data.items;
+        else if (Array.isArray(res?.data?.data?.items))   items = res.data.data.items;
+        else if (Array.isArray(res?.data?.data))          items = res.data.data;
+        else if (Array.isArray(res?.data))                items = res.data;
+        else if (Array.isArray(res?.items))               items = res.items;
+        else if (res?.data && typeof res.data === 'object' && !Array.isArray(res.data)) {
+            const inner = Object.values(res.data);
+            const arr = inner.find(v => Array.isArray(v) && v.length > 0);
+            if (arr) items = arr;
         }
-        console.log('[WalletLedger] raw res shape:', { status: res?.status, dataType: typeof res?.data, isArr: Array.isArray(res?.data), itemsLen: items.length });
+        console.log('[WalletLedger] raw res:', JSON.stringify(res)?.slice(0, 300), '→ items:', items.length);
     } catch (err) {
-        console.error('WalletLedgerResponseModel: parse failed', err);
+        console.error('WalletLedgerResponseModel: parse failed', err, res);
     }
 
     return items.map(item => ({

@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
+import { Cells as UplineCells, getUplineShape } from '../../../../shared/components/common/UplineCommissionCols';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setRechargeList,
@@ -13,8 +15,8 @@ import StatsGrid from '../../../../shared/components/common/StatsGrid';
 import { FiBarChart2 } from 'react-icons/fi';
 import styles from './AEPSReport.module.css';
 import { FiFilter, FiSearch, FiDatabase } from 'react-icons/fi';
-import { useState } from 'react';
 import { API } from '../../../../api/endpoints';
+import { normalizeTxnResponse } from '../../../../services/transaction.service';
 
 const RechargeHistory = () => {
   const dispatch = useDispatch();
@@ -26,6 +28,7 @@ const RechargeHistory = () => {
   const [showStats, setShowStats] = useState(false);
   const [selectedTxn, setSelectedTxn] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [breakdownTxn, setBreakdownTxn] = useState(null);
 
   useEffect(() => {
     const fetchMasters = async () => {
@@ -60,11 +63,7 @@ const RechargeHistory = () => {
         memberId: '',
         status: filters.status || ''
       });
-      let rawData = [];
-      if (res?.status === true) rawData = Array.isArray(res.data) ? res.data : (res.data?.items || []);
-      else if (Array.isArray(res?.data)) rawData = res.data;
-      else if (Array.isArray(res?.data?.items)) rawData = res.data.items;
-      else if (Array.isArray(res)) rawData = res;
+      const { items: rawData } = normalizeTxnResponse(res);
       console.log('[RechargeHistory.jsx] rows:', rawData.length);
       dispatch(setRechargeList(rawData));
     } catch (e) {
@@ -79,7 +78,9 @@ const RechargeHistory = () => {
 
   const filteredList = list.filter(item => item.number?.includes(searchQuery) || item.txnId?.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  const displayColumns = ['Receipt', 'SNO', 'Date', 'Member Details', 'Operator', 'Number', 'Status', 'Message', 'Opening Bal', 'Amount', 'Commission', 'TDS', 'Closing Bal', 'TXID', 'Operator Id'];
+  const { roles: uplineRoles, cols: uplineCols } = getUplineShape(list);
+  const uplineColNames = Array.from({ length: uplineCols }, (_, i) => uplineRoles[i]?.roleName?.toUpperCase() || `L${i+1}`);
+  const displayColumns = ['Receipt', 'SNO', 'Date', 'Member Details', 'Operator', 'Number', 'Status', 'Message', 'Opening Bal', 'Amount', 'Closing Bal', 'TXID', 'Operator Id', 'ADMIN', 'TDS', 'UPLINE TOTAL', ...uplineColNames];
 
   const totalAmount = filteredList.reduce((a, t) => a + (parseFloat(t.amount) || 0), 0);
   const totalCommission = filteredList.reduce((a, t) => a + (parseFloat(t.commission || t.totalCommission) || 0), 0);
@@ -160,11 +161,10 @@ const RechargeHistory = () => {
                 <td>{item.message || item.remark || 'N/A'}</td>
                 <td>₹{item.openingBalance || '0.00'}</td>
                 <td>₹{item.amount || '0.00'}</td>
-                <td>₹{item.commission || item.totalCommission || '0.00'}</td>
-                <td>₹{item.tds || item.totalTds || '0.00'}</td>
                 <td>₹{item.closingBalance || '0.00'}</td>
-                <td>{item.txnId || item.transId || item.orderId || 'N/A'}</td>
-                <td>{item.operatorId || 'N/A'}</td>
+                <td>{item.orderId || item.txnId || item.transId || 'N/A'}</td>
+                <td>{item.operatorName || item.operatorId || 'N/A'}</td>
+                <UplineCells txn={item} transactions={list} onBreakdown={setBreakdownTxn} />
               </tr>
             );
         }}
@@ -178,6 +178,83 @@ const RechargeHistory = () => {
         totalPages={Math.ceil(filteredList.length / rowsPerPage)}
       />
       <ReceiptModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} data={selectedTxn} />
+
+      {/* ── Upline Commission Breakdown Modal — rendered via Portal to escape parent transforms ── */}
+      {breakdownTxn && ReactDOM.createPortal(
+        <>
+          <div
+            onClick={() => setBreakdownTxn(null)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(10,20,50,0.55)', backdropFilter: 'blur(4px)', zIndex: 8000 }}
+          />
+          <div style={{
+            position: 'fixed', top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 8001, width: '100%', maxWidth: 480,
+            background: '#fff', borderRadius: 16,
+            boxShadow: '0 24px 64px rgba(10,20,50,0.28)',
+            overflow: 'hidden', fontFamily: 'Arial, sans-serif',
+          }}>
+            {/* Header */}
+            <div style={{ background: 'linear-gradient(135deg, #0A1428, #1756AA)', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <h3 style={{ margin: 0, color: '#fff', fontSize: '0.95rem', fontWeight: 800 }}>Upline Commission Breakdown</h3>
+                <p style={{ margin: '3px 0 0', color: 'rgba(255,255,255,0.65)', fontSize: '0.72rem' }}>
+                  TXN: {breakdownTxn.orderId || breakdownTxn.txnId || '—'}
+                </p>
+              </div>
+              <button onClick={() => setBreakdownTxn(null)} style={{ background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%', width: 28, height: 28, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+            </div>
+
+            {/* Total */}
+            <div style={{ background: '#f0fdf4', borderBottom: '1px solid #bbf7d0', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#15803d' }}>Total Upline Earning</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#15803d' }}>
+                ₹{Number(breakdownTxn.uplineCommission).toFixed(2)}
+              </span>
+            </div>
+
+            {/* Breakdown list */}
+            <div style={{ padding: '12px 20px 20px', maxHeight: 340, overflowY: 'auto' }}>
+              {(breakdownTxn.uplineBreakdown || []).map((row, i) => (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '12px 14px', marginBottom: 8,
+                  background: '#f8fafc', borderRadius: 10,
+                  border: '1px solid #e2e8f0',
+                }}>
+                  {/* Level badge */}
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                    background: i === 0 ? 'linear-gradient(135deg,#1756AA,#0A1428)' : 'linear-gradient(135deg,#7c3aed,#4c1d95)',
+                    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.65rem', fontWeight: 900,
+                  }}>
+                    L{row.levelNo || i + 1}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.82rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {row.memberName || 'N/A'}
+                    </div>
+                    <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: 2 }}>
+                      {row.roleName || `Level ${row.levelNo || i + 1}`}
+                      {row.memberMobile ? ` · ${row.memberMobile}` : ''}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#15803d' }}>
+                      +₹{Number(row.amount || 0).toFixed(2)}
+                    </div>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: 1 }}>
+                      {row.createdOn ? new Date(row.createdOn).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
     </div>
   );
 };

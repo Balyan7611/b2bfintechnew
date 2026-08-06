@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getImageUrl } from '../../../config/siteConfig';
 import { useSelector, useDispatch } from 'react-redux';
 import { openChat } from '../../../store/slices/supportSlice';
 import { FaSearch, FaImage, FaEye, FaCommentDots, FaTimes, FaFileAlt, FaCopy, FaCheck } from 'react-icons/fa';
@@ -13,6 +14,7 @@ const SupportList = () => {
   
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPriority, setFilterPriority] = useState('All');
   
@@ -79,26 +81,38 @@ const SupportList = () => {
 
   const fetchTickets = async () => {
     setLoading(true);
+    setFetchError('');
     try {
       const res = await API.supportTicket.getAll({
         pageNumber: 1,
-        pageSize: 100
+        pageSize: 500
       });
-      
+
+      console.log('[SupportList] API raw response:', res);
+
       let rawData = [];
-      if (res && Array.isArray(res.data)) {
+      // New API format: { isSuccess: true, data: { items: [...] } }
+      if (res?.data?.items && Array.isArray(res.data.items)) {
+        rawData = res.data.items;
+      // New API format flat: { isSuccess: true, items: [...] }
+      } else if (res?.items && Array.isArray(res.items)) {
+        rawData = res.items;
+      // Old format: { status: true, data: [...] }
+      } else if (res?.data && Array.isArray(res.data)) {
         rawData = res.data;
+      // Direct array
       } else if (Array.isArray(res)) {
         rawData = res;
-      } else if (res && Array.isArray(res.items)) {
-        rawData = res.items;
-      } else if (res && res.data && Array.isArray(res.data.items)) {
-        rawData = res.data.items;
+      // data.data nested
+      } else if (res?.data?.data && Array.isArray(res.data.data)) {
+        rawData = res.data.data;
       }
 
-      setTickets(rawData.map(normalizeTicket));
+      console.log('[SupportList] Parsed rawData length:', rawData.length);
+      setTickets(rawData.map(normalizeTicket).filter(Boolean));
     } catch (err) {
-      console.error("Failed to fetch support tickets in admin:", err);
+      console.error('[SupportList] Failed to fetch support tickets:', err);
+      setFetchError(err?.message || 'Failed to load tickets. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -258,7 +272,11 @@ const SupportList = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredData.length > 0 ? filteredData.map((t, idx) => (
+              {loading ? (
+                <tr><td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>Loading tickets...</td></tr>
+              ) : fetchError ? (
+                <tr><td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#EF4444' }}>{fetchError}</td></tr>
+              ) : filteredData.length > 0 ? filteredData.map((t, idx) => (
                 <tr key={t.id}>
                   <td>{idx + 1}</td>
                   <td>
@@ -305,6 +323,7 @@ const SupportList = () => {
                   </td>
                 </tr>
               )}
+
             </tbody>
           </table>
         </div>
@@ -353,23 +372,35 @@ const SupportList = () => {
                   <label className={styles.sectionLabel}>Attachment</label>
                   <div className={styles.smallAttachCard}>
                     {detailTicket.attachmentPath ? (() => {
-                      const getImageUrl = (url) => {
-                        if (!url) return '';
-                        if (url.startsWith('http') || url.startsWith('data:')) return url;
-                        if (url.startsWith('/')) return `https://api.sahayatamoney.in${url}`;
-                        return `https://api.sahayatamoney.in/${url}`;
+                      // Use the shared getImageUrl helper — same pattern as FundRequest, KYC, etc.
+                      // Tries SupportTickets folder first; falls back to bare path if already a full URL
+                      const resolveAttachmentUrl = (raw) => {
+                        if (!raw) return '';
+                        if (raw.startsWith('http') || raw.startsWith('data:')) return raw;
+                        // Bare filename → UploadedFiles/SupportTickets/{filename}
+                        return getImageUrl(raw, 'SupportTickets');
                       };
-                      const imgSrc = getImageUrl(detailTicket.attachmentPath);
-                      return (detailTicket.attachmentPath.toLowerCase().endsWith('.png') ||
-                       detailTicket.attachmentPath.toLowerCase().endsWith('.jpg') ||
-                       detailTicket.attachmentPath.toLowerCase().endsWith('.jpeg') ||
-                       detailTicket.attachmentPath.toLowerCase().endsWith('.gif') ||
-                       detailTicket.attachmentPath.toLowerCase().startsWith('data:image')) ? (
-                        <img 
-                          src={imgSrc} 
-                          alt="Proof" 
-                          className={styles.miniImg} 
+                      const imgSrc = resolveAttachmentUrl(detailTicket.attachmentPath);
+                      const pathLower = (detailTicket.attachmentPath || '').toLowerCase().split('?')[0];
+                      const isImage = /\.(png|jpg|jpeg|gif|webp|bmp|svg)$/.test(pathLower) || pathLower.startsWith('data:image');
+                      console.log('[SupportList] Attachment path:', detailTicket.attachmentPath, '→ resolved URL:', imgSrc, '| isImage:', isImage);
+                      return isImage ? (
+                        <img
+                          src={imgSrc}
+                          alt="Proof"
+                          className={styles.miniImg}
+                          crossOrigin="anonymous"
                           onClick={() => setViewImage(imgSrc)}
+                          onError={(e) => {
+                            console.error('[SupportList] Image failed to load:', imgSrc);
+                            // Try without crossOrigin as fallback
+                            e.target.removeAttribute('crossorigin');
+                            e.target.onerror = (e2) => {
+                              console.error('[SupportList] Image still failed, opening in new tab will work:', imgSrc);
+                              e2.target.style.display = 'none';
+                              e2.target.parentElement.innerHTML = `<a href="${imgSrc}" target="_blank" rel="noopener noreferrer" style="color:#1756AA;font-size:0.8rem;text-decoration:underline">⚠ Click to open image</a>`;
+                            };
+                          }}
                         />
                       ) : (
                         <div className={styles.fileIcon} onClick={() => window.open(imgSrc, '_blank')}>

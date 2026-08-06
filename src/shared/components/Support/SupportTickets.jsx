@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { getImageUrl as buildImageUrl } from '../../../config/siteConfig';
 import { useSelector, useDispatch } from 'react-redux';
 import { createTicket, sendChatMessage, deleteTicket, updateTicket } from '../../../store/slices/supportSlice';
 import { showLoader, hideLoader } from '../../../store/slices/uiSlice';
@@ -104,16 +105,15 @@ const SupportTickets = () => {
     let attachment = null;
     const attachmentUrl = t.AttachmentUrl || t.attachmentUrl || t.attachmentPath || '';
     const attachmentType = t.AttachmentType || t.attachmentType || '';
-    const getImageUrl = (url) => {
+    const resolveAttachmentUrl = (url) => {
       if (!url) return '';
       if (url.startsWith('http') || url.startsWith('data:')) return url;
-      if (url.startsWith('/')) return `https://api.sahayatamoney.in${url}`;
-      return `https://api.sahayatamoney.in/${url}`;
+      return buildImageUrl(url, 'SupportTickets');
     };
 
     if (attachmentUrl) {
       attachment = {
-        url: getImageUrl(attachmentUrl),
+        url: resolveAttachmentUrl(attachmentUrl),
         type: (attachmentType.toLowerCase().includes('png') || attachmentType.toLowerCase().includes('jpg') || attachmentType.toLowerCase().includes('jpeg') || attachmentUrl.match(/\.(jpeg|jpg|gif|png)$/i)) ? 'image' : 'file',
         name: attachmentUrl.substring(attachmentUrl.lastIndexOf('/') + 1)
       };
