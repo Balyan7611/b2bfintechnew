@@ -1212,3 +1212,7 @@
     align-items: center;
   }
 }
+
+@media (max-width: 768px) {
+  .ekycGrid { grid-template-columns: 1fr; gap: 16px; }
+}

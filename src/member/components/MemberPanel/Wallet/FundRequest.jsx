@@ -11,6 +11,34 @@ import {
 } from 'react-icons/fa';
 import styles from './FundRequest.module.css';
 
+// Parse any date format → "YYYY-MM-DD" or '-'
+function fmtDate(raw) {
+  if (!raw) return '-';
+  const s = String(raw).trim();
+  // ISO: 2026-06-08T... or 2026-06-08
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  // DD/MM/YYYY or DD-MM-YYYY
+  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  return s.slice(0, 10) || '-';
+}
+
+// Parse any date format → "DD/MM/YYYY HH:MM" or '-'
+function fmtDateTime(raw) {
+  if (!raw) return '-';
+  const s = String(raw).trim();
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const yyyy = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const min = String(d.getMinutes()).padStart(2,'0');
+    return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+  }
+  return s.slice(0, 16) || '-';
+}
+
 const COMPANY_BANKS = [
   { 
     id: 1, 
@@ -93,7 +121,7 @@ const FundRequest = () => {
   const [amount, setAmount] = useState('');
   const [refNo, setRefNo] = useState('');
   const [payMode, setPayMode] = useState('');
-  const [payDate, setPayDate] = useState('');
+  const [payDate, setPayDate] = useState(new Date().toISOString().split('T')[0]);
   const [remark, setRemark] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   
@@ -134,14 +162,15 @@ const FundRequest = () => {
     return {
       id: r.id,
       requestId: `FR${String(r.id).padStart(6, '0')}`,
-      date: (r.paymentDate || r.createdDate || '').slice(0, 10) || '-',
+      date: fmtDate(r.paymentDate || r.createdDate),
+      paymentDate: fmtDate(r.paymentDate),
       payMode: r.paymentMode || '-',
       companyBank: r.companyBankName || bank?.name || (r.companyBankId ? `Bank #${r.companyBankId}` : '-'),
       amount: r.amount,
       remark: r.remark || '-',
       refId: r.bankRefId || '-',
-      addDate: (r.createdDate || r.paymentDate || '').replace('T', ' ').slice(0, 16) || '-',
-      approveDate: r.approveDate ? r.approveDate.replace('T', ' ').slice(0, 16) : 'Pending',
+      addDate: fmtDateTime(r.createdDate),
+      approveDate: r.approveDate ? fmtDateTime(r.approveDate) : 'Pending',
       compRemarks: r.remark || '-',
       slip,
       cashslip: rawSlip || null,
@@ -250,7 +279,7 @@ const FundRequest = () => {
         setAmount('');
         setRefNo('');
         setPayMode('');
-        setPayDate('');
+        setPayDate(new Date().toISOString().split('T')[0]);
         setRemark('');
         setSelectedFile(null);
         await loadRequests(msrno, companyBanks);
@@ -600,7 +629,7 @@ const FundRequest = () => {
                   <tr key={row.requestId}>
                     <td>{startIndex + idx + 1}</td>
                     <td><code className={styles.requestIdCode}>{row.requestId}</code></td>
-                    <td>{row.date}</td>
+                    <td>{row.paymentDate !== '-' ? row.paymentDate : row.date}</td>
                     <td>{row.payMode}</td>
                     <td>{row.companyBank}</td>
                     <td style={{ fontWeight: 800 }}>₹{row.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
@@ -718,7 +747,7 @@ const FundRequest = () => {
                       <div style={{ height: '1.5px', background: '#cbd5e1', borderStyle: 'dashed', margin: '14px 0' }}></div>
                       <div className={styles.slipDetailGrid}>
                         <div><span>REQUEST ID</span><strong>{activeSlip.requestId}</strong></div>
-                        <div><span>PAYMENT DATE</span><strong>{activeSlip.date}</strong></div>
+                        <div><span>PAYMENT DATE</span><strong>{activeSlip.paymentDate !== '-' ? activeSlip.paymentDate : activeSlip.date}</strong></div>
                         <div><span>PAYMENT MODE</span><strong>{activeSlip.payMode}</strong></div>
                         <div><span>AMOUNT</span><strong style={{ color: '#16a34a', fontSize: '1.15rem' }}>₹{activeSlip.amount.toLocaleString('en-IN')}</strong></div>
                       </div>

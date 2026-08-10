@@ -102,3 +102,8 @@
 .statusSuccess { background: #DCFCE7; color: #16A34A; }
 .statusPending { background: #FEF3C7; color: #D97706; }
 .statusFailed { background: #FEE2E2; color: #DC2626; }
+
+@media (max-width: 768px) {
+  .container { padding: 10px 8px; }
+  .tableWrapper, [class*="tableWrap"] { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FiSearch, FiEdit, FiTrash2, FiPlus, FiChevronLeft, FiChevronRight, FiDatabase, FiX, FiCheck, FiShield, FiLock, FiMonitor, FiMapPin, FiRefreshCw
@@ -6,12 +6,28 @@ import {
 import { 
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint 
 } from 'react-icons/fa';
+import { API } from '../../../api/endpoints';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const EmpLoginSecurity = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [membersList, setMembersList] = useState([]);
+  const [selectedEmployee, setSelectedEmployee] = useState('');
+
+  useEffect(() => {
+    const fetchAllMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        const items = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        setMembersList(items);
+      } catch (err) {
+        console.error("Error loading members in EmpLoginSecurity:", err);
+      }
+    };
+    fetchAllMembers();
+  }, []);
 
   const handleSearch = () => {
     setIsSearching(true);
@@ -42,9 +58,20 @@ const EmpLoginSecurity = () => {
            </div>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px' }}>
               <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1E293B' }}>Employee</label>
-              <select style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #E2E8F0', outline: 'none', background: '#fff', fontSize: '0.95rem', color: '#64748B' }}>
-                 <option>-- Select Employee --</option>
-                 <option>Admin</option>
+              <select 
+                value={selectedEmployee} 
+                onChange={(e) => setSelectedEmployee(e.target.value)} 
+                style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #E2E8F0', outline: 'none', background: '#fff', fontSize: '0.95rem', color: '#1E293B', fontWeight: 600 }}
+              >
+                 <option value="">-- Select Employee --</option>
+                 {membersList.map((m) => {
+                   const label = `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`;
+                   return (
+                     <option key={m.id || m.msrno} value={m.memberId || m.loginId || m.id || m.msrno}>
+                       {label}
+                     </option>
+                   );
+                 })}
               </select>
            </div>
            <div>

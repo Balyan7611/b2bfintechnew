@@ -745,3 +745,43 @@
   .donutChartWrapper { max-width: 100%; }
   .donutLegendList { width: 100%; }
 }
+
+/* ============================================================
+   RESPONSIVE ADDITIONS
+   ============================================================ */
+@media (max-width: 900px) {
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+  .analyticsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .container { padding: 8px 6px 16px 6px; gap: 14px; }
+
+  .performanceGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .servicesCard,
+  .analyticsCard {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  /* Recent transactions table */
+  .tableWrapper,
+  [class*="tableWrapper"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboardGrid { gap: 10px; }
+  .insightCard { padding: 12px; gap: 10px; }
+  .insightIconWrap { width: 36px; height: 36px; font-size: 1rem; }
+}

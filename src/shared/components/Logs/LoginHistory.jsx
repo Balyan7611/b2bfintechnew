@@ -21,14 +21,9 @@ const LoginHistory = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const dropdownRef = useRef(null);
   
-    const getToday = () => new Date().toISOString().split('T')[0];
-  const getFirstOfMonth = () => {
-    const d = new Date();
-    d.setDate(1);
-    return d.toISOString().split('T')[0];
-  };
+  const getToday = () => new Date().toISOString().split('T')[0];
 
-  const [fromDate, setFromDate] = useState(getFirstOfMonth());
+  const [fromDate, setFromDate] = useState(getToday());
   const [toDate, setToDate] = useState(getToday());
 
   const handleSearchMembers = async (query) => {
@@ -78,9 +73,9 @@ const LoginHistory = () => {
     setLoading(true);
     try {
       const session = getSession();
-            const resolvedMemberId = isAdmin ? (selectedMember?.id || selectedMember?.msrno || '') : (session?.msrno || session?.userId || session?.memberId || '');
+      const resolvedMemberId = isAdmin ? (selectedMember?.id || selectedMember?.msrno || '') : (session?.msrno || session?.userId || session?.memberId || '');
 
-            const res = await API.userLoginHistory.getAll({ 
+      const res = await API.userLoginHistory.getAll({ 
         pageNumber: 1, 
         pageSize: 10000,
         fromDate: fromDate || undefined,
@@ -108,21 +103,13 @@ const LoginHistory = () => {
         } else if (payload.Data && Array.isArray(payload.Data)) {
             items = payload.Data;
             total = payload.TotalPages || Math.ceil((payload.TotalCount || 0) / pageSize);
-        } else if (payload.data && payload.data.data && Array.isArray(payload.data.data)) {
-            items = payload.data.data;
-            total = payload.data.totalPages || 1;
         }
       }
-
-            items.sort((a, b) => {
-        const timeA = new Date(a.loginTime || a.createdDate || a.createdAt || 0).getTime();
-        const timeB = new Date(b.loginTime || b.createdDate || b.createdAt || 0).getTime();
-        return timeB - timeA;
-      });
-
+      
       setFullData(items);
-      setPage(1);     } catch (err) {
-      console.error("Failed to fetch login history:", err);
+      setPage(1);
+    } catch (err) {
+      console.error(err);
       setFullData([]);
     } finally {
       setLoading(false);
@@ -131,29 +118,22 @@ const LoginHistory = () => {
 
   useEffect(() => {
     fetchHistory();
-  }, []);
+  }, [fromDate, toDate, statusFilter, selectedMember]);
 
   const filteredData = fullData.filter(item => {
-    const term = searchTerm.toLowerCase();
-    
-        const matchedMember = memberOptions.find(m => String(m.id) === String(item.msrno));
-    const session = getSession();
-    
-    const displayName = isAdmin 
-      ? (matchedMember ? matchedMember.name : (item.loginType || '')) 
-      : (session?.fullName || session?.name || '');
-    const displayCode = isAdmin 
-      ? (matchedMember ? (matchedMember.memberId || '') : '') 
-      : (session?.memberId || '');
-
+    if (!searchTerm) return true;
+    const q = searchTerm.toLowerCase();
+    const matchedMember = memberOptions.find(m => String(m.id) === String(item.msrno));
+    const memberName = matchedMember ? matchedMember.name : '';
+    const memberCode = matchedMember ? (matchedMember.memberId || '') : '';
     return (
-      (item.loginIpaddress || item.ipAddress || item.ip || '').toLowerCase().includes(term) ||
-      (item.device || item.browser || '').toLowerCase().includes(term) ||
-      (item.location || '').toLowerCase().includes(term) ||
-      (item.status || '').toLowerCase().includes(term) ||
-      displayName.toLowerCase().includes(term) ||
-      displayCode.toLowerCase().includes(term) ||
-      String(item.msrno || '').toLowerCase().includes(term)
+      (item.loginIpaddress || '').toLowerCase().includes(q) ||
+      (item.deviceName || '').toLowerCase().includes(q) ||
+      (item.browser || '').toLowerCase().includes(q) ||
+      (item.location || '').toLowerCase().includes(q) ||
+      (item.loginType || '').toLowerCase().includes(q) ||
+      memberName.toLowerCase().includes(q) ||
+      memberCode.toLowerCase().includes(q)
     );
   });
 
@@ -169,23 +149,174 @@ const LoginHistory = () => {
   };
 
   return (
-    <div style={{ padding: '24px 32px 24px 32px', width: '100%', boxSizing: 'border-box', margin: '0' }}>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <div style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <div style={{
-          width: '48px', height: '48px', borderRadius: '12px',
-          background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#4f46e5', fontSize: '1.25rem'
-        }}>
-          <FaHistory />
-        </div>
-        <div>
-          <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--text-primary, #1e293b)' }}>Login History</h2>
-          <p style={{ margin: '4px 0 0', color: 'var(--text-secondary, #64748b)', fontSize: '0.9rem' }}>
-            Track and monitor your recent account access activity.
-          </p>
-        </div>
+    <div style={{ padding: '15px 16px 0px 16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      
+      <div style={{ 
+        background: 'var(--card-bg, #ffffff)', 
+        borderRadius: '16px', 
+        padding: '20px 25px',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+        border: '1px solid var(--border-color, #e2e8f0)',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '20px',
+        alignItems: 'end'
+      }}>
+         <h3 style={{ gridColumn: '1 / -1', margin: '0 0 5px 0', fontSize: '1.15rem', fontWeight: 800, color: '#0D1B3E' }}>
+           Login History
+         </h3>
+         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4E6080' }}>From Date</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', height: '40px', boxSizing: 'border-box' }}>
+              <FaCalendarAlt color="#64748b" />
+              <input 
+                type="date" 
+                value={fromDate}
+                onChange={(e) => { setFromDate(e.target.value); setPage(1); }}
+                style={{ border: 'none', background: 'transparent', outline: 'none', color: '#334155', fontSize: '0.9rem', width: '100%' }}
+              />
+            </div>
+         </div>
+         
+         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4E6080' }}>To Date</label>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', height: '40px', boxSizing: 'border-box' }}>
+              <FaCalendarAlt style={{ color: '#64748B' }} />
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => { setToDate(e.target.value); setPage(1); }}
+                style={{ border: 'none', background: 'transparent', outline: 'none', color: '#334155', fontSize: '0.9rem', width: '100%' }}
+              />
+            </div>
+         </div>
+
+         {isAdmin && (
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', position: 'relative' }} ref={dropdownRef}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4E6080' }}>Select Member</label>
+              <div 
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                style={{
+                  display: 'flex', gap: '10px', alignItems: 'center', background: '#ffffff', 
+                  padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1',
+                  cursor: 'pointer', height: '40px', justifyContent: 'space-between',
+                  boxSizing: 'border-box', transition: 'all 0.2s',
+                  userSelect: 'none'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.borderColor = '#94a3b8'}
+                onMouseOut={(e) => e.currentTarget.style.borderColor = '#cbd5e1'}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                  <FaUser style={{ color: '#64748B', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.85rem', color: selectedMember ? '#0f172a' : '#64748b', fontWeight: selectedMember ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {selectedMember ? `${selectedMember.name} (${selectedMember.memberId || selectedMember.id})` : 'All Members'}
+                  </span>
+                </div>
+                <FaChevronDown style={{ fontSize: '0.75rem', color: '#64748B', transition: 'transform 0.2s', transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0)', flexShrink: 0 }} />
+              </div>
+
+              {isDropdownOpen && (
+                <div style={{
+                  position: 'absolute', top: '48px', left: 0, background: '#ffffff',
+                  border: '1px solid #e2e8f0', borderRadius: '12px', 
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                  zIndex: 1000, width: '300px', padding: '10px 0'
+                }}>
+                  <div style={{ padding: '0 12px 10px 12px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FaSearch style={{ color: '#94a3b8', fontSize: '0.875rem' }} />
+                    <input
+                      type="text"
+                      placeholder="Search member..."
+                      value={memberSearchQuery}
+                      onChange={(e) => setMemberSearchQuery(e.target.value)}
+                      style={{ border: 'none', outline: 'none', width: '100%', fontSize: '0.85rem', padding: '6px 4px', color: '#0f172a' }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  <div style={{ maxHeight: '200px', overflowY: 'auto', padding: '4px 0' }}>
+                    <div
+                      onClick={() => { setSelectedMember(null); setIsDropdownOpen(false); setMemberSearchQuery(''); setPage(1); }}
+                      style={{ 
+                        padding: '8px 16px', fontSize: '0.875rem', cursor: 'pointer', color: '#475569',
+                        fontWeight: !selectedMember ? 600 : 500,
+                        backgroundColor: !selectedMember ? '#f8fafc' : 'transparent'
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = !selectedMember ? '#f8fafc' : 'transparent'}
+                    >
+                      All Members
+                    </div>
+                    {filteredMemberOptions.length > 0 ? (
+                      filteredMemberOptions.map(m => {
+                        const isSel = selectedMember?.id === m.id;
+                        return (
+                          <div
+                            key={m.id || m.memberId}
+                            onClick={() => { setSelectedMember(m); setIsDropdownOpen(false); setMemberSearchQuery(''); setPage(1); }}
+                            style={{
+                              padding: '10px 16px', fontSize: '0.85rem', cursor: 'pointer',
+                              backgroundColor: isSel ? '#f8fafc' : 'transparent',
+                              borderBottom: '1px solid #f8fafc'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = isSel ? '#f8fafc' : 'transparent'}
+                          >
+                            <div style={{ fontWeight: 600, color: '#0f172a' }}>{m.name}</div>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+                              ID: {m.memberId || m.id} | 📞 {m.mobile}
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div style={{ padding: '16px', textAlign: 'center', fontSize: '0.8rem', color: '#94a3b8' }}>
+                        No members found
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+           </div>
+         )}
+
+         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4E6080' }}>Status</label>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: '#ffffff', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', height: '40px', boxSizing: 'border-box' }}>
+              <select
+                value={statusFilter}
+                onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+                style={{ border: 'none', outline: 'none', background: 'transparent', color: '#1E293B', fontSize: '0.875rem', fontWeight: 500, width: '100%', cursor: 'pointer' }}
+              >
+                <option value="">All Status</option>
+                <option value="Success">Success</option>
+                <option value="Failed">Failed</option>
+              </select>
+            </div>
+         </div>
+
+         <button 
+           onClick={() => { setPage(1); fetchHistory(); }}
+           style={{
+             height: '40px',
+             background: 'linear-gradient(135deg, #1756AA, #124d96)',
+             color: '#fff',
+             border: 'none',
+             borderRadius: '8px',
+             fontWeight: 700,
+             fontSize: '0.9rem',
+             cursor: 'pointer',
+             boxShadow: '0 4px 10px rgba(23, 86, 170, 0.15)',
+             transition: 'all 0.2s',
+             display: 'flex',
+             alignItems: 'center',
+             justifyContent: 'center',
+             gap: '8px'
+           }}
+           onMouseOver={(e) => e.target.style.transform = 'translateY(-1px)'}
+           onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+         >
+           <FaSearch /> Search
+         </button>
       </div>
 
       <div style={{ 
@@ -199,145 +330,17 @@ const LoginHistory = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
           
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <FaCalendarAlt color="#64748b" />
-              <input 
-                type="date" 
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                style={{ border: 'none', background: 'transparent', outline: 'none', color: '#334155', fontSize: '0.9rem' }}
-              />
-            </div>
-            <span style={{ color: '#94a3b8', fontWeight: 500 }}>TO</span>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: '#f8fafc', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <FaCalendarAlt style={{ color: '#64748B' }} />
-              <input
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                style={{ border: 'none', background: 'transparent', outline: 'none', color: '#334155', fontSize: '0.9rem' }}
-              />
-            </div>
-            
-            {isAdmin && (
-              <div style={{ position: 'relative' }} ref={dropdownRef}>
-                <div 
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  style={{
-                    display: 'flex', gap: '10px', alignItems: 'center', background: '#ffffff', 
-                    padding: '8px 16px', borderRadius: '10px', border: '1px solid #cbd5e1',
-                    cursor: 'pointer', minWidth: '180px', height: '42px', justifyContent: 'space-between',
-                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', transition: 'all 0.2s',
-                    userSelect: 'none'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.borderColor = '#94a3b8'}
-                  onMouseOut={(e) => e.currentTarget.style.borderColor = '#cbd5e1'}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <FaUser style={{ color: '#64748B' }} />
-                    <span style={{ fontSize: '0.875rem', color: selectedMember ? '#0f172a' : '#64748b', fontWeight: selectedMember ? 600 : 500 }}>
-                      {selectedMember ? `${selectedMember.name} (${selectedMember.memberId || selectedMember.id})` : 'All Members'}
-                    </span>
-                  </div>
-                  <FaChevronDown style={{ fontSize: '0.75rem', color: '#64748B', transition: 'transform 0.2s', transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0)' }} />
-                </div>
-
-                {isDropdownOpen && (
-                  <div style={{
-                    position: 'absolute', top: '48px', left: 0, background: '#ffffff',
-                    border: '1px solid #e2e8f0', borderRadius: '12px', 
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-                    zIndex: 1000, width: '300px', padding: '10px 0',
-                    animation: 'fadeIn 0.15s ease-out'
-                  }}>
-                    <div style={{ padding: '0 12px 10px 12px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <FaSearch style={{ color: '#94a3b8', fontSize: '0.875rem' }} />
-                      <input
-                        type="text"
-                        placeholder="Search member by name, ID or phone..."
-                        value={memberSearchQuery}
-                        onChange={(e) => setMemberSearchQuery(e.target.value)}
-                        style={{ border: 'none', outline: 'none', width: '100%', fontSize: '0.85rem', padding: '6px 4px', color: '#0f172a' }}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </div>
-                    <div style={{ maxHeight: '240px', overflowY: 'auto', padding: '4px 0' }}>
-                      <div
-                        onClick={() => { setSelectedMember(null); setIsDropdownOpen(false); setMemberSearchQuery(''); }}
-                        style={{ 
-                          padding: '8px 16px', fontSize: '0.875rem', cursor: 'pointer', color: '#475569',
-                          fontWeight: !selectedMember ? 600 : 500,
-                          backgroundColor: !selectedMember ? '#f8fafc' : 'transparent',
-                          transition: 'background 0.15s'
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = !selectedMember ? '#f8fafc' : 'transparent'}
-                      >
-                        All Members
-                      </div>
-                      {filteredMemberOptions.length > 0 ? (
-                        filteredMemberOptions.map(m => {
-                          const isSel = selectedMember?.id === m.id;
-                          return (
-                            <div
-                              key={m.id || m.memberId}
-                              onClick={() => { setSelectedMember(m); setIsDropdownOpen(false); setMemberSearchQuery(''); }}
-                              style={{
-                                padding: '10px 16px', fontSize: '0.85rem', cursor: 'pointer',
-                                backgroundColor: isSel ? '#f8fafc' : 'transparent',
-                                borderBottom: '1px solid #f8fafc',
-                                transition: 'background 0.15s'
-                              }}
-                              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
-                              onMouseOut={(e) => e.currentTarget.style.backgroundColor = isSel ? '#f8fafc' : 'transparent'}
-                            >
-                              <div style={{ fontWeight: 600, color: '#0f172a' }}>{m.name}</div>
-                              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
-                                ID: {m.memberId || m.id} | 📞 {m.mobile}
-                              </div>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div style={{ padding: '16px', textOver: 'ellipsis', overflow: 'hidden', textAlign: 'center', fontSize: '0.8rem', color: '#94a3b8' }}>
-                          No members found
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: '#ffffff', padding: '6px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', height: '42px', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                style={{ border: 'none', outline: 'none', background: 'transparent', color: '#1E293B', fontSize: '0.875rem', fontWeight: 500, width: '130px', cursor: 'pointer' }}
-              >
-                <option value="">All Status</option>
-                <option value="Success">Success</option>
-                <option value="Failed">Failed</option>
-              </select>
-            </div>
-
-            <button 
-              onClick={() => { setPage(1); fetchHistory(); }}
-              style={{
-                padding: '8px 16px',
-                background: '#1756AA',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'background 0.2s'
-              }}
-              onMouseOver={(e) => e.target.style.background = '#124285'}
-              onMouseOut={(e) => e.target.style.background = '#1756AA'}
+            <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
+            <select
+              value={pageSize}
+              onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+              style={{ padding: '6px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', fontSize: '0.85rem', color: '#334155' }}
             >
-              Search
-            </button>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+            <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>entries</span>
           </div>
 
           <div style={{ position: 'relative', width: '100%', maxWidth: '300px' }}>

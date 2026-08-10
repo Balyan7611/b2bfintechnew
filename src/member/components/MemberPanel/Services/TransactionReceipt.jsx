@@ -245,27 +245,27 @@ function ReceiptBody({ data, cfg }) {
         <tbody>
           <tr>
             <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC', width: '20%' }}>Merchant:</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', width: '30%' }}>{merchantName}</td>
+            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', width: '30%', wordBreak: 'break-all' }}>{merchantName}</td>
             <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC', width: '20%' }}>Business Name:</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', width: '30%' }}>{shopName}</td>
+            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', width: '30%', wordBreak: 'break-all' }}>{shopName}</td>
           </tr>
           <tr>
             <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>{data?.mode === 'AEPS' ? 'Member Name:' : 'Customer Name:'}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A' }}>{data?.customerName || 'N/A'}</td>
+            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.customerName || 'N/A'}</td>
             <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>{data?.mode === 'AEPS' ? 'Member ID:' : 'Customer Mobile:'}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A' }}>{data?.customerMobile || 'N/A'}</td>
+            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.customerMobile || 'N/A'}</td>
           </tr>
           <tr>
             <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>{data?.mode === 'AEPS' ? 'Aadhar Number:' : 'Beneficiary Name:'}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A' }}>{data?.beneficiary || 'N/A'}</td>
+            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.beneficiary || 'N/A'}</td>
             <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>{data?.mode === 'AEPS' ? 'Txn Type:' : 'Bank Name:'}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A' }}>{data?.bank || 'N/A'}</td>
+            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.bank || 'N/A'}</td>
           </tr>
           <tr>
             <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>{data?.mode === 'AEPS' ? 'Bank Trans ID:' : 'Account Number:'}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A' }}>{data?.accountNo || 'N/A'} {data?.ifsc ? `(IFSC: ${data?.ifsc})` : ''}</td>
+            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.accountNo || 'N/A'} {data?.ifsc ? `(IFSC: ${data?.ifsc})` : ''}</td>
             <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Date & Time:</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A' }}>{data?.date}</td>
+            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.date}</td>
           </tr>
           {data?.mode === 'AEPS' && (
             <>
@@ -277,15 +277,15 @@ function ReceiptBody({ data, cfg }) {
               </tr>
               <tr>
                 <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Commission:</td>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', color: '#15803D' }}>+₹{Number(data.commission || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#15803D' }}>+₹{Number(data.commission || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                 <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>TDS:</td>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', color: '#B91C1C' }}>-₹{Number(data.tds || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#B91C1C' }}>-₹{Number(data.tds || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
               </tr>
               <tr>
                 <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Status:</td>
                 <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: data.status?.toLowerCase() === 'success' ? '#15803D' : '#B91C1C' }}>{data.status || 'N/A'}</td>
                 <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Remark:</td>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A' }}>{data.remark || 'N/A'}</td>
+                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data.remark || 'N/A'}</td>
               </tr>
             </>
           )}
@@ -298,24 +298,24 @@ function ReceiptBody({ data, cfg }) {
         </span>
       </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20, fontSize: fs }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20, fontSize: fs, tableLayout: 'fixed' }}>
         <thead>
           <tr>
-            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left' }}>TID</th>
-            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left' }}>TXN DATE</th>
-            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left' }}>AMOUNT</th>
-            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left' }}>UTR NO.</th>
-            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left' }}>STATUS</th>
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '28%' }}>TID</th>
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '17%' }}>TXN DATE</th>
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '18%' }}>AMOUNT</th>
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '22%' }}>UTR NO.</th>
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'center', width: '15%' }}>STATUS</th>
           </tr>
         </thead>
         <tbody>
           {((data?.chunks && data.chunks.length > 0) ? data.chunks : [{ id: 'chk_1', txnId: 'N/A', amount: data?.amount || 0 }]).map((c, i) => (
             <tr key={c.id || i}>
-              <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600' }}>{c.txnId || 'N/A'}</td>
-              <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600' }}>{data?.date?.split(' ')[0]}</td>
+              <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600', wordBreak: 'break-all' }}>{c.txnId || 'N/A'}</td>
+              <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600', wordBreak: 'break-all' }}>{data?.date?.split(' ')[0]}</td>
               <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#0F172A', fontWeight: '700' }}>₹{Number(c.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-              <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600' }}>{c.txnId || 'N/A'}</td>
-              <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0' }}>
+              <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600', wordBreak: 'break-all' }}>{c.txnId || 'N/A'}</td>
+              <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', textAlign: 'center' }}>
                 <span style={{
                   background: '#ECFDF5',
                   border: '1px solid #A7F3D0',
@@ -331,7 +331,7 @@ function ReceiptBody({ data, cfg }) {
           <tr style={{ background: '#FFFFFF' }}>
             <td colSpan="2" style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#1756AA' }}>Total Amount:</td>
             <td style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#1756AA' }}>₹{Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-            <td colSpan="2" style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#1756AA' }}>Rs. {Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} ( {toWords(data?.amount || 0)} )</td>
+            <td colSpan="2" style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#1756AA', wordBreak: 'break-word' }}>Rs. {Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} ( {toWords(data?.amount || 0)} )</td>
           </tr>
         </tbody>
       </table>

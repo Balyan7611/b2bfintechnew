@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FiSearch, FiCalendar, FiUser, FiChevronLeft, FiChevronRight, FiSliders
@@ -9,18 +9,41 @@ import {
 import { 
   setEntriesToShow, setSearchTerm, setLoading 
 } from '../../../store/slices/walletSlice';
+import { API } from '../../../api/endpoints';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const WalletTXN = () => {
   const dispatch = useDispatch();
   const { entriesToShow, searchTerm, isLoading } = useSelector(state => state.wallet);
   const sampleData = [];
+  const [membersList, setMembersList] = useState([]);
+
+  const getCurrentDateString = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
   
   const [filters, setFilters] = useState({
-    fromDate: '',
-    toDate: '',
+    fromDate: getCurrentDateString(),
+    toDate: getCurrentDateString(),
     memberId: ''
   });
+
+  useEffect(() => {
+    const fetchAllMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        const items = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        setMembersList(items);
+      } catch (err) {
+        console.error("Error loading members in WalletTXN:", err);
+      }
+    };
+    fetchAllMembers();
+  }, []);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -28,10 +51,10 @@ const WalletTXN = () => {
   };
 
   const handleClear = () => {
-    setFilters({ fromDate: '', toDate: '', memberId: '' });
+    setFilters({ fromDate: getCurrentDateString(), toDate: getCurrentDateString(), memberId: '' });
   };
 
-  const hasFilters = Object.values(filters).some(val => val !== '');
+  const hasFilters = Object.values(filters).some(val => val !== getCurrentDateString() && val !== '');
 
   const handleSearch = (e) => {
     if (e) e.preventDefault();
@@ -62,9 +85,14 @@ const WalletTXN = () => {
               <label className={styles.label} style={{ fontSize: '0.75rem', marginBottom: '4px' }}><FiUser /> Member ID</label>
               <select name="memberId" value={filters.memberId} onChange={handleFilterChange} className={styles.inputControl} style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }}>
                 <option value="">Select Member</option>
-                <option value="RT1236">RT1236</option>
-                <option value="RT1237">RT1237</option>
-                <option value="RT1238">RT1238</option>
+                {membersList.map((m) => {
+                  const label = `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`;
+                  return (
+                    <option key={m.id || m.msrno} value={m.memberId || m.loginId || m.id || m.msrno}>
+                      {label}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 

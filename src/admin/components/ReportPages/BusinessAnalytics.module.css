@@ -422,3 +422,11 @@
   line-height: 1.5;
   color: #334155;
 }
+
+@media (max-width: 768px) {
+  .container { padding: 10px 8px; }
+  .statsGrid { grid-template-columns: 1fr 1fr !important; }
+}
+@media (max-width: 480px) {
+  .statsGrid { grid-template-columns: 1fr !important; }
+}

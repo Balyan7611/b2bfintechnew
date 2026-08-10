@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FiSearch, FiChevronLeft, FiChevronRight
@@ -9,16 +9,31 @@ import {
 import { 
   setEntriesToShow, setSearchTerm, setLoading 
 } from '../../../store/slices/walletSlice';
+import { API } from '../../../api/endpoints';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const DownLineBalance = () => {
   const dispatch = useDispatch();
   const { entriesToShow, searchTerm, isLoading } = useSelector(state => state.wallet);
   const sampleData = [];
+  const [roles, setRoles] = useState([]);
   
   const [filters, setFilters] = useState({
     role: ''
   });
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const res = await API.getRoles();
+        if (res && Array.isArray(res)) setRoles(res);
+        else if (res && res.data) setRoles(res.data);
+      } catch (err) {
+        console.error("Error loading roles in DownLineBalance:", err);
+      }
+    };
+    fetchRoles();
+  }, []);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -43,10 +58,10 @@ const DownLineBalance = () => {
             <div className={styles.formGroup} style={{ margin: 0, width: '250px' }}>
               <label className={styles.label} style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px', color: '#0D1B3E' }}>Role</label>
               <select name="role" value={filters.role} onChange={handleFilterChange} className={styles.inputControl} style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }}>
-                <option value="">Select Role</option>
-                <option value="retailer">Retailer</option>
-                <option value="distributor">Distributor</option>
-                <option value="super_distributor">Super Distributor</option>
+                <option value="">All Roles</option>
+                {roles.map(r => (
+                  <option key={r.id} value={r.id}>{r.name}</option>
+                ))}
               </select>
             </div>
 

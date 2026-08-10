@@ -221,10 +221,18 @@ const ManageMember = () => {
     }
   };
 
-    const [members, setMembers] = useState([]);
+    const getCurrentDateString = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const [members, setMembers] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const [fromDate, setFromDate] = useState(getCurrentDateString());
+  const [toDate, setToDate] = useState(getCurrentDateString());
   const [filterRoleId, setFilterRoleId] = useState('');
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

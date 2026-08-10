@@ -2713,3 +2713,52 @@
   border-radius: 50px;
   box-shadow: 0 4px 12px rgba(23, 86, 170, 0.25);
 }
+
+/* ============================================================
+   RESPONSIVE ADDITIONS — Admin Dashboard
+   ============================================================ */
+@media (max-width: 900px) {
+  .dashboardColumns {
+    grid-template-columns: 1fr;
+  }
+  .leftBottomRow {
+    grid-template-columns: 1fr;
+  }
+  .rightBottomGrid {
+    grid-template-columns: 1fr;
+  }
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .actionGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .actionGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  /* Tables */
+  .tableWrapper,
+  [class*="tableWrap"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsRow {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .actionGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

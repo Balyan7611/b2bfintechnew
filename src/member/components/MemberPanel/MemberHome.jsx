@@ -760,6 +760,7 @@ const MemberHome = () => {
           <table className={sharedStyles.table}>
             <thead>
               <tr>
+                <th>S.No</th>
                 <th>Service</th>
                 <th>Amount</th>
                 <th>Balance</th>
@@ -772,6 +773,7 @@ const MemberHome = () => {
               {recentTransactions.length > 0 ? (
                 recentTransactions.map((txn, i) => (
                   <tr key={txn.id || i}>
+                    <td>{i + 1}</td>
                     <td className={styles.serviceNameTd}>{txn.serviceName}</td>
                     <td>₹{(txn.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                     <td style={{ fontWeight: 600 }}>₹{(txn.change || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
@@ -787,6 +789,7 @@ const MemberHome = () => {
               ) : transactions.length > 0 ? (
                 transactions.map((txn, i) => (
                   <tr key={i}>
+                    <td>{i + 1}</td>
                     <td className={styles.serviceNameTd}>{txn.service}</td>
                     <td>₹{txn.amount}</td>
                     <td style={{ fontWeight: 600 }}>₹{txn.balance}</td>
@@ -801,7 +804,7 @@ const MemberHome = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6">
+                  <td colSpan="7">
                     <div className={styles.emptyState}>
                       <div className={styles.emptyIllustration}>
                         <FaInbox className={styles.emptyIconLarge} />

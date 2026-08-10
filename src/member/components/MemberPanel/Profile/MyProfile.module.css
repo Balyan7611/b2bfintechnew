@@ -1581,3 +1581,10 @@
     justify-content: center;
   }
 }
+
+@media (max-width: 768px) {
+  .infoTable { grid-template-columns: 1fr 1fr; gap: 10px; }
+}
+@media (max-width: 480px) {
+  .infoTable { grid-template-columns: 1fr; }
+}

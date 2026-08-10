@@ -7,6 +7,7 @@ import {
   FaSearch, FaShieldAlt
 } from 'react-icons/fa';
 import { updateChangePassword } from '../../../store/slices/memberSlice';
+import { API } from '../../../api/endpoints';
 import styles from './MemberPages.module.css';
 
 const ChangePassword = () => {
@@ -27,11 +28,11 @@ const ChangePassword = () => {
 
   const adminTpinRefs = useRef([]);
 
-    useEffect(() => {
+  useEffect(() => {
     dispatch(updateChangePassword({ newPass: '', confirmPass: '', member: '' }));
   }, [dispatch]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (showConfirmModal) {
       setAdminTpin(['', '', '', '']);
       setAdminTpinError('');
@@ -52,7 +53,7 @@ const ChangePassword = () => {
     if (/[a-z]/.test(pass)) score++;
     if (/[0-9]/.test(pass)) score++;
     if (/[@#$&!]/.test(pass)) score++;
-    
+
     if (score <= 3) return 'weak';
     if (score <= 5) return 'medium';
     return 'strong';
@@ -68,27 +69,35 @@ const ChangePassword = () => {
     setMemberError('');
     setPassError('');
 
-    const consonants = 'BCDFGHJKLMNPQRSTVWXYZ';
-    const lowercaseConsonants = 'bcdfghjklmnpqrstvwxyz';
-    const vowels = 'AEIOU';
-    const lowercaseVowels = 'aeiou';
-    const specialChars = '@#$&!';
-    const digitsPool = '0123456789';
-
-        const part1 = consonants[Math.floor(Math.random() * consonants.length)] + 
-                  lowercaseVowels[Math.floor(Math.random() * lowercaseVowels.length)] + 
-                  lowercaseConsonants[Math.floor(Math.random() * lowercaseConsonants.length)] + 
-                  lowercaseVowels[Math.floor(Math.random() * lowercaseVowels.length)];
-    
-        const part2 = specialChars[Math.floor(Math.random() * specialChars.length)] + 
-                  specialChars[Math.floor(Math.random() * specialChars.length)];
-
-        let part3 = '';
-    for (let i = 0; i < 4; i++) {
-      part3 += digitsPool[Math.floor(Math.random() * digitsPool.length)];
+    let base = 'Member';
+    if (selectedMemberObj && selectedMemberObj.name) {
+      const first = selectedMemberObj.name.trim().split(' ')[0];
+      const clean = first.replace(/[^a-zA-Z]/g, '');
+      if (clean) {
+        base = clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
+      }
     }
 
-    const suggested = `${part1}${part2}${part3}`;
+    // Limit base length to 6 to fit within 8-10 character limit
+    if (base.length > 6) {
+      base = base.slice(0, 6);
+    }
+    // Make sure base is at least 4 chars
+    while (base.length < 4) {
+      base += 'x';
+    }
+
+    const specialPool = ['@', '#', '&'];
+    const spec = specialPool[Math.floor(Math.random() * specialPool.length)];
+
+    // Fill the remaining length to exactly 9 characters
+    const remaining = 9 - base.length - 1; // 9 - base_len - 1 (special char)
+    let digits = '';
+    for (let i = 0; i < remaining; i++) {
+      digits += Math.floor(Math.random() * 10);
+    }
+
+    const suggested = `${base}${spec}${digits}`;
     dispatch(updateChangePassword({ newPass: suggested, confirmPass: suggested }));
     setIsSuggestedActive(true);
     setShowNew(true);
@@ -104,7 +113,7 @@ const ChangePassword = () => {
     currentArray[index] = val.slice(-1);
     setAdminTpin(currentArray);
 
-        if (val && index < 3) {
+    if (val && index < 3) {
       adminTpinRefs.current[index + 1]?.focus();
     }
   };
@@ -160,10 +169,28 @@ const ChangePassword = () => {
     }, 2000);
   };
 
+  // Local state for dynamically fetched members
+  const [membersList, setMembersList] = useState([]);
+
+  useEffect(() => {
+    const fetchAllMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        const items = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        setMembersList(items);
+      } catch (err) {
+        console.error("Error loading members for ChangePassword:", err);
+      }
+    };
+    fetchAllMembers();
+  }, []);
+
+  const selectedMemberObj = membersList.find(m => String(m.id) === String(changePassword.member));
+
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-                <input type="text" style={{ display: 'none' }} />
+        <input type="text" style={{ display: 'none' }} />
         <input type="password" style={{ display: 'none' }} />
 
         <div className={styles.cardHeader} style={{ padding: '10px 24px', borderBottom: '1px solid #EEF3FC', background: '#fff' }}>
@@ -172,7 +199,7 @@ const ChangePassword = () => {
 
         <div style={{ padding: '24px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-                        <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+            <div className={styles.formGroup} style={{ gridColumn: '1 / -1', maxWidth: '480px' }}>
               <label style={{ fontSize: '0.8rem', color: '#4E6080', fontWeight: 600, display: 'block', marginBottom: '8px' }}>Select Member</label>
               <div style={{ position: 'relative' }}>
                 <select
@@ -188,30 +215,34 @@ const ChangePassword = () => {
                   autoComplete="off"
                 >
                   <option value="">Select Member</option>
-                  <option value="100000 Pay99 [9999999999]">100000 Pay99 [9999999999]</option>
-                  <option value="RT1236 BALYAN [6377487868]">RT1236 BALYAN [6377487868]</option>
-                  <option value="MDT8597 FARIDABAD [9354821335]">MDT8597 FARIDABAD [9354821335]</option>
-                  <option value="Pay99RT4002 SoniTechno [8005575599]">Pay99RT4002 SoniTechno [8005575599]</option>
+                  {membersList.map((m) => {
+                    const label = `${m.memberId || m.loginId || m.id} - ${m.name || ''} [${m.mobile || ''}]`;
+                    return (
+                      <option key={m.id} value={m.id}>
+                        {label}
+                      </option>
+                    );
+                  })}
                 </select>
                 <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#A0AEC0', fontSize: '0.7rem' }}>▼</div>
               </div>
             </div>
 
-                        {changePassword.member && (
+            {selectedMemberObj && (
               <div style={{ gridColumn: '1 / -1', display: 'flex', background: '#fff', border: '1px solid #EEF3FC', borderRadius: '8px', overflow: 'hidden', marginTop: '2px', marginBottom: '4px' }}>
                 <div style={{ flex: 1, padding: '6px 12px', borderRight: '1px solid #EEF3FC', textAlign: 'center', fontSize: '0.8rem', color: '#0D1B3E' }}>
-                  <span style={{ fontWeight: 600, color: '#4E6080' }}>Name:</span> {changePassword.member.includes('Pay99') ? 'VIVEK VARSHNEY' : changePassword.member.includes('BALYAN') ? 'BALYAN' : 'FARIDABAD'}
+                  <span style={{ fontWeight: 600, color: '#4E6080' }}>Name:</span> {selectedMemberObj.name || 'N/A'}
                 </div>
                 <div style={{ flex: 1, padding: '6px 12px', borderRight: '1px solid #EEF3FC', textAlign: 'center', fontSize: '0.8rem', color: '#0D1B3E' }}>
-                  <span style={{ fontWeight: 600, color: '#4E6080' }}>Mobile:</span> {changePassword.member.match(/\[(\d+)\]/)?.[1] || '9999999999'}
+                  <span style={{ fontWeight: 600, color: '#4E6080' }}>Mobile:</span> {selectedMemberObj.mobile || 'N/A'}
                 </div>
                 <div style={{ flex: 1, padding: '6px 12px', textAlign: 'center', fontSize: '0.8rem', color: '#0D1B3E' }}>
-                  <span style={{ fontWeight: 600, color: '#4E6080' }}>Shop:</span> {changePassword.member.includes('Pay99') ? 'Pay99' : changePassword.member.split(' ')[0]}
+                  <span style={{ fontWeight: 600, color: '#4E6080' }}>Shop:</span> {selectedMemberObj.shopName || selectedMemberObj.firmName || selectedMemberObj.businessName || 'N/A'}
                 </div>
               </div>
             )}
 
-                        {memberError && (
+            {memberError && (
               <div style={{ gridColumn: '1 / -1', color: '#E53E3E', fontSize: '0.85rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', background: '#FFF5F5', padding: '10px 14px', borderRadius: '8px', border: '1px solid #FED7D7' }}>
                 <span>⚠️</span> {memberError}
               </div>
@@ -224,7 +255,7 @@ const ChangePassword = () => {
 
             <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', marginBottom: '-5px' }}>
               <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0D1B3E' }}>Set Password</span>
-              <button 
+              <button
                 type="button"
                 onClick={suggestStrongPassword}
                 style={{
@@ -255,22 +286,22 @@ const ChangePassword = () => {
               </button>
             </div>
 
-                        <div className={styles.formGroup}>
+            <div className={styles.formGroup}>
               <div style={{ position: 'relative' }}>
                 <input
                   type="text"
                   name="txt_n_p"
-                  style={{ 
-                    width: '100%', 
-                    height: '42px', 
-                    border: '1.5px solid #E2E8F0', 
-                    background: '#F8FAFF', 
-                    borderRadius: '10px', 
-                    padding: '0 45px 0 16px', 
-                    outline: 'none', 
-                    boxSizing: 'border-box', 
-                    fontSize: '0.85rem', 
-                    color: '#0D1B3E', 
+                  style={{
+                    width: '100%',
+                    height: '42px',
+                    border: '1.5px solid #E2E8F0',
+                    background: '#F8FAFF',
+                    borderRadius: '10px',
+                    padding: '0 45px 0 16px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    fontSize: '0.85rem',
+                    color: '#0D1B3E',
                     letterSpacing: !showNew && changePassword.newPass ? '0.15em' : 'normal',
                     WebkitTextSecurity: showNew ? 'none' : 'disc'
                   }}
@@ -307,22 +338,22 @@ const ChangePassword = () => {
               )}
             </div>
 
-                        <div className={styles.formGroup}>
+            <div className={styles.formGroup}>
               <div style={{ position: 'relative' }}>
                 <input
                   type="text"
                   name="txt_c_p"
-                  style={{ 
-                    width: '100%', 
-                    height: '42px', 
-                    border: '1.5px solid #E2E8F0', 
-                    background: '#F8FAFF', 
-                    borderRadius: '10px', 
-                    padding: '0 45px 0 16px', 
-                    outline: 'none', 
-                    boxSizing: 'border-box', 
-                    fontSize: '0.85rem', 
-                    color: '#0D1B3E', 
+                  style={{
+                    width: '100%',
+                    height: '42px',
+                    border: '1.5px solid #E2E8F0',
+                    background: '#F8FAFF',
+                    borderRadius: '10px',
+                    padding: '0 45px 0 16px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    fontSize: '0.85rem',
+                    color: '#0D1B3E',
                     letterSpacing: !showConfirm && changePassword.confirmPass ? '0.15em' : 'normal',
                     WebkitTextSecurity: showConfirm ? 'none' : 'disc'
                   }}
@@ -349,7 +380,7 @@ const ChangePassword = () => {
             </div>
           </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '32px', paddingTop: '24px', borderTop: '1px dashed #E2E8F0' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '32px', paddingTop: '24px', borderTop: '1px dashed #E2E8F0' }}>
             <button
               style={{ padding: '12px 35px', borderRadius: '12px', background: '#1756AA', color: '#fff', border: 'none', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 8px 20px rgba(23,86,170,0.25)', transition: 'all 0.3s' }}
               onClick={handleProcess}
@@ -367,7 +398,7 @@ const ChangePassword = () => {
         </div>
       </div>
 
-            {showConfirmModal && (
+      {showConfirmModal && (
         <div style={{
           position: 'fixed',
           top: 0,
@@ -411,22 +442,22 @@ const ChangePassword = () => {
               Are you sure you want to update the Password for <span style={{ fontWeight: 600, color: '#1A202C' }}>{changePassword.member.split(' [')[0]}</span>?
             </p>
 
-                        <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+            <div style={{ marginBottom: '20px', textAlign: 'left' }}>
               <label style={{ fontSize: '0.8rem', color: '#4E6080', fontWeight: 600, display: 'block', marginBottom: '8px', textAlign: 'center' }}>
                 Enter Admin TPIN to Authorize
               </label>
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '8px' }}>
                 {adminTpin.map((digit, i) => (
-                  <input 
+                  <input
                     key={i}
                     ref={el => adminTpinRefs.current[i] = el}
                     type="password"
                     maxLength="1"
-                    style={{ 
-                      width: '38px', 
-                      height: '38px', 
-                      textAlign: 'center', 
-                      padding: '0', 
+                    style={{
+                      width: '38px',
+                      height: '38px',
+                      textAlign: 'center',
+                      padding: '0',
                       fontSize: '1.1rem',
                       fontWeight: '700',
                       borderRadius: '8px',
@@ -450,7 +481,7 @@ const ChangePassword = () => {
             </div>
 
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <button 
+              <button
                 onClick={() => setShowConfirmModal(false)}
                 style={{
                   flex: 1,
@@ -467,7 +498,7 @@ const ChangePassword = () => {
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={confirmUpdate}
                 style={{
                   flex: 1,

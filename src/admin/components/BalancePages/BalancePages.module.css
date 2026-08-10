@@ -468,3 +468,14 @@ input:checked + .slider:before {
   .searchBox { width: 100%; }
   .searchInput { width: 100%; }
 }
+
+/* ============================================================
+   RESPONSIVE ADDITIONS — Balance Pages
+   ============================================================ */
+@media (max-width: 768px) {
+  .formGridRow { grid-template-columns: repeat(2, 1fr); }
+  .formGridRowFive { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .formGridRow, .formGridRowFive { grid-template-columns: 1fr; }
+}

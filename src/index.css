@@ -349,3 +349,58 @@ button {
     justify-content: center;
   }
 }
+
+/* ============================================================
+   GLOBAL RESPONSIVE — All Panels (Admin / Member / API)
+   ============================================================ */
+
+/* Tables: always scrollable on mobile */
+@media (max-width: 768px) {
+  .global-table-wrapper,
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  table thead, table tbody, table tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+  /* shrink table font */
+  table th, table td {
+    font-size: 0.75rem !important;
+    padding: 8px 6px !important;
+    white-space: nowrap;
+  }
+}
+
+/* Cards / form rows: stack on mobile */
+@media (max-width: 768px) {
+  /* Generic 2-column form grids → single column */
+  [class*="formRow"],
+  [class*="inputRow"],
+  [class*="filterRow"],
+  [class*="twoCol"] {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  /* Action button groups: wrap */
+  [class*="actionGroup"],
+  [class*="btnGroup"],
+  [class*="buttonGroup"] {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  /* Page headings / toolbar rows */
+  [class*="pageHeader"],
+  [class*="tableHeader"],
+  [class*="sectionHeader"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+}

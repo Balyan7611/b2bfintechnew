@@ -12,20 +12,30 @@ import styles from '../MemberPages/MemberPages.module.css';
 const EmployeeLoginList = () => {
   const dispatch = useDispatch();
 
+  const getCurrentDateString = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [loginList, setLoginList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-    const [pageNumber, setPageNumber] = useState(1);
+  const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const [fromDate, setFromDate] = useState(getCurrentDateString());
+  const [toDate, setToDate] = useState(getCurrentDateString());
   const [statusFilter, setStatusFilter] = useState('');
+  const [membersList, setMembersList] = useState([]);
+  const [selectedMember, setSelectedMember] = useState('');
 
-    const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [deletingId, setDeletingId] = useState(null);
 
-                  const SERVER_FETCH_SIZE = 5000;
+  const SERVER_FETCH_SIZE = 5000;
 
   const fetchData = async () => {
     setLoading(true);
@@ -39,7 +49,7 @@ const EmployeeLoginList = () => {
         status: statusFilter || undefined
       });
 
-            let dataArray = [];
+      let dataArray = [];
       if (response) {
         if (Array.isArray(response.data)) {
           dataArray = response.data;
@@ -50,7 +60,7 @@ const EmployeeLoginList = () => {
         }
       }
 
-            dataArray = [...dataArray].sort((a, b) => {
+      dataArray = [...dataArray].sort((a, b) => {
         const aTime = a.loginTime ? new Date(a.loginTime).getTime() : 0;
         const bTime = b.loginTime ? new Date(b.loginTime).getTime() : 0;
         if (bTime !== aTime) return bTime - aTime;
@@ -70,7 +80,20 @@ const EmployeeLoginList = () => {
 
   useEffect(() => {
     fetchData();
-      }, [fromDate, toDate, statusFilter]);
+  }, [fromDate, toDate, statusFilter]);
+
+  useEffect(() => {
+    const fetchAllMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        const items = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        setMembersList(items);
+      } catch (err) {
+        console.error("Error loading members in EmployeeLoginList filters:", err);
+      }
+    };
+    fetchAllMembers();
+  }, []);
 
   const handlePageSizeChange = (value) => {
     setPageSize(Number(value));
@@ -94,6 +117,7 @@ const EmployeeLoginList = () => {
   };
 
   const filteredList = loginList.filter((item) => {
+    if (selectedMember && String(item.msrno) !== String(selectedMember)) return false;
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -115,7 +139,58 @@ const EmployeeLoginList = () => {
           <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0D1B3E' }}>Employee Login Activity</h3>
         </div>
 
-                <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
+                <div style={{ padding: '20px 25px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', alignItems: 'end', borderBottom: '1px solid #F1F5F9', background: '#F8FAFF' }}>
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4E6080' }}>From Date</label>
+              <input 
+                type="date" 
+                value={fromDate} 
+                onChange={(e) => { setFromDate(e.target.value); setPageNumber(1); }} 
+                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none', fontSize: '0.9rem', height: '40px', boxSizing: 'border-box' }} 
+              />
+           </div>
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4E6080' }}>To Date</label>
+              <input 
+                type="date" 
+                value={toDate} 
+                onChange={(e) => { setToDate(e.target.value); setPageNumber(1); }} 
+                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none', fontSize: '0.9rem', height: '40px', boxSizing: 'border-box' }} 
+              />
+           </div>
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4E6080' }}>Status</label>
+              <select 
+                value={statusFilter} 
+                onChange={(e) => { setStatusFilter(e.target.value); setPageNumber(1); }} 
+                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none', fontSize: '0.9rem', background: '#fff', height: '40px', boxSizing: 'border-box' }}
+              >
+                <option value="">All Status</option>
+                <option value="Success">Success</option>
+                <option value="Failed">Failed</option>
+              </select>
+           </div>
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4E6080' }}>Select Employee</label>
+              <select 
+                value={selectedMember} 
+                onChange={(e) => { setSelectedMember(e.target.value); setPageNumber(1); }} 
+                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none', fontSize: '0.9rem', background: '#fff', height: '40px', boxSizing: 'border-box' }}
+              >
+                <option value="">All Employees</option>
+                {membersList.map((m) => {
+                  const label = `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`;
+                  return (
+                    <option key={m.id || m.msrno} value={m.memberId || m.loginId || m.id || m.msrno}>
+                      {label}
+                    </option>
+                  );
+                })}
+              </select>
+           </div>
+        </div>
+
+                <div className="global-table-toolbar" style={{ padding: '10px 15px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select
@@ -129,33 +204,6 @@ const EmployeeLoginList = () => {
               <option value={50}>50</option>
             </select>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>entries</span>
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => { setFromDate(e.target.value); setPageNumber(1); }}
-              style={{ borderRadius: '8px', border: '1px solid #E2E8F0', padding: '7px 10px', fontSize: '0.85rem', color: '#4E6080' }}
-              title="From Date"
-            />
-            <span style={{ color: '#A0AEC0', fontSize: '0.8rem' }}>to</span>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => { setToDate(e.target.value); setPageNumber(1); }}
-              style={{ borderRadius: '8px', border: '1px solid #E2E8F0', padding: '7px 10px', fontSize: '0.85rem', color: '#4E6080' }}
-              title="To Date"
-            />
-            <select
-              value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value); setPageNumber(1); }}
-              style={{ borderRadius: '8px', border: '1px solid #E2E8F0', padding: '7px 10px', fontSize: '0.85rem', color: '#4E6080' }}
-            >
-              <option value="">All Status</option>
-              <option value="Success">Success</option>
-              <option value="Failed">Failed</option>
-            </select>
           </div>
 
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', flex: 1 }}>

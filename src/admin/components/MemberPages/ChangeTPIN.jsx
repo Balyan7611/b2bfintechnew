@@ -6,6 +6,7 @@ import {
   FaUserShield, FaKey, FaCheckCircle, FaArrowRight, FaSearch, FaShieldAlt
 } from 'react-icons/fa';
 import { updateTpin } from '../../../store/slices/memberSlice';
+import { API } from '../../../api/endpoints';
 import styles from './MemberPages.module.css';
 
 const ChangeTPIN = () => {
@@ -134,6 +135,24 @@ const ChangeTPIN = () => {
     setIsSuccess(true);
   };
 
+  // Local state for dynamically fetched members
+  const [membersList, setMembersList] = useState([]);
+
+  useEffect(() => {
+    const fetchAllMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        const items = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        setMembersList(items);
+      } catch (err) {
+        console.error("Error loading members for ChangeTPIN:", err);
+      }
+    };
+    fetchAllMembers();
+  }, []);
+
+  const selectedMemberObj = membersList.find(m => String(m.id) === String(tpinState.member));
+
   return (
     <div className={styles.container}>
       <div className={styles.card}>
@@ -146,7 +165,7 @@ const ChangeTPIN = () => {
 
         <div style={{ padding: '24px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-                        <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+                        <div className={styles.formGroup} style={{ gridColumn: '1 / -1', maxWidth: '480px' }}>
               <label style={{ fontSize: '0.8rem', color: '#4E6080', fontWeight: 600, display: 'block', marginBottom: '8px' }}>Select Member</label>
               <div style={{ position: 'relative' }}>
                 <select 
@@ -162,25 +181,29 @@ const ChangeTPIN = () => {
                   autoComplete="off"
                 >
                   <option value="">Select Member</option>
-                  <option value="100000 Pay99 [9999999999]">100000 Pay99 [9999999999]</option>
-                  <option value="RT1236 BALYAN [6377487868]">RT1236 BALYAN [6377487868]</option>
-                  <option value="MDT8597 FARIDABAD [9354821335]">MDT8597 FARIDABAD [9354821335]</option>
-                  <option value="Pay99RT4002 SoniTechno [8005575599]">Pay99RT4002 SoniTechno [8005575599]</option>
+                  {membersList.map((m) => {
+                    const label = `${m.memberId || m.loginId || m.id} - ${m.name || ''} [${m.mobile || ''}]`;
+                    return (
+                      <option key={m.id} value={m.id}>
+                        {label}
+                      </option>
+                    );
+                  })}
                 </select>
                 <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#A0AEC0', fontSize: '0.7rem' }}>▼</div>
               </div>
             </div>
 
-                        {tpinState.member && (
+                        {selectedMemberObj && (
               <div style={{ gridColumn: '1 / -1', display: 'flex', background: '#fff', border: '1px solid #EEF3FC', borderRadius: '8px', overflow: 'hidden', marginTop: '2px', marginBottom: '4px' }}>
                 <div style={{ flex: 1, padding: '6px 12px', borderRight: '1px solid #EEF3FC', textAlign: 'center', fontSize: '0.8rem', color: '#0D1B3E' }}>
-                  <span style={{ fontWeight: 600, color: '#4E6080' }}>Name:</span> {tpinState.member.includes('Pay99') ? 'VIVEK VARSHNEY' : tpinState.member.includes('BALYAN') ? 'BALYAN' : 'FARIDABAD'}
+                  <span style={{ fontWeight: 600, color: '#4E6080' }}>Name:</span> {selectedMemberObj.name || 'N/A'}
                 </div>
                 <div style={{ flex: 1, padding: '6px 12px', borderRight: '1px solid #EEF3FC', textAlign: 'center', fontSize: '0.8rem', color: '#0D1B3E' }}>
-                  <span style={{ fontWeight: 600, color: '#4E6080' }}>Mobile:</span> {tpinState.member.match(/\[(\d+)\]/)?.[1] || '9999999999'}
+                  <span style={{ fontWeight: 600, color: '#4E6080' }}>Mobile:</span> {selectedMemberObj.mobile || 'N/A'}
                 </div>
                 <div style={{ flex: 1, padding: '6px 12px', textAlign: 'center', fontSize: '0.8rem', color: '#0D1B3E' }}>
-                  <span style={{ fontWeight: 600, color: '#4E6080' }}>Shop:</span> {tpinState.member.includes('Pay99') ? 'Pay99' : tpinState.member.split(' ')[0]}
+                  <span style={{ fontWeight: 600, color: '#4E6080' }}>Shop:</span> {selectedMemberObj.shopName || selectedMemberObj.firmName || selectedMemberObj.businessName || 'N/A'}
                 </div>
               </div>
             )}

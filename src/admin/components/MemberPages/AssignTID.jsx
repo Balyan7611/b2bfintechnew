@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiDatabase } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,6 +8,7 @@ import {
   FaFileExcel, FaFilePdf, FaPrint, FaCopy, FaFileCsv
 } from 'react-icons/fa';
 import { updateTidForm, toggleTidDrawer, setEditingTid, deleteTid } from '../../../store/slices/memberSlice';
+import { API } from '../../../api/endpoints';
 import styles from './MemberPages.module.css';
 
 const AssignTID = () => {
@@ -17,14 +18,46 @@ const AssignTID = () => {
   
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [membersList, setMembersList] = useState([]);
 
-    const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const fetchAllMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        const items = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        setMembersList(items);
+      } catch (err) {
+        console.error("Error loading members in AssignTID:", err);
+      }
+    };
+    fetchAllMembers();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     dispatch(updateTidForm({ [name]: value }));
+  };
+
+  const fetchCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        dispatch(updateTidForm({
+          lat: position.coords.latitude.toFixed(6),
+          lng: position.coords.longitude.toFixed(6)
+        }));
+      },
+      (error) => {
+        alert("Error fetching location: " + error.message);
+      }
+    );
   };
 
   const handleEdit = (item) => {
@@ -93,7 +126,7 @@ const AssignTID = () => {
                style={{ fontSize: '0.85rem' }} 
                value={searchTerm}
                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-            />
+             />
           </div>
         </div>
 
@@ -210,42 +243,74 @@ const AssignTID = () => {
                     <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', marginBottom: '8px' }}>SELECT MEMBER</label>
                     <select name="member" className={styles.selectControl} style={{ height: '42px', paddingLeft: '15px' }} value={form.member} onChange={handleInputChange}>
                        <option value="">Select Member</option>
-                       <option value=" सचिन बाल्यान">RT1236 सचिन बाल्यान</option>
-                       <option value="vivek varshney">Pay99DT5001 vivek varshney</option>
+                       {membersList.map((m) => {
+                         const label = `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`;
+                         const val = `${m.name || m.userName || ''} (${m.memberId || m.loginId || m.id || m.msrno})`;
+                         return (
+                           <option key={m.id || m.msrno} value={val}>
+                             {label}
+                           </option>
+                         );
+                       })}
                     </select>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                     <div className={styles.formGroup}>
-                      <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', marginBottom: '8px' }}>AEPS ID</label>
-                      <input type="text" name="aepsid" className={styles.inputControl} style={{ height: '40px' }} placeholder="Enter AEPSID" value={form.aepsid} onChange={handleInputChange} />
+                       <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', marginBottom: '8px' }}>AEPS ID</label>
+                       <input type="text" name="aepsid" className={styles.inputControl} style={{ height: '40px' }} placeholder="Enter AEPSID" value={form.aepsid} onChange={handleInputChange} />
                     </div>
                     <div className={styles.formGroup}>
-                      <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', marginBottom: '8px' }}>MOBILE NUMBER</label>
-                      <input type="number" name="mobile" className={styles.inputControl} style={{ height: '40px', paddingLeft: '15px' }} placeholder="Mobile number" value={form.mobile} onChange={handleInputChange} />
+                       <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', marginBottom: '8px' }}>MOBILE NUMBER</label>
+                       <input type="number" name="mobile" className={styles.inputControl} style={{ height: '40px', paddingLeft: '15px' }} placeholder="Mobile number" value={form.mobile} onChange={handleInputChange} />
                     </div>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                     <div className={styles.formGroup}>
-                      <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', marginBottom: '8px' }}>TERMINAL PIN</label>
-                      <input type="number" name="pin" className={styles.inputControl} style={{ height: '40px', paddingLeft: '15px' }} placeholder="4-digit Pin" value={form.pin} onChange={handleInputChange} />
+                       <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', marginBottom: '8px' }}>TERMINAL PIN</label>
+                       <input type="number" name="pin" className={styles.inputControl} style={{ height: '40px', paddingLeft: '15px' }} placeholder="4-digit Pin" value={form.pin} onChange={handleInputChange} />
                     </div>
                     <div className={styles.formGroup}>
-                      <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', marginBottom: '8px' }}>STATUS</label>
-                      <select name="status" className={styles.selectControl} style={{ height: '40px' }} value={form.status} onChange={handleInputChange}>
-                        <option value="">Select Status</option>
-                        <option value="Accepted">Accepted</option>
-                        <option value="Pending">Pending</option>
-                      </select>
+                       <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', marginBottom: '8px' }}>STATUS</label>
+                       <select name="status" className={styles.selectControl} style={{ height: '40px' }} value={form.status} onChange={handleInputChange}>
+                         <option value="">Select Status</option>
+                         <option value="Accepted">Accepted</option>
+                         <option value="Pending">Pending</option>
+                       </select>
                     </div>
                   </div>
 
                   <div className={styles.formGroup}>
-                    <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', marginBottom: '8px' }}>LOCATION (LAT / LNG)</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', margin: 0 }}>LOCATION (LAT / LNG)</label>
+                      <button 
+                        type="button" 
+                        onClick={fetchCurrentLocation}
+                        style={{
+                          background: '#EFF6FF',
+                          border: '1px solid #1756AA',
+                          color: '#1756AA',
+                          borderRadius: '6px',
+                          padding: '4px 10px',
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          outline: 'none',
+                          transition: 'all 0.15s'
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#DBEAFE'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = '#EFF6FF'; }}
+                      >
+                        <FaMapMarkerAlt /> Get Current GPS
+                      </button>
+                    </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                      <input type="number" name="lat" className={styles.inputControl} style={{ height: '40px', paddingLeft: '15px' }} placeholder="Lat" value={form.lat} onChange={handleInputChange} />
-                      <input type="number" name="lng" className={styles.inputControl} style={{ height: '40px', paddingLeft: '15px' }} placeholder="Lng" value={form.lng} onChange={handleInputChange} />
+                       <input type="number" name="lat" className={styles.inputControl} style={{ height: '40px', paddingLeft: '15px' }} placeholder="Lat" value={form.lat} onChange={handleInputChange} />
+                       <input type="number" name="lng" className={styles.inputControl} style={{ height: '40px', paddingLeft: '15px' }} placeholder="Lng" value={form.lng} onChange={handleInputChange} />
                     </div>
                   </div>
                </div>

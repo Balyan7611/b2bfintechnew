@@ -12,6 +12,16 @@
   color: var(--color-text-primary);
 }
 
+@media (max-width: 768px) {
+  .dashboardContainer {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "header"
+      "main";
+  }
+}
+
 .mainWrapper {
   grid-area: main;
   flex: 1;

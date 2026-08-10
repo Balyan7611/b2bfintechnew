@@ -76,9 +76,11 @@ export const MemberService = {
         const payload = {
             pageNumber,
             pageSize,
-            roleId: roleId ? parseInt(roleId) : 0,
             search: search || '',
         };
+        if (roleId && roleId !== "0" && roleId !== 0) {
+            payload.roleId = parseInt(roleId);
+        }
         if (isActive !== null) payload.isActive = isActive;
         if (isKycApproved !== null) payload.isKycApproved = isKycApproved;
         if (fromDate) payload.fromDate = fromDate;

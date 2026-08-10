@@ -859,3 +859,42 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================
+   RESPONSIVE ADDITIONS
+   ============================================================ */
+@media (max-width: 768px) {
+  .container { padding: 10px 8px; }
+
+  .laneStatsGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .servicesOverviewGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .radarGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .statusGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .servicesOverviewGrid {
+    grid-template-columns: 1fr;
+  }
+  .radarGrid {
+    grid-template-columns: 1fr;
+  }
+  .statusGrid {
+    grid-template-columns: 1fr;
+  }
+}

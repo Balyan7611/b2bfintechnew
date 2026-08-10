@@ -1613,3 +1613,36 @@ input:checked + .slider:before { transform: translateY(-50%) translateX(20px); }
   from { transform: translateY(30px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+
+/* ============================================================
+   RESPONSIVE ADDITIONS — Member Pages
+   ============================================================ */
+@media (max-width: 768px) {
+  .statsRowGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .hideOnMobile { display: none !important; }
+  .showOnMobile { display: inline !important; }
+
+  /* filter/search toolbar */
+  [class*="filterBar"],
+  [class*="searchRow"],
+  [class*="toolbarRow"] {
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+  }
+  [class*="filterBar"] input,
+  [class*="filterBar"] select,
+  [class*="searchRow"] input,
+  [class*="searchRow"] select {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsRowGrid {
+    grid-template-columns: 1fr;
+  }
+}

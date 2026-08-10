@@ -14,6 +14,29 @@ import { FiDatabase } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import styles from './FundRequest.module.css';
 
+function fmtDate(raw) {
+  if (!raw) return '-';
+  const s = String(raw).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  return s.slice(0, 10) || '-';
+}
+
+function fmtDateTime(raw) {
+  if (!raw) return '-';
+  const d = new Date(String(raw).trim());
+  if (!isNaN(d.getTime())) {
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const yyyy = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const min = String(d.getMinutes()).padStart(2,'0');
+    return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+  }
+  return String(raw).slice(0, 16) || '-';
+}
+
 const CREDIT_WALLET_TYPE = 'Main';
 const ADMIN_MSRNO = 1;
 
@@ -48,9 +71,6 @@ const FundRequest = () => {
     const resolvedName    = r.memberName || r.name || mem.name    || '';
     const resolvedLoginId = r.loginId   || mem.loginId || msrnoStr;
 
-        const rawPayDate = r.paymentDate || r.createdDate || '';
-    const rawAddDate = r.createdDate || r.paymentDate || '';
-
     return {
       ...r,
       memberName: resolvedName,
@@ -58,9 +78,9 @@ const FundRequest = () => {
             memberId: String(resolvedLoginId || resolvedName || msrnoStr),
       msrno: r.msrno || r.memberId,
       companyBankName: bankName,
-      paymentDate: rawPayDate ? rawPayDate.slice(0, 10) : '-',
-      addDate: rawAddDate ? rawAddDate.replace('T', ' ').slice(0, 16) : '-',
-      approveRejectDate: r.approveDate ? r.approveDate.replace('T', ' ').slice(0, 16) : '-',
+      paymentDate: fmtDate(r.paymentDate),
+      addDate: fmtDateTime(r.createdDate),
+      approveRejectDate: r.approveDate ? fmtDateTime(r.approveDate) : '-',
       status: normalizeStatus(r.status) === 'approved' ? 'Approved'
         : normalizeStatus(r.status) === 'rejected' ? 'Rejected' : 'Pending',
       reason: normalizeStatus(r.status) === 'rejected' ? (r.reason || r.remark || '-') : '-',

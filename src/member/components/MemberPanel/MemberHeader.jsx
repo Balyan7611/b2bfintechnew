@@ -156,10 +156,78 @@ const MemberHeader = () => {
       }));
     });
 
-        const handleStorageChange = (e) => {
+    const session = getSession();
+    const myMsrno = String(session?.msrno || session?.userId || '').trim();
+    const myLoginId = String(session?.loginId || session?.username || '').trim().toLowerCase();
+    console.log('[MemberHeader] Session loaded → msrno:', myMsrno, '| loginId:', myLoginId);
+
+    const isForMe = (n) => {
+      const hasIdentity = (myMsrno && myMsrno !== '0' && myMsrno !== 'undefined') || myLoginId;
+      console.log('[MemberHeader] isForMe check → myMsrno:', myMsrno, '| myLoginId:', myLoginId, '| targetAll:', n.targetAll, '| targetMsrnos:', n.targetMsrnos, '| targetLoginIds:', n.targetLoginIds);
+      if (!n.isAdminBroadcast) return true;
+      if (n.targetAll || !hasIdentity) return true;
+      if (myMsrno && myMsrno !== '0' && (n.targetMsrnos || []).includes(myMsrno)) return true;
+      if (myLoginId && (n.targetLoginIds || []).map(l => String(l).toLowerCase()).includes(myLoginId)) return true;
+      console.warn('[MemberHeader] isForMe → BLOCKED. My IDs not in target lists.');
+      return false;
+    };
+
+    const pushNotif = (n) => {
+      console.log('[MemberHeader] pushNotif called →', n.title, n.text);
+      dispatch(addNotification({
+        title: n.title || 'Admin',
+        text: n.text || 'New message',
+        time: n.time || new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        image: n.image || null,
+        isPdf: n.isPdf || false,
+        fileName: n.fileName || null,
+        icon: n.icon || null,
+      }));
+    };
+
+    // Per-user key check — most reliable targeting
+    const checkPerUserKeys = () => {
+      const keysToCheck = ['notif_for_all'];
+      if (myLoginId) keysToCheck.push(`notif_for_${myLoginId}`);
+      if (myMsrno && myMsrno !== '0' && myMsrno !== 'undefined') keysToCheck.push(`notif_for_msrno_${myMsrno}`);
+      console.log('[MemberHeader] checkPerUserKeys → checking keys:', keysToCheck);
+      keysToCheck.forEach(key => {
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          console.log('[MemberHeader] Found notif at key:', key);
+          try { pushNotif(JSON.parse(stored)); } catch {}
+          localStorage.removeItem(key);
+        }
+      });
+    };
+
+    // Check on mount for any pending notifications
+    checkPerUserKeys();
+
+    // BroadcastChannel — instant real-time notification from admin
+    let bc;
+    try {
+      bc = new BroadcastChannel('admin_notifications');
+      bc.onmessage = (e) => {
+        console.log('[MemberHeader] BroadcastChannel received:', e.data);
+        if (e.data && isForMe(e.data)) pushNotif(e.data);
+      };
+      console.log('[MemberHeader] BroadcastChannel listening on admin_notifications');
+    } catch (err) {
+      console.warn('[MemberHeader] BroadcastChannel not supported:', err);
+    }
+
+    // Storage event — fires in other tabs when localStorage changes
+    const handleStorageChange = (e) => {
+      if (!e.key) return;
+      console.log('[MemberHeader] storage event → key:', e.key);
       if (e.key === 'local_notifications') {
-        const newNotifs = JSON.parse(e.newValue || '[]');
-        dispatch(syncNotifications(newNotifs));
+        try {
+          const notifs = JSON.parse(e.newValue || '[]');
+          if (notifs[0] && isForMe(notifs[0])) pushNotif(notifs[0]);
+        } catch {}
+      } else if (e.key.startsWith('notif_for_')) {
+        checkPerUserKeys();
       }
     };
     window.addEventListener('storage', handleStorageChange);
@@ -190,7 +258,9 @@ const MemberHeader = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('keydown', handleEsc);
       window.removeEventListener('storage', handleStorageChange);
-      if (unsubscribe) unsubscribe();     };
+      if (unsubscribe) unsubscribe();
+      if (bc) { try { bc.close(); } catch {} }
+    };
   }, [dispatch]);
 
   const getNotifIcon = (type) => {

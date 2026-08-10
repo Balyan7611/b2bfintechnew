@@ -182,15 +182,15 @@ const SMSCategory = () => {
           </div>
         </div>
 
-        <div className={styles.tableWrapper}>
+                 <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ width: '100%', minWidth: '700px', tableLayout: 'auto' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '60px' }}>S.No</th>
-                <th style={{ width: '100px', textAlign: 'center' }}>ACTION</th>
-                <th style={{ width: '280px' }}>CATEGORY NAME</th>
+                <th style={{ width: '80px' }}>S.No</th>
+                <th style={{ width: '120px', textAlign: 'center' }}>ACTION</th>
+                <th>CATEGORY NAME</th>
                 <th style={{ width: '150px', textAlign: 'left' }}>STATUS</th>
-                <th style={{ textAlign: 'left' }}>DATE CREATED</th>
+                <th style={{ width: '200px', textAlign: 'left' }}>DATE CREATED</th>
               </tr>
             </thead>
             <tbody>
@@ -267,10 +267,10 @@ const SMSCategory = () => {
 
             {showModal && (
         <div className={styles.modalOverlay} style={{ zIndex: 3500 }}>
-          <div className={styles.modalContainer} style={{ width: '420px', borderRadius: '16px' }}>
-            <div className={styles.modalHeader} style={{ padding: '20px 25px 15px', borderBottom: '1px solid #F1F5F9' }}>
+          <div className={styles.modalContainer} style={{ width: '540px', borderRadius: '24px', boxShadow: '0 20px 50px rgba(0,0,0,0.15)' }}>
+            <div className={styles.modalHeader} style={{ padding: '24px 30px 18px', borderBottom: '1px solid #F1F5F9' }}>
                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '38px', height: '38px', background: 'rgba(23, 86, 170, 0.08)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA' }}>
+                  <div style={{ width: '42px', height: '42px', background: 'rgba(23, 86, 170, 0.08)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA' }}>
                      <FaSms />
                   </div>
                   <div>

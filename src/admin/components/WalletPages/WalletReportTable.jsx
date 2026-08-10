@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { FiSearch, FiCalendar, FiUser, FiFilter, FiActivity, FiDatabase, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint } from 'react-icons/fa';
+import { API } from '../../../api/endpoints';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const servicesList = [
@@ -70,7 +71,32 @@ const AEPSWalletReport = () => {
     'Amount', 'Cost', 'Comm/Charge', 'Operator ID', 'API Ref', 'Remaining Bal', 'Status'
   ];
 
+  const getCurrentDateString = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [isLoading, setIsLoading] = useState(false);
+  const [membersList, setMembersList] = useState([]);
+  const [selectedMember, setSelectedMember] = useState('');
+  const [fromDate, setFromDate] = useState(getCurrentDateString());
+  const [toDate, setToDate] = useState(getCurrentDateString());
+
+  useEffect(() => {
+    const fetchAllMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        const items = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        setMembersList(items);
+      } catch (err) {
+        console.error("Error loading members in WalletReportTable:", err);
+      }
+    };
+    fetchAllMembers();
+  }, []);
   
   const handleSearch = (e) => {
     e.preventDefault();
@@ -89,17 +115,32 @@ const AEPSWalletReport = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', alignItems: 'end' }}>
             <div className={styles.formGroup} style={{ margin: 0 }}>
               <label className={styles.label} style={{ fontSize: '0.75rem', marginBottom: '4px' }}><FiCalendar /> From Date</label>
-              <input type="date" className={styles.inputControl} style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }} />
+              <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className={styles.inputControl} style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }} />
             </div>
             
             <div className={styles.formGroup} style={{ margin: 0 }}>
               <label className={styles.label} style={{ fontSize: '0.75rem', marginBottom: '4px' }}><FiCalendar /> To Date</label>
-              <input type="date" className={styles.inputControl} style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }} />
+              <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className={styles.inputControl} style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }} />
             </div>
 
             <div className={styles.formGroup} style={{ margin: 0 }}>
               <label className={styles.label} style={{ fontSize: '0.75rem', marginBottom: '4px' }}><FiUser /> Member ID</label>
-              <input type="text" placeholder="Enter Member ID" className={styles.inputControl} style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }} />
+              <select 
+                value={selectedMember} 
+                onChange={(e) => setSelectedMember(e.target.value)} 
+                className={styles.inputControl} 
+                style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }}
+              >
+                <option value="">Select Member</option>
+                {membersList.map((m) => {
+                  const label = `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`;
+                  return (
+                    <option key={m.id || m.msrno} value={m.memberId || m.loginId || m.id || m.msrno}>
+                      {label}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
 
             <div className={styles.formGroup} style={{ margin: 0 }}>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiDatabase } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,14 +7,29 @@ import {
   FaChevronLeft, FaChevronRight, FaRupeeSign, FaCommentAlt, FaShieldAlt, FaPlus
 } from 'react-icons/fa';
 import { updateCreditLimitForm, addCreditLimit } from '../../../store/slices/memberSlice';
+import { API } from '../../../api/endpoints';
 import styles from './MemberPages.module.css';
 
 const CreditLimit = () => {
   const dispatch = useDispatch();
   const { creditLimitState } = useSelector((s) => s.member);
   const { form, list } = creditLimitState;
-  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
-  const [errorMsg, setErrorMsg] = React.useState('');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [membersList, setMembersList] = useState([]);
+
+  useEffect(() => {
+    const fetchAllMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        const items = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        setMembersList(items);
+      } catch (err) {
+        console.error("Error loading members in CreditLimit:", err);
+      }
+    };
+    fetchAllMembers();
+  }, []);
 
   const handleInputChange = (e) => {
     setErrorMsg('');
@@ -33,8 +48,12 @@ const CreditLimit = () => {
       setErrorMsg("Please select member, amount, and mode.");
       return;
     }
+    
+    const selected = membersList.find(m => String(m.id || m.msrno) === String(form.memberId));
+    const memberName = selected ? `${selected.name || ''} (${selected.memberId || selected.loginId || selected.id || selected.msrno})` : form.memberId;
+    
     dispatch(addCreditLimit({
-      member: form.memberId === 'MDT8597' ? 'VIVEK VARSHNEY (MDT8597)' : form.memberId === 'RT4412' ? 'Aabid Hussain (RT4412)' : form.memberId,
+      member: memberName,
       amount: form.amount,
       narration: form.narration,
       factor: form.mode === 'Add' ? 'Cr.' : 'Dr.'
@@ -65,8 +84,14 @@ const CreditLimit = () => {
               <label className={styles.label}>Member ID</label>
               <select name="memberId" className={styles.inputControl} value={form.memberId} onChange={handleInputChange}>
                 <option value="">Select Member</option>
-                <option value="MDT8597">VIVEK VARSHNEY (MDT8597)</option>
-                <option value="RT4412">Aabid Hussain (RT4412)</option>
+                {membersList.map((m) => {
+                  const label = `${m.name || m.userName || ''} (${m.memberId || m.loginId || m.id || m.msrno})`;
+                  return (
+                    <option key={m.id || m.msrno} value={m.id || m.msrno}>
+                      {label}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 

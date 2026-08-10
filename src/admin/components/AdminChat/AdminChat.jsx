@@ -16,7 +16,7 @@ const QUICK_TEMPLATES = [
   { label: 'Fund Request Approval', value: 'Your fund request has been successfully verified and credited to your wallet balance. Please check.' }
 ];
 
-const INITIAL_BROADCAST_HISTORY = [];
+const BROADCAST_STORAGE_KEY = 'admin_broadcast_logs';
 
 const AdminChat = () => {
   const dispatch = useDispatch();
@@ -24,13 +24,19 @@ const AdminChat = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
-  
+
   const [selectedIds, setSelectedIds] = useState([]);
-  
+  const [activeChatMemberId, setActiveChatMemberId] = useState(null);
+
   const [newMessage, setNewMessage] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
-  const [broadcastLogs, setBroadcastLogs] = useState(INITIAL_BROADCAST_HISTORY);
+  // allLogs: { [memberId]: [{...msg}] } — per-user chat history
+  const [allLogs, setAllLogs] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(BROADCAST_STORAGE_KEY) || '{}'); } catch { return {}; }
+  });
+  const [liveMembers, setLiveMembers] = useState([]);
+  const [membersLoading, setMembersLoading] = useState(false);
   
   const [showMenu, setShowMenu] = useState(false);
   const fileInputRef = useRef(null);
@@ -206,48 +212,53 @@ const AdminChat = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const { manageMemberState } = useSelector((s) => s.member);
-  const { notifList } = useSelector((state) => state.memberPanel);
-  const memberList = useMemo(() => manageMemberState?.list || [], [manageMemberState?.list]);
-
-    useEffect(() => {
-    if (notifList && notifList.length === 0) {
-      setBroadcastLogs([]);
-    }
-  }, [notifList]);
-
-  const allMembers = useMemo(() => {
-    const defaultMock = [
-      { id: 'member-1', name: 'vishnu prajapat', memberId: 'RT705', role: 'Retailer', mobile: '6377749427', status: 'Approved', initials: 'VP' },
-      { id: 'member-2', name: 'Rahul Sharma', memberId: 'RT992', role: 'Retailer', mobile: '9876543210', status: 'Approved', initials: 'RS' },
-      { id: 'member-81', name: 'Sachin Balyan', memberId: 'RT1236', role: 'Retailer', mobile: '6377487868', status: 'Pending', initials: 'SB' },
-      { id: 'member-3', name: 'Vivek Varshney', memberId: 'MDT8597', role: 'Master Distributor', mobile: '9355196019', status: 'Approved', initials: 'VV' },
-      { id: 'member-4', name: 'Satish Kumar', memberId: 'DT4005', role: 'Distributor', mobile: '8700294647', status: 'Pending', initials: 'SK' },
-      { id: 'member-5', name: 'Aabid Hussain', memberId: 'API4412', role: 'API User', mobile: '9716800202', status: 'Rejected', initials: 'AH' }
-    ];
-
-    const combined = [...defaultMock];
-    memberList.forEach(m => {
-      const exists = combined.some(c => c.mobile === m.mobile || c.name === m.name);
-      if (!exists) {
-        let roleName = 'Retailer';
-        if (m.memberId?.includes('MDT')) roleName = 'Master Distributor';
-        else if (m.memberId?.includes('DT')) roleName = 'Distributor';
-        else if (m.memberId?.includes('API')) roleName = 'API User';
-
-        combined.push({
-          id: `redux-${m.id}`,
-          name: m.name || 'Merchant Partner',
-          memberId: m.memberId?.split(' ')[0] || 'MEM' + m.id,
-          role: roleName,
-          mobile: m.mobile || '',
-          status: Math.random() > 0.3 ? 'Approved' : 'Pending',
-          initials: (m.name || 'MP').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
-        });
+  // Fetch real members from API
+  useEffect(() => {
+    const fetchMembers = async () => {
+      setMembersLoading(true);
+      try {
+        const res = await API.member.getAll({ pageSize: 500 });
+        const items = Array.isArray(res?.data?.items) ? res.data.items
+          : Array.isArray(res?.data) ? res.data
+          : Array.isArray(res) ? res : [];
+        const mapped = items
+          .filter(m => {
+            // Exclude admin users
+            const role = String(m.roleName || m.role || m.RoleName || '').toLowerCase();
+            const loginId = String(m.loginId || m.loginID || m.LoginID || '').toUpperCase();
+            return !role.includes('admin') && !loginId.startsWith('AD');
+          })
+          .map((m, idx) => {
+            const loginId = m.loginId || m.loginID || m.LoginID || m.memberId || String(m.id || m.msrno || idx);
+            const roleName = m.roleName || m.role || m.RoleName || 'Retailer';
+            const statusVal = m.isActive === true || String(m.status).toLowerCase() === 'active' || m.isKycApproved === true ? 'Approved' : 'Pending';
+            // Guaranteed unique id — never "undefined"
+            const uid = (m.id && m.id !== 0) ? String(m.id)
+              : (m.msrno && m.msrno !== 0) ? `msrno_${m.msrno}`
+              : `idx_${idx}_${loginId}`;
+            return {
+              id: uid,
+              msrno: m.msrno || m.id,
+              loginId,
+              name: m.name || m.fullName || m.ownerName || loginId,
+              memberId: loginId,
+              role: roleName,
+              mobile: m.mobile || m.phone || m.mobileNo || '',
+              status: statusVal,
+              initials: (m.name || m.fullName || loginId || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+            };
+          });
+        setLiveMembers(mapped);
+      } catch (e) {
+        console.error('[AdminChat] member fetch failed', e);
+      } finally {
+        setMembersLoading(false);
       }
-    });
-    return combined;
-  }, [memberList]);
+    };
+    fetchMembers();
+  }, []);
+
+  const allMembers = useMemo(() => liveMembers, [liveMembers]);
 
     const uniqueRoles = useMemo(() => ['All', ...new Set(allMembers.map(m => m.role))], [allMembers]);
   const uniqueStatuses = useMemo(() => ['All', ...new Set(allMembers.map(m => m.status))], [allMembers]);
@@ -270,7 +281,7 @@ const AdminChat = () => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [broadcastLogs]);
+  }, [allLogs, activeChatMemberId]);
 
   const handleSelectAll = () => {
     if (selectedIds.length === filteredMembers.length && filteredMembers.length > 0) {
@@ -281,54 +292,84 @@ const AdminChat = () => {
   };
 
   const handleToggleMember = (id) => {
-    setSelectedIds(prev => 
+    setSelectedIds(prev =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
+    // Open that member's chat window
+    setActiveChatMemberId(id);
   };
 
   const handleSendMessage = () => {
     if ((!newMessage.trim() && !selectedImage) || selectedIds.length === 0) return;
 
-    let targetDescription = '';
-    if (selectedIds.length === filteredMembers.length) {
-       if (roleFilter !== 'All' && statusFilter !== 'All') {
-          targetDescription = `All ${statusFilter} ${roleFilter}s`;
-       } else if (roleFilter !== 'All') {
-          targetDescription = `All ${roleFilter}s`;
-       } else if (statusFilter !== 'All') {
-          targetDescription = `All ${statusFilter} Users`;
-       } else {
-          targetDescription = 'All Users';
-       }
-    } else if (selectedIds.length <= 3) {
-       targetDescription = allMembers.filter(m => selectedIds.includes(m.id)).map(m => m.name).join(', ');
-    } else {
-       targetDescription = `${selectedIds.length} users`;
-    }
-
     const timeString = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    const userMsg = {
-      id: Date.now(),
+    const now = Date.now();
+    const targetMembers = allMembers.filter(m => selectedIds.includes(m.id));
+    const isAllUsers = selectedIds.length === allMembers.length;
+
+    const msgBase = {
       text: newMessage,
       time: timeString,
-      targetDescription,
-      recipients: selectedIds.length,
-      image: selectedImage ? selectedImage.previewUrl : null,
-      isPdf: selectedImage?.isPdf,
-      fileName: selectedImage?.name
-    };
-
-        setBroadcastLogs(prev => [...prev, userMsg]);
-    
-        dispatch(addNotification({
-      title: SITE_CONFIG.brandName,
-      text: newMessage || 'File Attachment',
-      time: timeString,
+      date: new Date().toLocaleDateString('en-IN'),
       image: selectedImage ? selectedImage.previewUrl : null,
       isPdf: selectedImage?.isPdf,
       fileName: selectedImage?.name,
-      icon: SITE_CONFIG.logo || '/images/header_logo.png'
-    }));
+    };
+
+    // Save per-user chat history
+    const newAllLogs = { ...allLogs };
+    targetMembers.forEach(m => {
+      const key = m.id;
+      const prev = newAllLogs[key] || [];
+      newAllLogs[key] = [...prev, { id: now + '_' + key, ...msgBase }];
+    });
+    setAllLogs(newAllLogs);
+    try { localStorage.setItem(BROADCAST_STORAGE_KEY, JSON.stringify(newAllLogs)); } catch {}
+
+    // Send notification to each target member via localStorage
+    // Member/API panel listens to 'local_notifications' storage event
+    const targetMsrnos = targetMembers.map(m => String(m.msrno || m.id));
+    const targetLoginIds = targetMembers.map(m => String(m.loginId || m.memberId || ''));
+
+    const notifPayload = {
+      id: now,
+      title: `📢 ${SITE_CONFIG.brandName || 'Admin'}`,
+      text: newMessage || 'File Attachment',
+      time: timeString,
+      date: new Date().toLocaleDateString('en-IN'),
+      image: selectedImage ? selectedImage.previewUrl : null,
+      isPdf: selectedImage?.isPdf,
+      fileName: selectedImage?.name,
+      icon: SITE_CONFIG.logo || '/images/header_logo.png',
+      isAdminBroadcast: true,
+      targetAll: isAllUsers,
+      targetMsrnos,
+      targetLoginIds,
+    };
+
+    try {
+      // Save to localStorage (persistence)
+      const existing = JSON.parse(localStorage.getItem('local_notifications') || '[]');
+      const updated = [notifPayload, ...existing].slice(0, 100);
+      localStorage.setItem('local_notifications', JSON.stringify(updated));
+
+      // Per-user keys — most reliable targeting (member panel reads their own key)
+      if (isAllUsers) {
+        localStorage.setItem('notif_for_all', JSON.stringify(notifPayload));
+      } else {
+        targetMembers.forEach(m => {
+          const lid = String(m.loginId || m.memberId || '').toLowerCase().trim();
+          const msrno = String(m.msrno || '').trim();
+          if (lid) localStorage.setItem(`notif_for_${lid}`, JSON.stringify(notifPayload));
+          if (msrno && msrno !== '0') localStorage.setItem(`notif_for_msrno_${msrno}`, JSON.stringify(notifPayload));
+        });
+      }
+
+      // BroadcastChannel — instant cross-tab delivery (same browser, same origin)
+      const bc = new BroadcastChannel('admin_notifications');
+      bc.postMessage(notifPayload);
+      bc.close();
+    } catch {}
 
     setNewMessage('');
     setSelectedTemplate('');
@@ -345,9 +386,22 @@ const AdminChat = () => {
   };
 
   const handleClearHistory = () => {
-    setBroadcastLogs([]);
+    if (activeChatMemberId) {
+      // Clear only active member's chat
+      const updated = { ...allLogs };
+      delete updated[activeChatMemberId];
+      setAllLogs(updated);
+      try { localStorage.setItem(BROADCAST_STORAGE_KEY, JSON.stringify(updated)); } catch {}
+    } else {
+      setAllLogs({});
+      try { localStorage.removeItem(BROADCAST_STORAGE_KEY); } catch {}
+    }
     setShowMenu(false);
   };
+
+  // Current chat messages = active member's history
+  const activeMember = allMembers.find(m => m.id === activeChatMemberId);
+  const currentChatLogs = activeChatMemberId ? (allLogs[activeChatMemberId] || []) : [];
 
   const handleAttachmentClick = () => {
     if (fileInputRef.current) {
@@ -503,31 +557,39 @@ const AdminChat = () => {
               </div>
 
               <div className={styles.targetsList}>
-                {filteredMembers.length === 0 ? (
+                {membersLoading ? (
+                  <div className={styles.noResults}>
+                    <FiRefreshCw className={styles.noResultsIcon} style={{ animation: 'spin 1s linear infinite' }} />
+                    <p>Loading members...</p>
+                  </div>
+                ) : filteredMembers.length === 0 ? (
                   <div className={styles.noResults}>
                     <FaUsers className={styles.noResultsIcon} />
-                    <p>No active merchants found</p>
+                    <p>No members found</p>
                   </div>
                 ) : (
                   filteredMembers.map((item) => {
                     const isSelected = selectedIds.includes(item.id);
+                    const isActive = activeChatMemberId === item.id;
+                    const msgCount = (allLogs[item.id] || []).length;
                     return (
-                      <div 
-                        key={item.id} 
-                        className={`${styles.targetCard} ${isSelected ? styles.activeCard : ''}`}
+                      <div
+                        key={item.id}
+                        className={`${styles.targetCard} ${isActive ? styles.activeCard : ''}`}
                         onClick={() => handleToggleMember(item.id)}
                       >
-                        <div className={styles.checkboxWrapper}>
+                        <div className={styles.checkboxWrapper} onClick={e => { e.stopPropagation(); setSelectedIds(prev => prev.includes(item.id) ? prev.filter(x => x !== item.id) : [...prev, item.id]); }}>
                           {isSelected ? <FaCheckSquare className={styles.checkedIcon} /> : <FaRegSquare className={styles.uncheckedIcon} />}
                         </div>
-                        <div className={styles.avatar}>
-                          {item.initials}
-                        </div>
+                        <div className={styles.avatar}>{item.initials}</div>
                         <div className={styles.targetInfo}>
                           <span className={styles.targetName}>{item.name}</span>
-                          <span className={styles.targetIdRole}>
-                            {item.memberId} • {item.role}
-                          </span>
+                          <span className={styles.targetIdRole}>{item.memberId} • {item.role}</span>
+                          {msgCount > 0 && (
+                            <span style={{ fontSize: '0.65rem', color: '#1756AA', fontWeight: 700 }}>
+                              {msgCount} message{msgCount > 1 ? 's' : ''}
+                            </span>
+                          )}
                         </div>
                       </div>
                     );
@@ -541,11 +603,23 @@ const AdminChat = () => {
               <header className={styles.chatHeader}>
                 <div className={styles.activeHeaderInfo}>
                   <div>
-                    <p className={styles.activeHeaderStatus} style={{ marginTop: 0, fontSize: '0.95rem', fontWeight: '500' }}>
-                      {selectedIds.length === 0 
-                        ? 'Select users from the left panel to notify' 
-                        : `Ready to notify ${selectedIds.length} selected user(s)`}
-                    </p>
+                    {activeMember ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>
+                          {activeMember.initials}
+                        </div>
+                        <div>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem' }}>{activeMember.name}</p>
+                          <p style={{ margin: 0, fontSize: '0.72rem', opacity: 0.75 }}>{activeMember.memberId} • {activeMember.role}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className={styles.activeHeaderStatus} style={{ marginTop: 0, fontSize: '0.95rem', fontWeight: '500' }}>
+                        {selectedIds.length === 0
+                          ? 'Select a user from the left panel'
+                          : `${selectedIds.length} user(s) selected — click to open chat`}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -577,13 +651,19 @@ const AdminChat = () => {
               </header>
 
                             <div className={styles.messageThread}>
-                {broadcastLogs.map((msg) => (
+                {!activeChatMemberId ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.5 }}>
+                    <FaUsers size={36} />
+                    <p style={{ marginTop: 12, fontSize: '0.85rem' }}>Click a member on the left to open chat</p>
+                  </div>
+                ) : currentChatLogs.length === 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.5 }}>
+                    <FaCommentDots size={32} />
+                    <p style={{ marginTop: 12, fontSize: '0.85rem' }}>No messages yet. Send the first message!</p>
+                  </div>
+                ) : currentChatLogs.map((msg) => (
                   <div key={msg.id} className={styles.messageBubbleWrap}>
                     <div className={styles.messageCol}>
-                                            <div className={styles.msgRecipientTag}>
-                        <FaCommentDots style={{ fontSize: '0.65rem' }}/> Sent to: {msg.targetDescription}
-                      </div>
-                      
                                             <div className={styles.msgAdmin}>
                         {msg.image && (
                           msg.isPdf ? (
@@ -672,7 +752,7 @@ const AdminChat = () => {
                   <button 
                     className={styles.sendBtn} 
                     onClick={handleSendMessage}
-                    disabled={(!newMessage.trim() && !selectedImage) || selectedIds.length === 0}
+                    disabled={(!newMessage.trim() && !selectedImage) || selectedIds.length === 0 || !activeChatMemberId}
                     title="Send Broadcast"
                   >
                     <FaPaperPlane className={styles.sendIcon}/>

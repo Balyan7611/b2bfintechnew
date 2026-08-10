@@ -522,3 +522,14 @@
     width: 100%;
   }
 }
+
+@media (max-width: 768px) {
+  .mainLayout {
+    grid-template-columns: 1fr !important;
+    flex-direction: column;
+  }
+}
+@media (max-width: 480px) {
+  .container { padding: 10px 8px; }
+  .planCard { padding: 10px; }
+}

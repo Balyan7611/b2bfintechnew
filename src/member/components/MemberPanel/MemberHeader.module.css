@@ -974,3 +974,11 @@
   0% { width: 100%; height: 100%; opacity: 1; }
   100% { width: 300%; height: 300%; opacity: 0; }
 }
+
+@media (max-width: 480px) {
+  .header { padding: 0 8px; }
+  .right { gap: 6px; }
+  .iconBtn { width: 32px; height: 32px; font-size: 1rem; }
+  .notifBadge, .mailBadge { width: 16px; height: 16px; font-size: 0.55rem; top: -3px; right: -3px; }
+  .walletPill { padding: 4px 8px; font-size: 0.7rem; }
+}
