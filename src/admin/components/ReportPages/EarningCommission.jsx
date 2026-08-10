@@ -375,7 +375,7 @@ const EarningCommission = () => {
                                             <td style={{ fontWeight: 700, color: '#94A3B8', fontSize: '0.78rem' }}>{rowIndex}</td>
                                             <td style={{ textAlign: 'center' }}>
                                                 <button
-                                                    onClick={() => setActiveReceipt(t)}
+                                                    onClick={() => setActiveReceipt({ ...t, _type: 'recharge' })}
                                                     style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)', color: '#1D4ED8', border: '1px solid #BFDBFE', padding: '6px 12px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer', transition: 'all 0.2s' }}
                                                     onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 8px rgba(29, 78, 216, 0.15)'; }}
                                                     onMouseOut={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}

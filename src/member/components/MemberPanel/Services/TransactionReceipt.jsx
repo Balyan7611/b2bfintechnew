@@ -2,6 +2,7 @@ import React, { useState, useRef, useLayoutEffect } from 'react';
 import { SITE_CONFIG } from '../../../../config/siteConfig';
 import { getSession } from '../../../../utils/authUtils';
 
+
 const SIZES = ['A4', 'A5', '80mm', '58mm'];
 
 const SIZE_PX = { A4: 794, A5: 559, '80mm': 304, '58mm': 220 };
@@ -353,6 +354,7 @@ function ReceiptBody({ data, cfg }) {
   );
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
 export default function TransactionReceipt({ data, onClose }) {
   const [size, setSize] = useState('A4');
   const previewWrapRef = useRef(null);

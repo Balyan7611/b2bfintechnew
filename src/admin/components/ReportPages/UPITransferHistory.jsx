@@ -413,7 +413,7 @@ const UPITransferHistory = () => {
                                         <td>
                                             <ActionMenu
                                                 txn={txn}
-                                                onViewReceipt={setActiveReceipt}
+                                                onViewReceipt={txn => setActiveReceipt({ ...txn, _type: 'upi' })}
                                                 onAction={handleMenuAction}
                                                 alignUp={idx >= transactions.length - 2}
                                             />

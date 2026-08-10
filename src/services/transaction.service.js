@@ -23,7 +23,7 @@ export const TransactionService = {
     getAll: async ({
     pageNumber = 1, pageSize = 10,
     fromDate = '', toDate = '',
-    serviceId = '', sectionType = '',
+    serviceId = '', serviceIds = [], sectionType = '',
     operatorId = '', apiId = '',
     memberId = '', status = '',
     keyword = ''
@@ -31,7 +31,12 @@ export const TransactionService = {
     const p = new URLSearchParams({ PageNumber: pageNumber, PageSize: pageSize });
     if (fromDate)    p.append('FromDate',    fromDate);
     if (toDate)      p.append('ToDate',      toDate);
-    if (serviceId)   p.append('ServiceId',   serviceId);
+    // support single serviceId or array of serviceIds
+    if (serviceId) {
+      p.append('ServiceId', serviceId);
+    } else if (Array.isArray(serviceIds) && serviceIds.length > 0) {
+      serviceIds.forEach(id => p.append('ServiceId', id));
+    }
     if (sectionType) p.append('SectionType', sectionType);
     if (operatorId)  p.append('OperatorId',  operatorId);
     if (apiId)       p.append('ApiId',       apiId);

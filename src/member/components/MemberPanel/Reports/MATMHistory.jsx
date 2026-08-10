@@ -26,6 +26,7 @@ const MATMHistory = () => {
   const [masterOperators, setMasterOperators] = useState([]);
   const [masterApis, setMasterApis] = useState([]);
   const [showStats, setShowStats] = useState(false);
+  const [matmServiceIds, setMatmServiceIds] = useState([]);
   const [breakdownTxn, setBreakdownTxn] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,6 +36,8 @@ const MATMHistory = () => {
       try {
         const svcRes = await API.service.getAll();
         setMasterServices(Array.isArray(svcRes?.data) ? svcRes.data : Array.isArray(svcRes) ? svcRes : []);
+        const allSvcs = Array.isArray(svcRes?.data) ? svcRes.data : Array.isArray(svcRes) ? svcRes : [];
+        setMatmServiceIds(allSvcs.filter(s => String(s.sectionType) === '9').map(s => String(s.id)));
       } catch (e) {}
       try {
         const opRes = await API.operator.getAll({ pageSize: 1000 });
@@ -57,6 +60,7 @@ const MATMHistory = () => {
         fromDate: filters.fromDate || '',
         toDate: filters.toDate || '',
         serviceId: '',
+        serviceIds: matmServiceIds,
         sectionType: '9',
         operatorId: filters.operatorId || '',
         memberId: '',
@@ -154,7 +158,7 @@ const MATMHistory = () => {
                   <td>{item.remark || item.message || 'N/A'}</td>
                   <td>
                     <button
-                      onClick={() => { setSelectedTxn(item); setIsModalOpen(true); }}
+                      onClick={() => { setSelectedTxn({ ...item, _type: 'matm' }); setIsModalOpen(true); }}
                       style={{ background: 'linear-gradient(135deg,#1756AA,#1E3A8A)', color:'#fff', border:'none', borderRadius:'6px', padding:'3px 10px', fontSize:'0.72rem', fontWeight:700, cursor:'pointer' }}
                     >VIEW</button>
                   </td>

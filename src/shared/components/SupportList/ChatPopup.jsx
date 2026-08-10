@@ -173,7 +173,7 @@ const ChatPopup = ({ isMember }) => {
             <span className={styles.datePill}>History</span>
           </div>
 
-          {messages.map((msg, idx) => {
+{messages.map((msg, idx) => {
             const isMe = (msg.senderType || '').toLowerCase() === (isMember ? 'member' : 'admin');
             return (
               <div

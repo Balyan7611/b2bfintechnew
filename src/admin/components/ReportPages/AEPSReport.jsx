@@ -131,7 +131,7 @@ const AEPSReport = () => {
                   }}
                   onMouseOver={(e) => { e.currentTarget.style.background = '#1756AA'; e.currentTarget.style.color = '#fff'; }}
                   onMouseOut={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#1756AA'; }}
-                  onClick={() => setActiveReceipt(item)}
+                  onClick={() => setActiveReceipt({ ...item, _type: 'aeps' })}
                 >
                   Receipt
                 </button>

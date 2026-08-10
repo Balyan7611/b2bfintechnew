@@ -126,26 +126,48 @@ const AdminTable = ({
 
             <div className={styles.paginationRow}>
         <div className={styles.paginationInfo}>
-          {totalEntries === 0 
-            ? "Showing 0 entries" 
-            : `Showing ${(currentPage - 1) * rowsPerPage + 1} to ${Math.min(currentPage * rowsPerPage, totalEntries)} of ${totalEntries} entries`
+          {totalEntries === 0
+            ? "Showing 0 entries"
+            : `Showing ${(currentPage - 1) * rowsPerPage + 1} to ${Math.min(currentPage * rowsPerPage, totalEntries)} of ${totalEntries} entries | Page ${currentPage} of ${totalPages || 1}`
           }
         </div>
         <div className={styles.pagination}>
-          <button 
-            className={styles.pageBtn} 
+          <button
+            className={styles.pageBtn}
             disabled={currentPage === 1}
             onClick={() => onPageChange(currentPage - 1)}
           >
-            Previous
+            <FiChevronLeft />
           </button>
-          <button className={`${styles.pageBtn} ${styles.activePage}`}>{currentPage}</button>
-          <button 
-            className={styles.pageBtn} 
+          {(() => {
+            const delta = 2;
+            const left = currentPage - delta;
+            const right = currentPage + delta;
+            const pages = [];
+            let prev = null;
+            for (let i = 1; i <= (totalPages || 1); i++) {
+              if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+                if (prev !== null && i - prev > 1) pages.push('...');
+                pages.push(i);
+                prev = i;
+              }
+            }
+            return pages.map((pg, i) =>
+              pg === '...'
+                ? <span key={`dot-${i}`} style={{ padding: '0 4px', color: '#94a3b8', fontSize: '0.85rem', lineHeight: '36px' }}>…</span>
+                : <button
+                    key={pg}
+                    className={`${styles.pageBtn} ${pg === currentPage ? styles.activePage : ''}`}
+                    onClick={() => onPageChange(pg)}
+                  >{pg}</button>
+            );
+          })()}
+          <button
+            className={styles.pageBtn}
             disabled={currentPage === totalPages || totalPages === 0}
             onClick={() => onPageChange(currentPage + 1)}
           >
-            Next
+            <FiChevronRight />
           </button>
         </div>
       </div>

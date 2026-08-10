@@ -67,13 +67,15 @@ const CCBillPayHistory = () => {
   const [selectedOperator, setSelectedOperator] = useState('');
   const [apiList, setApiList] = useState([]);
   const [selectedApi, setSelectedApi] = useState('');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const today = new Date().toISOString().split('T')[0];
+  const [fromDate, setFromDate] = useState(today);
+  const [toDate, setToDate] = useState(today);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -151,7 +153,9 @@ const CCBillPayHistory = () => {
         : Array.isArray(data)       ? data
         : [];
       setTransactions(items);
-      setTotalPages(data.totalPages || Math.ceil((data.totalCount || items.length) / pageSize) || 1);
+      const _total = data.totalCount || data.totalItems || items.length || 0;
+      setTotalRecords(_total);
+      setTotalPages(data.totalPages || Math.ceil(_total / pageSize) || 1);
       setPageNumber(pg);
     } catch (err) {
       console.error('[CCBillPay] fetch failed:', err);
@@ -161,7 +165,7 @@ const CCBillPayHistory = () => {
     }
   }, [selectedMember, selectedService, selectedOperator, selectedApi, fromDate, toDate, searchKeyword, pageSize]);
 
-    useEffect(() => { loadTransactions(1); }, []); 
+  useEffect(() => { loadTransactions(pageNumber); }, [pageNumber, pageSize]); // eslint-disable-line
   return (
     <div className={styles.container} style={{ padding: '20px' }}>
             <style>{`
@@ -226,7 +230,7 @@ const CCBillPayHistory = () => {
           </div>
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); loadTransactions(1); }}>
+        <form onSubmit={(e) => { e.preventDefault(); setPageNumber(1); loadTransactions(1); }}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', alignItems: 'flex-end' }}>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>From Date</label>
@@ -406,10 +410,10 @@ const CCBillPayHistory = () => {
                 <div className="global-table-toolbar" style={{ padding: '10px 15px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
-            <select className={styles.selectEntries}>
-              <option>10</option>
-              <option>25</option>
-              <option>50</option>
+            <select className={styles.selectEntries} value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPageNumber(1); }}>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
             </select>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>entries</span>
           </div>
@@ -467,9 +471,9 @@ const CCBillPayHistory = () => {
               {transactions.length > 0 ? (
                 transactions.map((txn, index) => (
                   <tr key={txn.id || index}>
-                    <td>{index + 1}</td>
+                    <td>{((pageNumber-1)*pageSize)+index+1}</td>
                     <td>
-                      <ActionMenu txn={txn} onViewReceipt={setActiveReceipt} onAction={handleMenuAction} alignUp={index >= transactions.length - 2 && transactions.length > 2} />
+                      <ActionMenu txn={txn} onViewReceipt={txn => setActiveReceipt({ ...txn, _type: 'bbps' })} onAction={handleMenuAction} alignUp={index >= transactions.length - 2 && transactions.length > 2} />
                     </td>
                     <td>{txn.createdDate || txn.date || 'N/A'}</td>
                     <td>{txn.userId || txn.memberId || 'N/A'}</td>
@@ -489,7 +493,7 @@ const CCBillPayHistory = () => {
                     <td style={{ textAlign: 'center' }}><span className={`${styles.statusBadge} ${txn.status?.toLowerCase() === 'success' ? styles.statusSuccess : txn.status?.toLowerCase() === 'failed' ? styles.statusFailed : styles.statusPending}`}>{txn.status || 'PENDING'}</span></td>
                     <td>{txn.message || '-'}</td>
                     <td>
-                        <button onClick={() => setActiveReceipt(txn)} style={{ background: '#1756AA', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}>Receipt</button>
+                        <button onClick={() => setActiveReceipt({ ...txn, _type: 'bbps' })} style={{ background: '#1756AA', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}>Receipt</button>
                     </td>
                   </tr>
                 ))
@@ -509,14 +513,52 @@ const CCBillPayHistory = () => {
           </table>
         </div>
 
-        <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>Showing 0 to 0 of 0 entries</div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="global-page-btn" disabled><FiChevronLeft /></button>
-            <button className="global-page-btn global-page-active">1</button>
-            <button className="global-page-btn" disabled><FiChevronRight /></button>
-          </div>
-        </div>
+        {/* PAGINATION */}
+        {(() => {
+          const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+          const getPages = () => {
+            const pages = [];
+            const delta = 2;
+            const left  = pageNumber - delta;
+            const right = pageNumber + delta;
+            let prev = null;
+            for (let i = 1; i <= totalPages; i++) {
+              if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+                if (prev !== null && i - prev > 1) pages.push('...');
+                pages.push(i);
+                prev = i;
+              }
+            }
+            return pages;
+          };
+          return (
+            <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ fontSize: '0.82rem', color: '#718096', fontWeight: 600 }}>
+                Showing {transactions.length > 0 ? ((pageNumber - 1) * pageSize) + 1 : 0}–{Math.min(pageNumber * pageSize, totalRecords)} of <strong>{totalRecords}</strong> records &nbsp;|&nbsp; Page {pageNumber} of {totalPages}
+              </div>
+              <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button className="global-page-btn" onClick={() => { const p = Math.max(pageNumber - 1, 1); setPageNumber(p); loadTransactions(p); }} disabled={pageNumber === 1}><FiChevronLeft /></button>
+                {getPages().map((pg, i) =>
+                  pg === '...'
+                    ? <span key={`dot-${i}`} style={{ padding: '0 4px', color: '#94a3b8', fontSize: '0.85rem', lineHeight: '36px' }}>…</span>
+                    : <button
+                        key={pg}
+                        onClick={() => { setPageNumber(pg); loadTransactions(pg); }}
+                        style={{
+                          minWidth: 36, height: 36, borderRadius: 8, border: '1.5px solid',
+                          borderColor: pg === pageNumber ? '#1756AA' : '#e2e8f0',
+                          background: pg === pageNumber ? '#1756AA' : '#fff',
+                          color: pg === pageNumber ? '#fff' : '#475569',
+                          fontWeight: pg === pageNumber ? 800 : 500,
+                          fontSize: '0.82rem', cursor: 'pointer',
+                        }}
+                      >{pg}</button>
+                )}
+                <button className="global-page-btn" onClick={() => { const p = Math.min(pageNumber + 1, totalPages); setPageNumber(p); loadTransactions(p); }} disabled={pageNumber >= totalPages}><FiChevronRight /></button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
       {activeReceipt && (
         <TransactionReceipt 

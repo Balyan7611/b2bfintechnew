@@ -687,7 +687,7 @@ const AEPSHistory = () => {
                   <tr key={txn.id || index}>
                     <td>{((pageNumber - 1) * pageSize) + index + 1}</td>
                     <td style={{ textAlign: 'center', overflow: 'visible' }}>
-                      <ActionMenu txn={txn} onViewReceipt={setActiveReceipt} onAction={handleMenuAction} alignUp={index >= transactions.length - 2 && transactions.length > 2} />
+                      <ActionMenu txn={txn} onViewReceipt={txn => setActiveReceipt({ ...txn, _type: 'aeps' })} onAction={handleMenuAction} alignUp={index >= transactions.length - 2 && transactions.length > 2} />
                     </td>
                                         <td style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
                       {txn.createdDate ? (

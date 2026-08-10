@@ -66,6 +66,7 @@ const DMTHistory = () => {
 
   const [memberList, setMemberList] = useState([]);
   const [serviceList, setServiceList] = useState([]);
+  const [dmtServiceIds, setDmtServiceIds] = useState([]);
   const [selectedService, setSelectedService] = useState('');
   const [operatorList, setOperatorList] = useState([]);
   const [selectedOperator, setSelectedOperator] = useState('');
@@ -111,7 +112,8 @@ const DMTHistory = () => {
         serviceId: '16',         sectionType: '7',         operatorId: selectedOperator,
         apiId: selectedApi,
         memberId: selectedMember,
-        status: selectedStatus
+        status: selectedStatus,
+        keyword: searchKeyword
       });
             const { items: _txns, totalItems: _total, totalSuccess: _succ, totalPending: _pend, totalFailed: _fail } = normalizeTxnResponse(res);
       setTransactions(_txns);
@@ -141,6 +143,7 @@ const DMTHistory = () => {
         
                 const dmtServices = list.filter(srv => String(srv.sectionType || '') === '7');
         setServiceList(dmtServices);
+        setDmtServiceIds(dmtServices.map(s => String(s.id)));
       } catch (err) {
         console.error("Failed to fetch services:", err);
       }
@@ -274,7 +277,7 @@ const DMTHistory = () => {
           </button>
         </div>
 
-        <form onSubmit={(e) => e.preventDefault()}>
+        <form onSubmit={(e) => { e.preventDefault(); setPageNumber(1); fetchTransactions(); }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>From Date</label>
@@ -295,6 +298,8 @@ const DMTHistory = () => {
                   color: '#334155',
                   fontWeight: 500
                 }} 
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
                 onFocus={() => setFocusedField('fromDate')}
                 onBlur={() => setFocusedField(null)}
               />
@@ -318,6 +323,8 @@ const DMTHistory = () => {
                   color: '#334155',
                   fontWeight: 500
                 }} 
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
                 onFocus={() => setFocusedField('toDate')}
                 onBlur={() => setFocusedField(null)}
               />
@@ -468,6 +475,8 @@ const DMTHistory = () => {
                 </div>
                 <input 
                   type="text" 
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
                   placeholder="Enter keyword..." 
                   className={styles.inputControl} 
                   style={{ 
@@ -575,26 +584,26 @@ const DMTHistory = () => {
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
                 <th rowSpan="2" style={{ width: '60px' }}>S.No</th>
                 <th rowSpan="2" style={{ width: '100px', textAlign: 'center' }}>Actions</th>
-                <th rowSpan="2">Date</th>
+                <th rowSpan="2">Date & Time</th>
                 <th rowSpan="2" style={{ textAlign: 'center' }}>Status</th>
                 <th rowSpan="2">Amount</th>
                 <th rowSpan="2">Charge</th>
-                <th rowSpan="2">Member</th>
-                <th rowSpan="2">Sender</th>
+                <th rowSpan="2">Member (BC)</th>
+                <th rowSpan="2">Customer (Mobile)</th>
                 <th rowSpan="2">Beneficiary</th>
-                <th rowSpan="2">Account</th>
+                <th rowSpan="2">Account No</th>
                 <th rowSpan="2">Bank / IFSC</th>
-                <th rowSpan="2">Reference</th>
-                <th rowSpan="2">Op. bal</th>
-                <th rowSpan="2">Cl. bal</th>
+                <th rowSpan="2">UTR / Ref</th>
+                <th rowSpan="2">Opening Bal</th>
+                <th rowSpan="2">Closing Bal</th>
                 <th rowSpan="2">Cashback</th>
                 <th rowSpan="2">Mode</th>
                 <th rowSpan="2">Provider</th>
                 <th rowSpan="2">Source</th>
                 <GroupHeader transactions={transactions} />
-                <th rowSpan="2">Order ID</th>
+                <th rowSpan="2">Txn ID</th>
                 <th rowSpan="2">Remark</th>
-                <th rowSpan="2">Admin profit</th>
+                <th rowSpan="2">Admin Profit</th>
               </tr>
               <tr style={{ background: 'linear-gradient(90deg, #1a2f8a 0%, #0D1B5E 100%)' }}>
                 <SubHeader transactions={transactions} />
@@ -612,7 +621,7 @@ const DMTHistory = () => {
                   <tr key={txn.id || index}>
                     <td>{((pageNumber - 1) * pageSize) + index + 1}</td>
                     <td style={{ textAlign: 'center', overflow: 'visible' }}>
-                      <ActionMenu txn={txn} onViewReceipt={setActiveReceipt} onAction={handleMenuAction} />
+                      <ActionMenu txn={txn} onViewReceipt={txn => setActiveReceipt({ ...txn, _type: 'dmt' })} onAction={handleMenuAction} />
                     </td>
                     <td>{txn.createdDate ? new Date(txn.createdDate).toLocaleString('en-IN') : 'N/A'}</td>
                     <td style={{ textAlign: 'center' }}>
@@ -666,16 +675,52 @@ const DMTHistory = () => {
           </table>
         </div>
 
-        <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
-            Showing {transactions.length > 0 ? ((pageNumber - 1) * pageSize) + 1 : 0} to {Math.min(pageNumber * pageSize, totalRecords)} of {totalRecords} entries
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="global-page-btn" onClick={() => setPageNumber(p => Math.max(p - 1, 1))} disabled={pageNumber === 1}><FiChevronLeft /></button>
-            <button className="global-page-btn global-page-active">{pageNumber}</button>
-            <button className="global-page-btn" onClick={() => setPageNumber(p => p + 1)} disabled={pageNumber * pageSize >= totalRecords}><FiChevronRight /></button>
-          </div>
-        </div>
+        {/* PAGINATION */}
+        {(() => {
+          const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+          const getPages = () => {
+            const pages = [];
+            const delta = 2;
+            const left  = pageNumber - delta;
+            const right = pageNumber + delta;
+            let prev = null;
+            for (let i = 1; i <= totalPages; i++) {
+              if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+                if (prev !== null && i - prev > 1) pages.push('...');
+                pages.push(i);
+                prev = i;
+              }
+            }
+            return pages;
+          };
+          return (
+            <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ fontSize: '0.82rem', color: '#718096', fontWeight: 600 }}>
+                Showing {transactions.length > 0 ? ((pageNumber - 1) * pageSize) + 1 : 0}–{Math.min(pageNumber * pageSize, totalRecords)} of <strong>{totalRecords}</strong> records &nbsp;|&nbsp; Page {pageNumber} of {totalPages}
+              </div>
+              <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button className="global-page-btn" onClick={() => setPageNumber(p => Math.max(p - 1, 1))} disabled={pageNumber === 1}><FiChevronLeft /></button>
+                {getPages().map((pg, i) =>
+                  pg === '...'
+                    ? <span key={`dot-${i}`} style={{ padding: '0 4px', color: '#94a3b8', fontSize: '0.85rem', lineHeight: '36px' }}>…</span>
+                    : <button
+                        key={pg}
+                        onClick={() => setPageNumber(pg)}
+                        style={{
+                          minWidth: 36, height: 36, borderRadius: 8, border: '1.5px solid',
+                          borderColor: pg === pageNumber ? '#1756AA' : '#e2e8f0',
+                          background: pg === pageNumber ? '#1756AA' : '#fff',
+                          color: pg === pageNumber ? '#fff' : '#475569',
+                          fontWeight: pg === pageNumber ? 800 : 500,
+                          fontSize: '0.82rem', cursor: 'pointer',
+                        }}
+                      >{pg}</button>
+                )}
+                <button className="global-page-btn" onClick={() => setPageNumber(p => Math.min(p + 1, totalPages))} disabled={pageNumber >= totalPages}><FiChevronRight /></button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {activeReceipt && (

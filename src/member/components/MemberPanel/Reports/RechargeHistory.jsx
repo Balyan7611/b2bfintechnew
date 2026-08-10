@@ -26,6 +26,7 @@ const RechargeHistory = () => {
   const [masterOperators, setMasterOperators] = useState([]);
   const [masterApis, setMasterApis] = useState([]);
   const [showStats, setShowStats] = useState(false);
+  const [rechargeServiceIds, setRechargeServiceIds] = useState([]);
   const [selectedTxn, setSelectedTxn] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [breakdownTxn, setBreakdownTxn] = useState(null);
@@ -35,6 +36,8 @@ const RechargeHistory = () => {
       try {
         const svcRes = await API.service.getAll();
         setMasterServices(Array.isArray(svcRes?.data) ? svcRes.data : Array.isArray(svcRes) ? svcRes : []);
+        const allSvcs = Array.isArray(svcRes?.data) ? svcRes.data : Array.isArray(svcRes) ? svcRes : [];
+        setRechargeServiceIds(allSvcs.filter(s => String(s.sectionType) === '1').map(s => String(s.id)));
       } catch (e) {}
       try {
         const opRes = await API.operator.getAll({ pageSize: 1000 });
@@ -57,6 +60,7 @@ const RechargeHistory = () => {
         fromDate: filters.fromDate || '',
         toDate: filters.toDate || '',
         serviceId: '',
+        serviceIds: rechargeServiceIds,
         sectionType: '1',
         operatorId: filters.operatorId || '',
         memberId: '',
@@ -141,7 +145,7 @@ const RechargeHistory = () => {
               <tr key={item.id || index}>
                 <td>
                   <button
-                    onClick={() => { setSelectedTxn(item); setIsModalOpen(true); }}
+                    onClick={() => { setSelectedTxn({ ...item, _type: 'recharge' }); setIsModalOpen(true); }}
                     style={{ background: 'linear-gradient(135deg,#1756AA,#1E3A8A)', color:'#fff', border:'none', borderRadius:'6px', padding:'3px 10px', fontSize:'0.72rem', fontWeight:700, cursor:'pointer' }}
                   >VIEW</button>
                 </td>

@@ -87,8 +87,8 @@ const initialState = {
   businessSummary: {
     list: [],
     filters: {
-      month: '',
-      date: ''
+      month: today.slice(0, 7),
+      date: today
     }
   },
   aepsWalletReport: {

@@ -294,7 +294,7 @@ const DMTPPIHistory = () => {
                                         <td style={{ fontWeight: 700, color: '#94A3B8', fontSize: '0.78rem' }}>{((pageNumber - 1) * pageSize) + idx + 1}</td>
                                         <td style={{ textAlign: 'center' }}>
                                             <button
-                                                onClick={() => setActiveReceipt(txn)}
+                                                onClick={() => setActiveReceipt({ ...txn, _type: 'dmt' })}
                                                 style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)', color: '#1D4ED8', border: '1px solid #BFDBFE', padding: '6px 12px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
                                             >
                                                 <FiCheckCircle size={12} /> VIEW

@@ -12,6 +12,18 @@ import styles from '../MemberPages/MemberPages.module.css';
 const WalletPPIRegistration = () => {
   const [memberList, setMemberList] = useState([]);
   const [selectedMember, setSelectedMember] = useState('');
+  const today = new Date().toISOString().split('T')[0];
+  const [fromDate, setFromDate] = useState(today);
+  const [toDate, setToDate] = useState(today);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [transactions, setTransactions] = useState([]);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+
+  const fetchData = async () => {
+    // Wire up when API endpoint available
+  };
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -43,17 +55,17 @@ const WalletPPIRegistration = () => {
         </div>
 
                 <div style={{ padding: '20px', background: '#FAFBFC' }}>
-          <form onSubmit={(e) => e.preventDefault()}>
+          <form onSubmit={(e) => { e.preventDefault(); setPageNumber(1); fetchData(); }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
               
               <div className={styles.formGroup}>
                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>From Date</label>
-                <input type="date" className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', color: '#334155' }} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'} />
+                <input type="date" className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', color: '#334155' }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'} />
               </div>
               
               <div className={styles.formGroup}>
                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>To Date</label>
-                <input type="date" className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', color: '#334155' }} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'} />
+                <input type="date" className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', color: '#334155' }} value={toDate} onChange={(e) => setToDate(e.target.value)} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'} />
               </div>
 
               <div className={styles.formGroup}>
@@ -79,7 +91,7 @@ const WalletPPIRegistration = () => {
                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Search Anything</label>
                 <div style={{ position: 'relative' }}>
                   <FiSearch style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
-                  <input type="text" placeholder="Mobile, Merchant Code..." className={styles.inputControl} style={{ height: '42px', width: '100%', paddingLeft: '35px', fontSize: '0.85rem', borderRadius: '10px', border: '1.5px solid #CBD5E1', outline: 'none', boxSizing: 'border-box' }} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'} />
+                  <input type="text" placeholder="Mobile, Merchant Code..." value={searchKeyword} onChange={(e) => setSearchKeyword(e.target.value)} className={styles.inputControl} style={{ height: '42px', width: '100%', paddingLeft: '35px', fontSize: '0.85rem', borderRadius: '10px', border: '1.5px solid #CBD5E1', outline: 'none', boxSizing: 'border-box' }} onFocus={(e) => e.target.style.borderColor = '#1756AA'} onBlur={(e) => e.target.style.borderColor = '#CBD5E1'} />
                 </div>
               </div>
 
@@ -97,10 +109,10 @@ const WalletPPIRegistration = () => {
         <div className="global-table-toolbar">
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
-            <select className={styles.selectEntries}>
-              <option>10</option>
-              <option>25</option>
-              <option>50</option>
+            <select className={styles.selectEntries} value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPageNumber(1); }}>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
             </select>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>entries</span>
           </div>
@@ -148,14 +160,52 @@ const WalletPPIRegistration = () => {
           </table>
         </div>
 
-        <div className="global-pagination">
-          <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>Showing 0 to 0 of 0 entries</div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="global-page-btn" disabled><FiChevronLeft /></button>
-            <button className="global-page-btn global-page-active">1</button>
-            <button className="global-page-btn" disabled><FiChevronRight /></button>
-          </div>
-        </div>
+        {/* PAGINATION */}
+        {(() => {
+          const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+          const getPages = () => {
+            const pages = [];
+            const delta = 2;
+            const left  = pageNumber - delta;
+            const right = pageNumber + delta;
+            let prev = null;
+            for (let i = 1; i <= totalPages; i++) {
+              if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+                if (prev !== null && i - prev > 1) pages.push('...');
+                pages.push(i);
+                prev = i;
+              }
+            }
+            return pages;
+          };
+          return (
+            <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ fontSize: '0.82rem', color: '#718096', fontWeight: 600 }}>
+                Showing {transactions.length > 0 ? ((pageNumber - 1) * pageSize) + 1 : 0}–{Math.min(pageNumber * pageSize, totalRecords)} of <strong>{totalRecords}</strong> records &nbsp;|&nbsp; Page {pageNumber} of {totalPages}
+              </div>
+              <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button className="global-page-btn" onClick={() => setPageNumber(p => Math.max(p - 1, 1))} disabled={pageNumber === 1}><FiChevronLeft /></button>
+                {getPages().map((pg, i) =>
+                  pg === '...'
+                    ? <span key={`dot-${i}`} style={{ padding: '0 4px', color: '#94a3b8', fontSize: '0.85rem', lineHeight: '36px' }}>…</span>
+                    : <button
+                        key={pg}
+                        onClick={() => setPageNumber(pg)}
+                        style={{
+                          minWidth: 36, height: 36, borderRadius: 8, border: '1.5px solid',
+                          borderColor: pg === pageNumber ? '#1756AA' : '#e2e8f0',
+                          background: pg === pageNumber ? '#1756AA' : '#fff',
+                          color: pg === pageNumber ? '#fff' : '#475569',
+                          fontWeight: pg === pageNumber ? 800 : 500,
+                          fontSize: '0.82rem', cursor: 'pointer',
+                        }}
+                      >{pg}</button>
+                )}
+                <button className="global-page-btn" onClick={() => setPageNumber(p => Math.min(p + 1, totalPages))} disabled={pageNumber >= totalPages}><FiChevronRight /></button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

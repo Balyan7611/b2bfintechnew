@@ -98,8 +98,9 @@ const FundRequest = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   
     const [requests, setRequests] = useState([]);
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const _today = new Date().toISOString().split('T')[0];
+  const [fromDate, setFromDate] = useState(_today);
+  const [toDate, setToDate] = useState(_today);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -638,15 +639,25 @@ const FundRequest = () => {
               <FaChevronLeft /> Previous
             </button>
             
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(num => (
-              <button 
-                key={num}
-                className={currentPage === num ? styles.activePageBtn : ''}
-                onClick={() => setCurrentPage(num)}
-              >
-                {num}
-              </button>
-            ))}
+            {(() => {
+              const delta = 2;
+              const left = currentPage - delta;
+              const right = currentPage + delta;
+              const pages = [];
+              let prev = null;
+              for (let i = 1; i <= (totalPages || 1); i++) {
+                if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+                  if (prev !== null && i - prev > 1) pages.push('...');
+                  pages.push(i);
+                  prev = i;
+                }
+              }
+              return pages.map((pg, i) =>
+                pg === '...'
+                  ? <span key={`dot-${i}`} style={{ padding: '0 4px', color: '#94a3b8', fontSize: '0.85rem', lineHeight: '32px' }}>…</span>
+                  : <button key={pg} className={currentPage === pg ? styles.activePageBtn : ''} onClick={() => setCurrentPage(pg)}>{pg}</button>
+              );
+            })()}
             
             <button 
               disabled={currentPage === totalPages || totalPages === 0}

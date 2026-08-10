@@ -43,6 +43,7 @@ const AEPSReport = () => {
   const [masterOperators, setMasterOperators] = useState([]);
   const [masterApis, setMasterApis] = useState([]);
   const [showStats, setShowStats] = useState(false);
+  const [aepsServiceIds, setAepsServiceIds] = useState([]);
   const [breakdownTxn, setBreakdownTxn] = useState(null);
   const [memberOptions, setMemberOptions] = useState([]);
 
@@ -51,6 +52,8 @@ const AEPSReport = () => {
       try {
         const svcRes = await API.service.getAll();
         setMasterServices(Array.isArray(svcRes?.data) ? svcRes.data : Array.isArray(svcRes) ? svcRes : []);
+        const allSvcs = Array.isArray(svcRes?.data) ? svcRes.data : Array.isArray(svcRes) ? svcRes : [];
+        setAepsServiceIds(allSvcs.filter(s => String(s.sectionType) === '10').map(s => String(s.id)));
       } catch (e) {}
       try {
         const opRes = await API.operator.getAll({ pageSize: 1000 });
@@ -86,7 +89,8 @@ const AEPSReport = () => {
         pageSize: rowsPerPage,
         fromDate: filters.fromDate || '',
         toDate: filters.toDate || '',
-        serviceId: '',
+        serviceId: filters.serviceId || '',
+        serviceIds: filters.serviceId ? [] : aepsServiceIds,
         sectionType: '9,10',
         operatorId: filters.operatorId || '',
         apiId: '',
@@ -163,6 +167,7 @@ const AEPSReport = () => {
         fromDate: filters.fromDate || '',
         toDate: filters.toDate || '',
         serviceId: filters.serviceId || '',
+        serviceIds: filters.serviceId ? [] : aepsServiceIds,
         sectionType: '9,10',
         operatorId: filters.operatorId || '',
         memberId: filters.memberId || '',
@@ -206,7 +211,7 @@ const AEPSReport = () => {
   
   const { roles: uplineRoles, cols: uplineCols } = getUplineShape(list);
   const uplineColNames = Array.from({ length: uplineCols }, (_, i) => uplineRoles[i]?.roleName?.toUpperCase() || `L${i+1}`);
-  const displayColumns = ['SNO', 'Transaction Date', 'Member Id', 'Member Name', 'AadharNumber', 'Bank Name', 'Transaction Type', 'Opening Bal', 'Amount', 'Closing Bal', 'Bank TransID', 'Status', 'Receipt', 'Remark', 'ADMIN', 'TDS', 'UPLINE TOTAL', ...uplineColNames];
+  const displayColumns = ['#', 'Date & Time', 'BC Code', 'BC Name', 'Bank', 'Aadhaar No', 'Mobile', 'Amount', 'Txn ID', 'Bank RRN', 'Type', 'Status', 'Receipt', 'Remark', 'ADMIN', 'TDS', 'UPLINE TOTAL', ...uplineColNames];
 
   const totalAmount = filteredList.reduce((a, t) => a + (parseFloat(t.amount) || 0), 0);
   const totalCommission = filteredList.reduce((a, t) => a + (parseFloat(t.commission || t.totalCommission) || 0), 0);
@@ -333,15 +338,15 @@ const AEPSReport = () => {
                 <tr key={item.id || index}>
                   <td>{(currentPage - 1) * rowsPerPage + index + 1}</td>
                   <td>{item.createdDate || item.date || 'N/A'}</td>
-                  <td>{item.memberId || 'N/A'}</td>
+                  <td>{item.memberId || item.loginId || 'N/A'}</td>
                   <td>{item.memberName || 'N/A'}</td>
-                  <td>{item.aadhar || item.aadharNo || 'N/A'}</td>
                   <td>{item.bankName || 'N/A'}</td>
-                  <td>{item.transactionType || item.mode || item.serviceName || 'N/A'}</td>
-                  <td>₹{item.openingBalance || '0.00'}</td>
+                  <td>{item.aadhar || item.aadharNo || 'N/A'}</td>
+                  <td>{item.mobile || item.mobileNumber || item.customerMobile || item.number || 'N/A'}</td>
                   <td>₹{item.amount || '0.00'}</td>
-                  <td>₹{item.closingBalance || '0.00'}</td>
-                  <td>{item.rrn || item.vendorId || item.bankTransId || 'N/A'}</td>
+                  <td>{item.bankTransId || item.orderId || item.transId || 'N/A'}</td>
+                  <td>{item.rrn || item.vendorId || 'N/A'}</td>
+                  <td>{item.transactionType || item.mode || item.serviceName || 'N/A'}</td>
                   <td>
                     <span className={`${styles.statusBadge} ${statusStyle}`}>
                       {item.status || 'PENDING'}

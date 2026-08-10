@@ -28,13 +28,14 @@ const MainWalletHistory = () => {
     API.member.getAll({ pageNumber: 1, pageSize: 5000 })
       .then(res => {
         const items = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
-        setMemberOptions(
-          (Array.isArray(items) ? items : []).map(m => {
+        setMemberOptions([
+          { value: '', label: 'All Members' },
+          ...(Array.isArray(items) ? items : []).map(m => {
             const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
             const loginId = m.memberID || m.memberid || m.loginID || m.loginId || m.username || String(m.id || m.msrno || '');
             return { value: String(m.id || m.msrno), label: name ? `${name} (${loginId})` : loginId };
           })
-        );
+        ]);
       })
       .catch(err => console.warn('MainWallet: member list failed', err));
   }, []);
@@ -72,7 +73,7 @@ const MainWalletHistory = () => {
       }
 
       if (items.length === 0) {
-        setApiError(`No records found${queryMemberId ? ` for member ID ${queryMemberId}` : ''}. Check date filters or try Search.`);
+        // no data — empty table will show, no error banner needed
       }
 
       dispatch(setMainWalletList(items.map(r => {

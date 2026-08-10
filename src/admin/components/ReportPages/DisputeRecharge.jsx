@@ -452,7 +452,7 @@ const DisputeRecharge = () => {
                                             <td style={{ fontSize: '0.8rem', color: '#4E6080' }}>{row.date || 'N/A'}</td>
                                             <td style={{ textAlign: 'center' }}>
                                                 <button
-                                                    onClick={() => setActiveReceipt(row)}
+                                                    onClick={() => setActiveReceipt({ ...row, _type: 'recharge' })}
                                                     style={{
                                                         background: '#F1F5F9',
                                                         color: '#1756AA',

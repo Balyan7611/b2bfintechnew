@@ -75,7 +75,7 @@ const AEPSWalletHistory = () => {
       }
 
       if (items.length === 0) {
-        setApiError(`No AEPS wallet records found${queryMemberId ? ` for member ${queryMemberId}` : ''}. Try selecting a member or changing date range.`);
+        // no data — empty table will show, no error banner needed
       }
 
       dispatch(setAEPSWalletList(items.map(r => {

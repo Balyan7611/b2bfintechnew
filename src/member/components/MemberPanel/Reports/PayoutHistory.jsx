@@ -27,6 +27,7 @@ const PayoutHistory = () => {
   const [masterOperators, setMasterOperators] = useState([]);
   const [masterApis, setMasterApis] = useState([]);
   const [showStats, setShowStats] = useState(false);
+  const [payoutServiceIds, setPayoutServiceIds] = useState([]);
   const [breakdownTxn, setBreakdownTxn] = useState(null);
 
   useEffect(() => {
@@ -34,6 +35,8 @@ const PayoutHistory = () => {
       try {
         const svcRes = await API.service.getAll();
         setMasterServices(Array.isArray(svcRes?.data) ? svcRes.data : Array.isArray(svcRes) ? svcRes : []);
+        const allSvcs = Array.isArray(svcRes?.data) ? svcRes.data : Array.isArray(svcRes) ? svcRes : [];
+        setPayoutServiceIds(allSvcs.filter(s => String(s.sectionType) === '3').map(s => String(s.id)));
       } catch (e) {}
       try {
         const opRes = await API.operator.getAll({ pageSize: 1000 });
@@ -56,6 +59,7 @@ const PayoutHistory = () => {
         fromDate: filters.fromDate || '',
         toDate: filters.toDate || '',
         serviceId: '',
+        serviceIds: payoutServiceIds,
         sectionType: '3',
         operatorId: filters.operatorId || '',
         memberId: '',

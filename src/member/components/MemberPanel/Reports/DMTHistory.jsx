@@ -195,7 +195,7 @@ const DMTHistory = () => {
                   </td>
                   <td>
                     <button
-                      onClick={() => { setSelectedTxn(item); setIsModalOpen(true); }}
+                      onClick={() => { setSelectedTxn({ ...item, _type: 'dmt' }); setIsModalOpen(true); }}
                       style={{ background: 'linear-gradient(135deg,#1756AA,#1E3A8A)', color:'#fff', border:'none', borderRadius:'6px', padding:'3px 10px', fontSize:'0.72rem', fontWeight:700, cursor:'pointer' }}
                     >VIEW</button>
                   </td>

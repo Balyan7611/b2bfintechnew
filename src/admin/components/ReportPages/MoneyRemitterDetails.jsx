@@ -61,18 +61,56 @@ const MoneyRemitterDetails = () => {
     const fetchRemitters = async () => {
     setLoading(true);
     try {
-                              await new Promise(resolve => setTimeout(resolve, 300));
-      const mockData = [
-        { id: 1, name: 'Sanjay Kumar', memberId: 'B2B1001', firstName: 'Sanjay', lastName: 'Kumar', mobile: '9988776655', status: 'Active', limit: 25000, kycStatus: 'Verified', result: 'Success', regDate: '2023-10-15' },
-        { id: 2, name: 'Vikash Singh', memberId: 'B2B1002', firstName: 'Vikash', lastName: 'Singh', mobile: '8877665544', status: 'Inactive', limit: 0, kycStatus: 'Pending', result: 'Pending', regDate: '2023-10-20' },
-        { id: 3, name: 'Pooja Sharma', memberId: 'B2B1003', firstName: 'Pooja', lastName: 'Sharma', mobile: '7766554433', status: 'Active', limit: 25000, kycStatus: 'Verified', result: 'Success', regDate: '2023-10-22' },
-        { id: 4, name: 'Rohit Mehta', memberId: 'B2B1004', firstName: 'Rohit', lastName: 'Mehta', mobile: '6655443322', status: 'Active', limit: 30000, kycStatus: 'Verified', result: 'Success', regDate: '2023-11-01' },
-        { id: 5, name: 'Anjali Gupta', memberId: 'B2B1005', firstName: 'Anjali', lastName: 'Gupta', mobile: '5544332211', status: 'Inactive', limit: 0, kycStatus: 'Pending', result: 'Failed', regDate: '2023-11-05' },
-        { id: 6, name: 'Rajesh Kumar', memberId: 'B2B1006', firstName: 'Rajesh', lastName: 'Kumar', mobile: '4433221100', status: 'Active', limit: 20000, kycStatus: 'Verified', result: 'Success', regDate: '2023-11-10' },
-        { id: 7, name: 'Sunita Devi', memberId: 'B2B1007', firstName: 'Sunita', lastName: 'Devi', mobile: '3322110099', status: 'Active', limit: 15000, kycStatus: 'Pending', result: 'Pending', regDate: '2023-11-15' },
-      ];
-      setTransactions(mockData);
-      setTotalRecords(mockData.length);
+      const res = await API.member.getAll({
+        pageNumber,
+        pageSize,
+        search: searchKeyword || '',
+        isActive: selectedStatus === 'Active' ? true : selectedStatus === 'Inactive' ? false : null,
+        fromDate,
+        toDate,
+      });
+
+      let items = [];
+      let total = 0;
+
+      if (res && res.data) {
+        const d = res.data;
+        items = Array.isArray(d.items) ? d.items : Array.isArray(d) ? d : [];
+        total = d.totalItems ?? d.totalCount ?? items.length;
+      } else if (Array.isArray(res)) {
+        items = res;
+        total = res.length;
+      }
+
+      // Filter by selectedMember if set
+      if (selectedMember) {
+        items = items.filter(m => String(m.id || m.memberId) === String(selectedMember));
+      }
+
+      const mapped = items.map((m, i) => {
+        const fullName = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
+        const parts = fullName.trim().split(' ');
+        const firstName = m.firstName || parts[0] || '-';
+        const lastName = m.lastName || parts.slice(1).join(' ') || '-';
+        const isActive = m.isActive === true || m.isActive === 1 || String(m.isActive).toLowerCase() === 'true';
+        const kycApproved = m.isKycApproved === true || m.isKycApproved === 1 || String(m.isKycApproved).toLowerCase() === 'true';
+        return {
+          id: m.id || m.msrno || i + 1,
+          name: fullName || '-',
+          memberId: m.memberID || m.memberid || m.loginID || m.loginId || m.username || String(m.id || ''),
+          firstName,
+          lastName,
+          mobile: m.mobile || m.mobileNo || m.phone || '-',
+          status: isActive ? 'Active' : 'Inactive',
+          limit: m.transferLimit || m.limit || 0,
+          kycStatus: kycApproved ? 'Verified' : 'Pending',
+          result: kycApproved ? 'Success' : 'Pending',
+          regDate: (m.createdDate || m.registrationDate || m.addDate || '').slice(0, 10) || '-',
+        };
+      });
+
+      setTransactions(mapped);
+      setTotalRecords(total);
     } catch (err) {
       console.error("Failed to fetch remitter details:", err);
       setTransactions([]);
@@ -273,7 +311,7 @@ const MoneyRemitterDetails = () => {
                     <td style={{ fontWeight: 700, color: '#94A3B8', fontSize: '0.78rem' }}>{((pageNumber - 1) * pageSize) + idx + 1}</td>
                     <td style={{ textAlign: 'center' }}>
                       <button 
-                        onClick={() => setActiveReceipt(t)}
+                        onClick={() => setActiveReceipt({ ...t, _type: 'dmt' })}
                         style={{ background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)', color: '#1D4ED8', border: '1px solid #BFDBFE', padding: '6px 12px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer', transition: 'all 0.2s' }}
                       >
                         <FiInfo size={12} /> VIEW
@@ -319,16 +357,40 @@ const MoneyRemitterDetails = () => {
           </table>
         </div>
 
-        <div className="global-pagination">
-          <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
-            Showing {transactions.length > 0 ? ((pageNumber - 1) * pageSize) + 1 : 0} to {Math.min(pageNumber * pageSize, totalRecords)} of {totalRecords} entries
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="global-page-btn" onClick={() => setPageNumber(p => Math.max(p - 1, 1))} disabled={pageNumber === 1}><FiChevronLeft /></button>
-            <button className="global-page-btn global-page-active">{pageNumber}</button>
-            <button className="global-page-btn" onClick={() => setPageNumber(p => p + 1)} disabled={pageNumber * pageSize >= totalRecords}><FiChevronRight /></button>
-          </div>
-        </div>
+        {(() => {
+          const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+          const getPages = () => {
+            const pages = [];
+            const delta = 2;
+            const left = pageNumber - delta;
+            const right = pageNumber + delta;
+            let prev = null;
+            for (let i = 1; i <= totalPages; i++) {
+              if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+                if (prev !== null && i - prev > 1) pages.push('...');
+                pages.push(i);
+                prev = i;
+              }
+            }
+            return pages;
+          };
+          return (
+            <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ fontSize: '0.82rem', color: '#718096', fontWeight: 600 }}>
+                Showing {transactions.length > 0 ? ((pageNumber - 1) * pageSize) + 1 : 0}–{Math.min(pageNumber * pageSize, totalRecords)} of <strong>{totalRecords}</strong> records &nbsp;|&nbsp; Page {pageNumber} of {totalPages}
+              </div>
+              <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button className="global-page-btn" onClick={() => setPageNumber(p => Math.max(p - 1, 1))} disabled={pageNumber === 1}><FiChevronLeft /></button>
+                {getPages().map((pg, i) =>
+                  pg === '...'
+                    ? <span key={`dot-${i}`} style={{ padding: '0 4px', color: '#94a3b8', fontSize: '0.85rem', lineHeight: '36px' }}>…</span>
+                    : <button key={pg} onClick={() => setPageNumber(pg)} style={{ minWidth: 36, height: 36, borderRadius: 8, border: '1.5px solid', borderColor: pg === pageNumber ? '#1756AA' : '#e2e8f0', background: pg === pageNumber ? '#1756AA' : '#fff', color: pg === pageNumber ? '#fff' : '#475569', fontWeight: pg === pageNumber ? 800 : 500, fontSize: '0.82rem', cursor: 'pointer' }}>{pg}</button>
+                )}
+                <button className="global-page-btn" onClick={() => setPageNumber(p => Math.min(p + 1, totalPages))} disabled={pageNumber >= totalPages}><FiChevronRight /></button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {activeReceipt && (

@@ -74,6 +74,8 @@ const BBPSTransaction = () => {
   const [selectedOperator, setSelectedOperator] = useState('');
   const [selectedMember, setSelectedMember] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [bbpsServiceIds, setBbpsServiceIds] = useState([]);
   const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(today);
   const [toDate, setToDate] = useState(today);
@@ -91,11 +93,13 @@ const BBPSTransaction = () => {
         fromDate,
         toDate,
         serviceId: selectedService || '',
+        serviceIds: selectedService ? [] : bbpsServiceIds,
         sectionType: '2',
         operatorId: selectedOperator,
         apiId: selectedApi,
         memberId: selectedMember,
-        status: selectedStatus
+        status: selectedStatus,
+        keyword: searchKeyword
       });
       const { items: _txns, totalItems: _total } = normalizeTxnResponse(res);
       setTransactions(_txns);
@@ -116,6 +120,7 @@ const BBPSTransaction = () => {
 
                 const bbpsServices = list.filter(srv => String(srv.sectionType || '') === '2');
         setServiceList(bbpsServices);
+        setBbpsServiceIds(bbpsServices.map(s => String(s.id)));
       } catch (err) { console.error("Error fetching services:", err); }
     };
     const fetchMembers = async () => {
@@ -228,7 +233,7 @@ const BBPSTransaction = () => {
           </div>
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); fetchTransactions(); }}>
+        <form onSubmit={(e) => { e.preventDefault(); setPageNumber(1); fetchTransactions(); }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>From Date</label>
@@ -442,6 +447,8 @@ const BBPSTransaction = () => {
                     color: '#334155',
                     fontWeight: 500
                   }} 
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
                   onFocus={() => setFocusedField('search')}
                   onBlur={() => setFocusedField(null)}
                 />
@@ -563,9 +570,9 @@ const BBPSTransaction = () => {
                 transactions.map((txn, index) => (
                   <tr key={txn.id || index}>
                     <td style={{ textAlign: 'center', overflow: 'visible' }}>
-                      <ActionMenu txn={txn} onViewReceipt={setActiveReceipt} onAction={handleMenuAction} alignUp={index >= transactions.length - 2 && transactions.length > 2} />
+                      <ActionMenu txn={txn} onViewReceipt={txn => setActiveReceipt({ ...txn, _type: 'bbps' })} onAction={handleMenuAction} alignUp={index >= transactions.length - 2 && transactions.length > 2} />
                     </td>
-                    <td>{index + 1}</td>
+                    <td>{((pageNumber-1)*pageSize)+index+1}</td>
                     <td>{txn.createdDate || txn.date || 'N/A'}</td>
                     <td>{txn.customerName || txn.memberName || 'N/A'}</td>
                     <td>{txn.operatorName || txn.operator || 'N/A'}</td>
@@ -604,14 +611,52 @@ const BBPSTransaction = () => {
           </table>
         </div>
 
-        <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>Showing 0 to 0 of 0 entries</div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="global-page-btn" disabled><FiChevronLeft /></button>
-            <button className="global-page-btn global-page-active">1</button>
-            <button className="global-page-btn" disabled><FiChevronRight /></button>
-          </div>
-        </div>
+        {/* PAGINATION */}
+        {(() => {
+          const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+          const getPages = () => {
+            const pages = [];
+            const delta = 2;
+            const left  = pageNumber - delta;
+            const right = pageNumber + delta;
+            let prev = null;
+            for (let i = 1; i <= totalPages; i++) {
+              if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+                if (prev !== null && i - prev > 1) pages.push('...');
+                pages.push(i);
+                prev = i;
+              }
+            }
+            return pages;
+          };
+          return (
+            <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ fontSize: '0.82rem', color: '#718096', fontWeight: 600 }}>
+                Showing {transactions.length > 0 ? ((pageNumber - 1) * pageSize) + 1 : 0}–{Math.min(pageNumber * pageSize, totalRecords)} of <strong>{totalRecords}</strong> records &nbsp;|&nbsp; Page {pageNumber} of {totalPages}
+              </div>
+              <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button className="global-page-btn" onClick={() => setPageNumber(p => Math.max(p - 1, 1))} disabled={pageNumber === 1}><FiChevronLeft /></button>
+                {getPages().map((pg, i) =>
+                  pg === '...'
+                    ? <span key={`dot-${i}`} style={{ padding: '0 4px', color: '#94a3b8', fontSize: '0.85rem', lineHeight: '36px' }}>…</span>
+                    : <button
+                        key={pg}
+                        onClick={() => setPageNumber(pg)}
+                        style={{
+                          minWidth: 36, height: 36, borderRadius: 8, border: '1.5px solid',
+                          borderColor: pg === pageNumber ? '#1756AA' : '#e2e8f0',
+                          background: pg === pageNumber ? '#1756AA' : '#fff',
+                          color: pg === pageNumber ? '#fff' : '#475569',
+                          fontWeight: pg === pageNumber ? 800 : 500,
+                          fontSize: '0.82rem', cursor: 'pointer',
+                        }}
+                      >{pg}</button>
+                )}
+                <button className="global-page-btn" onClick={() => setPageNumber(p => Math.min(p + 1, totalPages))} disabled={pageNumber >= totalPages}><FiChevronRight /></button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
       {activeReceipt && (
         <TransactionReceipt 

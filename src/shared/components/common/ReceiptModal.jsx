@@ -67,6 +67,257 @@ function toWords(num) {
   return out.trim() + ' Only';
 }
 
+// Generic receipt for Recharge, BBPS, MATM, Payout
+function SimpleReceiptBody({ data, cfg, title, icon, sections }) {
+  const isThermal = !cfg.twoCol;
+  const fs = cfg.fontSize;
+  const st = String(data?.status || 'PENDING').toUpperCase();
+  const isFail = st === 'FAILED' || st === 'REJECTED';
+  const isPending = st === 'PENDING';
+
+  const lbl = { fontSize: Math.max(fs - 3, 8), color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 800, fontFamily: '"DM Sans",sans-serif' };
+  const val = { fontSize: fs, color: '#0F172A', fontWeight: 700, fontFamily: '"DM Sans",sans-serif' };
+
+  const StatusBadge = () => (
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: isFail ? '#FEF2F2' : isPending ? '#FFFBEB' : '#ECFDF5', border: `1px solid ${isFail ? '#FECACA' : isPending ? '#FDE68A' : '#A7F3D0'}`, borderRadius: 50, padding: '4px 12px' }}>
+      <div style={{ width: 12, height: 12, borderRadius: '50%', background: isFail ? '#EF4444' : isPending ? '#F59E0B' : '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+          {isFail ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <polyline points="20 6 9 17 4 12"/>}
+        </svg>
+      </div>
+      <span style={{ fontSize: fs - 3, fontWeight: 800, color: isFail ? '#991B1B' : isPending ? '#92400E' : '#065F46', letterSpacing: '0.6px' }}>{st}</span>
+    </div>
+  );
+
+  if (isThermal) {
+    return (
+      <div style={{ fontFamily: '"DM Sans",sans-serif', color: '#0F172A' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: cfg.sepMar }}>
+          <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block', margin: 0 }} />
+        </div>
+        <div style={{ textAlign: 'center', marginBottom: cfg.sepMar }}>
+          <div style={{ fontSize: fs - 1, fontWeight: 800 }}>{title}</div>
+          <div style={{ fontSize: fs - 3, color: '#64748B' }}>{SITE_CONFIG.companyName || ''}</div>
+        </div>
+        <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        <div style={{ textAlign: 'center', marginBottom: 8 }}>
+          <div style={{ fontSize: cfg.amtSize || 20, fontWeight: 800, color: '#0D1B3E' }}>₹{Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+          <div style={{ marginTop: 4 }}><StatusBadge /></div>
+        </div>
+        <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        {sections.flat().filter(Boolean).map(([k, v]) => (
+          <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px dashed #F1F5F9' }}>
+            <span style={lbl}>{k}</span>
+            <span style={{ ...val, textAlign: 'right', maxWidth: '60%', wordBreak: 'break-all' }}>{v || 'N/A'}</span>
+          </div>
+        ))}
+        <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        <div style={{ textAlign: 'center', fontSize: Math.max(fs - 3, 8), color: '#94A3B8', fontWeight: 700 }}>SECURED BY {SITE_CONFIG.shortName}</div>
+      </div>
+    );
+  }
+
+  // A4/A5
+  return (
+    <div style={{ fontFamily: '"DM Sans",sans-serif', color: '#0F172A', padding: '10px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block' }} />
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: fs + 2, fontWeight: 800, color: '#1756AA' }}>{title}</div>
+          <div style={{ fontSize: fs - 2, color: '#64748B' }}>{SITE_CONFIG.companyName || ''}</div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: isFail ? '#FEF2F2' : isPending ? '#FFFBEB' : '#ECFDF5', border: `1px solid ${isFail ? '#FECACA' : isPending ? '#FDE68A' : '#A7F3D0'}`, borderRadius: 12, padding: '12px 20px', marginBottom: 20 }}>
+        <div>
+          <div style={{ fontSize: fs - 2, color: '#64748B', fontWeight: 700 }}>Total Amount</div>
+          <div style={{ fontSize: fs + 10, fontWeight: 800, color: '#0D1B3E' }}>₹{Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+        </div>
+        <StatusBadge />
+      </div>
+
+      {sections.map((rows, si) => (
+        <table key={si} style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 14, fontSize: fs }}>
+          <tbody>
+            {rows.filter(Boolean).reduce((acc, pair, i, arr) => {
+              if (i % 2 === 0) {
+                const next = arr[i + 1];
+                acc.push(
+                  <tr key={i}>
+                    <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B', width: '20%' }}>{pair[0]}</td>
+                    <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A', width: '30%' }}>{pair[1] || 'N/A'}</td>
+                    {next ? <>
+                      <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B', width: '20%' }}>{next[0]}</td>
+                      <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A', width: '30%' }}>{next[1] || 'N/A'}</td>
+                    </> : <td colSpan="2" style={{ border: '1.5px solid #E2E8F0' }} />}
+                  </tr>
+                );
+              }
+              return acc;
+            }, [])}
+          </tbody>
+        </table>
+      ))}
+
+      <div style={{ textAlign: 'center', color: '#64748B', fontSize: fs - 2, marginTop: 20 }}>
+        This is a system generated receipt. No seal or signature is required.<br />
+        © 2026 {SITE_CONFIG.companyName || ''}. All rights reserved.
+      </div>
+    </div>
+  );
+}
+
+function AepsReceiptBody({ data, cfg }) {
+  const fs = cfg.fontSize;
+  const isThermal = !cfg.twoCol;
+
+  const lbl = { fontSize: Math.max(fs - 3, 8), color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 800, fontFamily: '"DM Sans",sans-serif' };
+  const val = { fontSize: fs, color: '#0F172A', fontWeight: 700, fontFamily: '"DM Sans",sans-serif' };
+
+  const st = String(data?.status || 'PENDING').toUpperCase();
+  const isFail = st === 'FAILED' || st === 'REJECTED';
+  const isPending = st === 'PENDING';
+  const txnLabel = data?.transactionType || data?.mode || data?.serviceName || 'Cash Withdrawal';
+  const maskedAadhar = (() => {
+    const a = String(data?.aadhar || data?.aadharNo || '');
+    return a.length >= 4 ? 'XXXX XXXX ' + a.slice(-4) : (a || 'N/A');
+  })();
+
+  if (isThermal) {
+    return (
+      <div style={{ fontFamily: '"DM Sans",sans-serif', color: '#0F172A' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: cfg.sepMar }}>
+          <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block', margin: 0 }} />
+        </div>
+        <div style={{ textAlign: 'center', marginBottom: cfg.sepMar }}>
+          <div style={{ fontSize: fs - 1, fontWeight: 800, color: '#0F172A' }}>AEPS Receipt</div>
+          <div style={{ fontSize: fs - 3, color: '#64748B' }}>{SITE_CONFIG.companyName || ''}</div>
+        </div>
+        <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        <div style={{ textAlign: 'center', marginBottom: 8 }}>
+          <div style={{ width: 30, height: 30, borderRadius: '50%', background: isFail ? '#EF4444' : '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 4px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              {isFail ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <polyline points="20 6 9 17 4 12"/>}
+            </svg>
+          </div>
+          <div style={{ fontSize: fs - 1, fontWeight: 800, color: isFail ? '#991B1B' : '#065F46' }}>{txnLabel} {isFail ? 'Failed' : 'Successful'}</div>
+          <div style={{ fontSize: cfg.amtSize || 20, fontWeight: 800, color: '#0D1B3E' }}>₹{Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+        </div>
+        <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        {[
+          ['BANK', data?.bankName || 'N/A'],
+          ['AADHAAR NUMBER', maskedAadhar],
+          ['MOBILE', data?.mobile || data?.mobileNumber || data?.customerMobile || 'N/A'],
+          ['TRANSACTION ID', data?.bankTransId || data?.orderId || 'N/A'],
+          ['BANK RRN', data?.rrn || data?.vendorId || 'N/A'],
+          ['DATE & TIME', data?.date],
+          ['REMARK', data?.remark || data?.message || 'N/A'],
+          ['BC CODE', data?.memberId || data?.loginId || 'N/A'],
+          ['BC NAME', data?.memberName || 'N/A'],
+        ].map(([k, v]) => (
+          <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px dashed #F1F5F9' }}>
+            <span style={lbl}>{k}</span>
+            <span style={{ ...val, textAlign: 'right', maxWidth: '60%', wordBreak: 'break-all' }}>{v}</span>
+          </div>
+        ))}
+        <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        <div style={{ textAlign: 'center', fontSize: Math.max(fs - 3, 8), color: '#94A3B8', fontWeight: 700 }}>
+          SECURED BY {SITE_CONFIG.shortName}
+        </div>
+      </div>
+    );
+  }
+
+  // A4/A5 layout
+  return (
+    <div style={{ fontFamily: '"DM Sans",sans-serif', color: '#0F172A', padding: '10px 0' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div>
+          <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block' }} />
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: fs + 2, fontWeight: 800, color: '#1756AA' }}>AEPS Receipt</div>
+          <div style={{ fontSize: fs - 2, color: '#64748B' }}>{SITE_CONFIG.companyName || ''}</div>
+        </div>
+      </div>
+
+      {/* Success banner */}
+      <div style={{ textAlign: 'center', marginBottom: 20, padding: '14px', background: isFail ? '#FEF2F2' : isPending ? '#FFFBEB' : '#ECFDF5', borderRadius: 12, border: `1px solid ${isFail ? '#FECACA' : isPending ? '#FDE68A' : '#A7F3D0'}` }}>
+        <div style={{ width: 36, height: 36, borderRadius: '50%', background: isFail ? '#EF4444' : isPending ? '#F59E0B' : '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 6px' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            {isFail ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <polyline points="20 6 9 17 4 12"/>}
+          </svg>
+        </div>
+        <div style={{ fontSize: fs + 1, fontWeight: 800, color: isFail ? '#991B1B' : isPending ? '#92400E' : '#065F46' }}>{txnLabel} {isFail ? 'Failed' : isPending ? 'Pending' : 'Successful'}</div>
+        <div style={{ fontSize: fs + 8, fontWeight: 800, color: '#0D1B3E', margin: '4px 0' }}>₹{Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+      </div>
+
+      {/* CUSTOMER */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: fs - 2, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>Customer</div>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: fs }}>
+          <tbody>
+            <tr>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B', width: '30%' }}>Bank</td>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.bankName || 'N/A'}</td>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B', width: '30%' }}>Aadhaar Number</td>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{maskedAadhar}</td>
+            </tr>
+            <tr>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B' }}>Mobile</td>
+              <td colSpan="3" style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.mobile || data?.mobileNumber || data?.customerMobile || 'N/A'}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* TRANSACTION */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: fs - 2, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>Transaction</div>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: fs }}>
+          <tbody>
+            <tr>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B', width: '30%' }}>Transaction ID</td>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.bankTransId || data?.orderId || data?.transId || 'N/A'}</td>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B', width: '30%' }}>Bank RRN</td>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.rrn || data?.vendorId || 'N/A'}</td>
+            </tr>
+            <tr>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B' }}>Date & Time</td>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.date}</td>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B' }}>Remark</td>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.remark || data?.message || 'Transaction Successful, ' + st}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* BUSINESS CORRESPONDENT */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: fs - 2, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>Business Correspondent</div>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: fs }}>
+          <tbody>
+            <tr>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B', width: '30%' }}>BC Code</td>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.memberId || data?.loginId || 'N/A'}</td>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B', width: '30%' }}>BC Name</td>
+              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.memberName || 'N/A'}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style={{ textAlign: 'center', color: '#64748B', fontSize: fs - 2, fontWeight: 500 }}>
+        This is a system generated receipt. No seal or signature is required.
+      </div>
+      <div style={{ textAlign: 'center', color: '#64748B', fontSize: fs - 2, marginTop: 2 }}>
+        © 2026 {SITE_CONFIG.companyName || ''}. All rights reserved.
+      </div>
+    </div>
+  );
+}
+
 function ReceiptBody({ data, cfg }) {
   const isThermal = !cfg.twoCol;
   const fs = cfg.fontSize;
@@ -301,10 +552,25 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
   const cfg = sizeConfig[size];
   const receiptPxWidth = SIZE_PX[size];
 
-    const mappedData = data ? {
+    const receiptType = data?._type || (data?.aadhar || data?.aadharNo ? 'aeps' : 'dmt');
+  const isAeps = receiptType === 'aeps';
+
+  const mappedData = data ? {
     ...data,
+    isAeps,
     date: data.createdDate || data.date || data.txnDate || data.transactionDate || data.created_at || 'N/A',
     status: data.status || 'PENDING',
+    // AEPS fields
+    aadhar: data.aadhar || data.aadharNo || '',
+    bankName: data.bankName || data.bank || 'N/A',
+    mobile: data.mobile || data.mobileNumber || data.customerMobile || data.number || 'N/A',
+    bankTransId: data.bankTransId || data.txnId || data.transId || data.orderId || 'N/A',
+    rrn: data.rrn || data.vendorId || 'N/A',
+    memberId: data.memberId || data.loginId || '',
+    memberName: data.memberName || data.bcName || '',
+    transactionType: data.transactionType || data.mode || data.serviceName || 'Cash Withdrawal',
+    remark: data.remark || data.message || '',
+    // DMT fields
     customerName: data.customerName || data.memberName || data.name || data.beneName || 'Guest',
     customerMobile: data.customerMobile || data.mobileNumber || data.mobile || data.number || 'N/A',
     beneficiary: data.beneficiary || data.beneficiaryName || data.beneName || data.beniName || data.beniVerifyName || data.memberName || 'N/A',
@@ -312,8 +578,6 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
     accountNo: data.accountNo || data.accountNumber || data.accNo || data.aadhar || data.aadharNo || data.cardNo || 'N/A',
     ifsc: data.ifsc || data.ifscCode || '',
     mode: data.mode || data.transactionType || data.fromChannel || 'IMPS',
-    bankTransId: data.bankTransId || data.txnId || data.transId || data.orderId || data.vendorId || data.refid || data.rrn || 'N/A',
-    rrn: data.rrn || data.bankTransId || data.txnId || data.transId || 'N/A',
     amount: Number(data.amount || 0),
     charge: Number(data.surcharge || data.charge || data.serviceCharge || 0),
     total: data.total || (Number(data.amount || 0) + Number(data.surcharge || data.charge || 0)),
@@ -336,171 +600,11 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
   }, [size, receiptPxWidth, isOpen]);
 
     const printReceipt = () => {
+    if (!receiptRef.current) return;
     const pw = window.open('', '_blank', 'width=900,height=700');
     if (!pw) return;
-
     const isTh = !cfg.twoCol;
-    const fs = cfg.fontSize;
-
-    const session = getSession();
-    const merchantName = session?.name || session?.fullName || session?.ownerName || session?.firmName || SITE_CONFIG.name || 'Merchant';
-    const shopName = session?.shopName || session?.firmName || session?.businessName || SITE_CONFIG.name || 'Shop';
-
-    const chunksHtml = (mappedData.chunks || [{ id: 'c1', txnId: mappedData.bankTransId || mappedData.id || 'N/A', amount: mappedData.amount || 0 }]).map((c, i, arr) => `
-      <tr>
-        <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">${c.txnId || 'N/A'}</td>
-        <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">${mappedData.date ? mappedData.date.split(' ')[0] : ''}</td>
-        <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#0F172A;font-weight:700;">₹${Number(c.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-        <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">${mappedData.rrn || c.txnId || 'N/A'}</td>
-        <td style="padding:10px 12px;border:1.5px solid #E2E8F0;text-align:center;"><span style="background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46;padding:2px 8px;border-radius:50px;font-size:9.5px;font-weight:800;display:inline-block;">Success</span></td>
-      </tr>
-    `).join('');
-
-    const templateHtml = !isTh ? `
-      <!-- Top Banner Row for Printing -->
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-        <img src="${SITE_CONFIG.logo}" style="height:${cfg.logoH}px;display:block;margin:0;"/>
-        <div style="display:flex;align-items:center;gap:6px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:50px;padding:5px 14px;box-shadow:0 2px 8px rgba(16,185,129,0.05);">
-          <div style="width:14px;height:14px;border-radius:50%;background:#10B981;display:flex;align-items:center;justify-content:center;">
-            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-          <span style="font-size:${fs - 3}px;font-weight:800;color:#065F46;letter-spacing:0.6px;">SUCCESS</span>
-        </div>
-      </div>
-
-      <div style="height:1px;background:#E2E8F0;margin:15px 0 20px;"></div>
-
-      <!-- Main Grid Table -->
-      <table style="width:100%;border-collapse:collapse;margin-bottom:25px;font-size:${fs}px;font-family:'DM Sans',sans-serif;">
-        <tbody>
-          <tr>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">Merchant:</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${merchantName}</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">Business Name:</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${shopName}</td>
-          </tr>
-          <tr>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Customer Name:</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.customerName}</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Customer Mobile:</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.customerMobile}</td>
-          </tr>
-          <tr>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Beneficiary Name:</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.beneficiary}</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Bank Name:</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.bank}</td>
-          </tr>
-          <tr>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Account Number:</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.accountNo} ${mappedData.ifsc ? `(IFSC: ${mappedData.ifsc})` : ''}</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Date & Time:</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.date}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div style="text-align:center;margin-bottom:15px;">
-        <span style="font-size:${fs + 1.5}px;font-weight:800;color:#1756AA;text-transform:uppercase;letter-spacing:1px;">Transaction Summary</span>
-      </div>
-
-      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:${fs}px;font-family:'DM Sans',sans-serif;">
-        <thead>
-          <tr style="background:#F8FAFC;">
-            <th style="padding:10px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#475569;text-align:left;">TID</th>
-            <th style="padding:10px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#475569;text-align:left;">TXN DATE</th>
-            <th style="padding:10px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#475569;text-align:left;">AMOUNT</th>
-            <th style="padding:10px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#475569;text-align:left;">UTR NO.</th>
-            <th style="padding:10px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#475569;text-align:left;">STATUS</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${chunksHtml}
-          <tr style="background:#FFFFFF;">
-            <td colSpan="2" style="padding:12px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#1756AA;">Total Amount:</td>
-            <td style="padding:12px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#1756AA;">₹${Number(mappedData.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-            <td colSpan="2" style="padding:12px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#1756AA;">Rs. ${Number(mappedData.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} ( ${toWords(mappedData.amount || 0)} )</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div style="text-align:center;margin-top:25px;">
-        <p style="color:#64748B;font-size:${fs - 2}px;font-weight:500;margin:0;letter-spacing:0.2px;">
-          This is a system generated receipt, so no seal or signature is required. All rights reserved @2026.
-        </p>
-      </div>
-    ` : `
-      <!-- Thermal Sleek design -->
-      <div style="display:flex;justify-content:center;padding-bottom:${cfg.sepMar}px;">
-        <img src="${SITE_CONFIG.logo}" style="height:${cfg.logoH}px;display:block;margin:0;"/>
-      </div>
-      <div style="height:1px;background:#E2E8F0;margin:${cfg.sepMar}px 0;"></div>
-
-      <div style="display:flex;flex-direction:column;gap:8px;font-family:'DM Sans',sans-serif;">
-        <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:10px 14px;text-align:center;">
-          <div style="font-size:${Math.max(fs - 3, 8)}px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;margin-bottom:2px;">TOTAL TRANSFER AMOUNT</div>
-          <div style="font-size:${cfg.amtSize}px;font-weight:800;color:#0D1B3E;margin:2px 0;">₹${(mappedData.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
-          <div style="font-size:9px;color:#64748B;font-weight:600;">Surcharge: ₹${(mappedData.charge || 0).toFixed(2)}</div>
-        </div>
-        <div style="padding:4px 0;display:flex;flex-direction:column;gap:6px;">
-          <div style="display:flex;justify-content:space-between;">
-            <span style="font-size:${Math.max(fs - 3, 8)}px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">DATE</span>
-            <span style="font-size:${fs}px;color:#0D1B3E;font-weight:700;">${mappedData.date}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;">
-            <span style="font-size:${Math.max(fs - 3, 8)}px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">MERCHANT</span>
-            <span style="font-size:${fs}px;color:#0D1B3E;font-weight:700;">${merchantName}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;">
-            <span style="font-size:${Math.max(fs - 3, 8)}px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">SHOP NAME</span>
-            <span style="font-size:${fs}px;color:#0D1B3E;font-weight:700;">${shopName}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;">
-            <span style="font-size:${Math.max(fs - 3, 8)}px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">CUSTOMER</span>
-            <span style="font-size:${fs}px;color:#0D1B3E;font-weight:700;">${mappedData.customerName}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;">
-            <span style="font-size:${Math.max(fs - 3, 8)}px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">CUST. MOBILE</span>
-            <span style="font-size:${fs}px;color:#0D1B3E;font-weight:700;">${mappedData.customerMobile}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;">
-            <span style="font-size:${Math.max(fs - 3, 8)}px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">BENEFICIARY</span>
-            <span style="font-size:${fs}px;color:#0D1B3E;font-weight:700;">${mappedData.beneficiary}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;">
-            <span style="font-size:${Math.max(fs - 3, 8)}px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">BANK & A/C</span>
-            <span style="font-size:${fs}px;color:#0D1B3E;font-weight:700;">${mappedData.bank} (${maskAccount(mappedData.accountNo)})</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:${Math.max(fs - 3, 8)}px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">MODE</span>
-            <span style="font-size:10px;color:#1756AA;background:rgba(23,86,170,0.08);padding:1px 6px;border-radius:50px;font-weight:700;">${mappedData.mode || 'IMPS'}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;background:#F8FAFC;border-radius:6px;padding:6px 8px;margin-top:4px;">
-            <span style="font-size:${Math.max(fs - 3, 8)}px;color:#64748B;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">TOTAL WALLET DEBIT</span>
-            <span style="font-size:${fs}px;color:#1756AA;font-weight:700;">₹${(mappedData.total || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-          </div>
-        </div>
-
-        <div style="height:1px;background:#E2E8F0;margin:${cfg.sepMar}px 0;"></div>
-        <div style="background:#FFFFFF;border:1.5px solid #F1F5F9;border-radius:14px;padding:14px 18px;box-shadow:0 2px 4px rgba(0,0,0,0.01);">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-            <div style="width:3px;height:11px;background:#3B82F6;border-radius:2px;"></div>
-            <span style="font-size:${Math.max(fs - 3, 8)}px;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;font-weight:800;">TRANSACTION CHUNKS (UTR)</span>
-          </div>
-          <div style="margin-top:6px;display:flex;flex-direction:column;gap:4px;">
-            ${(mappedData.chunks || [{ id: 'c1', txnId: mappedData.bankTransId || mappedData.id || 'N/A', amount: mappedData.amount || 0 }]).map((c, i, arr) => `
-              <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;${i < arr.length - 1 ? 'border-bottom:1px dashed #EEF0F4;' : ''}">
-                <span style="font-family:monospace;font-size:${fs}px;color:#0F172A;font-weight:700;"><span style="color:#64748B;font-weight:600;font-size:${fs - 1}px;margin-right:4px;">UTR:</span>${c.txnId}</span>
-                <span style="color:#1756AA;font-weight:700;font-size:${fs}px;">₹${c.amount.toLocaleString('en-IN')}</span>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      </div>
-    `;
-
+    const html = receiptRef.current.innerHTML;
     pw.document.write(`<!DOCTYPE html><html><head>
       <meta charset="utf-8"/>
       <title>Receipt_${size}</title>
@@ -508,29 +612,77 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
       <style>
         @page { size:${isTh ? `${cfg.mmW} auto` : `${size} portrait`}; margin:${isTh ? '3mm' : '10mm'}; }
         * { box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; font-family:'DM Sans',sans-serif; }
-        body { margin:0; padding:0; background:#fff; display:flex; justify-content:center; }
-        .r { width:${cfg.mmW}; padding:${cfg.pad}px; background:#fff; border:1.5px solid #E2E8F0; border-radius:8px; page-break-inside:avoid; }
-        .sep { height:1px; background:#E2E8F0; margin:${cfg.sepMar}px 0; }
+        body { margin:0; padding:${cfg.pad}px; background:#fff; }
       </style>
-    </head><body><div class="r">
-      ${templateHtml}
-      
-      <div style="display:flex;align-items:center;justify-content:center;gap:5px;font-family:'DM Sans',sans-serif;margin-top:15px;">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1756AA" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-        <span style="color:#1756AA;font-size:${fs - 3.5}px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;">
-          SECURED BY ${SITE_CONFIG.shortName}
-        </span>
-      </div>
-    </div></body></html>`);
+    </head><body>${html}</body></html>`);
     pw.document.close();
     pw.focus();
     setTimeout(() => { pw.print(); pw.close(); }, 700);
   };
 
   if (!isOpen || !data) return null;
+
+  const txnStatus = String(mappedData?.status || 'PENDING').toUpperCase();
+  const isPending = txnStatus === 'PENDING' || txnStatus === 'PROCESSING' || txnStatus === 'INPROCESS';
+  const isFailed  = txnStatus === 'FAILED' || txnStatus === 'REJECTED' || txnStatus === 'FAILURE';
+  const isSuccess = !isPending && !isFailed;
+
+  // PENDING screen
+  if (isPending) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,28,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 12 }} onClick={onClose}>
+        <div style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 400, padding: 40, textAlign: 'center', boxShadow: '0 32px 80px rgba(0,0,0,0.22)' }} onClick={e => e.stopPropagation()}>
+          <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#FFFBEB', border: '3px solid #FDE68A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', animation: 'spin 2s linear infinite' }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <style>{`@keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }`}</style>
+          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#92400E', marginBottom: 8, fontFamily: '"DM Sans",sans-serif' }}>Receipt Preparing…</div>
+          <div style={{ fontSize: '0.85rem', color: '#64748B', fontFamily: '"DM Sans",sans-serif', lineHeight: 1.5 }}>
+            Your transaction is being processed.<br/>Receipt will be available once confirmed.
+          </div>
+          <div style={{ marginTop: 8, fontSize: '0.78rem', color: '#94A3B8', fontFamily: '"DM Sans",sans-serif' }}>
+            Txn ID: <strong>{mappedData?.bankTransId || mappedData?.orderId || mappedData?.txnId || 'N/A'}</strong>
+          </div>
+          <button onClick={onClose} style={{ marginTop: 24, padding: '10px 32px', borderRadius: 10, background: '#F59E0B', color: '#fff', border: 'none', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', fontFamily: '"DM Sans",sans-serif' }}>Close</button>
+        </div>
+      </div>
+    );
+  }
+
+  // FAILED screen
+  if (isFailed) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,28,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 12 }} onClick={onClose}>
+        <div style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 420, padding: 40, textAlign: 'center', boxShadow: '0 32px 80px rgba(0,0,0,0.22)' }} onClick={e => e.stopPropagation()}>
+          <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#FEF2F2', border: '3px solid #FECACA', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+          </div>
+          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#991B1B', marginBottom: 8, fontFamily: '"DM Sans",sans-serif' }}>Transaction Failed</div>
+          <div style={{ fontSize: '0.85rem', color: '#64748B', fontFamily: '"DM Sans",sans-serif', lineHeight: 1.5 }}>
+            This transaction was not successful.<br/>No amount has been debited.
+          </div>
+          <div style={{ marginTop: 12, background: '#FEF2F2', borderRadius: 10, padding: '12px 16px', textAlign: 'left' }}>
+            {[
+              ['Amount', `₹${Number(mappedData?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`],
+              ['Txn ID', mappedData?.bankTransId || mappedData?.orderId || mappedData?.txnId || 'N/A'],
+              ['Date', mappedData?.date || 'N/A'],
+              ['Remark', mappedData?.remark || mappedData?.message || 'Transaction Failed'],
+            ].map(([k, v]) => (
+              <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px dashed #FECACA', fontFamily: '"DM Sans",sans-serif' }}>
+                <span style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 700 }}>{k}</span>
+                <span style={{ fontSize: '0.82rem', color: '#0F172A', fontWeight: 700, textAlign: 'right', maxWidth: '60%', wordBreak: 'break-all' }}>{v}</span>
+              </div>
+            ))}
+          </div>
+          <button onClick={onClose} style={{ marginTop: 24, padding: '10px 32px', borderRadius: 10, background: '#EF4444', color: '#fff', border: 'none', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', fontFamily: '"DM Sans",sans-serif' }}>Close</button>
+        </div>
+      </div>
+    );
+  }
 
   const receiptH = receiptRef.current?.scrollHeight || 600;
 
@@ -597,7 +749,67 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
               boxSizing: 'border-box',
               boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
             }}>
-              <ReceiptBody data={mappedData} cfg={cfg} />
+              {(() => {
+                const t = mappedData?._type || (mappedData?.isAeps ? 'aeps' : 'dmt');
+                const merchant = getSession()?.name || getSession()?.fullName || SITE_CONFIG.name || 'Merchant';
+
+                if (t === 'aeps') return <AepsReceiptBody data={mappedData} cfg={cfg} />;
+
+                if (t === 'recharge') return (
+                  <SimpleReceiptBody data={mappedData} cfg={cfg}
+                    title="Recharge Receipt"
+                    sections={[
+                      [['Merchant', merchant], ['Date & Time', mappedData.date]],
+                      [['Operator', mappedData.operatorName || mappedData.operatorId || 'N/A'], ['Number', mappedData.number || mappedData.customerMobile || 'N/A']],
+                      [['Member', mappedData.memberName || 'N/A'], ['Member ID', mappedData.memberId || 'N/A']],
+                      [['Txn ID', mappedData.orderId || mappedData.txnId || mappedData.transId || 'N/A'], ['Operator Ref', mappedData.operatorId || mappedData.refid || 'N/A']],
+                      [['Remark', mappedData.message || mappedData.remark || 'N/A']],
+                    ]}
+                  />
+                );
+
+                if (t === 'bbps') return (
+                  <SimpleReceiptBody data={mappedData} cfg={cfg}
+                    title="Bill Payment Receipt"
+                    sections={[
+                      [['Merchant', merchant], ['Date & Time', mappedData.date]],
+                      [['Operator / Biller', mappedData.operatorName || mappedData.operatorId || 'N/A'], ['Consumer No', mappedData.consumer || mappedData.number || mappedData.accountNo || 'N/A']],
+                      [['Member', mappedData.memberName || 'N/A'], ['Member ID', mappedData.memberId || 'N/A']],
+                      [['Txn ID', mappedData.orderId || mappedData.txnId || mappedData.transId || 'N/A'], ['Reference', mappedData.refid || mappedData.rrn || 'N/A']],
+                      [['Remark', mappedData.remark || mappedData.message || 'N/A']],
+                    ]}
+                  />
+                );
+
+                if (t === 'matm') return (
+                  <SimpleReceiptBody data={mappedData} cfg={cfg}
+                    title="MATM Receipt"
+                    sections={[
+                      [['Merchant', merchant], ['Date & Time', mappedData.date]],
+                      [['Card No', mappedData.accountNo || mappedData.cardNo || mappedData.cardNumber ? '•••• •••• •••• ' + String(mappedData.accountNo || mappedData.cardNo || mappedData.cardNumber || '').slice(-4) : 'N/A'], ['Operator', mappedData.operatorName || mappedData.operatorId || 'N/A']],
+                      [['BC Code', mappedData.memberId || mappedData.loginId || 'N/A'], ['BC Name', mappedData.memberName || 'N/A']],
+                      [['Txn ID', mappedData.orderId || mappedData.txnId || mappedData.transId || 'N/A'], ['Bank RRN', mappedData.rrn || mappedData.refid || 'N/A']],
+                      [['Remark', mappedData.remark || mappedData.message || 'N/A']],
+                    ]}
+                  />
+                );
+
+                if (t === 'payout') return (
+                  <SimpleReceiptBody data={mappedData} cfg={cfg}
+                    title="Payout Receipt"
+                    sections={[
+                      [['Merchant', merchant], ['Date & Time', mappedData.date]],
+                      [['Beneficiary', mappedData.beneficiary || mappedData.beniName || mappedData.beniVerifyName || 'N/A'], ['Bank', mappedData.bank || mappedData.bankName || 'N/A']],
+                      [['Account No', mappedData.accountNo || mappedData.accNo || 'N/A'], ['IFSC', mappedData.ifsc || mappedData.ifscCode || 'N/A']],
+                      [['Member', mappedData.memberName || 'N/A'], ['Sender Mobile', mappedData.customerMobile || mappedData.mobile || 'N/A']],
+                      [['Txn ID', mappedData.orderId || mappedData.txnId || mappedData.transId || 'N/A'], ['UTR / Ref', mappedData.rrn || mappedData.refid || 'N/A']],
+                      [['Mode', mappedData.mode || 'IMPS'], ['Remark', mappedData.remark || mappedData.message || 'N/A']],
+                    ]}
+                  />
+                );
+
+                return <ReceiptBody data={mappedData} cfg={cfg} />;
+              })()}
             </div>
           </div>
         </div>

@@ -27,14 +27,16 @@ const FundRequest = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [showFilterModal, setShowFilterModal] = useState(false);
   const [actionModal, setActionModal] = useState({ open: false, row: null, type: '', reason: '' });
   const [activeSlip, setActiveSlip] = useState(null);
-  
+
+  const today = new Date().toISOString().split('T')[0];
   const [filters, setFilters] = useState({
-    fromDate: '', toDate: '', memberId: '', status: '', paymentMode: '', bankName: ''
+    fromDate: today, toDate: today, memberId: '', status: '', paymentMode: '', bankName: ''
   });
-  const [tempFilters, setTempFilters] = useState(filters);
+  const [tempFilters, setTempFilters] = useState({
+    fromDate: today, toDate: today, memberId: '', status: '', paymentMode: '', bankName: ''
+  });
 
       const toRow = useCallback((r, banks = [], mMap = {}) => {
     const bankId = r.bankId || r.companyBankId;
@@ -212,115 +214,96 @@ const FundRequest = () => {
   return (
     <div className={styles.container}>
       
-            {showFilterModal && (
-        <div className={styles.modalOverlay} onClick={() => setShowFilterModal(false)}>
-          <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>Search & Filter Requests</h2>
-              <button className={styles.closeBtn} onClick={() => setShowFilterModal(false)}>
-                <FaTimesCircle />
-              </button>
-            </div>
-            
-            <div className={styles.modalBody}>
-              <div className={styles.filterGrid}>
-                <div className={styles.formGroup}>
-                  <label>From Date</label>
-                  <input type="date" className={styles.inputControl} value={tempFilters.fromDate} onChange={e => setTempFilters({...tempFilters, fromDate: e.target.value})} />
-                </div>
-                <div className={styles.formGroup}>
-                  <label>To Date</label>
-                  <input type="date" className={styles.inputControl} value={tempFilters.toDate} onChange={e => setTempFilters({...tempFilters, toDate: e.target.value})} />
-                </div>
-                <div className={styles.formGroup}>
-                  <label>Member</label>
-                  <SearchableSelect
-                    options={[
-                      { value: '', label: 'All Members' },
-                      ...Array.from(new Set(fundRequestList.map(r => r.memberId).filter(Boolean))).map(memId => {
-                        const row = fundRequestList.find(r => r.memberId === memId);
-                        const name = row?.memberName && row.memberName !== '-' ? row.memberName : 'Unknown';
-                        const login = row?.loginId || row?.msrno || '';
-                        return { value: memId, label: `${name} (${login})` };
-                      })
-                    ]}
-                    value={tempFilters.memberId}
-                    onChange={val => setTempFilters({...tempFilters, memberId: val})}
-                    placeholder="Search Member..."
-                    containerStyle={{ margin: 0 }}
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label>Status</label>
-                  <SearchableSelect
-                    options={[
-                      { value: '', label: 'All Status' },
-                      { value: 'pending', label: 'Pending' },
-                      { value: 'approved', label: 'Approved' },
-                      { value: 'rejected', label: 'Rejected' }
-                    ]}
-                    value={tempFilters.status}
-                    onChange={val => setTempFilters({...tempFilters, status: val})}
-                    placeholder="Search Status..."
-                    containerStyle={{ margin: 0 }}
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label>Payment Mode</label>
-                  <SearchableSelect
-                    options={[
-                      { value: '', label: 'All Modes' },
-                      ...Array.from(new Set(fundRequestList.map(r => r.paymentMode).filter(Boolean))).map(mode => ({ value: mode, label: mode }))
-                    ]}
-                    value={tempFilters.paymentMode}
-                    onChange={val => setTempFilters({...tempFilters, paymentMode: val})}
-                    placeholder="Search Mode..."
-                    containerStyle={{ margin: 0 }}
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label>Bank Name</label>
-                  <SearchableSelect
-                    options={[
-                      { value: '', label: 'All Banks' },
-                      ...companyBanks.map(b => ({ value: b.name, label: b.name }))
-                    ]}
-                    value={tempFilters.bankName}
-                    onChange={val => setTempFilters({...tempFilters, bankName: val})}
-                    placeholder="Search Bank..."
-                    containerStyle={{ margin: 0 }}
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className={styles.modalFooter}>
-              <button className={styles.cancelBtn} onClick={() => {
-                const empty = { fromDate: '', toDate: '', memberId: '', status: '', paymentMode: '', bankName: '' };
-                setTempFilters(empty);
-                setFilters(empty);
-                setShowFilterModal(false);
-              }}>Reset</button>
-              <button className={styles.submitBtn} onClick={() => {
-                setFilters(tempFilters);
-                setCurrentPage(1);
-                setShowFilterModal(false);
-              }}>
-                <FaSearch /> Apply Filters
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
             <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h2 className={styles.pageTitle} style={{ marginBottom: 0, borderBottom: 'none', paddingBottom: 0 }}>
             Fund Request Management
           </h2>
-          <div className={styles.headerActions}>
-            <button className={styles.filterBtn} onClick={() => setShowFilterModal(true)}>
-              <FaFilter /> Filters
+        </div>
+
+        {/* ── Always-visible Filter Row ── */}
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid #E8EEF6', background: '#F8FAFD' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', alignItems: 'flex-end' }}>
+            <div>
+              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'block', marginBottom: '4px' }}>From Date</label>
+              <input type="date" className={styles.inputControl} value={tempFilters.fromDate} onChange={e => setTempFilters({...tempFilters, fromDate: e.target.value})} style={{ height: '36px', borderRadius: '8px', fontSize: '0.82rem', width: '100%' }} />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'block', marginBottom: '4px' }}>To Date</label>
+              <input type="date" className={styles.inputControl} value={tempFilters.toDate} onChange={e => setTempFilters({...tempFilters, toDate: e.target.value})} style={{ height: '36px', borderRadius: '8px', fontSize: '0.82rem', width: '100%' }} />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'block', marginBottom: '4px' }}>Member</label>
+              <SearchableSelect
+                options={[
+                  { value: '', label: 'All Members' },
+                  ...Array.from(new Set(fundRequestList.map(r => r.memberId).filter(Boolean))).map(memId => {
+                    const row = fundRequestList.find(r => r.memberId === memId);
+                    const name = row?.memberName && row.memberName !== '-' ? row.memberName : 'Unknown';
+                    const login = row?.loginId || row?.msrno || '';
+                    return { value: memId, label: `${name} (${login})` };
+                  })
+                ]}
+                value={tempFilters.memberId}
+                onChange={val => setTempFilters({...tempFilters, memberId: val})}
+                placeholder="Search Member..."
+                containerStyle={{ margin: 0 }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'block', marginBottom: '4px' }}>Status</label>
+              <SearchableSelect
+                options={[
+                  { value: '', label: 'All Status' },
+                  { value: 'pending', label: 'Pending' },
+                  { value: 'approved', label: 'Approved' },
+                  { value: 'rejected', label: 'Rejected' }
+                ]}
+                value={tempFilters.status}
+                onChange={val => setTempFilters({...tempFilters, status: val})}
+                placeholder="Search Status..."
+                containerStyle={{ margin: 0 }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'block', marginBottom: '4px' }}>Payment Mode</label>
+              <SearchableSelect
+                options={[
+                  { value: '', label: 'All Modes' },
+                  ...Array.from(new Set(fundRequestList.map(r => r.paymentMode).filter(Boolean))).map(mode => ({ value: mode, label: mode }))
+                ]}
+                value={tempFilters.paymentMode}
+                onChange={val => setTempFilters({...tempFilters, paymentMode: val})}
+                placeholder="Search Mode..."
+                containerStyle={{ margin: 0 }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'block', marginBottom: '4px' }}>Bank Name</label>
+              <SearchableSelect
+                options={[
+                  { value: '', label: 'All Banks' },
+                  ...companyBanks.map(b => ({ value: b.name, label: b.name }))
+                ]}
+                value={tempFilters.bankName}
+                onChange={val => setTempFilters({...tempFilters, bankName: val})}
+                placeholder="Search Bank..."
+                containerStyle={{ margin: 0 }}
+              />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '12px', justifyContent: 'flex-end' }}>
+            <button className={styles.cancelBtn} onClick={() => {
+              const reset = { fromDate: today, toDate: today, memberId: '', status: '', paymentMode: '', bankName: '' };
+              setTempFilters(reset);
+              setFilters(reset);
+              setCurrentPage(1);
+            }}>Reset</button>
+            <button className={styles.submitBtn} onClick={() => {
+              setFilters(tempFilters);
+              setCurrentPage(1);
+            }}>
+              <FaSearch /> Apply Filters
             </button>
           </div>
         </div>
@@ -448,15 +431,25 @@ const FundRequest = () => {
             >
               <FaChevronLeft />
             </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(num => (
-              <button 
-                key={num}
-                className={`${styles.pageBtn} ${currentPage === num ? styles.pageActive : ''}`}
-                onClick={() => setCurrentPage(num)}
-              >
-                {num}
-              </button>
-            ))}
+            {(() => {
+              const delta = 2;
+              const left = currentPage - delta;
+              const right = currentPage + delta;
+              const pages = [];
+              let prev = null;
+              for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+                  if (prev !== null && i - prev > 1) pages.push('...');
+                  pages.push(i);
+                  prev = i;
+                }
+              }
+              return pages.map((pg, i) =>
+                pg === '...'
+                  ? <span key={`dot-${i}`} style={{ padding: '0 4px', color: '#94a3b8', fontSize: '0.85rem', lineHeight: '36px' }}>…</span>
+                  : <button key={pg} className={`${styles.pageBtn} ${currentPage === pg ? styles.pageActive : ''}`} onClick={() => setCurrentPage(pg)}>{pg}</button>
+              );
+            })()}
             <button 
               className={styles.pageBtn} 
               disabled={currentPage === totalPages || totalPages === 0}

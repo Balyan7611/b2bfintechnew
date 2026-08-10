@@ -373,16 +373,11 @@ const SupportList = () => {
                           src={imgSrc}
                           alt="Proof"
                           className={styles.miniImg}
-                          crossOrigin="anonymous"
                           onClick={() => setViewImage(imgSrc)}
                           onError={(e) => {
                             console.error('[SupportList] Image failed to load:', imgSrc);
-                                                        e.target.removeAttribute('crossorigin');
-                            e.target.onerror = (e2) => {
-                              console.error('[SupportList] Image still failed, opening in new tab will work:', imgSrc);
-                              e2.target.style.display = 'none';
-                              e2.target.parentElement.innerHTML = `<a href="${imgSrc}" target="_blank" rel="noopener noreferrer" style="color:#1756AA;font-size:0.8rem;text-decoration:underline">⚠ Click to open image</a>`;
-                            };
+                            e.target.style.display = 'none';
+                            e.target.parentElement.innerHTML = `<a href="${imgSrc}" target="_blank" rel="noopener noreferrer" style="color:#1756AA;font-size:0.8rem;text-decoration:underline;display:block;padding:8px">📎 Open Image</a>`;
                           }}
                         />
                       ) : (
