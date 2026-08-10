@@ -9,20 +9,17 @@ import {
 } from 'react-icons/fi';
 import styles from '../MemberPages/MemberPages.module.css';
 import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 
-// Adjust this constant to match your Queued Recharge service ID
-const QUEUED_SERVICE_ID = '10'; // Example ID
-
+const QUEUED_SERVICE_ID = '10'; 
 const QueuedRecharge = () => {
-    // ─── State ──────────────────────────────────────────────
-    const [transactions, setTransactions] = useState([]);
+        const [transactions, setTransactions] = useState([]);
     const [totalRecords, setTotalRecords] = useState(0);
     const [pageNumber, setPageNumber] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [loading, setLoading] = useState(false);
 
-    // Filters
-    const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(today);
     const [toDate, setToDate] = useState(today);
     const [selectedMember, setSelectedMember] = useState('');
@@ -30,20 +27,20 @@ const QueuedRecharge = () => {
     const [selectedStatus, setSelectedStatus] = useState('');
     const [searchKeyword, setSearchKeyword] = useState('');
 
-    // Dropdown lists
-    const [memberList, setMemberList] = useState([]);
+        const [memberList, setMemberList] = useState([]);
     const [serviceList, setServiceList] = useState([]);
+    const [operatorList, setOperatorList] = useState([]);
+    const [selectedOperator, setSelectedOperator] = useState('');
+    const [apiList, setApiList] = useState([]);
+    const [selectedApi, setSelectedApi] = useState('');
 
-    // UI states
-    const [showStats, setShowStats] = useState(false);
+        const [showStats, setShowStats] = useState(false);
     const [focusedField, setFocusedField] = useState(null);
 
-    // Selection state
-    const [selectedIds, setSelectedIds] = useState([]);
+        const [selectedIds, setSelectedIds] = useState([]);
     const { popup, showPopup, closePopup } = usePopup();
 
-    // ─── Stats Computation ──────────────────────────────────
-    const totalTxns = totalRecords;
+        const totalTxns = totalRecords;
     const totalAmount = transactions.reduce((acc, t) => acc + (parseFloat(t.amount) || 0), 0);
     const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
     const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
@@ -73,12 +70,10 @@ const QueuedRecharge = () => {
         netPayable,
     };
 
-    // ─── API Calls ──────────────────────────────────────────
-    const fetchTransactions = async () => {
+        const fetchTransactions = async () => {
         setLoading(true);
         try {
-            // Use the queued recharge API endpoint – adjust as needed
-            const res = await API.transaction.getAll({
+                        const res = await API.transaction.getAll({
                 pageNumber,
                 pageSize,
                 fromDate,
@@ -87,8 +82,7 @@ const QueuedRecharge = () => {
                 memberId: selectedMember,
                 status: selectedStatus,
                 search: searchKeyword,
-                // Add other filters like isQueued = true if needed
-            });
+                            });
 
                   const { items: _txns, totalItems: _total, totalSuccess: _succ, totalPending: _pend, totalFailed: _fail } = normalizeTxnResponse(res);
       setTransactions(_txns);
@@ -102,40 +96,74 @@ const QueuedRecharge = () => {
         }
     };
 
-    // ─── Effects ────────────────────────────────────────────
-    useEffect(() => {
+        useEffect(() => {
         fetchTransactions();
     }, [pageNumber, pageSize, selectedStatus, selectedMember, selectedService, fromDate, toDate, searchKeyword]);
 
-    // Fetch dropdowns
-    useEffect(() => {
+        useEffect(() => {
         const fetchMembers = async () => {
             try {
-                const res = await API.member.search('');
-                setMemberList(res || []);
+                const res = await API.member.getAll({ pageNumber: 1, pageSize: 5000 });
+                const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+                setMemberList(Array.isArray(list) ? list : []);
             } catch (err) { console.error("Failed to fetch members:", err); }
         };
         const fetchServices = async () => {
             try {
                 const res = await API.service.getAll();
-                if (res && Array.isArray(res.data)) setServiceList(res.data);
-                else if (Array.isArray(res)) setServiceList(res);
-                else setServiceList([]);
+                let list = [];
+                if (res && Array.isArray(res.data)) list = res.data;
+                else if (Array.isArray(res)) list = res;
+                else list = [];
+                const rechargeServices = list.filter(srv => String(srv.sectionType || '') === '1');
+                setServiceList(rechargeServices);
             } catch (err) { console.error("Failed to fetch services:", err); }
         };
         fetchMembers();
         fetchServices();
     }, []);
 
-    // ─── Handlers ────────────────────────────────────────────
-    const handleSearchSubmit = (e) => {
+    useEffect(() => {
+        const fetchOperators = async () => {
+            try {
+                const res = await API.operator.getAll();
+                let allOps = [];
+                if (res?.data?.items) allOps = res.data.items;
+                else if (res?.data && Array.isArray(res.data)) allOps = res.data;
+                else if (Array.isArray(res)) allOps = res;
+
+                if (selectedService) {
+                    allOps = allOps.filter(op => String(op.serviceId) === String(selectedService));
+                }
+                setOperatorList(allOps);
+            } catch (err) {
+                console.error("Failed to fetch operators:", err);
+            }
+        };
+        fetchOperators();
+        setSelectedOperator('');
+    }, [selectedService]);
+
+    useEffect(() => {
+        const fetchApis = async () => {
+            try {
+                const res = await API.masterApi.getAll();
+                const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+                setApiList(Array.isArray(list) ? list : []);
+            } catch (err) {
+                console.error("Failed to fetch APIs:", err);
+            }
+        };
+        fetchApis();
+    }, []);
+
+        const handleSearchSubmit = (e) => {
         e.preventDefault();
         setPageNumber(1);
         fetchTransactions();
     };
 
-    // Select All / individual checkbox handlers
-    const toggleSelectAll = () => {
+        const toggleSelectAll = () => {
         if (isAllSelected) {
             setSelectedIds(prev => prev.filter(id => !allCurrentIds.includes(id)));
         } else {
@@ -147,8 +175,7 @@ const QueuedRecharge = () => {
         setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
     };
 
-    // Placeholder for Force Success/Fail actions
-    const handleForceAction = (type) => {
+        const handleForceAction = (type) => {
         if (selectedIds.length === 0) {
             showPopup('warning', 'No Selection', 'Please select at least one transaction first.');
             return;
@@ -160,13 +187,11 @@ const QueuedRecharge = () => {
         );
     };
 
-    // ─── Render ──────────────────────────────────────────────
-    const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+        const totalPages = Math.ceil(totalRecords / pageSize) || 1;
     const startIndex = (pageNumber - 1) * pageSize;
     const currentRows = transactions.slice(startIndex, startIndex + pageSize);
 
-    // Selection helpers (depend on currentRows — must be after it)
-    const allCurrentIds = currentRows.map(t => t.id || t.txid);
+        const allCurrentIds = currentRows.map(t => t.id || t.txid);
     const isAllSelected = allCurrentIds.length > 0 && allCurrentIds.every(id => selectedIds.includes(id));
 
     const renderStatusBadge = (status) => {
@@ -249,14 +274,19 @@ const QueuedRecharge = () => {
                             </div>
                             <div className={styles.formGroup}>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Select User</label>
-                                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: focusedField === 'member' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', transition: 'all 0.25s' }} value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} onFocus={() => setFocusedField('member')} onBlur={() => setFocusedField(null)}>
-                                    <option value="">All Members</option>
-                                    {memberList.map(m => (
-                                        <option key={m.memberId || m.id} value={m.memberId || m.id}>
-                                            {m.name} ({m.mobile})
-                                        </option>
-                                    ))}
-                                </select>
+                                <SearchableSelect
+                                    options={[
+                                        { value: '', label: 'All Members' },
+                                        ...memberList.map(m => {
+                                            const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
+                                            const loginId = m.memberID || m.memberid || m.loginID || m.loginId || String(m.id || m.msrno || '');
+                                            return { value: String(m.id || m.uniqueID || m.msrno || ''), label: name ? `${name} (${loginId})` : loginId };
+                                        })
+                                    ]}
+                                    value={selectedMember}
+                                    onChange={val => setSelectedMember(val || '')}
+                                    placeholder="All Members"
+                                />
                             </div>
                             <div className={styles.formGroup}>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Service</label>
@@ -265,6 +295,28 @@ const QueuedRecharge = () => {
                                     {serviceList.map(s => (
                                         <option key={s.id || s.serviceId} value={s.id || s.serviceId}>
                                             {s.serviceName || s.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Operator</label>
+                                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: focusedField === 'operator' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', transition: 'all 0.25s' }} value={selectedOperator} onChange={(e) => setSelectedOperator(e.target.value)} onFocus={() => setFocusedField('operator')} onBlur={() => setFocusedField(null)}>
+                                    <option value="">All Operators</option>
+                                    {Array.isArray(operatorList) && operatorList.map((op) => (
+                                        <option key={op.id || op.operatorId} value={op.id || op.operatorId}>
+                                            {op.name || op.operatorName || op.title || op.id || 'Unknown'}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>API Provider</label>
+                                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: focusedField === 'provider' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', transition: 'all 0.25s' }} value={selectedApi} onChange={(e) => setSelectedApi(e.target.value)} onFocus={() => setFocusedField('provider')} onBlur={() => setFocusedField(null)}>
+                                    <option value="">All Providers</option>
+                                    {Array.isArray(apiList) && apiList.map((api) => (
+                                        <option key={api.id || api.apiId} value={api.id || api.apiId}>
+                                            {api.apiname || api.apiName || api.name || `API #${api.id}`}
                                         </option>
                                     ))}
                                 </select>
@@ -295,8 +347,7 @@ const QueuedRecharge = () => {
                 </div>
             </div>
 
-            {/* ── STATS GRID ── */}
-            <StatsGrid stats={stats} showStats={showStats} />
+                        <StatsGrid stats={stats} showStats={showStats} />
 
             {/* ── DATA TABLE ── */}
             <div className={styles.cardFullMobile} style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.02)' }}>
@@ -392,8 +443,7 @@ const QueuedRecharge = () => {
                     </table>
                 </div>
 
-                {/* ── QUEUE ACTIONS ── */}
-                <div style={{ display: 'flex', gap: '15px', marginTop: '20px', padding: '16px 20px', background: '#F8FAFC', borderRadius: '16px', border: '1px solid #E2E8F0', flexWrap: 'wrap', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', gap: '15px', marginTop: '20px', padding: '16px 20px', background: '#F8FAFC', borderRadius: '16px', border: '1px solid #E2E8F0', flexWrap: 'wrap', alignItems: 'center' }}>
                     {selectedIds.length > 0 && (
                         <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1756AA', background: '#EFF6FF', padding: '6px 14px', borderRadius: '8px', border: '1px solid #BFDBFE' }}>
                             {selectedIds.length} selected

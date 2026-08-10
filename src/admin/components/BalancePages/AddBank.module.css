@@ -102,7 +102,6 @@
   pointer-events: none;
 }
 
-/* SMART SIDE PANEL */
 .smartPanel {
   position: absolute;
   top: 100%;
@@ -158,7 +157,6 @@
 .checkIcon { color: #27AE60; font-size: 0.8rem; }
 .noResults { padding: 20px; text-align: center; color: #A0AEC0; font-size: 0.85rem; }
 
-/* Toggle */
 .statusRow {
   display: flex;
   align-items: center;
@@ -210,7 +208,6 @@
 input:checked + .slider { background-color: #27AE60; }
 input:checked + .slider:before { transform: translateX(24px); }
 
-/* Submit Button */
 .submitBtn {
   background: linear-gradient(135deg, #1756AA, #124d96);
   color: #fff;
@@ -227,7 +224,6 @@ input:checked + .slider:before { transform: translateX(24px); }
 }
 .submitBtn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(23,86,170,0.25); }
 
-/* Table Controls */
 .topControls {
   display: flex;
   align-items: center;
@@ -286,7 +282,6 @@ input:checked + .slider:before { transform: translateX(24px); }
 .searchBox:focus-within { border-color: #1756AA; background: #fff; box-shadow: 0 0 0 4px rgba(23, 86, 170, 0.1); }
 .searchInput { border: none; outline: none; font-size: 0.9rem; width: 180px; background: transparent; font-weight: 500; }
 
-/* Table */
 .tableWrapper { width: 100%; overflow-x: auto; border-radius: 12px; border: 1px solid #EDF2F7; }
 .table { width: 100%; border-collapse: collapse; white-space: nowrap; }
 .table th {
@@ -310,7 +305,6 @@ input:checked + .slider:before { transform: translateX(24px); }
 .ifscText { color: #718096; font-family: 'Inter', monospace; }
 .badgeActive { background: rgba(39, 174, 96, 0.1); color: #27AE60; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
 
-/* ── NEW: Inactive status badge ── */
 .badgeInactive {
   background: rgba(148, 163, 184, 0.15);
   color: #94A3B8;
@@ -361,13 +355,11 @@ input:checked + .slider:before { transform: translateX(24px); }
   transform: translateY(-2px);
 }
 
-/* ── NEW: Bank name wrapper with dot badge ── */
 .bankNameWrapper {
   display: flex;
   align-items: center;
 }
 
-/* The dot badge – light colour (green for active, grey for inactive) */
 .statusDot {
   display: inline-block;
   width: 10px;
@@ -378,19 +370,16 @@ input:checked + .slider:before { transform: translateX(24px); }
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
-/* ── NEW: S.No cell styling for better alignment ── */
 .snoCell {
   text-align: center;
   font-weight: 600;
   color: #A0AEC0;
 }
 
-/* ── NEW: Center alignment for action column ── */
 .centerAlign {
   text-align: center;
 }
 
-/* Modal */
 .modalOverlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(13, 27, 62, 0.6); backdrop-filter: blur(4px);
@@ -453,7 +442,6 @@ input:checked + .slider:before { transform: translateX(24px); }
   background: #E2E8F0;
 }
 
-/* Delete Confirmation Modal */
 .deleteModal {
   background: #fff;
   border-radius: 28px;
@@ -531,7 +519,6 @@ input:checked + .slider:before { transform: translateX(24px); }
 
 .addBtn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(23, 86, 170, 0.3); }
 
-/* Pagination */
 .paginationRow { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 16px; }
 .pageInfo { font-size: 0.85rem; color: #4E6080; font-weight: 500; }
 .pagination { display: flex; gap: 6px; }

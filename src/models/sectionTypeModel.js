@@ -1,4 +1,3 @@
-// src/models/sectionTypeModel.js
 export const SectionTypeResponseModel = (res) => {
     if (!res || !res.status) return [];
     const items = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);

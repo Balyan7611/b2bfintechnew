@@ -87,8 +87,7 @@ const AboutSection = () => {
     <section id="about" className={styles.aboutSection} ref={sectionRef}>
       <div className="container">
         <div className={styles.aboutContent}>
-          {/* Left Content */}
-          <div className={`${styles.leftContent} ${styles.animateOnScroll}`}>
+                    <div className={`${styles.leftContent} ${styles.animateOnScroll}`}>
             <span className="sectionLabel">About Us</span>
             <h2 className="sectionTitle">Welcome To {SITE_CONFIG.shortName}</h2>
             
@@ -116,8 +115,7 @@ const AboutSection = () => {
             </Link>
           </div>
 
-          {/* Right Content - Image */}
-          <div className={`${styles.rightContent} ${styles.animateOnScroll}`}>
+                    <div className={`${styles.rightContent} ${styles.animateOnScroll}`}>
             <div className={styles.imageWrapper}>
               <div className={styles.imageBackdrop}></div>
               <img 

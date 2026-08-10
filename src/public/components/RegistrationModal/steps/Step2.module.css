@@ -9,7 +9,6 @@
   letter-spacing: 0.8px;
 }
 
-/* Input Row */
 .inputRow {
   display: flex;
   align-items: center;
@@ -44,7 +43,6 @@
 .input:disabled { opacity: 0.55; background: #F8FAFF; }
 .input::placeholder { color: #a0aec0; }
 
-/* Buttons */
 .btn {
   width: 100%; padding: 12px;
   background: #1756AA; color: #fff;
@@ -58,7 +56,6 @@
 .btn:hover:not(.disabled) { background: #124d96; transform: translateY(-2px); box-shadow: 0 7px 18px rgba(23,86,170,0.35); }
 .disabled { background: #e2e8f0 !important; color: #a0aec0 !important; cursor: not-allowed; box-shadow: none !important; transform: none !important; }
 
-/* ── Compact OTP Alert ── */
 .otpAlert {
   display: flex;
   align-items: center;
@@ -89,7 +86,6 @@
   letter-spacing: 6px;
 }
 
-/* Copy Button */
 .copyBtn {
   display: inline-flex;
   align-items: center;
@@ -109,7 +105,6 @@
 .copyBtn:hover { background: #1756AA; color: #fff; }
 .copiedBtn { background: #27AE60; border-color: #27AE60; color: #fff; }
 
-/* ── OTP Input Boxes ── */
 .otpBoxes {
   display: flex;
   gap: 10px;
@@ -131,7 +126,6 @@
 .otpBox:focus { border-color: #1756AA; box-shadow: 0 0 0 3px rgba(23,86,170,0.12); }
 .otpError { border-color: #e53e3e !important; background: #FFF5F5; }
 
-/* Shake */
 .shake { animation: shake 0.38s ease; }
 @keyframes shake {
   0%,100% { transform: translateX(0); }
@@ -142,7 +136,6 @@
 
 .errorMsg { font-size: 0.75rem; color: #e53e3e; text-align: center; }
 
-/* ── Success ── */
 .successBox {
   display: flex;
   align-items: center;

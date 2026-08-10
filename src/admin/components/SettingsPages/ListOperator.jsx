@@ -10,7 +10,6 @@ import {
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import styles from '../MemberPages/MemberPages.module.css';
 
-// ── CUSTOM SEARCHABLE DROPDOWN COMPONENT ──
 const CustomSearchSelect = ({ options, placeholder, value, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -79,26 +78,21 @@ const CustomSearchSelect = ({ options, placeholder, value, onChange }) => {
 const ListOperator = () => {
   const dispatch = useDispatch();
 
-  // Selected Service (On/Off list)
-  const [selectedService, setSelectedService] = useState("");
+    const [selectedService, setSelectedService] = useState("");
   const [tableSearch, setTableSearch] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Custom Modal State
-  const [modal, setModal] = useState({
+    const [modal, setModal] = useState({
     show: false,
     title: "",
     message: "",
     onConfirm: null,
-    type: "confirm" // 'alert' | 'confirm'
-  });
+    type: "confirm"   });
 
-  // Add/Edit Form State
-  const [formModal, setFormModal] = useState({
+    const [formModal, setFormModal] = useState({
     show: false,
-    mode: "add", // "add" | "edit"
-    id: null,
+    mode: "add",     id: null,
     name: "",
     opCode: "",
     status: true
@@ -124,8 +118,7 @@ const ListOperator = () => {
     });
   };
 
-  // Service Options (Matching On/Off Services page)
-  const [serviceOptions, setServiceOptions] = useState([
+    const [serviceOptions, setServiceOptions] = useState([
     "Recharge", "MOBILE POSTPAID", "DTH", "Electricity", "Water", "GAS",
     "LPG Gas", "Insurance", "Internet", "Landline Postpaid", "EMI", "FasTag",
     "Education", "Cable Tv", "Municipal Tax", "AEPS", "Aadhar Pay", "Payment Gateway",
@@ -139,8 +132,7 @@ const ListOperator = () => {
     "NPMC", "NPS", "Prepaid Meter", "Neeraj Bar"
   ]);
 
-  // Operator Registry State List (Mapped to actual Member Panel services data)
-  const [operatorRegistry, setOperatorRegistry] = useState([]);
+    const [operatorRegistry, setOperatorRegistry] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
@@ -166,7 +158,7 @@ const ListOperator = () => {
           setOperatorRegistry(res.map(item => ({
             id: item.id,
             name: item.name,
-            type: item.serviceId === 1 ? 'Recharge' : item.serviceId === 2 ? 'MOBILE POSTPAID' : 'DTH',
+            type: item.serviceName || `Service #${item.serviceId}`,
             opCode: item.operatorCode,
             status: item.isActive,
             ...item
@@ -185,30 +177,25 @@ const ListOperator = () => {
     fetchOperators();
   }, []);
 
-  // Fetch Operators for Selected Service
-  let serviceOperators = [];
+    let serviceOperators = [];
   if (selectedService) {
     serviceOperators = operatorRegistry.filter(op => 
       op.type.toLowerCase() === selectedService.toLowerCase()
     );
   }
 
-  // Filter list by table search input
-  const filteredOperators = serviceOperators.filter(op => 
+    const filteredOperators = serviceOperators.filter(op => 
     op.name.toLowerCase().includes(tableSearch.toLowerCase()) || 
     op.opCode.toLowerCase().includes(tableSearch.toLowerCase())
   );
 
-  // Pagination Logic
-  const totalEntries = filteredOperators.length;
+    const totalEntries = filteredOperators.length;
   const totalPages = Math.ceil(totalEntries / entriesPerPage);
   const startIndex = (currentPage - 1) * entriesPerPage;
   const paginatedOperators = filteredOperators.slice(startIndex, startIndex + entriesPerPage);
 
-  // Toggle Operator Status
-  const handleToggleStatus = (id) => {
-    // If it's a generated ID, update state dynamically
-    if (typeof id === 'string' && id.startsWith('gen-')) {
+    const handleToggleStatus = (id) => {
+        if (typeof id === 'string' && id.startsWith('gen-')) {
       showCustomAlert("Demo Mode", "Generated demo operators cannot toggle status.");
       return;
     }
@@ -217,8 +204,7 @@ const ListOperator = () => {
     ));
   };
 
-  // Delete Registry Entry
-  const handleDeleteOperator = (id, name) => {
+    const handleDeleteOperator = (id, name) => {
     if (typeof id === 'string' && id.startsWith('gen-')) {
       showCustomAlert("Demo Mode", "Generated demo operators cannot be deleted.");
       return;
@@ -233,8 +219,7 @@ const ListOperator = () => {
     );
   };
 
-  // Submit Add / Edit Form
-  const handleFormSubmit = (e) => {
+    const handleFormSubmit = (e) => {
     e.preventDefault();
     if (!formModal.name || !formModal.opCode) {
       showCustomAlert("Validation Warning", "Please fill in all required fields.");
@@ -270,11 +255,9 @@ const ListOperator = () => {
   return (
     <>
       <div className={styles.container} style={{ padding: '15px 12px', maxWidth: '100%' }}>
-      {/* ── MAIN CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', overflow: 'hidden', background: '#fff' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', overflow: 'hidden', background: '#fff' }}>
         
-        {/* CARD INTERNAL HEADER (Polished & height decreased) */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             
             </div>
@@ -300,11 +283,9 @@ const ListOperator = () => {
           </div>
         )}
 
-        {/* CONTENT VIEW AREA */}
-        <div style={{ padding: '24px' }}>
+                <div style={{ padding: '24px' }}>
            
-           {/* SINGLE SEARCHABLE DROPDOWN FILTER (Aligned to a single row) */}
-           <div style={{ background: '#F8FAFC', padding: '12px 20px', borderRadius: '12px', border: '1px solid #E2E8F0', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                      <div style={{ background: '#F8FAFC', padding: '12px 20px', borderRadius: '12px', border: '1px solid #E2E8F0', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '15px' }}>
              <label style={{ fontWeight: 800, color: '#4E6080', fontSize: '0.9rem', whiteSpace: 'nowrap', margin: 0 }}>
                Service:
              </label>
@@ -316,8 +297,7 @@ const ListOperator = () => {
              />
            </div>
 
-           {/* ── TOOLBAR ── */}
-           <div className="global-table-toolbar" style={{ padding: '10px 0px 20px 0px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
+                      <div className="global-table-toolbar" style={{ padding: '10px 0px 20px 0px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
              <div className={styles.pillRow} style={{ alignItems: 'center' }}>
                <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
                <select 
@@ -354,8 +334,7 @@ const ListOperator = () => {
              </div>
            </div>
 
-           {/* ── TABLE (Configured columns to match user screenshot) ── */}
-           <div className={styles.tableWrapper} style={{ border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden' }}>
+                      <div className={styles.tableWrapper} style={{ border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden' }}>
              <table className={styles.table} style={{ width: '100%', minWidth: '900px', tableLayout: 'auto' }}>
                <thead>
                  <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -371,8 +350,7 @@ const ListOperator = () => {
                    <tr key={item.id} className={styles.hoverRow}>
                      <td style={{ fontWeight: 700, color: '#A0AEC0', textAlign: 'center' }}>{startIndex + idx + 1}</td>
                      <td style={{ textAlign: 'center' }}>
-                        {/* Custom switch slider matching Active/DeActive styling */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                           <div 
                             onClick={() => handleToggleStatus(item.id)}
                             style={{
@@ -421,8 +399,7 @@ const ListOperator = () => {
              </table>
            </div>
 
-           {/* ── PAGINATION ── */}
-           {totalPages > 1 && (
+                      {totalPages > 1 && (
              <div className="global-pagination" style={{ padding: '25px 0px 0px 0px', borderTop: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
                  Showing {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} records
@@ -452,8 +429,7 @@ const ListOperator = () => {
            )}
         </div>
 
-      {/* ── ADD/EDIT OPERATOR FORM OVERLAY MODAL ── */}
-      {formModal.show && (
+            {formModal.show && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)',
@@ -557,8 +533,7 @@ const ListOperator = () => {
         </div>
       )}
 
-      {/* ── CUSTOM ALERT/CONFIRM MODAL ── */}
-      {modal.show && (
+            {modal.show && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)',

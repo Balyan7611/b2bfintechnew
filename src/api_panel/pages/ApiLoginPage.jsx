@@ -23,9 +23,6 @@ import { backToStep1, proceedToStep2, setPassword, setUserId, resetLogin } from 
 import { decodeToken, saveSession, getSession } from '../../utils/authUtils';
 import { checkMaliciousInput } from '../../utils/securityUtils';
 
-// FOR FUTURE CONFIGURATION:
-// When the specific Role ID for API User is provided by admin, set it below (e.g., const ALLOWED_API_ROLE_ID = 5;)
-// Currently set to null to allow all non-admin roles (Role ID !== 1).
 const ALLOWED_API_ROLE_ID = null;
 
 const FEATURES = [
@@ -61,17 +58,14 @@ const ApiLoginPage = () => {
   const [modalError, setModalError] = useState('');
   const [locationStatus, setLocationStatus] = useState(null);
 
-  // Step 3: OTP / T-PIN verification
-  const [showVerifyStep, setShowVerifyStep] = useState(false);
-  const [authMode, setAuthMode] = useState(null); // 'OTP' | 'TPIN' | null
-  const [verifyToken, setVerifyToken] = useState('');
+    const [showVerifyStep, setShowVerifyStep] = useState(false);
+  const [authMode, setAuthMode] = useState(null);   const [verifyToken, setVerifyToken] = useState('');
   const [otpValue, setOtpValue] = useState('');
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyError, setVerifyError] = useState('');
   const [loginLocation, setLoginLocation] = useState(null);
 
-  // Brute force protection
-  const [failedAttempts, setFailedAttempts] = useState(() => {
+    const [failedAttempts, setFailedAttempts] = useState(() => {
     const attempts = localStorage.getItem('api_login_attempts');
     return attempts ? parseInt(attempts, 10) : 0;
   });
@@ -81,8 +75,7 @@ const ApiLoginPage = () => {
   });
   const [remainingTime, setRemainingTime] = useState(0);
 
-  // Auto-redirect if already logged in as non-admin
-  useEffect(() => {
+    useEffect(() => {
     const token = localStorage.getItem('access_token');
     const session = getSession();
     if (token && session && session.sessionId) {
@@ -94,8 +87,7 @@ const ApiLoginPage = () => {
     }
   }, [navigate]);
 
-  // Lockout countdown timer
-  useEffect(() => {
+    useEffect(() => {
     if (lockoutUntil > Date.now()) {
       setRemainingTime(Math.ceil((lockoutUntil - Date.now()) / 1000));
       const interval = setInterval(() => {
@@ -329,38 +321,29 @@ const ApiLoginPage = () => {
   const completeApiUserLogin = (decoded, token, location, clientIp) => {
     const roleNum = decoded ? Number(decoded.role) : -1;
     
-    // Block pure admin (role === 1) from logging in as API User
-    if (roleNum === 1) {
+        if (roleNum === 1) {
       throw new Error("Access Denied: Admin accounts cannot login to the API User Panel.");
     }
 
-    // When the specific Role ID is configured later, check it here:
-    if (ALLOWED_API_ROLE_ID !== null && roleNum !== ALLOWED_API_ROLE_ID) {
+        if (ALLOWED_API_ROLE_ID !== null && roleNum !== ALLOWED_API_ROLE_ID) {
       throw new Error(`Access Denied: Only designated API User roles can login to this panel.`);
     }
 
-    // Reset brute force counters on success
-    localStorage.removeItem('api_login_attempts');
+        localStorage.removeItem('api_login_attempts');
     localStorage.removeItem('api_lockout_until');
     setFailedAttempts(0);
     setLockoutUntil(0);
 
-    // Store tokens
-    localStorage.setItem('access_token', token);
+        localStorage.setItem('access_token', token);
     localStorage.setItem('api_token', token);
-    localStorage.setItem('member_token', token); // compatibility for shared API services
-    sessionStorage.setItem('access_token', token);
+    localStorage.setItem('member_token', token);     sessionStorage.setItem('access_token', token);
     sessionStorage.setItem('api_token', token);
     sessionStorage.setItem('member_token', token);
 
-    // Extract real user info from JWT payload
-    const loginId = decoded?.LoginId || decoded?.loginId || decoded?.sub || userId;
+        const loginId = decoded?.LoginId || decoded?.loginId || decoded?.sub || userId;
     const userName = decoded?.unique_name || decoded?.name || decoded?.Name || 'API User';
     const mobileNo = decoded?.mobile || decoded?.Mobile || decoded?.phone || userId;
-    // `sub` on this backend is the LoginId string (e.g. "RT100"), NOT the numeric
-    // Member.Id. Only accept a genuinely numeric claim here — otherwise leave it 0
-    // and let resolveMemberId() look the real Id up from the Member master.
-    const rawNumeric = decoded?.MemberId ?? decoded?.memberId ?? decoded?.Id ?? decoded?.id ?? decoded?.nameid ?? decoded?.sub;
+                const rawNumeric = decoded?.MemberId ?? decoded?.memberId ?? decoded?.Id ?? decoded?.id ?? decoded?.nameid ?? decoded?.sub;
     const numericId = /^\d+$/.test(String(rawNumeric ?? '').trim()) ? parseInt(rawNumeric, 10) : 0;
 
     saveSession({
@@ -553,8 +536,7 @@ const ApiLoginPage = () => {
   return (
     <div className={styles.page}>
       <div className={styles.loginContainer}>
-        {/* LEFT PANEL: Branding & Visuals */}
-        <div className={styles.brandingPanel}>
+                <div className={styles.brandingPanel}>
           <div className={styles.brandingContent}>
             <Link to="/" className={styles.logoWrap}>
               <img src={SITE_CONFIG.logo} alt="Logo" className={styles.logoImg} />
@@ -583,8 +565,7 @@ const ApiLoginPage = () => {
           </div>
         </div>
 
-        {/* RIGHT PANEL: Authentication Form */}
-        <div className={styles.authPanel}>
+                <div className={styles.authPanel}>
           <div className={styles.formCard}>
             <div className={styles.mobileLogoBox}>
               <img src={SITE_CONFIG.logo} alt="Logo" className={styles.mobileLogo} />
@@ -601,16 +582,14 @@ const ApiLoginPage = () => {
               </p>
             </div>
 
-            {/* Progress Bar */}
-            <div className={styles.progressTrack}>
+                        <div className={styles.progressTrack}>
               <div
                 className={`${styles.progressFill} ${isStep1Done ? styles.progressHalf : ''}`}
                 style={showVerifyStep ? { width: '100%' } : undefined}
               ></div>
             </div>
 
-            {/* Location Error Display */}
-            {locationStatus && locationStatus.status === 'off' && isStep1Done && !showVerifyStep && (
+                        {locationStatus && locationStatus.status === 'off' && isStep1Done && !showVerifyStep && (
               <div style={{ 
                 background: '#f8d7da', 
                 color: '#721c24', 
@@ -786,8 +765,7 @@ const ApiLoginPage = () => {
         </div>
       </div>
 
-      {/* FORGOT PASSWORD / T-PIN MODAL */}
-      {forgotModal.isOpen && (
+            {forgotModal.isOpen && (
         <div className={styles.modalOverlay} onClick={closeForgotModal}>
           <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
             <button className={styles.closeModalBtn} onClick={closeForgotModal}><FaTimes /></button>

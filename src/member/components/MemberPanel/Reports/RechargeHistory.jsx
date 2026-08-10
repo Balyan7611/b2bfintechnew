@@ -49,7 +49,6 @@ const RechargeHistory = () => {
 
   }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
 
-
   const fetchData = async () => {
     try {
       const res = await API.transaction.getAll({
@@ -72,9 +71,7 @@ const RechargeHistory = () => {
     }
   };
 
-  // Auto-fetch on mount and when filters/page change
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
+      useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
 
   const filteredList = list.filter(item => item.number?.includes(searchQuery) || item.txnId?.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -179,8 +176,7 @@ const RechargeHistory = () => {
       />
       <ReceiptModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} data={selectedTxn} />
 
-      {/* ── Upline Commission Breakdown Modal — rendered via Portal to escape parent transforms ── */}
-      {breakdownTxn && ReactDOM.createPortal(
+            {breakdownTxn && ReactDOM.createPortal(
         <>
           <div
             onClick={() => setBreakdownTxn(null)}
@@ -205,16 +201,14 @@ const RechargeHistory = () => {
               <button onClick={() => setBreakdownTxn(null)} style={{ background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%', width: 28, height: 28, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
             </div>
 
-            {/* Total */}
-            <div style={{ background: '#f0fdf4', borderBottom: '1px solid #bbf7d0', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ background: '#f0fdf4', borderBottom: '1px solid #bbf7d0', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#15803d' }}>Total Upline Earning</span>
               <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#15803d' }}>
                 ₹{Number(breakdownTxn.uplineCommission).toFixed(2)}
               </span>
             </div>
 
-            {/* Breakdown list */}
-            <div style={{ padding: '12px 20px 20px', maxHeight: 340, overflowY: 'auto' }}>
+                        <div style={{ padding: '12px 20px 20px', maxHeight: 340, overflowY: 'auto' }}>
               {(breakdownTxn.uplineBreakdown || []).map((row, i) => (
                 <div key={i} style={{
                   display: 'flex', alignItems: 'center', gap: 12,
@@ -222,8 +216,7 @@ const RechargeHistory = () => {
                   background: '#f8fafc', borderRadius: 10,
                   border: '1px solid #e2e8f0',
                 }}>
-                  {/* Level badge */}
-                  <div style={{
+                                    <div style={{
                     width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
                     background: i === 0 ? 'linear-gradient(135deg,#1756AA,#0A1428)' : 'linear-gradient(135deg,#7c3aed,#4c1d95)',
                     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',

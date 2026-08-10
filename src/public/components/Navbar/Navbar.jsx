@@ -29,8 +29,7 @@ const Navbar = () => {
   const handleLinkClick = (e, path) => {
     dispatch(setMobileMenuOpen(false));
     
-    // Smooth scroll to top for Home link if already on homepage
-    if (path === '/' && location.pathname === '/') {
+        if (path === '/' && location.pathname === '/') {
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: 'smooth' });
       window.history.pushState(null, '', path);
@@ -46,13 +45,11 @@ const Navbar = () => {
         if (targetElement) {
           const y = targetElement.getBoundingClientRect().top + window.scrollY - 80;
           window.scrollTo({ top: y, behavior: 'smooth' });
-          // Update URL without jumping
-          window.history.pushState(null, '', path);
+                    window.history.pushState(null, '', path);
           setActivePath(path);
         }
       }
-      // If not on homepage, let the Link naturally route to /#id, and HomePage's useEffect will handle the scroll.
-    }
+          }
   };
 
   const closeMenu = () => {
@@ -64,16 +61,14 @@ const Navbar = () => {
       <nav className={`${styles.navbar} ${isNavScrolled ? styles.scrolled : ''}`}>
         <div className="container">
           <div className={styles.navContent}>
-            {/* Logo */}
-            <Link to="/" className={styles.logo} onClick={(e) => handleLinkClick(e, '/')}>
+                        <Link to="/" className={styles.logo} onClick={(e) => handleLinkClick(e, '/')}>
               <div className={styles.logoIcon}>
                 <img src={SITE_CONFIG.logo} alt={`${SITE_CONFIG.brandName} Logo`} className={styles.logoImg} />
               </div>
 
             </Link>
 
-            {/* Desktop Navigation */}
-            <div className={styles.desktopNav}>
+                        <div className={styles.desktopNav}>
               <ul className={styles.navLinks}>
                 {navLinks.map((link) => (
                   <li key={link.name}>
@@ -88,8 +83,7 @@ const Navbar = () => {
                 ))}
               </ul>
 
-              {/* Dark Mode Toggle */}
-              <button
+                            <button
                 className={styles.themeToggle}
                 onClick={() => dispatch(toggleDarkMode())}
                 aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -112,8 +106,7 @@ const Navbar = () => {
               </div>
             </div>
 
-            {/* Mobile Right Controls */}
-            <div className={styles.mobileControls}>
+                        <div className={styles.mobileControls}>
               <button
                 className={styles.themeToggleMobile}
                 onClick={() => dispatch(toggleDarkMode())}
@@ -133,18 +126,14 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* ===== SIDE DRAWER OVERLAY ===== */}
-      {/* Dark backdrop — tap to close */}
-      <div
+                  <div
         className={`${styles.drawerOverlay} ${isMobileMenuOpen ? styles.overlayOpen : ''}`}
         onClick={closeMenu}
         aria-hidden="true"
       />
 
-      {/* Side Drawer */}
-      <aside className={`${styles.drawer} ${isMobileMenuOpen ? styles.drawerOpen : ''}`}>
-        {/* Drawer Header */}
-        <div className={styles.drawerHeader}>
+            <aside className={`${styles.drawer} ${isMobileMenuOpen ? styles.drawerOpen : ''}`}>
+                <div className={styles.drawerHeader}>
           <div className={styles.drawerHeaderPlaceholder}></div>
           <button
             className={styles.drawerClose}
@@ -155,8 +144,7 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* Nav Links */}
-        <nav className={styles.drawerNav}>
+                <nav className={styles.drawerNav}>
           <ul className={styles.drawerLinks}>
             {navLinks.map((link) => (
               <li key={link.name}>
@@ -173,8 +161,7 @@ const Navbar = () => {
           </ul>
         </nav>
 
-        {/* Drawer Footer — Action Buttons */}
-        <div className={styles.drawerActions}>
+                <div className={styles.drawerActions}>
           <Link
             to="/register"
             className={styles.drawerRegisterBtn}

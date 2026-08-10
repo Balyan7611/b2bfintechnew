@@ -35,9 +35,6 @@ const POPULAR_BANKS = [
 
 const PRESETS = [500, 1000, 2000, 3000, 5000, 10000];
 
-// ============================================================
-// MANTRA MFS100 RD SERVICE CONFIG
-// ============================================================
 const RD_SERVICE_CANDIDATES = [
   'https://127.0.0.1:11100',
   'https://127.0.0.1:11101',
@@ -100,8 +97,7 @@ const Aeps = () => {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [transactions, setTransactions] = useState([]); // ✅ No dummy data
-  const [receiptData, setReceiptData] = useState(null);
+  const [transactions, setTransactions] = useState([]);   const [receiptData, setReceiptData] = useState(null);
   const [lastCapture, setLastCapture] = useState(null);
   const [activeRdServiceUrl, setActiveRdServiceUrl] = useState(null);
 
@@ -314,8 +310,7 @@ const Aeps = () => {
 
     setLoading(true);
 
-    // ⚠️ Replace this simulated backend call with your real AePS/aggregator API.
-    setTimeout(() => {
+        setTimeout(() => {
       setLoading(false);
       const success = Math.random() > 0.15;
 
@@ -407,8 +402,7 @@ const Aeps = () => {
       )}
 
       <div className={styles.mainLayout}>
-        {/* Left Column: Form */}
-        <div className={styles.formCard}>
+                <div className={styles.formCard}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
             <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800' }}>
               <FaShieldAlt color="#1756AA" /> AePS Service Gateway
@@ -431,8 +425,7 @@ const Aeps = () => {
           </div>
 
           <form onSubmit={handleTransactionSubmit} className={styles.inputGrid}>
-            {/* Service Provider */}
-            <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+                        <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
               <label>Service Provider</label>
               <div className={styles.inputWrapper}>
                 <FaShieldAlt className={styles.inputIcon} />
@@ -449,8 +442,7 @@ const Aeps = () => {
               </div>
             </div>
 
-            {/* Mobile Number */}
-            <div className={styles.formGroup}>
+                        <div className={styles.formGroup}>
               <label>Customer Mobile Number</label>
               <div className={styles.inputWrapper}>
                 <FaMobileAlt className={styles.inputIcon} />
@@ -465,8 +457,7 @@ const Aeps = () => {
               </div>
             </div>
 
-            {/* Aadhaar */}
-            <div className={styles.formGroup}>
+                        <div className={styles.formGroup}>
               <label>Customer Aadhaar Card Number (UID)</label>
               <div className={styles.inputWrapper}>
                 <FaFingerprint className={styles.inputIcon} />
@@ -480,8 +471,7 @@ const Aeps = () => {
               </div>
             </div>
 
-            {/* Amount */}
-            {(activeTab === 'CASH WITHDRAWAL') && (
+                        {(activeTab === 'CASH WITHDRAWAL') && (
               <div className={styles.formGroup}>
                 <label>Amount to Withdraw (₹)</label>
                 <div className={styles.inputWrapper}>
@@ -497,8 +487,7 @@ const Aeps = () => {
               </div>
             )}
 
-            {/* Bank Selection */}
-            <div className={styles.formGroup}>
+                        <div className={styles.formGroup}>
               <label>Select Customer Bank</label>
               <div className={styles.inputWrapper}>
                 <FaUniversity className={styles.inputIcon} />
@@ -516,8 +505,7 @@ const Aeps = () => {
               </div>
             </div>
 
-            {/* Presets */}
-            {(activeTab === 'CASH WITHDRAWAL') && (
+                        {(activeTab === 'CASH WITHDRAWAL') && (
               <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                 <div className={styles.presetContainer}>
                   <span className={styles.presetLabel}>Quick Amount Shortcuts (₹)</span>
@@ -537,8 +525,7 @@ const Aeps = () => {
               </div>
             )}
 
-            {/* Quick Bank Logos */}
-            <div className={`${styles.formGroup} ${styles.fullWidth}`} style={{ marginTop: '5px' }}>
+                        <div className={`${styles.formGroup} ${styles.fullWidth}`} style={{ marginTop: '5px' }}>
               <div className={styles.presetContainer}>
                 <span className={styles.presetLabel} style={{ marginBottom: '4px' }}>Quick Bank Selection</span>
                 <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '4px', paddingTop: '10px', paddingBottom: '10px', paddingLeft: '4px', paddingRight: '4px', overflowX: 'hidden', justifyContent: 'space-between' }}>
@@ -568,8 +555,7 @@ const Aeps = () => {
           </form>
         </div>
 
-        {/* Right Column: Biometric Scanner Widget */}
-        <div className={styles.scannerCard}>
+                <div className={styles.scannerCard}>
           <h3 className={styles.cardTitle}>
             <FaFingerprint /> BIOMETRIC SCANNER
           </h3>
@@ -647,8 +633,7 @@ const Aeps = () => {
         </div>
       </div>
 
-      {/* Transaction History Table */}
-      <div className={styles.tableCard}>
+            <div className={styles.tableCard}>
         <div className={styles.tableHeader}>
           <h3 className={styles.cardTitle}><FaHistory /> Today's AePS Log</h3>
           <div className={styles.searchBox}>

@@ -87,9 +87,7 @@ const MemberHeader = () => {
   };
 
   const confirmLogout = () => {
-    // Best-effort: mark this session's login-history record as logged out.
-    // Not awaited so it never delays the actual logout/navigation.
-    API.userLoginHistory.closeActiveSession();
+            API.userLoginHistory.closeActiveSession();
     clearSession();
     navigate('/member/login');
   };
@@ -148,21 +146,17 @@ const MemberHeader = () => {
   }, []);
 
   useEffect(() => {
-    // 1. Request Firebase Push Notification Permission
-    requestForToken();
+        requestForToken();
 
-    // 2. Listen for Real-Time Foreground Messages from Firebase
-    const unsubscribe = setupForegroundListener((payload) => {
-      // When a real message comes from FCM, push it to our local state so the bell rings!
-      dispatch(addNotification({
+        const unsubscribe = setupForegroundListener((payload) => {
+            dispatch(addNotification({
         title: payload.notification?.title || 'New Push Broadcast',
         text: payload.notification?.body || 'You have a new message.',
         time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
       }));
     });
 
-    // 3. Listen to LocalStorage across tabs for Live Prototype Sync
-    const handleStorageChange = (e) => {
+        const handleStorageChange = (e) => {
       if (e.key === 'local_notifications') {
         const newNotifs = JSON.parse(e.newValue || '[]');
         dispatch(syncNotifications(newNotifs));
@@ -196,8 +190,7 @@ const MemberHeader = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('keydown', handleEsc);
       window.removeEventListener('storage', handleStorageChange);
-      if (unsubscribe) unsubscribe(); // cleanup Firebase listener
-    };
+      if (unsubscribe) unsubscribe();     };
   }, [dispatch]);
 
   const getNotifIcon = (type) => {
@@ -212,9 +205,7 @@ const MemberHeader = () => {
     }
   };
 
-  // Seed with all wallet types visible by default so nothing is hidden while the
-  // first live fetch from WalletType (DB) is still in flight.
-  const [walletTypes, setWalletTypes] = useState([
+      const [walletTypes, setWalletTypes] = useState([
     { code: 'MAIN', name: 'Main', isActive: true },
     { code: 'AEPS', name: 'AEPS', isActive: true },
     { code: 'COMMISSION', name: 'Commission', isActive: true }
@@ -223,9 +214,7 @@ const MemberHeader = () => {
 
   const fetchWalletHeaderData = async () => {
     try {
-      // Must be the real numeric Member.Id — a LoginId string here makes the
-      // balance API return someone else's row (or nothing at all).
-      const memberId = await resolveMemberId();
+                  const memberId = await resolveMemberId();
       if (!memberId) {
         console.warn('MemberHeader: no member id resolved, showing zero balances');
         setWalletBalances({ mainBalance: 0, aepsBalance: 0, commissionBalance: 0 });
@@ -237,9 +226,7 @@ const MemberHeader = () => {
         API.userWalletBalance.getForMember(memberId)
       ]);
 
-      // Only overwrite when the API actually returned wallet types - keeps last
-      // known list instead of hiding everything if this call ever fails.
-      if (Array.isArray(typesRes) && typesRes.length > 0) {
+                  if (Array.isArray(typesRes) && typesRes.length > 0) {
         setWalletTypes(typesRes);
       }
 
@@ -252,29 +239,20 @@ const MemberHeader = () => {
 
   useEffect(() => {
     fetchWalletHeaderData();
-    // Refresh periodically so wallet pills stay in sync after transactions
-    // and pick up any name/active-status change made from the DB.
-    const interval = setInterval(fetchWalletHeaderData, 30000);
+            const interval = setInterval(fetchWalletHeaderData, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // Maps a WalletType DB record (Name: MAIN / AEPS / COMMISSION ...) to the matching
-  // balance field on UserWalletBalance and a display color.
-  const WALLET_TYPE_CONFIG = [
+      const WALLET_TYPE_CONFIG = [
     { match: 'AEPS', balanceKey: 'aepsBalance', color: '#10B981' },
     { match: 'MAIN', balanceKey: 'mainBalance', color: 'var(--color-primary)' },
     { match: 'COMMISSION', balanceKey: 'commissionBalance', color: '#F59E0B' }
   ];
 
-  // Only wallet types that are Active in the database (WalletType.IsActive) are shown.
-  // Name, and whether it shows at all, both come live from the DB.
-  const walletData = walletTypes
+      const walletData = walletTypes
     .filter(wt => wt.isActive)
     .map(wt => {
-      // `code` (MAIN/AEPS/COMMISSION) is only used internally to pick the right
-      // balance field/color. The label shown on screen is always the DB `name`
-      // exactly as typed - rename it in the DB and the pill updates to match.
-      const cfg = WALLET_TYPE_CONFIG.find(c => (wt.code || '').toUpperCase().includes(c.match));
+                        const cfg = WALLET_TYPE_CONFIG.find(c => (wt.code || '').toUpperCase().includes(c.match));
       return {
         name: `${wt.name || wt.code || ''} Wallet`,
         value: (walletBalances[cfg?.balanceKey] || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
@@ -479,8 +457,7 @@ const MemberHeader = () => {
       </div>
     </header>
 
-    {/* Logout Confirmation Modal */}
-    {showLogoutModal && (
+        {showLogoutModal && (
       <div className={styles.modalOverlay} onClick={() => setShowLogoutModal(false)}>
         <div className={styles.logoutModal} onClick={e => e.stopPropagation()}>
           <div className={styles.modalIconBox}>

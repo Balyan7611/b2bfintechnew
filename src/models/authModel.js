@@ -1,4 +1,3 @@
-// src/models/authModel.js
 export const LoginRequestModel = (data, security) => {
     if (!data.loginID || data.loginID.length < 3) throw new Error("Invalid Login ID");
     if (!data.password) throw new Error("Password is required");
@@ -27,12 +26,7 @@ export const LoginResponseModel = (res) => {
         throw new Error(res?.mess || "Login Failed");
     }
 
-    // Backend can respond with an intermediate status ("OTP" / "TPIN") before
-    // login is actually complete. In that case data.accessToken is empty and
-    // data.refreshToken is just a short-lived verification token, NOT a JWT
-    // session token, so it must not be persisted as the logged-in session yet.
-    const authStatus = res.data?.status; // 'OTP' | 'TPIN' | 'Login' | undefined
-
+                    const authStatus = res.data?.status; 
     const token = (typeof res.data === 'string' ? res.data : null) || res.data?.token || res.data?.accessToken || res.data?.refreshToken || res.token || res.accessToken || res.data;
 
     const isFinalLogin = !authStatus || authStatus === 'Login';
@@ -54,8 +48,6 @@ export const LoginResponseModel = (res) => {
     };
 };
 
-// Payload for /UserAuth/VerifyLoginOTP - verifies the OTP sent after the
-// initial LoginUser call and, on success, returns the real session tokens.
 export const VerifyOtpRequestModel = (data, security) => {
     if (!data.token) throw new Error("Verification session expired. Please login again.");
     if (!data.otp || String(data.otp).trim().length < 4) throw new Error("Please enter a valid OTP");
@@ -74,8 +66,6 @@ export const VerifyOtpRequestModel = (data, security) => {
     };
 };
 
-// Payload for /UserAuth/VerifyLoginTPIN - same shape as OTP verification but
-// for accounts whose LoginUser response comes back with status: "TPIN".
 export const VerifyTpinRequestModel = (data, security) => {
     if (!data.token) throw new Error("Verification session expired. Please login again.");
     if (!data.tpin || String(data.tpin).trim().length < 4) throw new Error("Please enter a valid T-PIN");
@@ -94,9 +84,6 @@ export const VerifyTpinRequestModel = (data, security) => {
     };
 };
 
-// Payload for /UserAuth/forget-password - step 1 of "forgot password".
-// Verifies identity via Aadhar last-4 + PAN and, on success, sends an OTP and
-// returns a short-lived `token` used in the verify step below.
 export const ForgetPasswordRequestModel = (data) => {
     if (!data.loginId || String(data.loginId).trim().length < 3) throw new Error("Login ID is required");
     if (!data.aadharLast4 || String(data.aadharLast4).trim().length !== 4) throw new Error("Aadhar last 4 digits are required");
@@ -109,9 +96,6 @@ export const ForgetPasswordRequestModel = (data) => {
     };
 };
 
-// Payload for /UserAuth/verify-forget-password - step 2 of "forgot password".
-// Takes the token from forget-password, the OTP the user received, and the
-// new password in one shot to actually reset it.
 export const VerifyForgetPasswordRequestModel = (data) => {
     if (!data.token) throw new Error("Verification session expired. Please start again.");
     if (!data.otp || String(data.otp).trim().length < 4) throw new Error("Please enter a valid OTP");
@@ -126,9 +110,6 @@ export const VerifyForgetPasswordRequestModel = (data) => {
     };
 };
 
-// Payload for /UserAuth/forget-tpin - step 1 of "forgot T-PIN".
-// Same identity check as forget-password (loginId + aadharLast4 + pan), sends
-// an OTP and returns a short-lived `token` used in the verify step below.
 export const ForgetTpinRequestModel = (data) => {
     if (!data.loginId || String(data.loginId).trim().length < 3) throw new Error("Login ID is required");
     if (!data.aadharLast4 || String(data.aadharLast4).trim().length !== 4) throw new Error("Aadhar last 4 digits are required");
@@ -141,9 +122,6 @@ export const ForgetTpinRequestModel = (data) => {
     };
 };
 
-// Payload for /UserAuth/verify-forget-pin - step 2 of "forgot T-PIN".
-// Takes the token from forget-tpin, the OTP the user received, and the new
-// T-PIN in one shot to actually reset it.
 export const VerifyForgetPinRequestModel = (data) => {
     if (!data.token) throw new Error("Verification session expired. Please start again.");
     if (!data.otp || String(data.otp).trim().length < 4) throw new Error("Please enter a valid OTP");

@@ -41,8 +41,7 @@ const WalletTXN = () => {
 
   return (
     <div className={styles.container} style={{ padding: '15px', maxWidth: '100%' }}>
-      {/* ── INLINE FILTER CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, padding: '15px 20px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)', marginBottom: '15px' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, padding: '15px 20px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)', marginBottom: '15px' }}>
         <h3 style={{ margin: '0 0 15px 0', fontSize: '1.05rem', fontWeight: 800, color: '#0D1B3E', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <FiSliders /> Wallet TXN Report
         </h3>
@@ -92,8 +91,7 @@ const WalletTXN = () => {
         </form>
       </div>
 
-      {/* ── REPORT TABLE CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
         <div className="global-table-toolbar" style={{ padding: '12px 20px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.8rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
@@ -175,8 +173,7 @@ const WalletTXN = () => {
                        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span>
                     </td>
                   </tr>
-                  {/* COMPACT EMPTY STATE */}
-                  <tr style={{ height: '30px' }}><td colSpan="24" style={{ border: 'none' }}></td></tr>
+                                    <tr style={{ height: '30px' }}><td colSpan="24" style={{ border: 'none' }}></td></tr>
                 </>
               ) : (
                 sampleData.map((item, index) => (
@@ -196,7 +193,7 @@ const WalletTXN = () => {
                     <td style={{ textAlign: 'center', fontWeight: 700, color: '#E53E3E' }}>₹{item.cost || '0.00'}</td>
                     <td style={{ textAlign: 'center', fontWeight: 700, color: '#D97706' }}>₹{item.charge || '0.00'}</td>
                     <td style={{ textAlign: 'center', fontWeight: 700, color: '#27AE60' }}>+₹{item.rtCashback || '0.00'}</td>
-                    <td style={{ fontWeight: 600, color: '#718096' }}>{item.operatorId || 'N/A'}</td>
+                    <td style={{ fontWeight: 600, color: '#718096' }}>{item.operatorName || item.operatorId || 'N/A'}</td>
                     <td style={{ fontWeight: 600, color: '#718096' }}>{item.apiRef || 'N/A'}</td>
                     <td style={{ textAlign: 'center', fontWeight: 800, color: '#0D1B3E' }}>₹{item.remainingBal || '0.00'}</td>
                     <td style={{ textAlign: 'center' }}>

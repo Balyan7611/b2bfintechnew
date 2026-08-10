@@ -17,7 +17,6 @@
   }
 }
 
-/* MAIN CARD VIEW */
 .header {
   margin-bottom: 12px;
   grid-column: 1 / -1;
@@ -135,8 +134,7 @@
   
   .featureText p {
     font-size: 0.65rem;
-    display: none; /* Hide subtext on very small screens to save space */
-  }
+    display: none;   }
 
   .illustrativeImg {
     margin-top: 10px !important;
@@ -208,10 +206,6 @@
   cursor: not-allowed;
 }
 
-/* ════════════════════════════════
-   BENEFICIARY PAGE STYLES
-════════════════════════════════ */
-
 .unifiedCard {
   background: #fff;
   border-radius: 16px;
@@ -279,7 +273,6 @@
   color: #1e293b;
 }
 
-/* Action Bar */
 .actionBar {
   display: flex;
   justify-content: space-between;
@@ -323,33 +316,25 @@
   transform: translateY(-1px);
 }
 
-/* Icon Colors */
 .leftActions .actionBtnCompact:nth-child(1) svg {
   color: #1756AA;
 }
 
-/* Back */
 .leftActions .actionBtnCompact:nth-child(2) svg {
   color: #27AE60;
 }
-
-/* Download */
 
 .rightActions .actionBtnCompact:nth-child(1) svg {
   color: #EAA21F;
 }
 
-/* History */
 .rightActions .actionBtnCompact:nth-child(3) svg {
   color: #6366F1;
 }
 
-/* Import */
 .rightActions .actionBtnCompact:nth-child(4) svg {
   color: #E53E3E;
 }
-
-/* Check IFSC */
 
 .addBtn {
   background: linear-gradient(135deg, #1756AA 0%, #0D1B3E 100%);
@@ -550,7 +535,6 @@
   transform: scale(1.2);
 }
 
-/* History Section */
 .historySection {
   margin-top: 32px;
   animation: slideUp 0.4s ease-out;
@@ -590,7 +574,6 @@
   color: #B91C1C;
 }
 
-/* Modal Styles Based on User Provided Design */
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -1083,7 +1066,6 @@
   }
 }
 
-/* History Page Premium Styles */
 .historyFullCard {
   background: #fff;
   border-radius: 16px;
@@ -1218,7 +1200,6 @@
   }
 }
 
-/* Transfer Confirmation Premium Styles */
 .confirmFullCard {
   background: #fff;
   border-radius: 16px;
@@ -1503,7 +1484,6 @@
   }
 }
 
-
 .gridLeft, .gridRight {
   padding: 0;
 }
@@ -1652,8 +1632,7 @@
 }
 
 .mobileBackRow {
-  display: none; /* Hidden by default on desktop */
-}
+  display: none; }
 
 @media (max-width: 900px) {
   .mobileBackRow {
@@ -1790,7 +1769,6 @@
   color: #1e293b;
 }
 
-/* DMT Receipt Custom Classes */
 .receiptModalCard {
   background: white;
   border-radius: 20px;
@@ -1808,7 +1786,6 @@
   overflow-y: auto;
 }
 
-/* Custom Scrollbar for Receipt Modal */
 .receiptModalCard::-webkit-scrollbar {
   width: 5px;
 }
@@ -2008,9 +1985,6 @@
   background: #124385 !important;
 }
 
-/* ════════════════════════════════
-   GLOBAL MOBILE RESPONSIVENESS FIXES
-════════════════════════════════ */
 @media (max-width: 768px) {
   .customerInfoSection {
     flex-wrap: wrap;

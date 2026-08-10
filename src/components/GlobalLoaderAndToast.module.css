@@ -1,17 +1,14 @@
-/* Global Loader Overlay */
 .loaderOverlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(10, 37, 64, 0.4); /* Deep navy base with opacity */
-    backdrop-filter: blur(4px);
+    background: rgba(10, 37, 64, 0.4);     backdrop-filter: blur(4px);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 999999; /* Highest priority */
-    animation: fadeIn 0.2s ease-out;
+    z-index: 999999;     animation: fadeIn 0.2s ease-out;
 }
 
 .loaderContent {
@@ -27,18 +24,15 @@
 
 .spinner {
     font-size: 2.5rem;
-    color: #00C2FF; /* Electric cyan secondary */
-    animation: spin 1s linear infinite;
+    color: #00C2FF;     animation: spin 1s linear infinite;
 }
 
 .loaderText {
     font-family: 'Poppins', sans-serif;
     font-size: 1rem;
     font-weight: 600;
-    color: #0A2540; /* Deep navy primary */
-}
+    color: #0A2540; }
 
-/* Toast Notifications */
 .toast {
     position: fixed;
     top: 24px;
@@ -58,12 +52,10 @@
 }
 
 .toastSuccess {
-    border-left-color: #10B981; /* Green */
-}
+    border-left-color: #10B981; }
 
 .toastError {
-    border-left-color: #EF4444; /* Red */
-}
+    border-left-color: #EF4444; }
 
 .toastIconBox {
     display: flex;
@@ -106,7 +98,6 @@
     color: #475569;
 }
 
-/* Keyframes */
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }

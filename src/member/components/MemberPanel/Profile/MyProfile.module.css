@@ -1,6 +1,3 @@
-/* ────────────────────────────────────────────────
-   MyProfile.module.css – polished & modern
-   ──────────────────────────────────────────────── */
 
 .profilePage {
   display: flex;
@@ -15,7 +12,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ─── Header ─── */
 .profileHeader {
   background: var(--card-bg, #ffffff);
   border-radius: 20px;
@@ -151,7 +147,6 @@
   color: #10b981;
 }
 
-/* ─── Main Layout ─── */
 .mainLayout {
   display: block;
 }
@@ -165,7 +160,6 @@
   transition: all 0.3s ease;
 }
 
-/* ─── Tabs ─── */
 .tabsNav {
   display: flex;
   background: var(--bg-subtle, #f8fafc);
@@ -218,7 +212,6 @@
   display: inline-block;
 }
 
-/* ─── Tab Content ─── */
 .tabContent {
   padding: 28px 24px;
 }
@@ -286,7 +279,6 @@
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
-/* ─── Info Table ─── */
 .infoTable {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -342,7 +334,6 @@
   box-shadow: 0 0 0 3px rgba(23, 86, 170, 0.08);
 }
 
-/* ─── Reset Password / Pin ─── */
 .resetSection {
   max-width: 900px;
   margin: 0 auto;
@@ -500,7 +491,6 @@
   border-color: #cbd5e1;
 }
 
-/* ─── Crop Modal ─── */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -683,7 +673,6 @@
   box-shadow: 0 6px 20px rgba(23, 86, 170, 0.35);
 }
 
-/* ─── Placeholder ─── */
 .placeholder {
   display: flex;
   flex-direction: column;
@@ -707,10 +696,6 @@
   color: #94a3b8;
 }
 
-/* ─── Certificate (Certified Tab) ─── */
-/* ══════════════════════════════════════════════
-   PREMIUM CERTIFICATE  — A4 landscape fixed size
-   ══════════════════════════════════════════════ */
 .certifiedWrapper {
   display: flex;
   flex-direction: column;
@@ -720,7 +705,6 @@
   animation: fadeIn 0.4s ease;
 }
 
-/* Horizontal scroll so cert never gets squished */
 .certScrollOuter {
   width: 100%;
   overflow-x: auto;
@@ -729,7 +713,6 @@
   padding-bottom: 4px;
 }
 
-/* ── A4 landscape card ── */
 .certificateCard {
   width: 900px;
   min-width: 900px;
@@ -743,7 +726,6 @@
     0 32px 80px rgba(10,20,50,0.28);
 }
 
-/* ── Inner frame with gold double border ── */
 .certFrame {
   margin: 14px;
   border: 2px solid #B8933A;
@@ -753,7 +735,6 @@
   background: linear-gradient(160deg, #fafcff 0%, #f5f8ff 40%, #fafcff 100%);
 }
 
-/* Corner ornaments */
 .cTL,.cTR,.cBL,.cBR {
   position: absolute;
   font-size: 1.1rem;
@@ -766,7 +747,6 @@
 .cBL { bottom:7px; left:10px;  }
 .cBR { bottom:7px; right:10px; }
 
-/* ── HEADER ── */
 .certHdr {
   display: flex;
   align-items: center;
@@ -833,7 +813,6 @@
   font-family: Arial, sans-serif;
 }
 
-/* ── GOLD ORNAMENTAL RULE ── */
 .certGoldRule {
   display: flex;
   align-items: center;
@@ -853,7 +832,6 @@
   flex-shrink: 0;
 }
 
-/* ── TITLE ── */
 .certTitleWrap {
   text-align: center;
   padding: 2px 30px 4px;
@@ -876,7 +854,6 @@
   line-height: 1.1;
 }
 
-/* ── MAIN BODY ── */
 .certMainBody {
   position: relative;
   text-align: center;
@@ -983,7 +960,6 @@
   max-width: 580px;
 }
 
-/* ── FOOTER ── */
 .certFtr {
   display: flex;
   align-items: flex-end;
@@ -1064,7 +1040,6 @@
   transform: translateY(0);
 }
 
-/* ─── Dark Mode Support ─── */
 .dark {
   --card-bg: #1e293b;
   --border-color: #334155;
@@ -1193,7 +1168,6 @@
   color: #60a5fa;
 }
 
-/* ─── Cards & Grid for Account Details, KYC, My Services ─── */
 .cardGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -1298,7 +1272,6 @@
   border-top: 1px solid var(--border-color, #e2e8f0);
 }
 
-/* Badges */
 .badgeApproved {
   display: inline-flex;
   align-items: center;
@@ -1351,7 +1324,6 @@
   border: 1px solid #fca5a5;
 }
 
-/* Action Buttons */
 .requestServiceBtn {
   width: 100%;
   padding: 10px 16px;
@@ -1460,7 +1432,6 @@
   border-color: var(--border-color);
 }
 
-/* ─── Responsive ─── */
 @media (max-width: 992px) {
   .infoTable {
     grid-template-columns: repeat(2, 1fr);

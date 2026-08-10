@@ -8,7 +8,6 @@ import styles from '../MemberPages/MemberPages.module.css';
 import { API } from '../../../api/endpoints';
 import ListAPI from './ListAPI';
 
-// ─── ACCORDION SECTION ────────────────────────────────────────────────
 const Section = ({ id, label, icon, isOpen, onToggle, sectionRef, children }) => {
   const contentRef = useRef(null);
   const [height, setHeight] = useState('0px');
@@ -73,7 +72,6 @@ const Section = ({ id, label, icon, isOpen, onToggle, sectionRef, children }) =>
   );
 };
 
-// ─── TOAST ────────────────────────────────────────────────────────────
 const Toast = ({ show, message }) =>
   show && (
     <div
@@ -89,7 +87,6 @@ const Toast = ({ show, message }) =>
     </div>
   );
 
-// ─── CONFIRM MODAL ────────────────────────────────────────────────────
 const ConfirmModal = ({ show, onCancel, onConfirm }) =>
   show && (
     <div
@@ -148,7 +145,6 @@ const ConfirmModal = ({ show, onCancel, onConfirm }) =>
     </div>
   );
 
-// ─── INITIAL STATE ────────────────────────────────────────────────────
 const initialFormState = {
   id: '',
   apiid: '',
@@ -189,15 +185,13 @@ const initialFormState = {
   xmlKeyStatus: '',
 };
 
-// ─── MAIN COMPONENT ───────────────────────────────────────────────────
 const AddAPI = () => {
   const [form, setForm] = useState(initialFormState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showToast, setShowToast] = useState({ show: false, message: '' });
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // ─── ACCORDION ──────────────────────────────────────────────────────
-  const [open, setOpen] = useState({
+    const [open, setOpen] = useState({
     general: true,
     recharge: false,
     balance: false,
@@ -231,8 +225,7 @@ const AddAPI = () => {
     setOpen((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  // ─── HANDLERS ──────────────────────────────────────────────────────
-  const handleChange = (e) => {
+    const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -282,10 +275,8 @@ const AddAPI = () => {
       version: api.version || '',
       errorCodePos: api.errorCodePos || ''
     }));
-    // Open General tab if closed
-    setOpen((prev) => ({ ...prev, general: true }));
-    // Scroll to top to see the form
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+        setOpen((prev) => ({ ...prev, general: true }));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const confirmReset = () => {
@@ -319,8 +310,7 @@ const AddAPI = () => {
 
         <form onSubmit={handleSubmit} style={{ padding: '0 25px 30px 25px' }}>
 
-          {/* ─── GENERAL ────────────────────────────────────────────── */}
-          <Section id="general" label="General Information" icon={<FiSettings />} isOpen={open.general} onToggle={toggle} sectionRef={generalRef}>
+                    <Section id="general" label="General Information" icon={<FiSettings />} isOpen={open.general} onToggle={toggle} sectionRef={generalRef}>
             <div className={styles.formGrid3} style={{ marginBottom: '20px' }}>
               <div className={styles.formGroup}>
                 <label className={styles.label}>API Type *</label>
@@ -375,8 +365,7 @@ const AddAPI = () => {
             </div>
           </Section>
 
-          {/* ─── RECHARGE ────────────────────────────────────────────── */}
-          <Section id="recharge" label="Recharge API Parameters" icon={<FiZap />} isOpen={open.recharge} onToggle={toggle} sectionRef={rechargeRef}>
+                    <Section id="recharge" label="Recharge API Parameters" icon={<FiZap />} isOpen={open.recharge} onToggle={toggle} sectionRef={rechargeRef}>
             <div className={styles.formGrid3} style={{ marginBottom: '20px' }}>
               {[3, 4, 5, 6, 7, 8].map((num) => (
                 <div key={num} className={styles.formGroup}>
@@ -445,8 +434,7 @@ const AddAPI = () => {
             </div>
           </Section>
 
-          {/* ─── BALANCE ────────────────────────────────────────────── */}
-          <Section
+                    <Section
             id="balance"
             label="Balance API Parameters"
             icon={<span style={{ fontWeight: 700, fontSize: '1.1rem' }}>₹</span>}
@@ -481,8 +469,7 @@ const AddAPI = () => {
             </div>
           </Section>
 
-          {/* ─── STATUS ──────────────────────────────────────────────── */}
-          <Section id="status" label="Status API Parameters" icon={<FiBarChart2 />} isOpen={open.status} onToggle={toggle} sectionRef={statusRef}>
+                    <Section id="status" label="Status API Parameters" icon={<FiBarChart2 />} isOpen={open.status} onToggle={toggle} sectionRef={statusRef}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div className={styles.formGroup}>
                 <label className={styles.label}>Status URL</label>
@@ -515,8 +502,7 @@ const AddAPI = () => {
             </div>
           </Section>
 
-          {/* ─── BUTTONS ────────────────────────────────────────────── */}
-          <div style={{ display: 'flex', gap: '15px', marginTop: '25px' }}>
+                    <div style={{ display: 'flex', gap: '15px', marginTop: '25px' }}>
             <button
               type="submit"
               disabled={isSubmitting}
@@ -550,8 +536,7 @@ const AddAPI = () => {
         </form>
       </div>
 
-      {/* Embedded API List */}
-      <ListAPI isEmbedded={true} onEditAPI={handleEditAPI} />
+            <ListAPI isEmbedded={true} onEditAPI={handleEditAPI} />
     </div>
   );
 };

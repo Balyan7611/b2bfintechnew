@@ -1,4 +1,3 @@
-// ── Credential Generation ──────────────────────────────
 export const generateAdminId = (mobile) => {
   const suffix = mobile?.slice(-4) || Math.floor(1000 + Math.random() * 9000);
   const prefix = 'BSS';
@@ -12,7 +11,6 @@ export const generatePassword = (fullName) => {
   return `${namePart}${special}${digits}`;
 };
 
-// ── localStorage Helpers ───────────────────────────────
 const USERS_KEY = 'bss_registered_users';
 
 export const getSessionKey = () => {
@@ -30,8 +28,7 @@ export const getSessionKey = () => {
 
 export const saveUser = (userData) => {
   const existing = getAllUsers();
-  // Avoid duplicate by mobile
-  const filtered = existing.filter((u) => u.mobile !== userData.mobile);
+    const filtered = existing.filter((u) => u.mobile !== userData.mobile);
   filtered.push({ ...userData, registeredAt: new Date().toISOString() });
   localStorage.setItem(USERS_KEY, JSON.stringify(filtered));
 };
@@ -45,8 +42,7 @@ export const getAllUsers = () => {
 };
 
 export const findUserByCredentials = (adminId, password) => {
-  // Hardcoded default user
-  if (adminId.toLowerCase().trim() === 'admin@gmail.com' && password === 'surender@001') {
+    if (adminId.toLowerCase().trim() === 'admin@gmail.com' && password === 'surender@001') {
     return { adminId: 'admin@gmail.com', fullName: 'Super Admin', mobile: '9999999999' };
   }
 
@@ -115,12 +111,10 @@ export const decodeToken = (token) => {
   try {
     if (!token) return null;
     
-    // Handle mock test token safely without crashing
-    if (!token.includes('.')) {
+        if (!token.includes('.')) {
       try {
         let cleanToken = token.replace(/^"(.*)"$/, '$1');
-        // Add padding if missing
-        while (cleanToken.length % 4) {
+                while (cleanToken.length % 4) {
           cleanToken += '=';
         }
         const decodedStr = atob(cleanToken);
@@ -132,8 +126,7 @@ export const decodeToken = (token) => {
 
     const base64Url = token.split('.')[1];
     let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    // Restore stripped padding
-    while (base64.length % 4) {
+        while (base64.length % 4) {
       base64 += '=';
     }
     const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
@@ -152,8 +145,6 @@ export const isTokenExpired = (token) => {
   if (!decoded) return true;
   if (!decoded.exp) return false;
   
-  // Relaxed expiration check to prevent client/server clock skew issues.
-  // Standard API requests will naturally fail with 401 if the token is truly invalid.
-  const expirationTime = decoded.exp * 1000;
+      const expirationTime = decoded.exp * 1000;
   return Date.now() - (24 * 60 * 60 * 1000) >= expirationTime;
 };

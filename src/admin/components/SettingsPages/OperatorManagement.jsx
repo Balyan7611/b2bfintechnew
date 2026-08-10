@@ -21,20 +21,16 @@ const OperatorManagement = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Pagination State
-  const [pageNumber, setPageNumber] = useState(1);
+    const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
 
-  // Search State
-  const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
 
-  // File Upload State
-  const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedFile, setSelectedFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState('');
 
-  // Image Viewer Modal State
-  const [showImageModal, setShowImageModal] = useState({ isOpen: false, url: '' });
+    const [showImageModal, setShowImageModal] = useState({ isOpen: false, url: '' });
 
   const handleDownloadImage = async (url) => {
     try {
@@ -95,7 +91,7 @@ const OperatorManagement = () => {
           id: item.id,
           name: item.name,
           code: item.operatorCode,
-          service: item.serviceName || (item.serviceId === 1 ? 'Prepaid' : item.serviceId === 2 ? 'Postpaid' : 'DTH'),
+          service: item.serviceName || `Service #${item.serviceId}`,
           status: item.isActive,
           addDate: item.addDate ? new Date(item.addDate).toLocaleDateString('en-GB') : '27/03/2025',
           logo: item.img ? getImageUrl(item.img, 'operators') : '',
@@ -120,13 +116,11 @@ const OperatorManagement = () => {
     fetchServices();
     fetchAllOperators();
     fetchBbpsFields();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      }, []);
 
   useEffect(() => {
     fetchOperators();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageNumber, pageSize]);
+      }, [pageNumber, pageSize]);
 
   const [formData, setFormData] = useState({
     id: '', name: '', code: '', service: '', minValue: '0', maxValue: '0', logo: '', status: false, downOperator: false
@@ -135,8 +129,7 @@ const OperatorManagement = () => {
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
   const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, op: null });
 
-  // Close action dropdown on outside click and scroll
-  React.useEffect(() => {
+    React.useEffect(() => {
     const handleOutsideClick = (e) => {
       if (!e.target.closest('.action-dropdown-wrapper')) {
         setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, op: null } : prev);
@@ -153,8 +146,7 @@ const OperatorManagement = () => {
     };
   }, []);
 
-  // ── ADD FIELD BBPS MODAL ──
-  const [addFieldModal, setAddFieldModal] = useState({ isOpen: false, operator: null });
+    const [addFieldModal, setAddFieldModal] = useState({ isOpen: false, operator: null });
   const [fieldForm, setFieldForm] = useState({ id: 0, spKey: '', index: '0', labels: '', fieldMinLen: 0, fieldMaxLen: 0, isOptional: false, values: '' });
   const [bbpsFields, setBbpsFields] = useState([]);
   const [editingFieldId, setEditingFieldId] = useState(null);
@@ -233,8 +225,7 @@ const OperatorManagement = () => {
   };
 
   const handleDelete = () => {
-    // Delete operator is kept local since there is no API endpoint for deletion in instructions
-    setLocalOperators(localOperators.filter(op => op.id !== showConfirmModal.id));
+        setLocalOperators(localOperators.filter(op => op.id !== showConfirmModal.id));
     setShowConfirmModal({ isOpen: false, id: null });
   };
 
@@ -357,10 +348,8 @@ const OperatorManagement = () => {
 
   return (
     <div className={styles.container} style={{ padding: '5px 2px 60px 2px', maxWidth: '100%' }}>
-      {/* ── MAIN REPOSITORY CARD ── */}
-      <div className={styles.cardFullMobile} style={{ margin: '8px 8px 60px 8px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', background: '#fff', borderRadius: '16px' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
+            <div className={styles.cardFullMobile} style={{ margin: '8px 8px 60px 8px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', background: '#fff', borderRadius: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0F172A' }}>Operator Management</h3>
           <div style={{ display: 'flex', gap: '10px' }}>
             <PrimaryButton className={styles.addBtn} onClick={handleAddClick} style={{ height: '38px', minWidth: 'auto' }}>
@@ -375,8 +364,7 @@ const OperatorManagement = () => {
           </div>
         )}
 
-        {/* ── TOOLBAR ── */}
-        <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.selectEntries} value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPageNumber(1); }} style={{ border: '1px solid #E2E8F0', borderRadius: '8px', padding: '4px 8px', outline: 'none', cursor: 'pointer', fontWeight: 600, color: '#334155' }}>
@@ -408,8 +396,7 @@ const OperatorManagement = () => {
           </div>
         </div>
 
-        {/* ── TABLE ── */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ width: '100%' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -501,8 +488,7 @@ const OperatorManagement = () => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9' }}>
+                <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9' }}>
           <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
             Showing {totalItems === 0 ? 0 : (pageNumber - 1) * pageSize + 1} to{' '}
             {Math.min(pageNumber * pageSize, totalItems)} of {totalItems} entries
@@ -561,8 +547,7 @@ const OperatorManagement = () => {
         </div>
       </div>
 
-      {/* ── ACTION DROPDOWN PORTAL (fixed position, never clipped) ── */}
-      {activeActionRow.id && (
+            {activeActionRow.id && (
         <>
           <style>{`
             @keyframes dropdownFadeInSideOperator {
@@ -620,8 +605,7 @@ const OperatorManagement = () => {
         </>
       )}
 
-      {/* ── ADD/EDIT MODAL (DRAWER STYLE) ── */}
-      {isModalOpen && (
+            {isModalOpen && (
         <div className={styles.drawerOverlay} style={{ backdropFilter: 'blur(5px)' }} onClick={() => setIsModalOpen(false)}>
           <div className={styles.drawer} onClick={(e) => e.stopPropagation()} style={{ width: '450px', maxWidth: '95%', background: '#fff', borderRadius: '20px 0 0 20px', boxShadow: '-10px 0 30px rgba(15, 23, 42, 0.08)', borderLeft: '1px solid #E2E8F0' }}>
             <div className={styles.drawerHeader} style={{ padding: '12px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -719,8 +703,7 @@ const OperatorManagement = () => {
           </div>
         </div>
       )}
-      {/* ── DELETE CONFIRMATION MODAL ── */}
-      {showConfirmModal.isOpen && (
+            {showConfirmModal.isOpen && (
         <div className={styles.drawerOverlay} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowConfirmModal({ isOpen: false, id: null })}>
           <div className={styles.drawer} onClick={(e) => e.stopPropagation()} style={{ width: '360px', padding: '30px 25px', textAlign: 'center', borderRadius: '16px', background: '#fff', transform: 'none', position: 'relative', height: 'auto', minHeight: 'auto' }}>
             <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#FFF5F5', color: '#E53E3E', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto' }}>
@@ -736,8 +719,7 @@ const OperatorManagement = () => {
         </div>
       )}
 
-      {/* ── ADD FIELD BBPS POPUP MODAL ── */}
-      {addFieldModal.isOpen && (
+            {addFieldModal.isOpen && (
         <div
           onClick={() => setAddFieldModal({ isOpen: false, operator: null })}
           style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
@@ -753,8 +735,7 @@ const OperatorManagement = () => {
               }
             `}</style>
 
-            {/* MODAL HEADER */}
-            <div style={{ padding: '12px 20px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '16px 16px 0 0', background: '#ffffff' }}>
+                        <div style={{ padding: '12px 20px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '16px 16px 0 0', background: '#ffffff' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(23, 86, 170, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA' }}>
                   <FiList size={16} />
@@ -776,12 +757,10 @@ const OperatorManagement = () => {
               </button>
             </div>
 
-            {/* MODAL BODY */}
-            <div style={{ padding: '16px 24px', overflowY: 'auto', flex: 1 }}>
+                        <div style={{ padding: '16px 24px', overflowY: 'auto', flex: 1 }}>
               <form id="addFieldForm" onSubmit={handleFieldSubmit}>
                 
-                {/* Row 1: Service + Operator Code + Label (3 Columns) */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                   <div>
                     <label style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>Service :</label>
                     <select
@@ -828,8 +807,7 @@ const OperatorManagement = () => {
                   </div>
                 </div>
 
-                {/* Row 3: Index + Min Length + Max Length + Save Button (4 Columns) */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '10px', marginBottom: '12px', alignItems: 'end' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '10px', marginBottom: '12px', alignItems: 'end' }}>
                   <div>
                     <label style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>Index :</label>
                     <input
@@ -868,8 +846,7 @@ const OperatorManagement = () => {
                   </div>
                 </div>
 
-                {/* Field List Table */}
-                <div className={styles.tableWrapper} style={{ marginTop: '10px', minHeight: '160px' }}>
+                                <div className={styles.tableWrapper} style={{ marginTop: '10px', minHeight: '160px' }}>
                   <table className={styles.table} style={{ minWidth: '800px' }}>
                     <thead>
                       <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -927,12 +904,10 @@ const OperatorManagement = () => {
               </form>
             </div>
 
-            {/* FOOTER REMOVED AS REQUESTED */}
-          </div>
+                      </div>
         </div>
       )}
-      {/* ── IMAGE VIEWER MODAL ── */}
-      {showImageModal.isOpen && (
+            {showImageModal.isOpen && (
         <div 
           onClick={() => setShowImageModal({ isOpen: false, url: '' })}
           style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}

@@ -81,10 +81,7 @@ const AEPSReport = () => {
     const memberMsrNo = session?.msrno || session?.userId || 2;
     
     try {
-      // NOTE: Admin panel fetches with empty memberId to get all data.
-      // When memberId is passed as '2', backend returns 0 results because 
-      // transactions may not be linked to memberId in DB. Pass empty to fetch all.
-      const res = await API.transaction.getAll({
+                        const res = await API.transaction.getAll({
         pageNumber: currentPage,
         pageSize: rowsPerPage,
         fromDate: filters.fromDate || '',
@@ -93,8 +90,7 @@ const AEPSReport = () => {
         sectionType: '9,10',
         operatorId: filters.operatorId || '',
         apiId: '',
-        memberId: '',   // Pass empty like admin — backend JWT already scopes the result
-        status: filters.status || ''
+        memberId: '',           status: filters.status || ''
       });
       
       let rawData = [];
@@ -114,8 +110,7 @@ const AEPSReport = () => {
         rawData = res.data.items;
       }
       
-      // Gather unique member IDs
-      const uniqueMsrnos = [...new Set(rawData.map(i => i.memberId || i.msrNo || memberMsrNo).filter(Boolean))];
+            const uniqueMsrnos = [...new Set(rawData.map(i => i.memberId || i.msrNo || memberMsrNo).filter(Boolean))];
       const memberMap = {};
       
       await Promise.allSettled(
@@ -160,9 +155,6 @@ const AEPSReport = () => {
     }
   };
 
-
-
-
   const fetchData = async () => {
     try {
       const res = await API.transaction.getAll({
@@ -185,9 +177,7 @@ const AEPSReport = () => {
     }
   };
 
-  // Auto-fetch on mount and when filters/page change
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status, filters.memberId, filters.serviceId]);
+      useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status, filters.memberId, filters.serviceId]);
 
   const filteredList = list.filter(item => {
     const name = item.memberName || '';
@@ -274,8 +264,7 @@ const AEPSReport = () => {
                       onChange={handleFilterChange}
                     />
                   </div>
-                  {/* Member */}
-                  <div className={styles.formGroup}>
+                                    <div className={styles.formGroup}>
                     <label>Member</label>
                     <SearchableSelect
                       options={memberOptions}
@@ -285,8 +274,7 @@ const AEPSReport = () => {
                     />
                   </div>
 
-                  {/* Service */}
-                  <div className={styles.formGroup}>
+                                    <div className={styles.formGroup}>
                     <label>Service</label>
                     <select
                       className={styles.inputControl}
@@ -303,8 +291,7 @@ const AEPSReport = () => {
                     </select>
                   </div>
 
-                  {/* Status */}
-                  <div className={styles.formGroup}>
+                                    <div className={styles.formGroup}>
                     <label>Status</label>
                     <select
                       className={styles.inputControl}

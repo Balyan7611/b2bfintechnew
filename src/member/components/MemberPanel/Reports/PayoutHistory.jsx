@@ -48,7 +48,6 @@ const PayoutHistory = () => {
     
   }, [dispatch]);
 
-
   const fetchData = async () => {
     try {
       const res = await API.transaction.getAll({
@@ -71,14 +70,11 @@ const PayoutHistory = () => {
     }
   };
 
-  // Auto-fetch on mount and when filters/page change
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
+      useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
 
   const filteredList = list.filter(item => item.name?.toLowerCase().includes(searchQuery.toLowerCase()) || item.accNo?.includes(searchQuery));
 
-  // Dynamic Column logic
-  const baseData = filteredList.length > 0 ? filteredList : list;
+    const baseData = filteredList.length > 0 ? filteredList : list;
   let dynamicColumns = [];
   const allowedApiKeys = [
     'createdDate', 'orderId', 'vendorId', 'refid', 'rrn',
@@ -190,8 +186,7 @@ const PayoutHistory = () => {
                       } else val = 'N/A';
                     }
                     
-                    // Status styling
-                  if (colKey.toLowerCase() === 'status') {
+                                      if (colKey.toLowerCase() === 'status') {
                      let statusStyle = styles.statusPending;
                      if (String(val).toUpperCase() === 'SUCCESS') statusStyle = styles.statusSuccess;
                      if (String(val).toUpperCase() === 'FAILED') statusStyle = styles.statusFailed;
@@ -204,8 +199,7 @@ const PayoutHistory = () => {
                      );
                   }
 
-                  // Date styling (split top and bottom if contains 'T')
-                  if (String(val).includes('T') && String(val).length > 10) {
+                                    if (String(val).includes('T') && String(val).length > 10) {
                     return (
                       <td key={colIndex}>
                         <div style={{ color: '#0D1B3E', fontWeight: '800', fontSize: '0.85rem' }}>{String(val).split('T')[0]}</div>

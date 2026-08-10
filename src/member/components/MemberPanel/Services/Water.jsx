@@ -88,8 +88,7 @@ const Water = () => {
         ))}
       </div>
 
-      {/* Payment Modal */}
-      {selectedProvider && (
+            {selectedProvider && (
         <div className={styles.modalOverlay} onClick={() => setSelectedProvider(null)}>
           <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
@@ -110,8 +109,7 @@ const Water = () => {
                   </div>
                   <span className={styles.selectedName}>{selectedProvider.name}(BWW)</span>
                 </div>
-                {/* Edit button removed per user request */}
-              </div>
+                              </div>
 
               <div className={styles.formSection}>
                 <div className={styles.formGroup}>

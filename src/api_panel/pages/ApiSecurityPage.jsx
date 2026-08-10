@@ -20,8 +20,7 @@ const ApiSecurityPage = () => {
       setMsg('New password and confirm password do not match.');
       return;
     }
-    // TODO: wire to real change-password API
-    setMsg('Password updated successfully.');
+        setMsg('Password updated successfully.');
     setOldPassword(''); setNewPassword(''); setConfirmPassword('');
   };
 

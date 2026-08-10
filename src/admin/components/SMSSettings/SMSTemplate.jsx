@@ -11,16 +11,14 @@ const SMSTemplate = () => {
   return (
     <div className={styles.container}>
       <div className={styles.cardFullMobile}>
-        {/* HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '25px 30px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '25px 30px' }}>
           <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0D1B3E' }}>Manage SMS Templates</h3>
           <button className={styles.addBtn} style={{ height: '42px', padding: '0 22px', fontSize: '0.85rem', borderRadius: '10px', background: '#1756AA', fontWeight: 700 }}>
             <FiPlus /> <span>New Template</span>
           </button>
         </div>
 
-        {/* TOOLBAR */}
-        <div style={{ padding: '0 30px 25px 30px' }}>
+                <div style={{ padding: '0 30px 25px 30px' }}>
           <div style={{ background: '#F8FAFF', borderRadius: '20px', padding: '25px', border: '1px solid #EEF3FC' }}>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginBottom: '25px', color: '#4E6080', fontSize: '0.9rem', fontWeight: 600 }}>
               Show <select className={styles.selectEntries} style={{ margin: '0', width: '70px', height: '38px', borderRadius: '10px' }}><option value={10}>10</option></select> entries
@@ -39,8 +37,7 @@ const SMSTemplate = () => {
           </div>
         </div>
 
-        {/* TABLE */}
-        <div className={styles.tableWrapper} style={{ borderTop: '1px solid #F1F5F9' }}>
+                <div className={styles.tableWrapper} style={{ borderTop: '1px solid #F1F5F9' }}>
           <table className={styles.table} style={{ minWidth: '1300px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -87,8 +84,7 @@ const SMSTemplate = () => {
           </table>
         </div>
 
-        {/* PAGINATION */}
-        <div style={{ padding: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+                <div style={{ padding: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
           <div style={{ fontSize: '0.9rem', color: '#718096', fontWeight: 600 }}>Showing 1 of 1 records</div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <button className="global-page-btn" style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#fff', border: '1.5px solid #E2E8F0' }}><FiChevronLeft /></button>

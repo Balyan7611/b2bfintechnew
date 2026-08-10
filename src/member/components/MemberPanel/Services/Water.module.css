@@ -32,7 +32,6 @@
   font-size: 13px;
 }
 
-/* Search Bar */
 .searchSection {
   background: #ffffff;
   padding: 10px 16px;
@@ -78,14 +77,12 @@
   letter-spacing: 1px;
 }
 
-/* Grid */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
 }
 
-/* Card - Navy Blue Hover */
 .card {
   background: #ffffff;
   border-radius: 12px;
@@ -147,7 +144,6 @@
   font-size: 14px;
 }
 
-/* New Modal Styles */
 .modalOverlay {
   position: fixed;
   top: 0;

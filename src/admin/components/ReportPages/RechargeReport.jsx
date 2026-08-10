@@ -22,8 +22,7 @@ const RechargeReport = () => {
     currentPage 
   } = useSelector(state => state.report.rechargeReport);
 
-  // Load dummy data
-  useEffect(() => {
+    useEffect(() => {
     const dummyData = [];
     dispatch(setRechargeList(dummyData));
   }, [dispatch]);
@@ -159,10 +158,7 @@ const RechargeReport = () => {
             </tr>
           );
         }}
-        // Adding footer row logic manually since AdminTable might not support it directly
-        // But I'll just add it as the last row of the table by injecting it into data or handling it in renderRow
-        // Best: I'll add a separate footer style in AEPSReport.module.css
-        searchQuery={searchQuery}
+                                searchQuery={searchQuery}
         onSearchChange={(val) => dispatch(setRechargeSearchQuery(val))}
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={(val) => dispatch(setRechargeRowsPerPage(val))}
@@ -186,8 +182,7 @@ const RechargeReport = () => {
         }}>
           <span style={{marginRight: '120px'}}>Total</span>
           <span>{totalAmount.toFixed(2)}</span>
-          <span style={{width: '240px'}}></span> {/* Spacer to align with columns */}
-        </div>
+          <span style={{width: '240px'}}></span>         </div>
       )}
     </div>
   );

@@ -62,11 +62,9 @@
   color: #f8fafc;
 }
 
-/* Wrapper holds all 3 visible cards side by side */
 .cardsWrapper {
   position: relative;
-  /* wide enough: center 300px + 2 side cards 260px each + gaps */
-  width: min(900px, calc(100vw - 140px));
+    width: min(900px, calc(100vw - 140px));
   height: 380px;
   display: flex;
   justify-content: center;
@@ -93,7 +91,6 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
-/* Center card — fully visible, slightly larger */
 .cardCenter {
   transform: translateX(0) scale(1.05);
   z-index: 10;
@@ -101,14 +98,12 @@
   box-shadow: 0 16px 50px rgba(23, 86, 170, 0.12);
 }
 
-/* Left card — visible, slightly scaled */
 .cardLeft {
   transform: translateX(calc(-300px)) scale(0.92);
   z-index: 5;
   opacity: 0.85;
 }
 
-/* Right card — visible, slightly scaled */
 .cardRight {
   transform: translateX(calc(300px)) scale(0.92);
   z-index: 5;
@@ -190,9 +185,6 @@
   color: #F59E0B;
 }
 
-
-
-/* Responsive */
 @media (max-width: 1024px) {
   .cardsWrapper { width: min(800px, calc(100vw - 120px)); }
   .cardLeft  { transform: translateX(-260px) scale(0.9); }

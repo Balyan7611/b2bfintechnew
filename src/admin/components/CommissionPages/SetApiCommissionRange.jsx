@@ -22,8 +22,7 @@ const SetApiCommissionRange = () => {
   };
 
   const handleSlabTypeChange = (type) => {
-    // keeping this function around just in case, but using direct dispatch below
-  };
+      };
 
   const handleSubmit = () => {
     const newErrors = {
@@ -97,8 +96,7 @@ const SetApiCommissionRange = () => {
 
   return (
     <div className={styles.container} ref={topFormRef}>
-      {/* ── FORM CARD ── */}
-      <div className={styles.card} style={{ marginBottom: '30px' }}>
+            <div className={styles.card} style={{ marginBottom: '30px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', marginBottom: '15px', paddingBottom: '10px', borderBottom: '1.5px solid #F8FAFF' }}>
           <div className={styles.directoryTitleGroup}>
             <h2 className={styles.directoryTitle} style={{ fontSize: '1.2rem' }}>Set Commission Range (API)</h2>
@@ -106,8 +104,7 @@ const SetApiCommissionRange = () => {
           </div>
         </div>
         
-        {/* SECTION 1 */}
-        <div className={styles.formGridFive}>
+                <div className={styles.formGridFive}>
           <div className={styles.formGroup}>
             <label className={styles.label}>Select Api <span style={{color: '#EF4444'}}>*</span></label>
             <select ref={apiNameRef} name="apiName" className={styles.inputControl} value={apiCommForm.apiName} onChange={handleChange}>
@@ -148,10 +145,8 @@ const SetApiCommissionRange = () => {
           </div>
         </div>
 
-        {/* SECTION 2 & 3 */}
-        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'stretch' }}>
-          {/* Exact Replica of Slab Charges Card */}
-          <div className={styles.slabCol} style={{ width: '240px', flex: 'none', marginBottom: 0, height: '100%' }}>
+                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'stretch' }}>
+                    <div className={styles.slabCol} style={{ width: '240px', flex: 'none', marginBottom: 0, height: '100%' }}>
             <h4 className={styles.slabColTitle}>Slab Charges</h4>
             <div className={styles.slabGeneralRow}>
               <span>General</span>
@@ -217,8 +212,7 @@ const SetApiCommissionRange = () => {
         </div>
       </div>
 
-      {/* ── TABLE CARD ── */}
-      <div className={styles.card}>
+            <div className={styles.card}>
         <div className="global-table-toolbar">
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
@@ -317,8 +311,7 @@ const SetApiCommissionRange = () => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div className="global-pagination">
+                <div className="global-pagination">
           <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
             Showing 1 to {apiCommList.length} of {apiCommList.length} entries
           </span>
@@ -333,8 +326,7 @@ const SetApiCommissionRange = () => {
           </div>
         </div>
       </div>
-      {/* CONFIRM MODAL */}
-      {confirmModal.isOpen && (
+            {confirmModal.isOpen && (
         <div className={styles.modalOverlay}>
           <div className={styles.confirmModal}>
             <h3 className={styles.modalTitle}>{confirmModal.title}</h3>

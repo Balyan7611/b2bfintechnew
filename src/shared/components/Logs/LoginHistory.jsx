@@ -14,16 +14,14 @@ const LoginHistory = () => {
   const [memberOptions, setMemberOptions] = useState([]);
   const [memberSearchQuery, setMemberSearchQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedMember, setSelectedMember] = useState(null); // stores the selected member object
-  const [page, setPage] = useState(1);
+  const [selectedMember, setSelectedMember] = useState(null);   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
   const [adminMemberId, setAdminMemberId] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const dropdownRef = useRef(null);
   
-  // Date filters defaulting to current month
-  const getToday = () => new Date().toISOString().split('T')[0];
+    const getToday = () => new Date().toISOString().split('T')[0];
   const getFirstOfMonth = () => {
     const d = new Date();
     d.setDate(1);
@@ -57,8 +55,7 @@ const LoginHistory = () => {
     }
   }, [memberSearchQuery, isAdmin]);
 
-  // Click outside to close dropdown
-  useEffect(() => {
+    useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
@@ -68,8 +65,7 @@ const LoginHistory = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Instant local filtering of member choices
-  const filteredMemberOptions = memberOptions.filter(m => {
+    const filteredMemberOptions = memberOptions.filter(m => {
     const query = memberSearchQuery.toLowerCase();
     return (
       (m.name || '').toLowerCase().includes(query) ||
@@ -82,11 +78,9 @@ const LoginHistory = () => {
     setLoading(true);
     try {
       const session = getSession();
-      // If admin, use selectedMember.id (numeric) first, as backend filters by numeric ID (e.g. MemberID=2)
-      const resolvedMemberId = isAdmin ? (selectedMember?.id || selectedMember?.msrno || '') : (session?.msrno || session?.userId || session?.memberId || '');
+            const resolvedMemberId = isAdmin ? (selectedMember?.id || selectedMember?.msrno || '') : (session?.msrno || session?.userId || session?.memberId || '');
 
-      // Fetch a large page size to handle sorting locally since API might return ascending
-      const res = await API.userLoginHistory.getAll({ 
+            const res = await API.userLoginHistory.getAll({ 
         pageNumber: 1, 
         pageSize: 10000,
         fromDate: fromDate || undefined,
@@ -120,16 +114,14 @@ const LoginHistory = () => {
         }
       }
 
-      // Sort all items descending so newest is at the top
-      items.sort((a, b) => {
+            items.sort((a, b) => {
         const timeA = new Date(a.loginTime || a.createdDate || a.createdAt || 0).getTime();
         const timeB = new Date(b.loginTime || b.createdDate || b.createdAt || 0).getTime();
         return timeB - timeA;
       });
 
       setFullData(items);
-      setPage(1); // reset to page 1 on new fetch
-    } catch (err) {
+      setPage(1);     } catch (err) {
       console.error("Failed to fetch login history:", err);
       setFullData([]);
     } finally {
@@ -144,8 +136,7 @@ const LoginHistory = () => {
   const filteredData = fullData.filter(item => {
     const term = searchTerm.toLowerCase();
     
-    // Find matched member details to search by name and ID in main search bar
-    const matchedMember = memberOptions.find(m => String(m.id) === String(item.msrno));
+        const matchedMember = memberOptions.find(m => String(m.id) === String(item.msrno));
     const session = getSession();
     
     const displayName = isAdmin 
@@ -402,8 +393,7 @@ const LoginHistory = () => {
                 </tr>
               ) : pagedData.length > 0 ? (
                 pagedData.map((item, index) => {
-                  // ── time ──
-                  let rawTime = item.loginTime || item.createdAt || item.createdOn || item.LoginTime;
+                                    let rawTime = item.loginTime || item.createdAt || item.createdOn || item.LoginTime;
                   if (rawTime && typeof rawTime === 'string' && !rawTime.endsWith('Z') && !rawTime.includes('+')) {
                     rawTime += 'Z';
                   }
@@ -412,12 +402,10 @@ const LoginHistory = () => {
                   const datePart = isValidDate ? dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
                   const timePart = isValidDate ? dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
 
-                  // ── status ──
-                  const status = item.status || item.Status || 'Success';
+                                    const status = item.status || item.Status || 'Success';
                   const isSuccess = status.toLowerCase() === 'success' || status === '1' || status === true;
 
-                  // ── member display ──
-                  const matchedMember = memberOptions.find(m => String(m.id) === String(item.msrno));
+                                    const matchedMember = memberOptions.find(m => String(m.id) === String(item.msrno));
                   const session = getSession();
                   const displayName = isAdmin
                     ? (matchedMember ? matchedMember.name : (item.loginType || 'Unknown'))
@@ -427,23 +415,19 @@ const LoginHistory = () => {
                     : (session?.memberId || '');
                   const initials = displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
 
-                  // ── IP ──
-                  const ipRaw = item.loginIpaddress || item.ipAddress || item.ip || item.IPAddress || '';
+                                    const ipRaw = item.loginIpaddress || item.ipAddress || item.ip || item.IPAddress || '';
 
-                  // ── device ──
-                  const deviceRaw = (item.device || item.browser || item.Device || '').trim();
+                                    const deviceRaw = (item.device || item.browser || item.Device || '').trim();
                   const isMobile = /mobile|android|iphone|ipad/i.test(deviceRaw);
                   const isTablet = /tablet|ipad/i.test(deviceRaw);
                   const DeviceIcon = isTablet ? FaTabletAlt : isMobile ? FaMobileAlt : FaDesktop;
                   const deviceColor = isMobile ? '#7c3aed' : isTablet ? '#0891b2' : '#1756AA';
 
-                  // ── location ──
-                  const locationRaw = item.location || item.Location || '';
+                                    const locationRaw = item.location || item.Location || '';
 
                   return (
                     <tr key={item.id || item.Id || index}>
-                      {/* # */}
-                      <td style={{ textAlign: 'center' }}>
+                                            <td style={{ textAlign: 'center' }}>
                         <span style={{
                           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                           width: 26, height: 26, borderRadius: '50%',
@@ -454,8 +438,7 @@ const LoginHistory = () => {
                         </span>
                       </td>
 
-                      {/* User */}
-                      <td>
+                                            <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                           <div style={{
                             width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
@@ -470,8 +453,7 @@ const LoginHistory = () => {
                         </div>
                       </td>
 
-                      {/* IP */}
-                      <td>
+                                            <td>
                         {ipRaw ? (
                           <span style={{
                             display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -486,8 +468,7 @@ const LoginHistory = () => {
                         ) : <span style={{ color: '#cbd5e1' }}>—</span>}
                       </td>
 
-                      {/* Device */}
-                      <td>
+                                            <td>
                         {deviceRaw ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                             <span style={{
@@ -506,8 +487,7 @@ const LoginHistory = () => {
                         ) : <span style={{ color: '#cbd5e1' }}>—</span>}
                       </td>
 
-                      {/* Location */}
-                      <td>
+                                            <td>
                         {locationRaw ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                             <FaMapMarkerAlt style={{ color: '#ef4444', fontSize: '0.65rem', flexShrink: 0 }} />
@@ -524,16 +504,14 @@ const LoginHistory = () => {
                         )}
                       </td>
 
-                      {/* Login Time */}
-                      <td>
+                                            <td>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                           <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#334155' }}>{datePart}</span>
                           {timePart && <span style={{ fontSize: '0.67rem', color: '#94a3b8' }}>{timePart}</span>}
                         </div>
                       </td>
 
-                      {/* Status */}
-                      <td style={{ textAlign: 'center' }}>
+                                            <td style={{ textAlign: 'center' }}>
                         <span className={isSuccess ? sharedStyles.success : sharedStyles.failed} style={{
                           padding: '3px 10px', borderRadius: 20, fontSize: '0.67rem', fontWeight: 800,
                           display: 'inline-flex', alignItems: 'center', gap: 4
@@ -560,8 +538,7 @@ const LoginHistory = () => {
           </table>
         </div>
 
-        {/* Pagination Controls */}
-        <div style={{ 
+                <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center', 

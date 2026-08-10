@@ -7,7 +7,6 @@ import { FiBarChart2, FiSearch } from 'react-icons/fi';
 import styles from '../MemberPages/MemberPages.module.css';
 import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 
-/* ── Date helpers ─────────────────────────────────── */
 const today = new Date().toISOString().split('T')[0];
 
 function fmtDate(iso) {
@@ -24,7 +23,6 @@ function fmtAmt(n) {
   return '₹ ' + Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
 }
 
-/* ── Type badge ───────────────────────────────────── */
 function TypeBadge({ isComSur }) {
   const label = isComSur ? 'Surcharge' : 'Commission';
   const bg    = isComSur ? '#FEF3C7' : '#D1FAE5';
@@ -50,8 +48,7 @@ const CommissionLedger = () => {
   const [showStats, setShowStats] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
 
-  /* ── Load member dropdown ─────────────────────── */
-  useEffect(() => {
+    useEffect(() => {
     API.member.search('').then(res => {
       const list = Array.isArray(res) ? res : (res?.data?.items || res?.data || []);
       console.log('[CommissionLedger] members loaded:', list.length);
@@ -60,27 +57,25 @@ const CommissionLedger = () => {
         ...(Array.isArray(list) ? list : []).map(m => {
           const name    = m.name || m.fullName || m.ownerName || m.firmName || '';
           const loginId = m.memberID || m.memberid || m.loginID || m.loginId || String(m.id || m.msrno || '');
-          return { value: String(m.id || m.msrno), label: name ? `${name} (${loginId})` : loginId };
+          return { value: String(m.id || m.uniqueID || m.msrno || ''), label: name ? `${name} (${loginId})` : loginId };
         })
       ]);
     }).catch(() => {
-      // fallback to getAll
-      API.member.getAll({ pageNumber: 1, pageSize: 5000 }).then(res => {
+            API.member.getAll({ pageNumber: 1, pageSize: 5000 }).then(res => {
         const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
         setMemberOptions([
           { value: '', label: 'All Members' },
           ...(Array.isArray(list) ? list : []).map(m => {
             const name    = m.name || m.fullName || m.ownerName || m.firmName || '';
             const loginId = m.memberID || m.memberid || m.loginID || m.loginId || String(m.id || m.msrno || '');
-            return { value: String(m.id || m.msrno), label: name ? `${name} (${loginId})` : loginId };
+            return { value: String(m.id || m.uniqueID || m.msrno || ''), label: name ? `${name} (${loginId})` : loginId };
           })
         ]);
       }).catch(() => {});
     });
   }, []);
 
-  /* ── Fetch ledger ─────────────────────────────── */
-  const fetchData = useCallback(async (pg = pageNumber, ps = pageSize) => {
+    const fetchData = useCallback(async (pg = pageNumber, ps = pageSize) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ PageNumber: pg, PageSize: ps });
@@ -104,8 +99,7 @@ const CommissionLedger = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  /* ── Stats ────────────────────────────────────── */
-  const totalAmt        = items.reduce((s, r) => s + (r.amount || 0), 0);
+    const totalAmt        = items.reduce((s, r) => s + (r.amount || 0), 0);
   const commissionTotal = items.filter(r => !r.isComSur).reduce((s, r) => s + (r.amount || 0), 0);
   const surchargeTotal  = items.filter(r => r.isComSur).reduce((s, r) => s + (r.amount || 0), 0);
   const stats = {
@@ -123,8 +117,7 @@ const CommissionLedger = () => {
     netPayable: totalAmt,
   };
 
-  /* ── Client-side search ──────────────────────── */
-  const filtered = items.filter(r => {
+    const filtered = items.filter(r => {
     const q = searchQuery.toLowerCase();
     return !q ||
       (r.transactionOrderId || '').toLowerCase().includes(q) ||
@@ -154,12 +147,10 @@ const CommissionLedger = () => {
               </button>
             </div>
 
-            {/* Filter grid */}
-            <form onSubmit={e => { e.preventDefault(); setPageNumber(1); fetchData(1, pageSize); }}>
+                        <form onSubmit={e => { e.preventDefault(); setPageNumber(1); fetchData(1, pageSize); }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
 
-                {/* From Date */}
-                <div className={styles.formGroup}>
+                                <div className={styles.formGroup}>
                   <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>From Date</label>
                   <input
                     type="date"
@@ -172,8 +163,7 @@ const CommissionLedger = () => {
                   />
                 </div>
 
-                {/* To Date */}
-                <div className={styles.formGroup}>
+                                <div className={styles.formGroup}>
                   <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>To Date</label>
                   <input
                     type="date"
@@ -186,8 +176,7 @@ const CommissionLedger = () => {
                   />
                 </div>
 
-                {/* Member Dropdown */}
-                <div className={styles.formGroup}>
+                                <div className={styles.formGroup}>
                   <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Member</label>
                   <SearchableSelect
                     options={memberOptions}
@@ -197,8 +186,7 @@ const CommissionLedger = () => {
                   />
                 </div>
 
-                {/* Search keyword */}
-                <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
                   <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Search</label>
                   <div style={{ position: 'relative', width: '100%' }}>
                     <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
@@ -217,8 +205,7 @@ const CommissionLedger = () => {
                   </div>
                 </div>
 
-                {/* Search Button */}
-                <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'flex-end' }}>
+                                <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'flex-end' }}>
                   <button
                     type="submit"
                     disabled={loading}

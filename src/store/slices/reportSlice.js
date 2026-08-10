@@ -137,8 +137,7 @@ const reportSlice = createSlice({
     setAEPSCurrentPage: (state, action) => {
       state.aepsReport.currentPage = action.payload;
     },
-    // DMT Reducers
-    setDMTList: (state, action) => {
+        setDMTList: (state, action) => {
       state.dmtReport.list = action.payload;
     },
     updateDMTFilters: (state, action) => {
@@ -154,8 +153,7 @@ const reportSlice = createSlice({
     setDMTCurrentPage: (state, action) => {
       state.dmtReport.currentPage = action.payload;
     },
-    // Payout Reducers
-    setPayoutList: (state, action) => {
+        setPayoutList: (state, action) => {
       state.payoutReport.list = action.payload;
     },
     updatePayoutFilters: (state, action) => {
@@ -171,8 +169,7 @@ const reportSlice = createSlice({
     setPayoutCurrentPage: (state, action) => {
       state.payoutReport.currentPage = action.payload;
     },
-    // MATM Reducers
-    setMATMList: (state, action) => {
+        setMATMList: (state, action) => {
       state.matmReport.list = action.payload;
     },
     updateMATMFilters: (state, action) => {
@@ -188,8 +185,7 @@ const reportSlice = createSlice({
     setMATMCurrentPage: (state, action) => {
       state.matmReport.currentPage = action.payload;
     },
-    // Recharge Reducers
-    setRechargeList: (state, action) => {
+        setRechargeList: (state, action) => {
       state.rechargeReport.list = action.payload;
     },
     updateRechargeFilters: (state, action) => {
@@ -205,8 +201,7 @@ const reportSlice = createSlice({
     setRechargeCurrentPage: (state, action) => {
       state.rechargeReport.currentPage = action.payload;
     },
-    // BBPS Reducers
-    setBBPSList: (state, action) => {
+        setBBPSList: (state, action) => {
       state.bbpsReport.list = action.payload;
     },
     updateBBPSFilters: (state, action) => {
@@ -222,15 +217,13 @@ const reportSlice = createSlice({
     setBBPSCurrentPage: (state, action) => {
       state.bbpsReport.currentPage = action.payload;
     },
-    // Business Summary Reducers
-    setBusinessList: (state, action) => {
+        setBusinessList: (state, action) => {
       state.businessSummary.list = action.payload;
     },
     updateBusinessFilters: (state, action) => {
       state.businessSummary.filters = { ...state.businessSummary.filters, ...action.payload };
     },
-    // AEPS Wallet Reducers
-    setAEPSWalletList: (state, action) => {
+        setAEPSWalletList: (state, action) => {
       state.aepsWalletReport.list = action.payload;
     },
     updateAEPSWalletFilters: (state, action) => {
@@ -246,8 +239,7 @@ const reportSlice = createSlice({
     setAEPSWalletCurrentPage: (state, action) => {
       state.aepsWalletReport.currentPage = action.payload;
     },
-    // Main Wallet Reducers
-    setMainWalletList: (state, action) => {
+        setMainWalletList: (state, action) => {
       state.mainWalletReport.list = action.payload;
     },
     updateMainWalletFilters: (state, action) => {

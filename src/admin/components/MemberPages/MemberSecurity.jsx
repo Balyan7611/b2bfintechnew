@@ -18,8 +18,7 @@ const MemberSecurity = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Local state for UI functionality
-  const [members, setMembers] = useState([]);
+    const [members, setMembers] = useState([]);
 
   const fetchMembers = async () => {
     try {
@@ -27,8 +26,7 @@ const MemberSecurity = () => {
       let securityRes = null;
 
       try {
-        // Use member search API which is fully working and returns all bound members
-        membersRes = await API.member.search("");
+                membersRes = await API.member.search("");
       } catch (err) {
         console.error("Failed to fetch member list via search:", err);
       }
@@ -65,12 +63,10 @@ const MemberSecurity = () => {
         }
       }
 
-      // Map security records by msrno (convert key to string for strict map lookup)
-      const securityMap = new Map(rawSecurities.map(s => [String(s.msrno), s]));
+            const securityMap = new Map(rawSecurities.map(s => [String(s.msrno), s]));
 
       const merged = rawMembers.map(m => {
-        // Fallback: m.id corresponds to m.uniqueID (the serial number msrno)
-        const msrnoVal = m.msrno || m.id;
+                const msrnoVal = m.msrno || m.id;
         const sec = securityMap.get(String(msrnoVal)) || {};
         return {
           id: sec.id || 0,
@@ -277,8 +273,7 @@ const MemberSecurity = () => {
           </div>
         </div>
         
-        {/* ── EXPORT & SEARCH CONTROLS ── */}
-        <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+                <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select 
@@ -306,8 +301,7 @@ const MemberSecurity = () => {
           </div>
         </div>
 
-        {/* ── TABLE ── */}
-        <div className={styles.tableContainer}>
+                <div className={styles.tableContainer}>
           <table className={styles.tableFull} style={{ minWidth: '800px', width: '100%' }}>
             <thead>
               <tr>
@@ -380,8 +374,7 @@ const MemberSecurity = () => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div className={styles.paginationRow}>
+                <div className={styles.paginationRow}>
           <span className={styles.paginationInfo}>
             Showing {filteredMembers.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1} to {Math.min(currentPage * rowsPerPage, filteredMembers.length)} of {filteredMembers.length} entries
           </span>
@@ -412,5 +405,3 @@ const MemberSecurity = () => {
 };
 
 export default MemberSecurity;
-
-

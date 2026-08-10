@@ -298,11 +298,9 @@ const PipeModuleSettings = () => {
 
   return (
     <div className={styles.container} style={{ padding: '10px 15px 200px 15px', maxWidth: '100%', minHeight: '100vh' }}>
-      {/* ── MAIN LISTING CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 15px rgba(0,0,0,0.05)', borderRadius: '16px', overflow: 'hidden' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 15px rgba(0,0,0,0.05)', borderRadius: '16px', overflow: 'hidden' }}>
 
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 15px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 15px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
             <div style={{ width: '36px', height: '36px', background: 'rgba(23, 86, 170, 0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA', flexShrink: 0 }}>
               <FaProjectDiagram style={{ fontSize: '1.1rem' }} />
@@ -321,8 +319,7 @@ const PipeModuleSettings = () => {
           </button>
         </div>
 
-        {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.selectEntries} style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}>
@@ -384,7 +381,7 @@ const PipeModuleSettings = () => {
                 </tr>
               ) : (
                 filteredData.map((item, index) => {
-                  const serviceName = services.find(s => s.id === item.serviceId)?.name || `Service #${item.serviceId}`;
+                  const serviceName = item.serviceName || services.find(s => s.id === item.serviceId)?.name || `Service #${item.serviceId}`;
                   return (
                     <tr key={item.id} className={index % 2 === 0 ? styles.rowEven : styles.rowOdd}>
                       <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{index + 1}</td>
@@ -428,12 +425,10 @@ const PipeModuleSettings = () => {
         </div>
       </div>
 
-      {/* ── PREMIUM ADD/EDIT PIPE MODULE SETTINGS MODAL ── */}
-      {isModalOpen && (
+            {isModalOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3500 }}>
           <div className={styles.modalContainer} style={{ width: '800px', maxWidth: '95%', borderRadius: '16px', overflow: 'visible', background: '#fff', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
-            {/* Modal Header */}
-            <div className={styles.modalHeader} style={{ padding: '20px 25px 15px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}>
+                        <div className={styles.modalHeader} style={{ padding: '20px 25px 15px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ width: '40px', height: '40px', background: 'rgba(23, 86, 170, 0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA' }}>
                   <FaProjectDiagram style={{ fontSize: '1.2rem' }} />
@@ -451,8 +446,7 @@ const PipeModuleSettings = () => {
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className={styles.modalBody} style={{ padding: '20px 25px', display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', minHeight: '350px' }}>
+                        <div className={styles.modalBody} style={{ padding: '20px 25px', display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', minHeight: '350px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Service <span style={{ color: '#ef4444' }}>*</span></label>
@@ -563,8 +557,7 @@ const PipeModuleSettings = () => {
               )}
             </div>
 
-            {/* Modal Footer */}
-            <div className={styles.modalFooter} style={{ padding: '10px 20px', background: '#FBFDFF', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                        <div className={styles.modalFooter} style={{ padding: '10px 20px', background: '#FBFDFF', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <button
                 onClick={handleCloseModal}
                 style={{ background: '#f1f5f9', color: '#64748b', border: 'none', padding: '10px 24px', borderRadius: '8px', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}
@@ -582,8 +575,7 @@ const PipeModuleSettings = () => {
         </div>
       )}
 
-      {/* CONFIRM SUBMIT MODAL */}
-      {showConfirmSubmit && (
+            {showConfirmSubmit && (
         <div className={styles.modalOverlay} style={{ zIndex: 3700 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px', background: '#fff', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
@@ -613,8 +605,7 @@ const PipeModuleSettings = () => {
         </div>
       )}
 
-      {/* CONFIRM DELETE MODAL */}
-      {showConfirmModal.isOpen && (
+            {showConfirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3600 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px', background: '#fff', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>

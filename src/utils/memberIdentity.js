@@ -1,11 +1,3 @@
-// Resolves the identity of the logged-in member (numeric Member.Id + LoginId).
-//
-// Why this exists: LoginPage / ApiLoginPage build the session from the JWT and
-// used `decoded.sub` as `msrno`. On this backend `sub` is the LoginId string
-// (e.g. "RT100"), not the numeric Member.Id. Any call like
-// `GetMemberService?MemberID=RT100` then silently returns an empty list, which
-// is why requested/approved services never appeared in the panels even though
-// the rows existed in the database.
 
 import { getSession, saveSession, decodeToken } from './authUtils';
 import { API } from '../api/endpoints';
@@ -32,7 +24,6 @@ const readToken = () => {
            sessionStorage.getItem('api_token') || localStorage.getItem('api_token');
 };
 
-// The LoginId is always reliable — it's what the user typed to log in.
 export const getLoginId = () => {
     const session = getSession();
     const fromSession = session?.loginId || session?.username || session?.memberId;
@@ -43,7 +34,6 @@ export const getLoginId = () => {
     return fromToken ? String(fromToken).trim() : '';
 };
 
-// Scans every JWT claim for a numeric id, preferring the most explicit names.
 const memberIdFromToken = () => {
     const decoded = decodeToken(readToken());
     if (!decoded) return null;
@@ -55,8 +45,7 @@ const memberIdFromToken = () => {
     for (const key of preferred) {
         if (isNumericId(decoded[key])) return parseInt(decoded[key], 10);
     }
-    // Anything else that looks like an id claim.
-    for (const [key, val] of Object.entries(decoded)) {
+        for (const [key, val] of Object.entries(decoded)) {
         if (/id$/i.test(key) && isNumericId(val)) return parseInt(val, 10);
     }
     return null;
@@ -67,9 +56,7 @@ let cachedForToken = null;
 let inFlight = null;
 
 export const resolveMemberId = async () => {
-    // Tie the cache to the current token so a re-login never reuses the
-    // previous user's id.
-    const token = readToken();
+            const token = readToken();
     if (cachedForToken !== token) {
         cachedId = null;
         inFlight = null;
@@ -77,8 +64,7 @@ export const resolveMemberId = async () => {
     }
     if (cachedId) return cachedId;
 
-    // 1. Session already holds a usable numeric id.
-    const session = getSession();
+        const session = getSession();
     for (const candidate of [session?.msrno, session?.userId, session?.id]) {
         if (isNumericId(candidate)) {
             cachedId = parseInt(candidate, 10);
@@ -86,8 +72,7 @@ export const resolveMemberId = async () => {
         }
     }
 
-    // 2. A numeric claim inside the JWT.
-    const fromToken = memberIdFromToken();
+        const fromToken = memberIdFromToken();
     if (fromToken) {
         cachedId = fromToken;
         const current = getSession();
@@ -97,8 +82,7 @@ export const resolveMemberId = async () => {
 
     if (inFlight) return inFlight;
 
-    // 3. Member master lookup by LoginId.
-    const loginId = getLoginId();
+        const loginId = getLoginId();
     if (!loginId || !API.member?.getAll) {
         console.warn('[memberIdentity] no LoginId available to resolve member id');
         return null;
@@ -131,7 +115,6 @@ export const resolveMemberId = async () => {
     return inFlight;
 };
 
-// Call on logout so a stale id isn't reused by the next user.
 export const clearMemberIdCache = () => {
     cachedId = null;
     cachedForToken = null;

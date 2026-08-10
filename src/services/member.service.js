@@ -2,9 +2,6 @@ import { apiService } from '../api/httpClient';
 import { MemberRequestModel } from '../models/memberModel';
 import { MemberSearchResponseModel } from '../models/memberSearchModel';
 
-// Explicitly attach whatever auth token is available (access_token / admin_token /
-// member_token) so background/header calls never go out without an Authorization
-// header, regardless of which panel is calling.
 const getAuthConfig = (extra = {}) => {
     const raw = sessionStorage.getItem('access_token')
         || localStorage.getItem('access_token')
@@ -30,10 +27,7 @@ export const MemberService = {
         return await apiService.get(`/Member/get-member-by-id/${id}`);
     },
 
-    // Admin dashboard header uses this dedicated route for its own wallet
-    // snapshot: GET /api/Member/GetByID/{id} -> returns the member record
-    // directly (mainWallet / aepsWallet / commissionWallet included).
-    getByIdRaw: async (id) => {
+                getByIdRaw: async (id) => {
         return await apiService.get(`/Member/GetByID/${id}`, getAuthConfig({ hideLoader: true, ignoreError: true }));
     },
 
@@ -51,8 +45,7 @@ export const MemberService = {
         return await MemberService.searchMember(searchQuery, isActive);
     },
 
-    // Paginated get-all with filters
-    getAll: async ({ pageNumber = 1, pageSize = 10, search = '', roleId = 0, isActive = null, isKycApproved = null, fromDate = '', toDate = '' } = {}) => {
+        getAll: async ({ pageNumber = 1, pageSize = 10, search = '', roleId = 0, isActive = null, isKycApproved = null, fromDate = '', toDate = '' } = {}) => {
         if (search && search.trim() !== '') {
             try {
                 let searchedMembers = await MemberService.searchMember(search.trim());
@@ -61,8 +54,7 @@ export const MemberService = {
                     const targetRole = parseInt(roleId);
                     searchedMembers = searchedMembers.filter(m => {
                         const rId = m.roleId || m.roleID || m.RoleID || m.role_id;
-                        if (!rId) return true; // Safety check: if raw search response lacks role ID, don't filter it out
-                        return parseInt(rId) === targetRole;
+                        if (!rId) return true;                         return parseInt(rId) === targetRole;
                     });
                 }
                 
@@ -92,7 +84,11 @@ export const MemberService = {
         if (fromDate) payload.fromDate = fromDate;
         if (toDate) payload.toDate = toDate;
         
-        return await apiService.post('/Member/get-all-members', payload);
+        const res = await apiService.post('/Member/get-all-members', payload);
+        if (res?.data?.items && Array.isArray(res.data.items)) {
+            res.data.items = MemberSearchResponseModel({ data: res.data.items });
+        }
+        return res;
     },
 
     updateMember: async (id, data) => {

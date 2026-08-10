@@ -87,21 +87,17 @@ const ApiHeader = () => {
   };
 
   useEffect(() => {
-    // 1. Request Firebase Push Notification Permission
-    requestForToken();
+        requestForToken();
 
-    // 2. Listen for Real-Time Foreground Messages from Firebase
-    const unsubscribe = setupForegroundListener((payload) => {
-      // When a real message comes from FCM, push it to our local state so the bell rings!
-      dispatch(addNotification({
+        const unsubscribe = setupForegroundListener((payload) => {
+            dispatch(addNotification({
         title: payload.notification?.title || 'New Push Broadcast',
         text: payload.notification?.body || 'You have a new message.',
         time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
       }));
     });
 
-    // 3. Listen to LocalStorage across tabs for Live Prototype Sync
-    const handleStorageChange = (e) => {
+        const handleStorageChange = (e) => {
       if (e.key === 'local_notifications') {
         const newNotifs = JSON.parse(e.newValue || '[]');
         dispatch(syncNotifications(newNotifs));
@@ -139,8 +135,7 @@ const ApiHeader = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('keydown', handleEsc);
       window.removeEventListener('storage', handleStorageChange);
-      if (unsubscribe) unsubscribe(); // cleanup Firebase listener
-    };
+      if (unsubscribe) unsubscribe();     };
   }, [dispatch]);
 
   const getNotifIcon = (type) => {
@@ -155,9 +150,7 @@ const ApiHeader = () => {
     }
   };
 
-  // Seed with all wallet types visible by default so nothing is hidden while the
-  // first live fetch from WalletType (DB) is still in flight.
-  const [walletTypes, setWalletTypes] = useState([
+      const [walletTypes, setWalletTypes] = useState([
     { code: 'MAIN', name: 'Main', isActive: true },
     { code: 'AEPS', name: 'AEPS', isActive: true },
     { code: 'COMMISSION', name: 'Commission', isActive: true }
@@ -166,9 +159,7 @@ const ApiHeader = () => {
 
   const fetchWalletHeaderData = async () => {
     try {
-      // Real numeric Member.Id only — a LoginId string here returns the wrong
-      // row (or none), which is how balances leaked across panels.
-      const memberId = await resolveMemberId();
+                  const memberId = await resolveMemberId();
       if (!memberId) {
         console.warn('ApiHeader: no member id resolved, showing zero balances');
         setWalletBalances({ mainBalance: 0, aepsBalance: 0, commissionBalance: 0 });
@@ -180,10 +171,7 @@ const ApiHeader = () => {
         API.userWalletBalance.getForMember(memberId)
       ]);
 
-      // Only overwrite the list when the API actually returned wallet types.
-      // If the request fails/returns empty (e.g. transient network issue), keep
-      // whatever was last shown instead of hiding every wallet pill.
-      if (Array.isArray(typesRes) && typesRes.length > 0) {
+                        if (Array.isArray(typesRes) && typesRes.length > 0) {
         setWalletTypes(typesRes);
       }
 
@@ -203,10 +191,7 @@ const ApiHeader = () => {
   const walletData = walletTypes
     .filter(wt => wt.isActive)
     .map(wt => {
-      // `code` (MAIN/AEPS/COMMISSION) is only used internally to pick the right
-      // balance field/color. The label shown on screen is always the DB `name`
-      // exactly as typed - rename it in the DB and the pill updates to match.
-      const cfg = WALLET_TYPE_CONFIG.find(c => (wt.code || '').toUpperCase().includes(c.match));
+                        const cfg = WALLET_TYPE_CONFIG.find(c => (wt.code || '').toUpperCase().includes(c.match));
       return {
         name: `${wt.name || wt.code || ''} Wallet`,
         value: (walletBalances[cfg?.balanceKey] || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
@@ -261,8 +246,6 @@ const ApiHeader = () => {
           <button className={`${styles.iconBtn} ${styles.mobileHide}`} onClick={handleFullscreen}>
             <FaExpand />
           </button>
-
-          {/* Dark Mode and Mail icons removed as per request */}
 
           <div className={styles.dropdownWrap} ref={notifRef}>
             <button className={styles.iconBtn} onClick={() => {
@@ -395,8 +378,7 @@ const ApiHeader = () => {
       </div>
     </header>
 
-    {/* Logout Confirmation Modal */}
-    {showLogoutModal && (
+        {showLogoutModal && (
       <div className={styles.modalOverlay} onClick={() => setShowLogoutModal(false)}>
         <div className={styles.logoutModal} onClick={e => e.stopPropagation()}>
           <div className={styles.modalIconBox}>
@@ -420,4 +402,3 @@ const ApiHeader = () => {
 };
 
 export default ApiHeader;
-

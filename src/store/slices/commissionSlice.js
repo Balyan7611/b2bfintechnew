@@ -136,8 +136,7 @@ const commissionSlice = createSlice({
         });
       });
     },
-    // ── API COMMISSION RANGE reducers ──
-    updateApiCommForm: (state, action) => {
+        updateApiCommForm: (state, action) => {
       const { name, value } = action.payload;
       state.apiCommForm[name] = value;
     },
@@ -167,8 +166,7 @@ const commissionSlice = createSlice({
     deleteApiCommEntry: (state, action) => {
       state.apiCommList = state.apiCommList.filter(item => item.id !== action.payload);
     },
-    // ── COMMISSION API SETUP reducers ──
-    updateApiForm: (state, action) => {
+        updateApiForm: (state, action) => {
       const { name, value } = action.payload;
       state.apiForm[name] = value;
     },
@@ -198,8 +196,7 @@ const commissionSlice = createSlice({
     deleteApiEntry: (state, action) => {
       state.apiList = state.apiList.filter(item => item.id !== action.payload);
     },
-    // ── COMMON COMMISSION reducers ──
-    setCommonService: (state, action) => {
+        setCommonService: (state, action) => {
       state.commonCommission.selectedService = action.payload;
     },
     setCommonSearchQuery: (state, action) => {

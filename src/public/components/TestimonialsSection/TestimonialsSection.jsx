@@ -48,8 +48,7 @@ const TestimonialsSection = () => {
 
   return (
     <section className={styles.testimonialsSection} ref={sectionRef}>
-      {/* Background decoration */}
-      <div className={styles.bgDecor1}></div>
+            <div className={styles.bgDecor1}></div>
       <div className={styles.bgDecor2}></div>
 
       <div className="container">
@@ -66,23 +65,19 @@ const TestimonialsSection = () => {
               className={`${styles.card} ${styles.animateOnScroll}`}
               style={{ transitionDelay: `${index * 0.15}s` }}
             >
-              {/* Quote Watermark */}
-              <div className={styles.quoteWatermark}>
+                            <div className={styles.quoteWatermark}>
                 <FaQuoteLeft />
               </div>
 
-              {/* Stars */}
-              <div className={styles.stars}>
+                            <div className={styles.stars}>
                 {[...Array(5)].map((_, i) => (
                   <FaStar key={i} className={styles.star} />
                 ))}
               </div>
 
-              {/* Quote text */}
-              <p className={styles.quoteText}>{testimonial.quote}</p>
+                            <p className={styles.quoteText}>{testimonial.quote}</p>
 
-              {/* Author */}
-              <div className={styles.author}>
+                            <div className={styles.author}>
                 <div className={styles.avatarWrapper}>
                   <img
                     src={testimonial.avatar}

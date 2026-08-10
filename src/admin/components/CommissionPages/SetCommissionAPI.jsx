@@ -38,8 +38,7 @@ const SetCommissionAPI = () => {
 
   return (
     <div className={styles.container}>
-      {/* ── FORM CARD ── */}
-      <div className={styles.card} style={{ marginBottom: '30px' }}>
+            <div className={styles.card} style={{ marginBottom: '30px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', marginBottom: '15px', paddingBottom: '10px', borderBottom: '1.5px solid #F8FAFF' }}>
           <div className={styles.directoryTitleGroup}>
             <h2 className={styles.directoryTitle} style={{ fontSize: '1.2rem' }}>Commission API Setup</h2>
@@ -127,8 +126,7 @@ const SetCommissionAPI = () => {
         </div>
       </div>
 
-      {/* ── TABLE CARD ── */}
-      <div className={styles.card}>
+            <div className={styles.card}>
         <div className="global-table-toolbar">
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
@@ -200,8 +198,7 @@ const SetCommissionAPI = () => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div className="global-pagination">
+                <div className="global-pagination">
           <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
             Showing 1 to {apiList.length} of {apiList.length} entries
           </span>

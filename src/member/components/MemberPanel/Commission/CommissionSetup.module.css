@@ -1,6 +1,5 @@
 .container {
-  padding: 4px 4px 16px; /* Reduced top/horizontal padding to minimize gaps */
-  background-color: var(--color-background);
+  padding: 4px 4px 16px;   background-color: var(--color-background);
   min-height: calc(100vh - 60px);
   animation: fadeIn 0.4s ease;
 }
@@ -22,8 +21,7 @@
 
 @media (max-width: 768px) {
   .inlineFilterRow {
-    flex-direction: column; /* Stack vertically on mobile */
-    align-items: stretch;
+    flex-direction: column;     align-items: stretch;
     background: none;
     border: none;
     padding: 0;
@@ -31,8 +29,7 @@
     width: 100%;
   }
   .selectControl {
-    width: 100% !important; /* Full width on mobile */
-  }
+    width: 100% !important;   }
   .submitBtn {
     width: 100%;
     justify-content: center;
@@ -104,5 +101,3 @@
   box-shadow: 0 6px 18px rgba(23, 86, 170, 0.3);
   filter: brightness(1.1);
 }
-
-/* AdminTable handles the rest */

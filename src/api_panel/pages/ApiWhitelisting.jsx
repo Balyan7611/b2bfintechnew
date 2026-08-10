@@ -36,8 +36,7 @@ const ApiWhitelisting = () => {
       const res = await API.ipAuthanticate.getAll({ userId: currentUserId > 0 ? currentUserId : '' });
       const data = res?.data?.items || res?.data?.data || res?.data || (Array.isArray(res) ? res : []);
       const rawList = Array.isArray(data) ? data : [];
-      // Filter out any localhost IP addresses
-      const filtered = rawList.filter(item => {
+            const filtered = rawList.filter(item => {
         const ip = String(item.ip || item.IP || '').trim().toLowerCase();
         return ip !== 'localhost' && ip !== '127.0.0.1' && ip !== '::1';
       });
@@ -53,8 +52,7 @@ const ApiWhitelisting = () => {
     fetchIpList();
   }, [fetchIpList]);
 
-  // STEP 1: Send OTP for IP Whitelisting
-  const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
     setErrorMessage('');
@@ -89,8 +87,7 @@ const ApiWhitelisting = () => {
         setOtp('');
         setModalError('');
         setVerifySuccess(false);
-        setShowAddModal(false); // Close add modal before opening OTP modal
-        setShowOtpModal(true);
+        setShowAddModal(false);         setShowOtpModal(true);
       } else {
         throw new Error(res?.message || 'Failed to send OTP for IP Whitelisting');
       }
@@ -101,8 +98,7 @@ const ApiWhitelisting = () => {
     }
   };
 
-  // STEP 2: Verify OTP & Save IP to DB (Category 18 Notification)
-  const handleVerifyOtp = async () => {
+    const handleVerifyOtp = async () => {
     if (!otp.trim()) {
       setModalError('Please enter OTP');
       return;
@@ -344,8 +340,7 @@ const ApiWhitelisting = () => {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {deleteModal.show && (
+            {deleteModal.show && (
         <div className={styles.modalOverlay} onClick={() => setDeleteModal({ show: false, id: null })}>
           <div className={styles.modalContent} style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
             <button 
@@ -383,8 +378,7 @@ const ApiWhitelisting = () => {
         </div>
       )}
 
-      {/* OTP Verification Modal */}
-      {showOtpModal && (
+            {showOtpModal && (
         <div className={styles.modalOverlay} onClick={() => !isVerifying && setShowOtpModal(false)}>
           <div className={styles.modalContent} style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
             <button 

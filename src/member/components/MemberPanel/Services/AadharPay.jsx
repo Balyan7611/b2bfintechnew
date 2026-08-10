@@ -41,13 +41,11 @@ const AadharPay = () => {
   const [amount, setAmount] = useState('');
   const [aadharNumber, setAadharNumber] = useState('');
   const [selectedBank, setSelectedBank] = useState('');
-  const [deviceStatus, setDeviceStatus] = useState('Disconnected'); // Disconnected, Connecting, Ready
-  const [isScanning, setIsScanning] = useState(false);
+  const [deviceStatus, setDeviceStatus] = useState('Disconnected');   const [isScanning, setIsScanning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [transactions, setTransactions] = useState([]); // ✅ No dummy data
-  const [receiptData, setReceiptData] = useState(null);
+  const [transactions, setTransactions] = useState([]);   const [receiptData, setReceiptData] = useState(null);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -95,16 +93,13 @@ const AadharPay = () => {
     setIsScanning(true);
     showToast('Biometric scanner activated. Please place thumb...', 'info');
 
-    // Simulate scanning
-    setTimeout(() => {
+        setTimeout(() => {
       setIsScanning(false);
       setLoading(true);
       
-      // Simulate API process
-      setTimeout(() => {
+            setTimeout(() => {
         setLoading(false);
-        const success = Math.random() > 0.15; // 85% success rate
-        
+        const success = Math.random() > 0.15;         
         const newTxn = {
           sNo: transactions.length + 1,
           date: new Date().toISOString().replace('T', ' ').slice(0, 16),
@@ -131,8 +126,7 @@ const AadharPay = () => {
             bankTransId: `TXN${Date.now().toString().slice(-8)}`,
             rrn: `RRN${Date.now().toString().slice(-10)}`
           });
-          // Reset form
-          setMobileNumber('');
+                    setMobileNumber('');
           setAmount('');
           setAadharNumber('');
           setSelectedBank('');
@@ -144,8 +138,7 @@ const AadharPay = () => {
   };
 
   const handlePrintReceipt = (txn) => {
-    // Open a mock receipt
-    const randomBank = POPULAR_BANKS[Math.floor(Math.random() * POPULAR_BANKS.length)];
+        const randomBank = POPULAR_BANKS[Math.floor(Math.random() * POPULAR_BANKS.length)];
     setReceiptData({
       ...txn,
       mobileNumber: 'XXXXXX' + Math.floor(1000 + Math.random() * 9000),
@@ -197,19 +190,16 @@ const AadharPay = () => {
         </div>
       )}
 
-      {/* Main Grid: Form + Biometric Widget */}
-      <div className={styles.mainLayout}>
+            <div className={styles.mainLayout}>
         <div className={styles.formCard}>
-          {/* Integrated Card Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
             <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800' }}>
               <FaShieldAlt color="#1756AA" /> AadharPay Gateway Portal
             </h2>
           </div>
           
           <form onSubmit={handleTransactionSubmit} className={styles.inputGrid}>
-            {/* Mobile Number */}
-            <div className={styles.formGroup}>
+                        <div className={styles.formGroup}>
               <label>Customer Mobile Number</label>
               <div className={styles.inputWrapper}>
                 <FaMobileAlt className={styles.inputIcon} />
@@ -224,8 +214,7 @@ const AadharPay = () => {
               </div>
             </div>
 
-            {/* Aadhaar Number */}
-            <div className={styles.formGroup}>
+                        <div className={styles.formGroup}>
               <label>Customer Aadhaar Card Number (UID)</label>
               <div className={styles.inputWrapper}>
                 <FaFingerprint className={styles.inputIcon} />
@@ -239,8 +228,7 @@ const AadharPay = () => {
               </div>
             </div>
 
-            {/* Amount input - only shows if Cash Withdrawal or AadharPay */}
-            {(activeTab === 'CASH WITHDRAWAL' || activeTab === 'AADHARPAY') && (
+                        {(activeTab === 'CASH WITHDRAWAL' || activeTab === 'AADHARPAY') && (
               <div className={styles.formGroup}>
                 <label>Amount to Withdraw (₹)</label>
                 <div className={styles.inputWrapper}>
@@ -256,8 +244,7 @@ const AadharPay = () => {
               </div>
             )}
 
-            {/* Select Bank */}
-            <div className={styles.formGroup}>
+                        <div className={styles.formGroup}>
               <label>Select Customer Bank</label>
               <div className={styles.inputWrapper}>
                 <FaUniversity className={styles.inputIcon} />
@@ -275,8 +262,7 @@ const AadharPay = () => {
               </div>
             </div>
 
-            {/* Presets Grid - only shows if Cash Withdrawal or AadharPay */}
-            {(activeTab === 'CASH WITHDRAWAL' || activeTab === 'AADHARPAY') && (
+                        {(activeTab === 'CASH WITHDRAWAL' || activeTab === 'AADHARPAY') && (
               <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                 <div className={styles.presetContainer}>
                   <span className={styles.presetLabel}>Quick Amount Shortcuts (₹)</span>
@@ -295,8 +281,7 @@ const AadharPay = () => {
                 </div>
               </div>
             )}
-            {/* Quick Bank Selection Logos */}
-            <div className={`${styles.formGroup} ${styles.fullWidth}`} style={{ marginTop: '5px', marginBottom: '10px' }}>
+                        <div className={`${styles.formGroup} ${styles.fullWidth}`} style={{ marginTop: '5px', marginBottom: '10px' }}>
               <div className={styles.presetContainer}>
                 <span className={styles.presetLabel} style={{ marginBottom: '4px' }}>Quick Bank Selection</span>
                 <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '4px', paddingTop: '10px', paddingBottom: '10px', paddingLeft: '4px', paddingRight: '4px', overflowX: 'hidden', justifyContent: 'space-between' }}>
@@ -326,8 +311,7 @@ const AadharPay = () => {
           </form>
         </div>
 
-        {/* Biometric Integration Widget */}
-        <div className={styles.scannerCard}>
+                <div className={styles.scannerCard}>
           <h3 className={styles.cardTitle}>
             <FaFingerprint /> BIOMETRIC SCANNER
           </h3>
@@ -394,8 +378,7 @@ const AadharPay = () => {
         </div>
       </div>
 
-      {/* Modern Datatable for History */}
-      <div className={styles.tableCard}>
+            <div className={styles.tableCard}>
         <div className={styles.tableHeader}>
           <h3 className={styles.cardTitle}><FaHistory /> Today's AePS & AadharPay Log</h3>
           <div className={styles.searchBox}>

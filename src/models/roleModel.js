@@ -1,4 +1,3 @@
-// src/models/roleModel.js
 export const RoleResponseModel = (res) => {
     console.log("RoleResponseModel raw response:", res);
     if (!res) {
@@ -15,8 +14,7 @@ export const RoleResponseModel = (res) => {
     } else if (res.data && typeof res.data === 'object') {
         arr = [res.data];
     } else if (typeof res === 'object' && !res.status && !res.data) {
-        // Fallback for object wrapper without data property
-        arr = [res];
+                arr = [res];
     }
 
     return arr.map(item => ({

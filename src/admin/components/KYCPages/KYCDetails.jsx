@@ -61,8 +61,7 @@ const KYCDetails = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Custom Confirm Modal State
-  const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: '', item: null, label: '' });
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: '', item: null, label: '' });
   const [rejectReason, setRejectReason] = useState('');
   const [kycDetails, setKycDetails] = useState([]);
 
@@ -134,8 +133,7 @@ const KYCDetails = () => {
 
   useEffect(() => {
     fetchDocuments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, rowsPerPage]);
+      }, [currentPage, rowsPerPage]);
 
   const handleView = (item) => {
     setViewingItem(item);
@@ -181,8 +179,7 @@ const KYCDetails = () => {
         formData.append('Status', 'Pending');
         formData.append('Reason', 'Pending verification');
       } else {
-        // REJECT_DOC
-        formData.append('IsApproved', false);
+                formData.append('IsApproved', false);
         formData.append('Status', 'Rejected');
         formData.append('Reason', rejectReason || 'Invalid Document Proof');
       }
@@ -236,8 +233,7 @@ const KYCDetails = () => {
 
   return (
     <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
-      {/* ── MAIN REPORT CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <div className={styles.directoryTitleGroup}>
             <h2 className={styles.directoryTitle} style={{ fontSize: '1.2rem' }}>KYC Member Report</h2>
@@ -264,8 +260,7 @@ const KYCDetails = () => {
               </button>
             )}
 
-            {/* SEARCH BOX */}
-            <div style={{ 
+                        <div style={{ 
               position: 'relative', 
               display: 'flex', 
               alignItems: 'center', 
@@ -296,8 +291,7 @@ const KYCDetails = () => {
           </div>
         </div>
 
-        {/* TABLE */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ minWidth: '1200px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -401,8 +395,7 @@ const KYCDetails = () => {
           </table>
         </div>
 
-        {/* FOOTER */}
-        <div className="global-pagination">
+                <div className="global-pagination">
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
             Showing {totalItems} records
           </div>
@@ -414,8 +407,7 @@ const KYCDetails = () => {
         </div>
       </div>
 
-      {/* ── DETAILS MODAL ── */}
-      {showModal && viewingItem && (
+            {showModal && viewingItem && (
         <div className={styles.modalOverlay} style={{ zIndex: 3500, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)', background: 'rgba(15, 23, 42, 0.6)' }} onClick={() => setShowModal(false)}>
           <div className={styles.modalContainer} style={{ 
             width: '95%', 
@@ -712,8 +704,7 @@ const KYCDetails = () => {
         </div>
       )}
 
-      {/* ── CUSTOM CONFIRM MODAL ── */}
-      {confirmModal.isOpen && (
+            {confirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)', background: 'rgba(15, 23, 42, 0.4)' }}>
           <div className={styles.modalContainer} style={{ width: '90%', maxWidth: '400px', borderRadius: '24px', padding: '32px', textAlign: 'center', background: '#ffffff', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(0,0,0,0.05)', animation: 'modalSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)' }}>
             <div style={{ 

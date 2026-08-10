@@ -19,31 +19,25 @@ const BannerType = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [bannerTypes, setBannerTypes] = useState([]);
   
-  // Custom Action Dropdown State (Matching ManageCompany approach)
-  const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, typeObj: null, isUpward: false });
+    const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, typeObj: null, isUpward: false });
 
   const fetchBannerTypes = async () => {
     try {
       const response = await API.bannerType.getAll();
       if (response) {
-        // If response.data is an array
-        if (Array.isArray(response.data)) {
+                if (Array.isArray(response.data)) {
           setBannerTypes(response.data);
         }
-        // If the array is inside response.data.data
-        else if (response.data && Array.isArray(response.data.data)) {
+                else if (response.data && Array.isArray(response.data.data)) {
           setBannerTypes(response.data.data);
         }
-        // If backend returned { status: true, data: [...], ... }
-        else if (Array.isArray(response.dataList)) {
+                else if (Array.isArray(response.dataList)) {
           setBannerTypes(response.dataList);
         }
-        // If the response root is an array
-        else if (Array.isArray(response)) {
+                else if (Array.isArray(response)) {
           setBannerTypes(response);
         }
-        // If the backend has a custom wrapper response.data with a nested array or list
-        else if (response.data && typeof response.data === 'object') {
+                else if (response.data && typeof response.data === 'object') {
           const possibleArray = Object.values(response.data).find(val => Array.isArray(val));
           if (possibleArray) {
             setBannerTypes(possibleArray);
@@ -51,8 +45,7 @@ const BannerType = () => {
             setBannerTypes([]);
           }
         } 
-        // Fallback checks on top-level object keys
-        else {
+                else {
           const possibleArray = Object.values(response).find(val => Array.isArray(val));
           if (possibleArray) {
             setBannerTypes(possibleArray);
@@ -72,8 +65,7 @@ const BannerType = () => {
   useEffect(() => {
     fetchBannerTypes();
     
-    // Close dropdown on click outside
-    const handleOutsideClick = () => {
+        const handleOutsideClick = () => {
       setActiveActionRow({ id: null, x: 0, y: 0, typeObj: null, isUpward: false });
     };
     window.addEventListener('click', handleOutsideClick);
@@ -127,13 +119,11 @@ const BannerType = () => {
     setShowModal(true);
   };
 
-  // Filter local results based on Search Term
-  const filteredTypes = bannerTypes.filter(item => 
+    const filteredTypes = bannerTypes.filter(item => 
     item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Pagination Logic
-  const totalRecords = filteredTypes.length;
+    const totalRecords = filteredTypes.length;
   const totalPages = Math.ceil(totalRecords / entriesPerPage) || 1;
   const indexOfLastRecord = currentPage * entriesPerPage;
   const indexOfFirstRecord = indexOfLastRecord - entriesPerPage;
@@ -141,18 +131,15 @@ const BannerType = () => {
 
   return (
     <div className={styles.container} style={{ padding: '10px 15px', maxWidth: '100%' }}>
-      {/* ── MAIN LISTING CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap' }}>Banner Types</h2>
           <PrimaryButton onClick={() => setShowModal(true)}>
             <FaPlus /> <span>New Banner Type</span>
           </PrimaryButton>
         </div>
 
-        {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select 
@@ -293,8 +280,7 @@ const BannerType = () => {
         </div>
       </div>
 
-      {/* ── ACTION DROPDOWN PORTAL (fixed position) ── */}
-      {activeActionRow.id && (
+            {activeActionRow.id && (
         <>
           <style>{`
             @keyframes dropdownFadeInSideComp {
@@ -343,8 +329,7 @@ const BannerType = () => {
         </>
       )}
 
-      {/* ── CREATE/EDIT MODAL ── */}
-      {showModal && (
+            {showModal && (
         <div className={styles.modalOverlay} style={{ zIndex: 3500 }}>
           <div className={styles.modalContainer} style={{ width: '420px', borderRadius: '16px' }}>
             <div className={styles.modalHeader} style={{ padding: '20px 25px 15px', borderBottom: '1px solid #F1F5F9' }}>
@@ -401,8 +386,7 @@ const BannerType = () => {
         </div>
       )}
 
-      {/* CONFIRM DELETE MODAL */}
-      {showConfirmModal.isOpen && (
+            {showConfirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3600 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>

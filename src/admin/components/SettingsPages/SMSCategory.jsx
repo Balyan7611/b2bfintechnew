@@ -138,18 +138,15 @@ const SMSCategory = () => {
 
   return (
     <div className={styles.container} style={{ padding: '10px 15px', maxWidth: '100%' }}>
-      {/* ── MAIN LISTING CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap' }}>SMS Categories</h2>
           <PrimaryButton onClick={() => setShowModal(true)}>
             <FaPlus /> <span>New Category</span>
           </PrimaryButton>
         </div>
 
-        {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select 
@@ -268,8 +265,7 @@ const SMSCategory = () => {
         </div>
       </div>
 
-      {/* ── CREATE/EDIT MODAL ── */}
-      {showModal && (
+            {showModal && (
         <div className={styles.modalOverlay} style={{ zIndex: 3500 }}>
           <div className={styles.modalContainer} style={{ width: '420px', borderRadius: '16px' }}>
             <div className={styles.modalHeader} style={{ padding: '20px 25px 15px', borderBottom: '1px solid #F1F5F9' }}>
@@ -311,8 +307,7 @@ const SMSCategory = () => {
                        </div>
                     </div>
 
-                    {/* FLOATING SUGGESTIONS - No stretching the modal! */}
-                    {showSuggestions && (
+                                        {showSuggestions && (
                        <div style={{ 
                          position: 'absolute', 
                          top: '100%', 
@@ -375,8 +370,7 @@ const SMSCategory = () => {
         </div>
       )}
 
-      {/* CONFIRM DELETE MODAL */}
-      {showConfirmModal.isOpen && (
+            {showConfirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3600 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>

@@ -18,7 +18,6 @@ export const SmsSettingService = {
     },
 
     delete: async (id) => {
-        // Assuming delete is standard, though curl not provided, usually it's /Delete/{id}
-        return await apiService.delete(`/Smssetting/Delete/${id}`);
+                return await apiService.delete(`/Smssetting/Delete/${id}`);
     }
 };

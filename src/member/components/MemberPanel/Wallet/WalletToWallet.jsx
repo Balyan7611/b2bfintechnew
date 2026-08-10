@@ -7,7 +7,6 @@ import {
 import styles from './WalletToWallet.module.css';
 import sharedStyles from '../../../../shared/components/common/SharedTable.module.css';
 
-// --- Dummy Data ---
 const dummySender = {
   name: 'Soni',
   memberId: 'Pay99RT4004',
@@ -56,20 +55,17 @@ const WalletToWallet = () => {
 
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
 
-  // Handle Mobile Input & Auto Fetch
-  useEffect(() => {
+    useEffect(() => {
     if (mobile.length === 10) {
       setIsLoadingUser(true);
       setError('');
       setReceiver(null);
       setAmount('');
 
-      // Simulate API call
-      setTimeout(() => {
+            setTimeout(() => {
         if (mobile === '6377749427') {
           setReceiver(dummyReceiver);
-          setSearch(''); // Clear search on new user
-        } else {
+          setSearch('');         } else {
           setError('User not found');
         }
         setIsLoadingUser(false);
@@ -106,13 +102,11 @@ const WalletToWallet = () => {
 
     setIsProcessing(true);
 
-    // Simulate transaction processing
-    setTimeout(() => {
+        setTimeout(() => {
       setIsProcessing(false);
       setShowConfirm(false);
 
-      // Mock failure if amount is exactly 1 (for testing error state)
-      if (parseFloat(amount) === 1) {
+            if (parseFloat(amount) === 1) {
         showToastMsg('Transfer failed! Insufficient funds or server error.', 'error');
         return;
       }
@@ -120,8 +114,7 @@ const WalletToWallet = () => {
       const actionText = transferType === 'credit' ? 'credited to' : 'debited from';
       showToastMsg(`Successfully ${actionText} ${receiver.name}: ₹${amount}`, 'success');
 
-      // Add to history
-      const newTxn = {
+            const newTxn = {
         id: Date.now(),
         date: new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
         sender: dummySender.name,
@@ -133,8 +126,7 @@ const WalletToWallet = () => {
 
       setTransactions([newTxn, ...transactions]);
 
-      // Reset form
-      setMobile('');
+            setMobile('');
       setAmount('');
       setRemark('');
       setPin('');
@@ -153,8 +145,7 @@ const WalletToWallet = () => {
   return (
     <div className={styles.container}>
 
-      {/* Toast Notification */}
-      {toast.show && (
+            {toast.show && (
         <div style={{
           position: 'fixed', top: '20px', right: '20px', zIndex: 9999,
           background: toast.type === 'success' ? '#10B981' : '#EF4444',
@@ -167,11 +158,8 @@ const WalletToWallet = () => {
         </div>
       )}
 
-
-
       <div className={styles.layout} style={isApiPanel ? { display: 'block' } : {}}>
-        {/* LEFT PANEL */}
-        {!isApiPanel && (
+                {!isApiPanel && (
         <div className={styles.formPanel}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '10px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9' }}>
             <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800' }}>
@@ -262,8 +250,7 @@ const WalletToWallet = () => {
         </div>
         )}
 
-        {/* RIGHT PANEL */}
-        <div className={styles.historyPanel}>
+                <div className={styles.historyPanel}>
           <div className={styles.tableToolbar}>
             <div className={styles.filters}>
               <div className={styles.searchWrapper}>
@@ -411,4 +398,3 @@ const WalletToWallet = () => {
 };
 
 export default WalletToWallet;
-

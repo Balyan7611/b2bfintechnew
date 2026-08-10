@@ -20,15 +20,13 @@ const MemberRegistration = ({ isModal = false, onClose }) => {
   const { currentStep, form } = registrationState;
   const { popup, showPopup, closePopup } = usePopup();
 
-  // ── FORM STATE ──────────────────────────────────────────────
-  const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [genderOptions, setGenderOptions] = useState(['Male', 'Female', 'Other']);
   const [stateOptions, setStateOptions] = useState([]);
   const [errors, setErrors] = useState({});
 
-  // ── DROPDOWN DATA FOR FORM ─────────────────────────────────────────────
-  useEffect(() => {
+    useEffect(() => {
     const fetchDropdownData = async () => {
       try {
         const [gendersRes, statesRes] = await Promise.all([
@@ -47,8 +45,7 @@ const MemberRegistration = ({ isModal = false, onClose }) => {
     fetchDropdownData();
   }, []);
 
-  // ── FORM VALIDATION ────────────────────────────────────────────────────
-  const validateStep = (step) => {
+    const validateStep = (step) => {
     let stepErrors = {};
     if (step === 1) {
       if (!form.role) stepErrors.role = 'Field is required';
@@ -136,8 +133,7 @@ const MemberRegistration = ({ isModal = false, onClose }) => {
   const mainContent = (
     <div className={isModal ? '' : styles.cardFullMobile} style={isModal ? { marginTop: 0, overflow: 'visible' } : { marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)', borderRadius: '24px', overflow: 'visible' }}>
       
-      {/* HEADER */}
-      <div style={{ padding: '12px 24px', borderBottom: '1px solid #F1F5F9', background: '#F8FAFF', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '12px 24px', borderBottom: '1px solid #F1F5F9', background: '#F8FAFF', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h2 className={styles.directoryTitle} style={{ fontSize: '1.1rem', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FaUserPlus style={{ color: '#1756AA' }} /> Partner Onboarding Wizard
@@ -168,8 +164,7 @@ const MemberRegistration = ({ isModal = false, onClose }) => {
         )}
       </div>
 
-      {/* PREMIUM STEPPER */}
-      <div style={{ padding: '12px 0', background: '#FBFDFF', borderBottom: '1.5px solid #F1F5F9', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ padding: '12px 0', background: '#FBFDFF', borderBottom: '1.5px solid #F1F5F9', display: 'flex', justifyContent: 'center' }}>
          <div style={{ display: 'flex', alignItems: 'center', width: '80%', position: 'relative' }}>
             <div style={{ position: 'absolute', top: '14px', left: '10%', right: '10%', height: '2px', background: '#E2E8F0', zIndex: 1 }}></div>
             <div style={{ position: 'absolute', top: '14px', left: '10%', width: `${((currentStep-1)/3)*80}%`, height: '2px', background: '#1756AA', zIndex: 1, transition: '0.3s' }}></div>
@@ -192,8 +187,7 @@ const MemberRegistration = ({ isModal = false, onClose }) => {
          </div>
       </div>
 
-      {/* WIZARD BODY */}
-      <div style={{ padding: '20px 24px', minHeight: '260px', background: '#fff', overflow: currentStep === 1 ? 'visible' : 'auto' }}>
+            <div style={{ padding: '20px 24px', minHeight: '260px', background: '#fff', overflow: currentStep === 1 ? 'visible' : 'auto' }}>
         {errorMsg && (
           <div style={{ padding: '12px 16px', background: '#FFF5F5', color: '#E53E3E', borderRadius: '8px', marginBottom: '20px', border: '1px solid #FEB2B2', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
             <span>⚠️</span> {errorMsg}
@@ -205,8 +199,7 @@ const MemberRegistration = ({ isModal = false, onClose }) => {
         {currentStep === 4 && <Step4 form={form} onChange={handleInputChange} states={stateOptions} errors={errors} />}
       </div>
 
-      {/* FOOTER */}
-      <div style={{ padding: '16px 24px', borderTop: '1px solid #F1F5F9', background: '#F8FAFF', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottomLeftRadius: '24px', borderBottomRightRadius: '24px' }}>
+            <div style={{ padding: '16px 24px', borderTop: '1px solid #F1F5F9', background: '#F8FAFF', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottomLeftRadius: '24px', borderBottomRightRadius: '24px' }}>
         <div>
           {currentStep > 1 && (
             <button type="button" className={styles.prevBtn} style={{ height: '40px', padding: '0 25px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => { setErrorMsg(''); dispatch(setRegStep(currentStep - 1)); }}>
@@ -290,8 +283,7 @@ const MemberRegistration = ({ isModal = false, onClose }) => {
 const Step1 = ({ form, onChange, errors = {} }) => {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', minHeight: '200px' }}>
-      {/* SELECT ROLE — uses shared RoleSelect (API-bound) */}
-      <div className={styles.formGroup}>
+            <div className={styles.formGroup}>
         <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <FaUserTag style={{ color: '#1756AA' }} /> SELECT ROLE
         </label>
@@ -304,8 +296,7 @@ const Step1 = ({ form, onChange, errors = {} }) => {
         {errors.role && <span style={{ color: '#E53E3E', fontSize: '0.72rem', marginTop: '4px', display: 'block', fontWeight: 600 }}>{errors.role}</span>}
       </div>
 
-      {/* SELECT UPLINE — uses shared MemberSearchSelect (API-bound) */}
-      <div className={styles.formGroup}>
+            <div className={styles.formGroup}>
         <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <FaUserPlus style={{ color: '#1756AA' }} /> SELECT UPLINE
         </label>
@@ -319,8 +310,7 @@ const Step1 = ({ form, onChange, errors = {} }) => {
         {errors.upline && <span style={{ color: '#E53E3E', fontSize: '0.72rem', marginTop: '4px', display: 'block', fontWeight: 600 }}>{errors.upline}</span>}
       </div>
 
-      {/* SELECT PACKAGE — uses shared PackageSelect (API-bound) */}
-      <div className={styles.formGroup}>
+            <div className={styles.formGroup}>
         <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <FaBriefcase style={{ color: '#1756AA' }} /> PACKAGE ID
         </label>

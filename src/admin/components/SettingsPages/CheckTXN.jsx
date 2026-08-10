@@ -49,8 +49,7 @@ const CheckTXN = () => {
 
     setErrorMsg("");
     setHasSearched(true);
-    // Simulating gateway response with entered TXN ID
-    setSearchResult({
+        setSearchResult({
       txnId: txnId.trim().toUpperCase(),
       member: "Ram Prasad (MEM88392)",
       amount: "₹ 1,500.00",
@@ -62,8 +61,7 @@ const CheckTXN = () => {
 
   const handleActionClick = (actionName, color) => {
     const currentTxnId = activeActionRow.txn?.txnId;
-    setActiveActionRow({ id: null, x: 0, y: 0, txn: null }); // Close dropdown immediately
-    
+    setActiveActionRow({ id: null, x: 0, y: 0, txn: null });     
     setConfirmModal({
       isOpen: true,
       actionTitle: actionName,
@@ -72,8 +70,7 @@ const CheckTXN = () => {
       onConfirm: () => {
         setConfirmModal({ isOpen: false, actionTitle: "", actionColor: "", txnId: "", onConfirm: null });
         setSearchResult(prev => prev ? { ...prev, status: actionName === 'Force Success' ? 'SUCCESS' : actionName === 'Re-hit' ? 'PENDING' : 'FAILED' } : null);
-        // Dispatch action/API call here
-      }
+              }
     });
   };
 
@@ -87,22 +84,18 @@ const CheckTXN = () => {
   return (
     <>
     <div className={styles.container} style={{ padding: '8px 6px', maxWidth: '100%' }}>
-      {/* ── SINGLE MAIN CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', overflow: 'hidden', background: '#fff' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', overflow: 'hidden', background: '#fff' }}>
         
-        {/* CARD INTERNAL HEADER (Polished & Highly Compact) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderBottom: '1px solid #F1F5F9', minHeight: '34px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderBottom: '1px solid #F1F5F9', minHeight: '34px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', borderRadius: '5px' }}>
             <FiActivity style={{ fontSize: '0.8rem' }} />
           </div>
           <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, color: '#0D1B3E', lineHeight: '1.2' }}>Check Transaction Status</h3>
         </div>
 
-        {/* CONTENT AREA (Maximized width with minimal left/right padding) */}
-        <div style={{ padding: '12px 10px' }}>
+                <div style={{ padding: '12px 10px' }}>
           
-          {/* SEARCH BAR (Label and field aligned horizontally) */}
-          <form onSubmit={handleSearch} style={{ background: '#F8FAFC', padding: '10px 15px', borderRadius: '10px', border: '1px solid #E2E8F0', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    <form onSubmit={handleSearch} style={{ background: '#F8FAFC', padding: '10px 15px', borderRadius: '10px', border: '1px solid #E2E8F0', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <label style={{ fontWeight: 800, color: '#4E6080', fontSize: '0.85rem', whiteSpace: 'nowrap', margin: 0 }}>
               Transaction ID:
             </label>
@@ -136,15 +129,13 @@ const CheckTXN = () => {
             </div>
           </form>
 
-          {/* INLINE ERROR MESSAGE (Shows below search fields instead of popup) */}
-          {errorMsg && (
+                    {errorMsg && (
             <div style={{ color: '#E53E3E', fontSize: '0.8rem', fontWeight: 700, marginTop: '-8px', marginBottom: '12px', paddingLeft: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <FiInfo style={{ fontSize: '0.9rem' }} /> <span>{errorMsg}</span>
             </div>
           )}
 
-          {/* TOOLBAR */}
-          <div className="global-table-toolbar" style={{ padding: '0 0 15px 0', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
+                    <div className="global-table-toolbar" style={{ padding: '0 0 15px 0', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
             <div className={styles.pillRow} style={{ alignItems: 'center' }}>
               <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
               <select className={styles.selectEntries} style={{ borderRadius: '8px', border: '1px solid #E2E8F0', padding: '6px 10px', height: '36px' }}>
@@ -168,8 +159,7 @@ const CheckTXN = () => {
             </div>
           </div>
 
-          {/* ── DATA TABLE ── */}
-          <div className={styles.tableWrapper} style={{ border: '1px solid #E2E8F0', borderRadius: '10px 10px 0 0', borderBottom: 'none', overflowX: 'auto' }}>
+                    <div className={styles.tableWrapper} style={{ border: '1px solid #E2E8F0', borderRadius: '10px 10px 0 0', borderBottom: 'none', overflowX: 'auto' }}>
             <table className={styles.table} style={{ width: '100%', minWidth: '800px', tableLayout: 'auto' }}>
               <thead>
                 <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -251,8 +241,7 @@ const CheckTXN = () => {
             </table>
           </div>
 
-          {/* ── PAGINATION ── */}
-          <div className="global-pagination" style={{ padding: '15px', border: '1px solid #E2E8F0', borderRadius: '0 0 10px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff' }}>
+                    <div className="global-pagination" style={{ padding: '15px', border: '1px solid #E2E8F0', borderRadius: '0 0 10px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff' }}>
             <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
               Showing {hasSearched && searchResult ? 1 : 0} to {hasSearched && searchResult ? 1 : 0} of {hasSearched && searchResult ? 1 : 0} records
             </div>
@@ -267,8 +256,7 @@ const CheckTXN = () => {
         </div>
       </div>
 
-      {/* ── ACTION DROPDOWN PORTAL ── */}
-      {activeActionRow.id && (
+            {activeActionRow.id && (
         <>
           <style>{`
             @keyframes dropdownFadeIn {
@@ -337,8 +325,7 @@ const CheckTXN = () => {
         </>
       )}
 
-      {/* ── CONFIRMATION MODAL ── */}
-      {confirmModal.isOpen && (
+            {confirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 9999 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
             <div style={{ width: '52px', height: '52px', background: `${confirmModal.actionColor}15`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: confirmModal.actionColor, margin: '0 auto 16px' }}>

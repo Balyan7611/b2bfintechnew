@@ -55,7 +55,6 @@
   letter-spacing: -0.02em;
 }
 
-/* Stepper progress (Clean & sleek) */
 .stepperContainer {
   display: flex;
   align-items: center;
@@ -142,7 +141,6 @@
   background: #27AE60;
 }
 
-/* Alerts */
 .errorAlert {
   display: flex;
   align-items: center;
@@ -171,7 +169,6 @@
   font-weight: 600;
 }
 
-/* Form Container */
 .formContainer {
   min-height: 200px;
   margin-bottom: 15px;
@@ -301,7 +298,6 @@
   cursor: not-allowed;
 }
 
-/* eKYC Grid */
 .ekycGrid {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
@@ -315,7 +311,6 @@
   gap: 8px;
 }
 
-/* Webcam Selfie styling */
 .cameraBoxWrap {
   background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
   padding: 14px;
@@ -503,7 +498,6 @@
   cursor: not-allowed;
 }
 
-/* PAN Verified panel */
 .verifiedDataPanel {
   margin-top: 12px;
   background: #F0FDF4;
@@ -548,7 +542,6 @@
   font-size: 0.64rem;
 }
 
-/* Profile Form Grid */
 .formGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -600,7 +593,6 @@
   }
 }
 
-/* Company Selection Cards */
 .companyGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -658,7 +650,6 @@
   color: #1756AA;
 }
 
-/* Document uploads list */
 .documentList {
   display: flex;
   flex-direction: column;
@@ -755,7 +746,6 @@
   border-color: #EF4444;
 }
 
-/* Success Screen (Step 6) */
 .successScreenCard {
   display: flex;
   flex-direction: column;
@@ -854,7 +844,6 @@
   font-weight: 700;
 }
 
-/* Wizard Controls */
 .wizardControls {
   display: flex;
   justify-content: space-between;
@@ -914,7 +903,6 @@
   cursor: not-allowed;
 }
 
-/* Compliance info footer */
 .complianceFooter {
   display: flex;
   align-items: center;
@@ -930,7 +918,6 @@
   font-weight: 500;
 }
 
-/* File Uploaders & Badges */
 .fileUploaderBox {
   display: flex;
   align-items: center;
@@ -988,7 +975,6 @@
   color: #B91C1C;
 }
 
-/* Director Card layout */
 .directorCard {
   background: #FFFFFF;
   border: 1.5px solid #E2E8F0;
@@ -1083,7 +1069,6 @@
   }
 }
 
-/* Aadhaar Details Card Layout */
 .aadhaarDetailsCardWrap {
   background: #FFFFFF;
   border: 1.5px solid #E2E8F0;
@@ -1170,7 +1155,6 @@
   color: #0F172A;
 }
 
-/* Aadhaar Lock Overlay */
 .aadhaarCardLockOverlay {
   flex: 1;
   display: flex;

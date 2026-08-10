@@ -120,7 +120,6 @@
   color: #166534;
 }
 
-/* Form Section */
 .formSection {
   background: white;
   border-radius: 16px;
@@ -303,7 +302,6 @@
   cursor: not-allowed;
 }
 
-/* History Section */
 .historySection {
   background: white;
   border-radius: 18px;
@@ -311,8 +309,6 @@
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
   border: 1px solid #e2e8f0;
 }
-
-/* Removed old table styles */
 
 .reqTypeBadge {
   padding: 4px 10px;
@@ -347,7 +343,6 @@
   }
 }
 
-/* Modal Styles */
 .modalOverlay {
   position: fixed;
   top: 0;

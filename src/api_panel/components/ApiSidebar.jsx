@@ -37,9 +37,7 @@ const ApiSidebar = () => {
 
   const menuItems = [
     { name: 'Dashboard', icon: <FaTachometerAlt />, path: '/api-panel/dashboard' },
-    // Mirrors the member panel's "All Report" menu (same icon, same order, same
-    // report components) so both panels show identical reporting.
-    {
+            {
       name: 'All Report',
       icon: <FaFileAlt />,
       hasChildren: true,
@@ -57,21 +55,17 @@ const ApiSidebar = () => {
       name: 'Wallet Report',
       icon: <FaWallet />,
       hasChildren: true,
-      // Wallet to Wallet stays member-panel only; Fund Request is its own
-      // top-level entry below instead of a report.
-      children: [
+                  children: [
         { name: 'Main Wallet', path: '/api-panel/dashboard/wallet/main' },
         { name: 'AEPS Wallet', path: '/api-panel/dashboard/wallet/aeps' },
       ]
     },
-    // Same Fund Top-Up Request page the member panel uses.
-    {
+        {
       name: 'Fund Request',
       icon: <FaMoneyCheckAlt />,
       path: '/api-panel/dashboard/wallet/fund-request'
     },
-    // API panel only runs the onboarding flow — Upload KYC stays member-only.
-    {
+        {
       name: 'KYC',
       icon: <FaIdCard />,
       path: '/api-panel/dashboard/kyc/onboarding'
@@ -114,8 +108,7 @@ const ApiSidebar = () => {
         ${isDarkMode ? styles.dark : ''}
       `}>
         
-        {/* Header with logo + toggle */}
-        <div className={styles.sidebarHeader}>
+                <div className={styles.sidebarHeader}>
           {isMobile ? (
             <div className={styles.mobileHeaderContent}>
               <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#1e293b' }}>Menu</span>
@@ -145,8 +138,7 @@ const ApiSidebar = () => {
           )}
         </div>
 
-        {/* Nav Menu */}
-        <nav className={styles.navMenu}>
+                <nav className={styles.navMenu}>
           {menuItems.map((item) => (
             <div
               key={item.name}
@@ -197,8 +189,7 @@ const ApiSidebar = () => {
           ))}
         </nav>
 
-        {/* Floating Hover Popup for Collapsed Sidebar */}
-        {!isSidebarOpen && !isMobile && hoveredItem && (
+                {!isSidebarOpen && !isMobile && hoveredItem && (
           <div 
             className={styles.hoverPopup} 
             style={{ top: `${hoveredItem.top}px` }}

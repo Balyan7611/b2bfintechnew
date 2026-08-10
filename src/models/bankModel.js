@@ -1,4 +1,3 @@
-// src/models/bankModel.js
 export const BankResponseModel = (res) => {
     if (!res || !res.status) return [];
     const items = Array.isArray(res.data) ? res.data : (res.data?.items ? res.data.items : (res.data ? [res.data] : []));

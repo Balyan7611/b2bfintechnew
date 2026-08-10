@@ -23,8 +23,7 @@ const CommissionSetup = () => {
     currentPage 
   } = useSelector(state => state.commission.commonCommission);
 
-  // Mock services list
-  const services = [
+    const services = [
     'Prepaid Mobile', 'Postpaid Mobile', 'DTH', 'Electricity', 
     'Gas', 'Water', 'Insurance', 'DMT', 'AEPS'
   ];
@@ -43,8 +42,7 @@ const CommissionSetup = () => {
   return (
     <div className={styles.container}>
       
-      {/* TABLE CARD WITH INLINE FILTERS */}
-      <AdminTable
+            <AdminTable
         title="Common Commission Setup"
         rightAction={
           <div className={styles.inlineFilterRow}>

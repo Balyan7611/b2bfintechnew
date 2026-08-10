@@ -16,8 +16,7 @@ const MemberSidebar = () => {
   const location = useLocation();
   const { isDarkMode, isSidebarOpen, isMobile } = useSelector((state) => state.memberPanel);
   const [activeMenu, setActiveMenu] = useState('Dashboard');
-  const [hoveredItem, setHoveredItem] = useState(null); // stores { name, top, item }
-  const [isMyServicesOpen, setIsMyServicesOpen] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState(null);   const [isMyServicesOpen, setIsMyServicesOpen] = useState(false);
 
   const handleMouseEnter = (e, item) => {
     if (!isSidebarOpen && !isMobile && item.hasChildren) {
@@ -196,8 +195,7 @@ const MemberSidebar = () => {
           ))}
         </nav>
 
-        {/* Floating Tooltip/Hover Popup for Collapsed Sidebar */}
-        {!isSidebarOpen && !isMobile && hoveredItem && (
+                {!isSidebarOpen && !isMobile && hoveredItem && (
           <div 
             className={styles.hoverPopup} 
             style={{ top: `${hoveredItem.top}px` }}

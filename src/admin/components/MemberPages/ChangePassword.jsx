@@ -27,13 +27,11 @@ const ChangePassword = () => {
 
   const adminTpinRefs = useRef([]);
 
-  // Clear form on mount to prevent any stale state
-  useEffect(() => {
+    useEffect(() => {
     dispatch(updateChangePassword({ newPass: '', confirmPass: '', member: '' }));
   }, [dispatch]);
 
-  // Reset Admin TPIN when modal opens
-  useEffect(() => {
+    useEffect(() => {
     if (showConfirmModal) {
       setAdminTpin(['', '', '', '']);
       setAdminTpinError('');
@@ -77,18 +75,15 @@ const ChangePassword = () => {
     const specialChars = '@#$&!';
     const digitsPool = '0123456789';
 
-    // 4 letters (Alternating consonant/vowel structure to keep it memorable but secure)
-    const part1 = consonants[Math.floor(Math.random() * consonants.length)] + 
+        const part1 = consonants[Math.floor(Math.random() * consonants.length)] + 
                   lowercaseVowels[Math.floor(Math.random() * lowercaseVowels.length)] + 
                   lowercaseConsonants[Math.floor(Math.random() * lowercaseConsonants.length)] + 
                   lowercaseVowels[Math.floor(Math.random() * lowercaseVowels.length)];
     
-    // 2 special characters
-    const part2 = specialChars[Math.floor(Math.random() * specialChars.length)] + 
+        const part2 = specialChars[Math.floor(Math.random() * specialChars.length)] + 
                   specialChars[Math.floor(Math.random() * specialChars.length)];
 
-    // 4 random digits
-    let part3 = '';
+        let part3 = '';
     for (let i = 0; i < 4; i++) {
       part3 += digitsPool[Math.floor(Math.random() * digitsPool.length)];
     }
@@ -109,8 +104,7 @@ const ChangePassword = () => {
     currentArray[index] = val.slice(-1);
     setAdminTpin(currentArray);
 
-    // Auto focus next
-    if (val && index < 3) {
+        if (val && index < 3) {
       adminTpinRefs.current[index + 1]?.focus();
     }
   };
@@ -169,8 +163,7 @@ const ChangePassword = () => {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        {/* Anti-Autofill Dummy Fields */}
-        <input type="text" style={{ display: 'none' }} />
+                <input type="text" style={{ display: 'none' }} />
         <input type="password" style={{ display: 'none' }} />
 
         <div className={styles.cardHeader} style={{ padding: '10px 24px', borderBottom: '1px solid #EEF3FC', background: '#fff' }}>
@@ -179,8 +172,7 @@ const ChangePassword = () => {
 
         <div style={{ padding: '24px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-            {/* Select Member */}
-            <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+                        <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
               <label style={{ fontSize: '0.8rem', color: '#4E6080', fontWeight: 600, display: 'block', marginBottom: '8px' }}>Select Member</label>
               <div style={{ position: 'relative' }}>
                 <select
@@ -205,8 +197,7 @@ const ChangePassword = () => {
               </div>
             </div>
 
-            {/* Selected Member Details */}
-            {changePassword.member && (
+                        {changePassword.member && (
               <div style={{ gridColumn: '1 / -1', display: 'flex', background: '#fff', border: '1px solid #EEF3FC', borderRadius: '8px', overflow: 'hidden', marginTop: '2px', marginBottom: '4px' }}>
                 <div style={{ flex: 1, padding: '6px 12px', borderRight: '1px solid #EEF3FC', textAlign: 'center', fontSize: '0.8rem', color: '#0D1B3E' }}>
                   <span style={{ fontWeight: 600, color: '#4E6080' }}>Name:</span> {changePassword.member.includes('Pay99') ? 'VIVEK VARSHNEY' : changePassword.member.includes('BALYAN') ? 'BALYAN' : 'FARIDABAD'}
@@ -220,8 +211,7 @@ const ChangePassword = () => {
               </div>
             )}
 
-            {/* Inline Error Messages */}
-            {memberError && (
+                        {memberError && (
               <div style={{ gridColumn: '1 / -1', color: '#E53E3E', fontSize: '0.85rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', background: '#FFF5F5', padding: '10px 14px', borderRadius: '8px', border: '1px solid #FED7D7' }}>
                 <span>⚠️</span> {memberError}
               </div>
@@ -265,8 +255,7 @@ const ChangePassword = () => {
               </button>
             </div>
 
-            {/* New Password */}
-            <div className={styles.formGroup}>
+                        <div className={styles.formGroup}>
               <div style={{ position: 'relative' }}>
                 <input
                   type="text"
@@ -318,8 +307,7 @@ const ChangePassword = () => {
               )}
             </div>
 
-            {/* Confirm Password */}
-            <div className={styles.formGroup}>
+                        <div className={styles.formGroup}>
               <div style={{ position: 'relative' }}>
                 <input
                   type="text"
@@ -361,8 +349,7 @@ const ChangePassword = () => {
             </div>
           </div>
 
-          {/* Action Footer */}
-          <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '32px', paddingTop: '24px', borderTop: '1px dashed #E2E8F0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '32px', paddingTop: '24px', borderTop: '1px dashed #E2E8F0' }}>
             <button
               style={{ padding: '12px 35px', borderRadius: '12px', background: '#1756AA', color: '#fff', border: 'none', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 8px 20px rgba(23,86,170,0.25)', transition: 'all 0.3s' }}
               onClick={handleProcess}
@@ -380,8 +367,7 @@ const ChangePassword = () => {
         </div>
       </div>
 
-      {/* Confirmation Modal */}
-      {showConfirmModal && (
+            {showConfirmModal && (
         <div style={{
           position: 'fixed',
           top: 0,
@@ -425,8 +411,7 @@ const ChangePassword = () => {
               Are you sure you want to update the Password for <span style={{ fontWeight: 600, color: '#1A202C' }}>{changePassword.member.split(' [')[0]}</span>?
             </p>
 
-            {/* Admin TPIN verification field */}
-            <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+                        <div style={{ marginBottom: '20px', textAlign: 'left' }}>
               <label style={{ fontSize: '0.8rem', color: '#4E6080', fontWeight: 600, display: 'block', marginBottom: '8px', textAlign: 'center' }}>
                 Enter Admin TPIN to Authorize
               </label>

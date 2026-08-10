@@ -4,13 +4,6 @@ import { FaCheckCircle } from 'react-icons/fa';
 import AdminTable from '../../../shared/components/common/AdminTable';
 import { API } from '../../../api/endpoints';
 
-// Admin page: shows every pending "Request Activation" a Member/API user has
-// sent for a locked service (MemberService.AssignTypeId = 2), with buttons to
-// Approve (-> AssignTypeId 3, IsActive true) or Reject with a reason
-// (-> AssignTypeId 4, IsActive false). Backed live by:
-//   GET  /MemberService/PendingRequests
-//   POST /MemberService/Approve/{id}
-//   POST /MemberService/Reject/{id}?reason=
 const ServiceRequests = () => {
   const [requests, setRequests] = useState([]);
   const [allServices, setAllServices] = useState([]);
@@ -43,8 +36,7 @@ const ServiceRequests = () => {
     }
   }, []);
 
-  // Normalises whatever shape the API returns into a plain array.
-  const toArray = (res) => {
+    const toArray = (res) => {
     if (Array.isArray(res?.data?.items)) return res.data.items;
     if (Array.isArray(res?.data)) return res.data;
     if (Array.isArray(res?.items)) return res.items;
@@ -57,8 +49,7 @@ const ServiceRequests = () => {
     let items = [];
     let primaryFailed = false;
 
-    // 1. Preferred: dedicated PendingRequests endpoint.
-    try {
+        try {
       const res = await API.memberService.getPendingRequests({ pageNumber: 1, pageSize: 500 });
       items = toArray(res);
       console.log('ServiceRequests: /PendingRequests raw response =', res);
@@ -67,11 +58,7 @@ const ServiceRequests = () => {
       console.error('ServiceRequests: /PendingRequests failed:', err);
     }
 
-    // 2. Fallback: if that endpoint errored or came back empty, pull the whole
-    //    MemberService table and filter AssignTypeId = 2 ourselves. This covers
-    //    the case where the backend hasn't shipped /PendingRequests yet, or a
-    //    request row was created through Swagger / the API panel directly.
-    if (items.length === 0) {
+                    if (items.length === 0) {
       try {
         const res2 = await API.memberService.getAll({ PageNumber: 1, PageSize: 2000 });
         const all = toArray(res2);

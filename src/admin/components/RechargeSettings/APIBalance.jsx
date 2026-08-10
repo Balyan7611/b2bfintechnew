@@ -22,10 +22,8 @@ const APIBalance = () => {
           to { transform: rotate(360deg); }
         }
       `}</style>
-      {/* ── MAIN REPOSITORY CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E' }}>API Balance List</h3>
           <button 
             onClick={handleRefresh}
@@ -44,8 +42,7 @@ const APIBalance = () => {
           </button>
         </div>
         
-        {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '15px 20px', justifyContent: 'flex-end', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '15px 20px', justifyContent: 'flex-end', borderBottom: 'none' }}>
           <div className="global-search-box" style={{ maxWidth: '300px', width: '100%' }}>
             <FiSearch />
             <input 
@@ -56,8 +53,7 @@ const APIBalance = () => {
           </div>
         </div>
 
-        {/* ── TABLE ── */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ minWidth: '1000px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -93,8 +89,7 @@ const APIBalance = () => {
           </table>
         </div>
 
-        {/* ── FOOTER ── */}
-        <div className="global-pagination" style={{ padding: '15px 20px', borderTop: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="global-pagination" style={{ padding: '15px 20px', borderTop: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
             Showing {apiBalances.length > 0 ? 1 : 0} to {apiBalances.length} of {apiBalances.length} records
           </div>

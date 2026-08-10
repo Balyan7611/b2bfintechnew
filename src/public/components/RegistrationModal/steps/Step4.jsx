@@ -22,12 +22,10 @@ const Step4 = ({ onComplete }) => {
     };
     const id = requestAnimationFrame(raf);
     return () => cancelAnimationFrame(id);
-  }, []); // eslint-disable-line
-
+  }, []); 
   return (
     <div className={styles.container}>
-      {/* Animated SVG checkmark */}
-      <div className={styles.checkWrap}>
+            <div className={styles.checkWrap}>
         <svg viewBox="0 0 80 80" className={styles.checkSvg}>
           <circle className={styles.bgCircle} cx="40" cy="40" r="37" />
           <circle className={styles.circle} cx="40" cy="40" r="37" fill="none" />
@@ -38,8 +36,7 @@ const Step4 = ({ onComplete }) => {
       <h3 className={styles.title}>Registration Successful!</h3>
       <p className={styles.sub}>Redirecting to complete your profile...</p>
 
-      {/* Countdown progress */}
-      <div className={styles.countdownWrap}>
+            <div className={styles.countdownWrap}>
         <div className={styles.countdownBar} style={{ width: `${progress}%` }} />
       </div>
       <p className={styles.countdownLabel}>{Math.ceil(3 - (progress / 100) * 3)}s</p>

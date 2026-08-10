@@ -19,8 +19,7 @@ const MoneyRemitterDetails = () => {
   const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(false);
 
-  // Filter states
-  const [selectedMember, setSelectedMember] = useState('');
+    const [selectedMember, setSelectedMember] = useState('');
   const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(today);
   const [toDate, setToDate] = useState(today);
@@ -29,8 +28,7 @@ const MoneyRemitterDetails = () => {
   const [memberList, setMemberList] = useState([]);
   const [showStats, setShowStats] = useState(false);
 
-  // ─── Stats Computation ────────────────────────────────────
-  const totalRemitters = transactions.length;
+    const totalRemitters = transactions.length;
   const activeRemitters = transactions.filter(t => t.status?.toLowerCase() === 'active').length;
   const inactiveRemitters = transactions.filter(t => t.status?.toLowerCase() === 'inactive').length;
   const verifiedKYC = transactions.filter(t => t.kycStatus?.toLowerCase() === 'verified').length;
@@ -50,29 +48,20 @@ const MoneyRemitterDetails = () => {
 
   const stats = {
     totalTxns: totalRemitters,
-    totalAmount: totalLimit,          // using total limit as a proxy for amount
-    successTxns: successResult,
+    totalAmount: totalLimit,              successTxns: successResult,
     failedTxns: failedResult,
     pendingTxns: pendingResult,
-    totalCommission: activeLimit,     // placeholder – no commission data
-    uplineCommission: activeLimit * 0.6,
+    totalCommission: activeLimit,         uplineCommission: activeLimit * 0.6,
     adminCommission: activeLimit * 0.4,
-    totalTds: 0,                      // no TDS data
-    adminProfit: activeLimit * 0.15,
+    totalTds: 0,                          adminProfit: activeLimit * 0.15,
     tdsPayable: 0,
     netPayable: totalLimit - activeLimit * 0.4,
-    // Additional custom metrics can be added here
-  };
+      };
 
-  // ─── API Calls ────────────────────────────────────────────
-  const fetchRemitters = async () => {
+    const fetchRemitters = async () => {
     setLoading(true);
     try {
-      // Replace with actual API endpoint for money remitter details
-      // For now, we'll simulate with a delayed mock response
-      // const res = await API.moneyRemitter.getAll({ pageNumber, pageSize, fromDate, toDate, memberId: selectedMember, status: selectedStatus, search: searchKeyword });
-      // Simulate API call with mock data
-      await new Promise(resolve => setTimeout(resolve, 300));
+                              await new Promise(resolve => setTimeout(resolve, 300));
       const mockData = [
         { id: 1, name: 'Sanjay Kumar', memberId: 'B2B1001', firstName: 'Sanjay', lastName: 'Kumar', mobile: '9988776655', status: 'Active', limit: 25000, kycStatus: 'Verified', result: 'Success', regDate: '2023-10-15' },
         { id: 2, name: 'Vikash Singh', memberId: 'B2B1002', firstName: 'Vikash', lastName: 'Singh', mobile: '8877665544', status: 'Inactive', limit: 0, kycStatus: 'Pending', result: 'Pending', regDate: '2023-10-20' },
@@ -97,8 +86,7 @@ const MoneyRemitterDetails = () => {
     fetchRemitters();
   }, [pageNumber, pageSize, selectedStatus, selectedMember]);
 
-  // ─── Member List for dropdown ─────────────────────────────
-  useEffect(() => {
+    useEffect(() => {
     const fetchMembers = async () => {
       try {
         const res = await API.member.search('');
@@ -116,11 +104,9 @@ const MoneyRemitterDetails = () => {
     fetchRemitters();
   };
 
-  // ─── Render ──────────────────────────────────────────────
-  return (
+    return (
     <div className={styles.container}>
-      {/* ── PREMIUM FILTER CARD ── */}
-      <div style={{ 
+            <div style={{ 
         background: '#ffffff',
         borderRadius: '20px',
         boxShadow: '0 8px 24px rgba(23, 86, 170, 0.02), 0 1px 4px rgba(0, 0, 0, 0.01)',
@@ -132,8 +118,7 @@ const MoneyRemitterDetails = () => {
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', letterSpacing: '0.2px' }}>Money Remitter Details</h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ background: 'rgba(74, 85, 104, 0.1)', color: '#4A5568', padding: '6px 15px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-              {/* <FiUsers /> Remitter Registry */}
-            </div>
+                          </div>
             <button 
               type="button" 
               onClick={() => setShowStats(!showStats)}
@@ -226,8 +211,7 @@ const MoneyRemitterDetails = () => {
         </div>
       </div>
 
-      {/* ── STATS CARDS GRID ── */}
-      <StatsGrid stats={stats} showStats={showStats} />
+            <StatsGrid stats={stats} showStats={showStats} />
 
       {/* ── DATA TABLE CARD ── */}
       <div className={styles.cardFullMobile}>

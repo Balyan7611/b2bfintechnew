@@ -79,10 +79,8 @@ const Footer = () => {
     <footer id="contact" className={styles.footer}>
       <div className="container">
 
-        {/* ========== DESKTOP LAYOUT ========== */}
-        <div className={styles.desktopFooter}>
-          {/* Brand Column */}
-          <div className={styles.brandColumn}>
+                <div className={styles.desktopFooter}>
+                    <div className={styles.brandColumn}>
             <Link to="/" className={styles.footerLogo}>
               <img
                 src={SITE_CONFIG.logo}
@@ -102,8 +100,7 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div className={styles.linksColumn}>
+                    <div className={styles.linksColumn}>
             <h4 className={styles.columnTitle}>Quick Links</h4>
             <ul className={styles.linksList}>
               {quickLinks.map((link, i) => (
@@ -120,8 +117,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Legal */}
-          <div className={styles.linksColumn}>
+                    <div className={styles.linksColumn}>
             <h4 className={styles.columnTitle}>Legal</h4>
             <ul className={styles.linksList}>
               {legalLinks.map((link, i) => (
@@ -130,8 +126,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact */}
-          <div className={styles.contactColumn}>
+                    <div className={styles.contactColumn}>
             <h4 className={styles.columnTitle}>Contact</h4>
             <ul className={styles.contactList}>
               {contactItems.map((item, i) => (
@@ -153,11 +148,9 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* ========== MOBILE LAYOUT ========== */}
-        <div className={styles.mobileFooter}>
+                <div className={styles.mobileFooter}>
 
-          {/* 1. Brand Block */}
-          <div className={styles.mobileBrand}>
+                    <div className={styles.mobileBrand}>
             <Link to="/" className={styles.mobileLogoLink}>
               <img
                 src={SITE_CONFIG.logo}
@@ -273,8 +266,7 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Desktop Bottom Bar */}
-        <div className={styles.bottomBar}>
+                <div className={styles.bottomBar}>
           <p className={styles.copyright}>
             © {new Date().getFullYear()} {SITE_CONFIG.companyName}. All Rights Reserved.
           </p>
@@ -286,4 +278,3 @@ const Footer = () => {
 };
 
 export default Footer;
-

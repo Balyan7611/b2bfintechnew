@@ -35,8 +35,7 @@ const AdminTable = ({
         </div>
       )}
       
-      {/* TITLE ROW */}
-      <div className={styles.titleRow}>
+            <div className={styles.titleRow}>
         <div className={styles.titleLeft}>
           {icon && (
             <div className={styles.iconBox}>
@@ -55,15 +54,13 @@ const AdminTable = ({
         )}
       </div>
 
-      {/* FILTER PANEL */}
-      {filtersPanel && (
+            {filtersPanel && (
         <div className={styles.filterPanelWrapper}>
           {filtersPanel}
         </div>
       )}
 
-      {/* CONTROLS ROW */}
-      <div className={styles.controlsRow}>
+            <div className={styles.controlsRow}>
         <div className={styles.entries}>
           Show 
           <select 
@@ -96,8 +93,7 @@ const AdminTable = ({
         </div>
       </div>
 
-      {/* TABLE - Using Shared Styles */}
-      <div className={sharedStyles.tableWrapper} style={{ marginTop: 0 }}>
+            <div className={sharedStyles.tableWrapper} style={{ marginTop: 0 }}>
         <table className={sharedStyles.table}>
           <thead>
             <tr>
@@ -128,8 +124,7 @@ const AdminTable = ({
         </table>
       </div>
 
-      {/* PAGINATION */}
-      <div className={styles.paginationRow}>
+            <div className={styles.paginationRow}>
         <div className={styles.paginationInfo}>
           {totalEntries === 0 
             ? "Showing 0 entries" 

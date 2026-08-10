@@ -24,8 +24,7 @@ const MainWalletHistory = () => {
   const { list, filters, searchQuery, rowsPerPage, currentPage } =
     useSelector(state => state.report.mainWalletReport);
 
-  // ── Load member dropdown (always, not just for api panel) ──
-  useEffect(() => {
+    useEffect(() => {
     API.member.getAll({ pageNumber: 1, pageSize: 5000 })
       .then(res => {
         const items = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
@@ -40,8 +39,7 @@ const MainWalletHistory = () => {
       .catch(err => console.warn('MainWallet: member list failed', err));
   }, []);
 
-  // ── Load wallet ledger ──
-  const loadHistory = useCallback(async (overrideFilters) => {
+    const loadHistory = useCallback(async (overrideFilters) => {
     setIsLoading(true);
     setApiError('');
     const f = overrideFilters || filters;
@@ -108,12 +106,9 @@ const MainWalletHistory = () => {
     } finally {
       setIsLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, filters]);
+    }, [dispatch, filters]);
 
-  // Initial load
-  useEffect(() => { loadHistory(); }, []);   // eslint-disable-line
-
+    useEffect(() => { loadHistory(); }, []);   
   const lower = v => String(v ?? '').toLowerCase();
   const filteredList = list.filter(item =>
     lower(item.narration).includes(lower(searchQuery)) ||
@@ -166,19 +161,16 @@ const MainWalletHistory = () => {
         data={filteredList}
         renderRow={(item, index) => (
           <tr key={item.id || index}>
-            {/* # */}
-            <td style={{ width: 40, color: '#94A3B8', fontWeight: 700, fontSize: '0.78rem', textAlign: 'center' }}>
+                        <td style={{ width: 40, color: '#94A3B8', fontWeight: 700, fontSize: '0.78rem', textAlign: 'center' }}>
               {(currentPage - 1) * rowsPerPage + index + 1}
             </td>
 
-            {/* Member */}
-            <td style={{ minWidth: 130 }}>
+                        <td style={{ minWidth: 130 }}>
               <div style={{ fontWeight: 700, color: '#0D1B3E', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>{item.memberName || 'N/A'}</div>
               <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>{item.memberMobile || item.member || ''}</div>
             </td>
 
-            {/* Service */}
-            <td style={{ fontSize: '0.78rem', color: '#334155', whiteSpace: 'nowrap', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis' }}
+                        <td style={{ fontSize: '0.78rem', color: '#334155', whiteSpace: 'nowrap', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis' }}
               title={item.serviceName}>
               {item.serviceName !== '-' ? (
                 <span style={{ background: '#eff6ff', color: '#1756AA', borderRadius: 5, padding: '2px 7px', fontSize: '0.7rem', fontWeight: 600 }}>
@@ -187,17 +179,14 @@ const MainWalletHistory = () => {
               ) : <span style={{ color: '#cbd5e1' }}>—</span>}
             </td>
 
-            {/* Operator */}
-            <td style={{ fontSize: '0.78rem', color: '#475569', whiteSpace: 'nowrap', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis' }}
+                        <td style={{ fontSize: '0.78rem', color: '#475569', whiteSpace: 'nowrap', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis' }}
               title={item.operatorName}>
               {item.operatorName !== '-' ? item.operatorName : <span style={{ color: '#cbd5e1' }}>—</span>}
             </td>
 
-            {/* Opening */}
-            <td style={{ fontWeight: 600, color: '#475569', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>₹{item.opening}</td>
+                        <td style={{ fontWeight: 600, color: '#475569', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>₹{item.opening}</td>
 
-            {/* Amount — DR red, CR green */}
-            <td style={{ whiteSpace: 'nowrap' }}>
+                        <td style={{ whiteSpace: 'nowrap' }}>
               <span style={{
                 fontWeight: 800, fontSize: '0.88rem',
                 color: item.factor === 'CR' ? '#15803d' : '#dc2626',
@@ -206,8 +195,7 @@ const MainWalletHistory = () => {
               </span>
             </td>
 
-            {/* CR / DR badge */}
-            <td style={{ width: 60, textAlign: 'center' }}>
+                        <td style={{ width: 60, textAlign: 'center' }}>
               <span style={{
                 display: 'inline-block', padding: '2px 9px', borderRadius: 20,
                 fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.5px',
@@ -217,21 +205,17 @@ const MainWalletHistory = () => {
               }}>{item.factor}</span>
             </td>
 
-            {/* Surcharge / GST / TDS / Commission */}
-            <td style={{ fontSize: '0.8rem', color: '#64748B', whiteSpace: 'nowrap' }}>₹{item.surcharge}</td>
+                        <td style={{ fontSize: '0.8rem', color: '#64748B', whiteSpace: 'nowrap' }}>₹{item.surcharge}</td>
             <td style={{ fontSize: '0.8rem', color: '#64748B', whiteSpace: 'nowrap' }}>₹{item.gst}</td>
             <td style={{ fontSize: '0.8rem', color: '#64748B', whiteSpace: 'nowrap' }}>₹{item.tds}</td>
             <td style={{ fontSize: '0.8rem', color: '#64748B', whiteSpace: 'nowrap' }}>₹{item.commission}</td>
 
-            {/* Closing */}
-            <td style={{ fontWeight: 700, color: '#1756AA', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>₹{item.closing}</td>
+                        <td style={{ fontWeight: 700, color: '#1756AA', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>₹{item.closing}</td>
 
-            {/* Narration */}
-            <td style={{ fontSize: '0.75rem', color: '#64748B', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        <td style={{ fontSize: '0.75rem', color: '#64748B', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
               title={item.narration}>{item.narration}</td>
 
-            {/* Date */}
-            <td style={{ fontSize: '0.75rem', color: '#475569', whiteSpace: 'nowrap' }}>{item.date}</td>
+                        <td style={{ fontSize: '0.75rem', color: '#475569', whiteSpace: 'nowrap' }}>{item.date}</td>
           </tr>
         )}
         searchQuery={searchQuery}

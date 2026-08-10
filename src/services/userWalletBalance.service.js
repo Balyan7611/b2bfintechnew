@@ -1,9 +1,6 @@
 import { apiService } from '../api/httpClient';
 import { UserWalletBalanceRequestModel, UserWalletBalanceResponseModel, UserWalletBalanceTransferRequestModel } from '../models/userWalletBalanceModel';
 
-// Explicitly attach whatever auth token is available (access_token / admin_token /
-// member_token) so background/header calls never go out without an Authorization
-// header, regardless of which panel (admin / member / api-panel) is calling.
 const getAuthConfig = (extra = {}) => {
     const raw = sessionStorage.getItem('access_token')
         || localStorage.getItem('access_token')
@@ -48,15 +45,7 @@ export const UserWalletBalanceService = {
         return await apiService.get(`/UserWalletBalance/GetByID/${id}`);
     },
 
-    // Returns ONE member's balances, verified client-side.
-    //
-    // Why: GetUserWalletBalances was being called with PageSize=1 and a MemberID
-    // filter. If the server ignores/mismatches that filter it simply returns the
-    // first row of the whole table — which is how another user's balance
-    // (e.g. an API user's 10,000) ended up rendering in the member header.
-    // Here we pull a page and only accept a row whose msrno/memberId actually
-    // matches; anything else yields zeros.
-    getForMember: async (memberId, { silent = true } = {}) => {
+                                    getForMember: async (memberId, { silent = true } = {}) => {
         const zero = { mainBalance: 0, aepsBalance: 0, commissionBalance: 0 };
         if (!memberId) return zero;
 
@@ -92,10 +81,7 @@ export const UserWalletBalanceService = {
         if (status) url += `&Status=${encodeURIComponent(status)}`;
         if (memberId) url += `&MemberID=${encodeURIComponent(memberId)}`;
 
-        // silent=true (used by header widgets polling in the background) skips the
-        // global loader/error toast and still guarantees the Authorization header
-        // is attached explicitly instead of relying on ambient axios defaults.
-        const config = silent ? getAuthConfig({ hideLoader: true, ignoreError: true }) : getAuthConfig();
+                                const config = silent ? getAuthConfig({ hideLoader: true, ignoreError: true }) : getAuthConfig();
         const res = await apiService.get(url, config);
         const mappedData = UserWalletBalanceResponseModel(res);
 

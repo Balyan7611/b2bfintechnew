@@ -81,15 +81,13 @@ const MemberDashboard = () => {
       setFreezeMessage(localStorage.getItem('bss_system_freeze_message') || '⚠️ SYSTEM NOTICE: All transactions and wallet transfers are temporarily suspended by the Admin for security.');
     };
     window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('system_freeze_updated', handleStorageChange); // Custom event for same-window updates
-    return () => {
+    window.addEventListener('system_freeze_updated', handleStorageChange);     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('system_freeze_updated', handleStorageChange);
     };
   }, []);
 
-  // Toast logic
-  const [currentToast, setCurrentToast] = useState(null);
+    const [currentToast, setCurrentToast] = useState(null);
   const [isToastClosing, setIsToastClosing] = useState(false);
   const prevNotifCountRef = useRef(notifList ? notifList.length : 0);
 
@@ -143,8 +141,7 @@ const MemberDashboard = () => {
     }
     dispatch(setSearchTerm(''));
     
-    // Simulate loading
-    const timer = setTimeout(() => setIsLoading(false), 1500);
+        const timer = setTimeout(() => setIsLoading(false), 1500);
     return () => clearTimeout(timer);
   }, [isDarkMode, dispatch]);
 
@@ -259,12 +256,10 @@ const MemberDashboard = () => {
             </div>
           </div>
 
-          {/* Action Bar (The Blue InfoBar) */}
-          <div className={styles.infoBar}>
+                    <div className={styles.infoBar}>
             <div className={styles.actionItems}>
               
-              {/* LEFT GROUP: Calendar + Buttons */}
-              <div className={styles.leftActionGroup}>
+                            <div className={styles.leftActionGroup}>
                 <div className={styles.compactDateBox} onClick={handleDatePillClick}>
                   <FaCalendarAlt className={styles.calIcon} />
                   <input
@@ -302,10 +297,8 @@ const MemberDashboard = () => {
                 </div>
               </div>
 
-              {/* RIGHT GROUP: Search Bar + Wallet Icon */}
-              <div className={styles.rightActionGroup}>
-                {/* Wallet icon — mobile only (moved to front) */}
-                {isMobile && (
+                            <div className={styles.rightActionGroup}>
+                                {isMobile && (
                   <div className={styles.infoBarWalletWrap}>
                     <button
                       ref={walletBtnRef}
@@ -316,8 +309,7 @@ const MemberDashboard = () => {
                       <MdAccountBalanceWallet />
                     </button>
 
-                    {/* Premium Mobile Wallet Modal */}
-                    {isWalletOpen && (
+                                        {isWalletOpen && (
                       <div className={styles.walletModalOverlay} onClick={() => setIsWalletOpen(false)}>
                         <div className={styles.walletModalCard} onClick={e => e.stopPropagation()}>
                           <div className={styles.walletModalHeader}>
@@ -373,8 +365,7 @@ const MemberDashboard = () => {
             </div>
           </div>
 
-          {/* QUICK SERVICES STRIP (PC ONLY) */}
-          {isDesktop && (
+                    {isDesktop && (
             <div className={styles.quickServicesStrip}>
               {quickServices.map(service => (
                 <div 
@@ -390,8 +381,7 @@ const MemberDashboard = () => {
             </div>
           )}
           
-          {/* SERVICES POPUP (TABLET & MOBILE) */}
-          {!isDesktop && isServicesModalOpen && (
+                    {!isDesktop && isServicesModalOpen && (
             <div className={styles.mobileServicesOverlay} onClick={() => setIsServicesModalOpen(false)}>
               <div className={styles.mobileServicesModal} onClick={e => e.stopPropagation()}>
                 <div className={styles.modalHeader}>
@@ -424,8 +414,7 @@ const MemberDashboard = () => {
             <Outlet />
           </main>
 
-          {/* FLOATING MY SERVICE FAB (Mobile Only) */}
-          {isMobile && (
+                    {isMobile && (
             <button
               className={styles.fabMyService}
               onClick={() => setIsMyServicesFloatOpen(true)}
@@ -437,8 +426,7 @@ const MemberDashboard = () => {
           )}
         </div>
 
-      {/* MyServices Float Modal */}
-      {isMyServicesFloatOpen && (
+            {isMyServicesFloatOpen && (
         <MyServicesModal onClose={() => setIsMyServicesFloatOpen(false)} />
       )}
 

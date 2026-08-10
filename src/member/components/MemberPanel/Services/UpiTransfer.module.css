@@ -5,7 +5,6 @@
   padding: 4px 6px;
 }
 
-/* Hero Section */
 .heroSection {
   background: linear-gradient(135deg, #1756AA 0%, #0d1b3e 100%);
   border-radius: 16px;
@@ -81,7 +80,6 @@
   letter-spacing: -0.3px;
 }
 
-/* Two-Column Middle Section */
 .mainLayout {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -208,7 +206,6 @@
   cursor: not-allowed;
 }
 
-/* UPI Tags Grid */
 .tagsSection {
   margin-top: 8px;
   background: #f8fafc;
@@ -277,7 +274,6 @@
   cursor: not-allowed;
 }
 
-/* Illustration Column (Pure CSS POS Machine & Graphics) */
 .illustrationCard {
   background: #ffffff;
   border-radius: 16px;
@@ -482,7 +478,6 @@
   line-height: 1.4;
 }
 
-/* Table Card at the Bottom (Full Width) */
 .tableCard {
   background: white;
   border-radius: 16px;
@@ -603,7 +598,6 @@
   color: #dc2626;
 }
 
-/* Toast Messages */
 .toast {
   position: fixed;
   top: 24px;
@@ -663,7 +657,6 @@
   }
 }
 
-/* Confirmation Flow Styles */
 .confirmFlowGrid {
   display: flex;
   flex-direction: column;
@@ -755,7 +748,6 @@
   cursor: not-allowed;
 }
 
-/* Success Ticket Receipt styling */
 .successTicketContainer {
   display: flex;
   flex-direction: column;
@@ -815,7 +807,6 @@
   margin: 0;
 }
 
-/* Receipt Ticket UI */
 .receiptTicket {
   width: 100%;
   background: #f8fafc;
@@ -986,7 +977,6 @@
   background: #0f3f80;
 }
 
-/* Modals Overlay & Card */
 .modalOverlay {
   position: fixed;
   inset: 0;

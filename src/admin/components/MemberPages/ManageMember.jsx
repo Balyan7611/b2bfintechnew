@@ -93,23 +93,17 @@ const ManageMember = () => {
   const [pendingAction, setPendingAction] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  // ── MEMBER SERVICES STATE & HELPERS ──────────────────────────────────────
-  const [allServices, setAllServices] = useState([]);
-  const [memberServices, setMemberServices] = useState({}); // format: { [memberId]: [serviceId1, serviceId2, ...] }
-  const [openServicesMember, setOpenServicesMember] = useState(null);
+    const [allServices, setAllServices] = useState([]);
+  const [memberServices, setMemberServices] = useState({});   const [openServicesMember, setOpenServicesMember] = useState(null);
   const [isAssigningServices, setIsAssigningServices] = useState(false);
   const [servicesSuccess, setServicesSuccess] = useState('');
   
-  // Assign modal state (exact same as Role page)
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]);
   const [serviceSearch, setServiceSearch] = useState('');
   const [assignMember, setAssignMember] = useState(null);
 
-  // Fetch all services from master API (defensive parsing - backend may wrap
-  // the list as `data` (bare array) or `data.items` (paginated) depending on
-  // the endpoint, so handle both instead of assuming one shape).
-  useEffect(() => {
+        useEffect(() => {
     const fetchServices = async () => {
       try {
         const res = await API.service.getAll();
@@ -125,9 +119,7 @@ const ManageMember = () => {
     fetchServices();
   }, []);
 
-  // Loads the member's REAL assigned services from the backend (MemberService
-  // table) - no more faking/guessing a random subset locally.
-  const fetchAssignedServicesForMember = async (memberId) => {
+      const fetchAssignedServicesForMember = async (memberId) => {
     try {
       const res = await API.memberService.getAll({ MemberID: memberId });
       let items = [];
@@ -148,8 +140,7 @@ const ManageMember = () => {
 
   const handleOpenServices = (m) => {
     setOpenServicesMember(m);
-    // Always refetch so the popover shows the real, current DB state.
-    fetchAssignedServicesForMember(m.id);
+        fetchAssignedServicesForMember(m.id);
   };
 
   const getAssignedServices = (member) => {
@@ -182,8 +173,7 @@ const ManageMember = () => {
     setSelectedServices(currentlyAssigned);
     setServiceSearch('');
     setIsAssignModalOpen(true);
-    setOpenServicesMember(null); // close popover
-  };
+    setOpenServicesMember(null);   };
 
   const toggleServiceSelection = (serviceId) => {
     setSelectedServices(prev =>
@@ -201,11 +191,7 @@ const ManageMember = () => {
     setSelectedServices([]);
   };
 
-  // Diffs the checked services against what's actually assigned in the
-  // backend and only sends the delta (Create for newly checked, Delete for
-  // unchecked) - then re-fetches the real state instead of trusting a local
-  // guess, so the popover/modal always reflect true DB data afterwards.
-  const handleSaveAssignedServices = async (e) => {
+          const handleSaveAssignedServices = async (e) => {
     if (e) e.preventDefault();
     if (!assignMember) return;
 
@@ -235,29 +221,21 @@ const ManageMember = () => {
     }
   };
 
-  // ── TABLE & FILTER STATE (API-driven) ───────────────────────────────────
-  const [members, setMembers] = useState([]);
+    const [members, setMembers] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [filterRoleId, setFilterRoleId] = useState('');
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  // Separate from searchQuery: this holds the exact ID of a member picked from
-  // the "Search Member" dropdown, so it can be sent as its own filter param
-  // instead of overwriting/competing with the free-text quick-search box.
-  const [selectedMemberId, setSelectedMemberId] = useState('');
-  const [memberType, setMemberType] = useState('All'); // 'Active', 'DeActive', 'All'
-  const [kycStatus, setKycStatus] = useState('All');   // 'KYC', 'Non-KYC', 'All'
-  
-  // ── PAGINATION ──
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+        const [selectedMemberId, setSelectedMemberId] = useState('');
+  const [memberType, setMemberType] = useState('All');   const [kycStatus, setKycStatus] = useState('All');     
+    const [rowsPerPage, setRowsPerPage] = useState(5);
   const [pageNumber, setPageNumber] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPageNumber, setTotalPageNumber] = useState(1);
 
-  // ── FETCH METHOD ──
-  const fetchMembers = async (pg = pageNumber, ps = rowsPerPage, search = searchQuery, roleId = filterRoleId, mType = memberType, kStatus = kycStatus, fDate = fromDate, tDate = toDate, mId = selectedMemberId) => {
+    const fetchMembers = async (pg = pageNumber, ps = rowsPerPage, search = searchQuery, roleId = filterRoleId, mType = memberType, kStatus = kycStatus, fDate = fromDate, tDate = toDate, mId = selectedMemberId) => {
     setIsFetching(true);
     try {
       let isActive = null;
@@ -284,10 +262,7 @@ const ManageMember = () => {
         let items = Array.isArray(d.items) ? d.items : [];
         let itemCount = d.totalItems || 0;
 
-        // Safety-net filter: the backend doesn't reliably filter by memberId
-        // (it was returning the whole role-filtered list regardless), so we
-        // also filter on the client whenever a specific member is selected.
-        if (mId) {
+                                if (mId) {
           const needle = mId.toString().trim().toLowerCase();
           items = items.filter((it) => {
             const candidates = [it.loginId, it.mobile, it.memberId, it.id];
@@ -313,15 +288,13 @@ const ManageMember = () => {
     }
   };
 
-  // ── AUTO-TRIGGER FETCH ON FILTER CHANGE ──
-  useEffect(() => {
+    useEffect(() => {
     const timer = setTimeout(() => {
       fetchMembers(1, rowsPerPage, searchQuery, filterRoleId, memberType, kycStatus, fromDate, toDate, selectedMemberId);
       setPageNumber(1);
     }, 400);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, selectedMemberId, filterRoleId, memberType, kycStatus, fromDate, toDate, rowsPerPage]);
+      }, [searchQuery, selectedMemberId, filterRoleId, memberType, kycStatus, fromDate, toDate, rowsPerPage]);
 
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > totalPageNumber) return;
@@ -356,8 +329,7 @@ const ManageMember = () => {
 
   const handleToggle = (field, m) => {
     dispatch(updateMemberDirect({ id: m.id, updates: { [field]: !m[field] } }));
-    // Optimistic / local state toggle update
-    setMembers(prev => prev.map(item => item.id === m.id ? { ...item, [field]: !item[field] } : item));
+        setMembers(prev => prev.map(item => item.id === m.id ? { ...item, [field]: !item[field] } : item));
   };
 
   const handleActionClick = (action, m) => {
@@ -508,8 +480,7 @@ const ManageMember = () => {
         </div>
       </div>
 
-      {/* ── TABLE CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
         <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
@@ -623,13 +594,11 @@ const ManageMember = () => {
                               overflow: 'hidden'
                             }}
                           >
-                            {/* Header */}
-                            <div style={{ padding: '12px 16px', borderBottom: '1.5px solid #F1F5F9', fontSize: '0.8rem', fontWeight: 800, color: '#0D1B3E', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        <div style={{ padding: '12px 16px', borderBottom: '1.5px solid #F1F5F9', fontSize: '0.8rem', fontWeight: 800, color: '#0D1B3E', display: 'flex', alignItems: 'center', gap: '6px' }}>
                               <FaCog style={{ color: '#1756AA' }} /> MEMBER CONTROLS
                             </div>
 
-                            {/* Toggles */}
-                            <div style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', fontSize: '0.8rem', color: '#4E6080', fontWeight: 600 }}>
+                                                        <div style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9', fontSize: '0.8rem', color: '#4E6080', fontWeight: 600 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><FaVideo style={{ color: '#1756AA', fontSize: '1rem' }} /> Video KYC</div>
                               <ToggleSwitch checked={m.videoKyc} onChange={() => setPendingToggle({ field: 'videoKyc', member: m, nextValue: !m.videoKyc })} />
                             </div>
@@ -644,8 +613,7 @@ const ManageMember = () => {
                               <ToggleSwitch checked={m.isHold} onChange={() => setPendingToggle({ field: 'isHold', member: m, nextValue: !m.isHold })} />
                             </div>
 
-                            {/* Service Assignment Trigger */}
-                            <button 
+                                                        <button 
                               onClick={() => handleOpenServices(m)}
                               style={{
                                 display: 'flex',
@@ -681,8 +649,7 @@ const ManageMember = () => {
                               <span>Assign Services</span>
                             </button>
 
-                            {/* Action Buttons */}
-                            <button 
+                                                        <button 
                               onClick={() => handleActionClick('Send Email', m)}
                               style={{
                                 display: 'flex',
@@ -788,7 +755,6 @@ const ManageMember = () => {
                           </div>
                         )}
 
-
                       </div>
                     </td>
                     <td>
@@ -877,8 +843,7 @@ const ManageMember = () => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9' }}>
+                <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9' }}>
           <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
             Showing {totalItems === 0 ? 0 : (pageNumber - 1) * rowsPerPage + 1} to{' '}
             {Math.min(pageNumber * rowsPerPage, totalItems)} of {totalItems} entries
@@ -924,8 +889,7 @@ const ManageMember = () => {
         </div>
       </div>
 
-      {/* ── VIEW MODAL ── */}
-      {viewMember && (
+            {viewMember && (
         <div className={styles.drawerOverlay} onClick={() => setViewMember(null)}>
           <div className={styles.drawerContent} onClick={e => e.stopPropagation()} style={{ width: '400px', background: '#fff', borderRadius: '12px', padding: '24px', margin: 'auto', alignSelf: 'center', height: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
             <h3 style={{ margin: '0 0 20px', color: '#0D1B3E' }}>Member Details</h3>
@@ -942,10 +906,7 @@ const ManageMember = () => {
         </div>
       )}
 
-
-
-      {/* ── HOLD CONFIRM MODAL ── */}
-      {confirmHold && (
+            {confirmHold && (
         <div className={styles.drawerOverlay} onClick={() => setConfirmHold(null)}>
           <div className={styles.drawerContent} onClick={e => e.stopPropagation()} style={{ width: '340px', background: '#fff', borderRadius: '20px', padding: '30px 24px', margin: 'auto', alignSelf: 'center', height: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.15)', textAlign: 'center', animation: 'premiumFadeIn 0.3s ease' }}>
             <div style={{ width: '60px', height: '60px', background: '#FFF5F5', color: '#E53E3E', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', margin: '0 auto 20px', boxShadow: '0 4px 10px rgba(229, 62, 62, 0.15)' }}>
@@ -968,8 +929,7 @@ const ManageMember = () => {
         </div>
       )}
 
-      {/* ── ASSIGN SERVICES POPOVER (Symmetrical to RoleManagement.jsx) ── */}
-      {openServicesMember && (
+            {openServicesMember && (
         <div 
           style={{
             position: 'fixed',
@@ -986,8 +946,7 @@ const ManageMember = () => {
             animation: 'fadeIn 0.15s ease-out'
           }}
         >
-          {/* Popover arrow */}
-          <div style={{
+                    <div style={{
             position: 'absolute',
             left: (dropdownPos.left + 275 + 320 > window.innerWidth) ? 'auto' : '-6px',
             right: (dropdownPos.left + 275 + 320 > window.innerWidth) ? '-6px' : 'auto',
@@ -1086,13 +1045,11 @@ const ManageMember = () => {
         </div>
       )}
 
-      {/* ── ASSIGN SERVICES MODAL OVERLAY ── */}
-      {isAssignModalOpen && assignMember && (
+            {isAssignModalOpen && assignMember && (
         <div className={styles.modalOverlay} style={{ zIndex: 4000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className={styles.modalContainer} style={{ width: '700px', maxWidth: '95%', borderRadius: '16px', padding: '16px', background: '#fff', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
             
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '10px', marginBottom: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '10px', marginBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <FiList style={{ color: '#1756AA', fontSize: '1.15rem' }} />
                 <h3 style={{ margin: 0, fontSize: '1.05rem', color: '#0D1B3E', fontWeight: 800 }}>
@@ -1107,8 +1064,7 @@ const ManageMember = () => {
               </button>
             </div>
 
-            {/* Toolbar: Search & Select All */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div style={{ position: 'relative', maxWidth: '300px', flex: 1 }}>
                 <FiSearch style={{ position: 'absolute', left: '10px', top: '11px', color: '#94A3B8' }} />
                 <input
@@ -1145,8 +1101,7 @@ const ManageMember = () => {
               </div>
             </div>
 
-            {/* Services Grid (Scrollable) */}
-            <div style={{ flex: 1, overflowY: 'auto', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '12px', marginBottom: '12px' }}>
+                        <div style={{ flex: 1, overflowY: 'auto', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '12px', marginBottom: '12px' }}>
               {allServices.length > 0 ? (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '8px' }}>
                   {allServices.filter(service => 
@@ -1196,8 +1151,7 @@ const ManageMember = () => {
               )}
             </div>
 
-            {/* Footer Actions */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid #E2E8F0', paddingTop: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid #E2E8F0', paddingTop: '10px' }}>
               <button
                 type="button"
                 onClick={() => setIsAssignModalOpen(false)}
@@ -1219,8 +1173,7 @@ const ManageMember = () => {
         </div>
       )}
 
-      {/* Onboarding Modal */}
-      {showRegistrationModal && (
+            {showRegistrationModal && (
         <MemberRegistration 
           isModal={true} 
           onClose={() => {
@@ -1296,8 +1249,7 @@ const ManageMember = () => {
           </div>
         </div>
       )}
-      {/* Action Confirmation Modal (Email, SMS, Re-KYC) */}
-      {pendingAction && (
+            {pendingAction && (
         <div className={styles.modalOverlay} style={{ zIndex: 4000, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px', background: '#fff', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', textAlign: 'center' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -1366,8 +1318,7 @@ const ManageMember = () => {
         </div>
       )}
 
-      {/* Success Modal */}
-      {successMessage && (
+            {successMessage && (
         <div className={styles.modalOverlay} style={{ zIndex: 4001, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className={styles.modalContainer} style={{ width: '340px', borderRadius: '16px', padding: '24px', background: '#fff', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', textAlign: 'center' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>

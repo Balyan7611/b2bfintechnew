@@ -1,9 +1,4 @@
-/* ════════════════════════════════════════
-   RECEIPT MODAL — CSS MODULES
-   html2canvas safe — all hardcoded hex
-════════════════════════════════════════ */
 
-/* ── OVERLAY ── */
 .overlay {
   position: fixed;
   inset: 0;
@@ -16,7 +11,6 @@
   animation: fadeIn 0.25s ease-out;
 }
 
-/* ── MODAL SHELL ── */
 .modal {
   background: #ffffff;
   width: 96%;
@@ -30,7 +24,6 @@
   flex-direction: column;
 }
 
-/* ── MODAL HEADER ── */
 .modalHeader {
   padding: 14px 24px;
   background: #F8FAFF;
@@ -65,7 +58,6 @@
   color: #E53E3E;
 }
 
-/* ── TOOLBAR ── */
 .toolbarRow {
   padding: 12px 24px;
   background: #ffffff;
@@ -150,7 +142,6 @@
   border-color: #CBD5E1;
 }
 
-/* ── RECEIPT VIEWPORT ── */
 .receiptViewport {
   flex: 1;
   overflow-x: auto;
@@ -162,7 +153,6 @@
   align-items: flex-start;
 }
 
-/* ── RECEIPT WRAPPER ── */
 .receiptWrapper {
   background: #ffffff;
   border-radius: 16px;
@@ -173,17 +163,12 @@
   flex-shrink: 0;
 }
 
-/* ════════════════════════════════════════
-   SHARED PRIMITIVES
-════════════════════════════════════════ */
-
 .receiptLogo {
   object-fit: contain;
   display: block;
   max-width: 100%;
 }
 
-/* ── TICK CIRCLE — dark green, prominent ── */
 .tickCircle {
   border-radius: 50%;
   background: #DCFCE7;
@@ -211,10 +196,6 @@
   color: #718096;
   font-weight: 500;
 }
-
-/* ════════════════════════════════════════
-   STANDARD LAYOUT (A4 / A5)
-════════════════════════════════════════ */
 
 .standardReceipt {
   padding: 32px;
@@ -245,7 +226,6 @@
   gap: 20px;
 }
 
-/* LEFT: AMOUNT CARD */
 .amountCard {
   background: #F8FAFF;
   border: 1px solid #E2E8F0;
@@ -300,7 +280,6 @@
   font-weight: 800;
 }
 
-/* RIGHT: 2x2 GRID */
 .detailsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -349,10 +328,6 @@
   display: block;
   word-break: break-all;
 }
-
-/* ════════════════════════════════════════
-   CARD LAYOUT
-════════════════════════════════════════ */
 
 .cardReceipt {
   padding: 20px;
@@ -455,10 +430,6 @@
   margin-top: 1px;
 }
 
-/* ════════════════════════════════════════
-   THERMAL LAYOUT (80mm / 58mm)
-════════════════════════════════════════ */
-
 .thermalReceipt {
   padding: 16px;
 }
@@ -544,7 +515,6 @@
   margin-top: 1px;
 }
 
-/* ── ANIMATIONS ── */
 @keyframes fadeIn {
   from {
     opacity: 0;

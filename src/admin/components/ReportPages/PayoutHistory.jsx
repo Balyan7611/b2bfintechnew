@@ -4,6 +4,7 @@ import { GroupHeader, SubHeader, Cells as UplineCells } from '../../../shared/co
 import { API } from '../../../api/endpoints';
 import { normalizeTxnResponse } from '../../../services/transaction.service';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { useLocation } from 'react-router-dom';
 import { 
   FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo, 
@@ -74,6 +75,8 @@ const PayoutHistory = () => {
   const [selectedService, setSelectedService] = useState('');
   const [operatorList, setOperatorList] = useState([]);
   const [selectedOperator, setSelectedOperator] = useState('');
+  const [apiList, setApiList] = useState([]);
+  const [selectedApi, setSelectedApi] = useState('');
   const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(today);
   const [toDate, setToDate] = useState(today);
@@ -89,7 +92,7 @@ const PayoutHistory = () => {
         pageNumber, pageSize, fromDate, toDate,
         serviceId: selectedService || '',
         sectionType: '3',
-        operatorId: selectedOperator, apiId: '', memberId: selectedMember, status: selectedStatus
+        operatorId: selectedOperator, apiId: selectedApi, memberId: selectedMember, status: selectedStatus
       });
       const { items: _txns, totalItems: _total } = normalizeTxnResponse(res);
       setTransactions(_txns);
@@ -104,13 +107,16 @@ const PayoutHistory = () => {
     const fetchServices = async () => {
       try {
         const res = await API.service.getAll();
+        let list = [];
         if (res && Array.isArray(res.data)) {
-          setServiceList(res.data);
+          list = res.data;
         } else if (Array.isArray(res)) {
-          setServiceList(res);
+          list = res;
         } else {
-          setServiceList([]);
+          list = [];
         }
+        const payoutServices = list.filter(srv => String(srv.sectionType || '') === '3');
+        setServiceList(payoutServices);
       } catch (err) {
         console.error("Failed to fetch services:", err);
       }
@@ -120,32 +126,49 @@ const PayoutHistory = () => {
 
   useEffect(() => {
     const fetchOperators = async () => {
-      try {
-        const res = await API.operator.getAll();
-        if (res?.data?.items) {
-          setOperatorList(res.data.items);
-        } else if (res?.data && Array.isArray(res.data)) {
-          setOperatorList(res.data);
-        } else if (Array.isArray(res)) {
-          setOperatorList(res);
+        try {
+            const res = await API.operator.getAll();
+            let allOps = [];
+            if (res?.data?.items) allOps = res.data.items;
+            else if (res?.data && Array.isArray(res.data)) allOps = res.data;
+            else if (Array.isArray(res)) allOps = res;
+
+            if (selectedService) {
+                allOps = allOps.filter(op => String(op.serviceId) === String(selectedService));
+            }
+            setOperatorList(allOps);
+        } catch (err) {
+            console.error("Failed to fetch operators:", err);
         }
-      } catch (err) {
-        console.error("Failed to fetch operators:", err);
-      }
     };
     fetchOperators();
-  }, []);
+    setSelectedOperator('');
+  }, [selectedService]);
 
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const res = await API.member.search('');
-        setMemberList(res || []);
+        const res = await API.member.getAll({ pageNumber: 1, pageSize: 5000 });
+        const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+        setMemberList(Array.isArray(list) ? list : []);
       } catch (err) {
         console.error("Failed to fetch members:", err);
       }
     };
     fetchMembers();
+  }, []);
+
+  useEffect(() => {
+    const fetchApis = async () => {
+      try {
+        const res = await API.masterApi.getAll();
+        const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+        setApiList(Array.isArray(list) ? list : []);
+      } catch (err) {
+        console.error("Failed to fetch APIs:", err);
+      }
+    };
+    fetchApis();
   }, []);
 
   useEffect(() => {
@@ -156,8 +179,7 @@ const PayoutHistory = () => {
 
   return (
     <div className={styles.container} style={{ padding: '12px', maxWidth: '100%' }}>
-      {/* Dynamic Keyframe Animations for Button Rays */}
-      <style>{`
+            <style>{`
         @keyframes successGlow {
           0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4); }
           70% { box-shadow: 0 0 0 8px rgba(39, 174, 96, 0); }
@@ -179,8 +201,7 @@ const PayoutHistory = () => {
         }
       `}</style>
 
-      {/* ── PREMIUM FILTER CARD ── */}
-      <div style={{ 
+            <div style={{ 
         background: '#ffffff',
         borderRadius: '24px',
         boxShadow: '0 10px 30px rgba(23, 86, 170, 0.04), 0 1px 8px rgba(0, 0, 0, 0.02)',
@@ -193,8 +214,7 @@ const PayoutHistory = () => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px', flexWrap: 'wrap', marginBottom: '20px' }}>
           <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', letterSpacing: '0.3px' }}>Payout History</h3>
              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            {/* View Stats Button */}
-            <button 
+                        <button 
               style={{
                 background: '#0F172A',
                 color: '#fff',
@@ -332,55 +352,49 @@ const PayoutHistory = () => {
             </div>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Select Member</label>
-              <select 
-                className={styles.inputControl} 
-                style={{ 
-                  paddingLeft: '12px', 
-                  paddingRight: '12px',
-                  height: '38px', 
-                  borderRadius: '10px', 
-                  fontSize: '0.825rem', 
-                  border: focusedField === 'member' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
-                  boxShadow: focusedField === 'member' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
-                  transition: 'all 0.25s', 
-                  width: '100%', 
-                  background: '#FCFDFE',
-                  color: '#334155',
-                  fontWeight: 500
-                }} 
+              <SearchableSelect
+                options={[
+                  { value: '', label: 'All Members' },
+                  ...memberList.map(m => {
+                    const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
+                    const loginId = m.memberID || m.memberid || m.loginID || m.loginId || String(m.id || m.msrno || '');
+                    return { value: String(m.id || m.uniqueID || m.msrno || ''), label: name ? `${name} (${loginId})` : loginId };
+                  })
+                ]}
                 value={selectedMember}
-                onChange={(e) => setSelectedMember(e.target.value)}
-              >
-                <option value="">All Members</option>
-                {Array.isArray(memberList) && memberList.map((m) => (
-                  <option key={m.id || m.memberId} value={m.id || m.memberId}>
-                    {m.name || m.memberId} ({m.mobile})
-                  </option>
-                ))}
-              </select>
+                onChange={val => setSelectedMember(val || '')}
+                placeholder="All Members"
+              />
             </div>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>API Provider</label>
-              <select 
-                className={styles.inputControl} 
-                style={{ 
-                  paddingLeft: '12px', 
+              <select
+                className={styles.inputControl}
+                style={{
+                  paddingLeft: '12px',
                   paddingRight: '12px',
-                  height: '38px', 
-                  borderRadius: '10px', 
-                  fontSize: '0.825rem', 
-                  border: focusedField === 'provider' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
-                  boxShadow: focusedField === 'provider' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
-                  transition: 'all 0.25s', 
-                  width: '100%', 
+                  height: '38px',
+                  borderRadius: '10px',
+                  fontSize: '0.825rem',
+                  border: focusedField === 'provider' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1',
+                  boxShadow: focusedField === 'provider' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none',
+                  transition: 'all 0.25s',
+                  width: '100%',
                   background: '#FCFDFE',
                   color: '#334155',
                   fontWeight: 500
-                }} 
+                }}
                 onFocus={() => setFocusedField('provider')}
                 onBlur={() => setFocusedField(null)}
+                value={selectedApi}
+                onChange={(e) => setSelectedApi(e.target.value)}
               >
                 <option value="">All Providers</option>
+                {Array.isArray(apiList) && apiList.map((api) => (
+                  <option key={api.id || api.apiId} value={api.id || api.apiId}>
+                    {api.apiname || api.apiName || api.name || `API #${api.id}`}
+                  </option>
+                ))}
               </select>
             </div>
             <div className={styles.formGroup}>
@@ -507,8 +521,7 @@ const PayoutHistory = () => {
         </form>
       </div>
 
-      {/* ── STATS CARDS GRID ── */}
-      <StatsGrid stats={{
+            <StatsGrid stats={{
         totalTxns: transactions.length,
         totalAmount: transactions.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0),
         successTxns: transactions.filter(t => t.status?.toLowerCase() === 'success').length,
@@ -525,12 +538,10 @@ const PayoutHistory = () => {
 
       {/* ── DATA TABLE CARD ── */}
       <div className={styles.cardFullMobile} style={{ padding: 0, marginBottom: '100px', boxShadow: '0 8px 24px rgba(0,0,0,0.02)' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '10px' }}>
           <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#0F172A' }}>Payout History List</h3>
         </div>
-        {/* TOOLBAR */}
-        <div className="global-table-toolbar" style={{ padding: '10px 15px' }}>
+                <div className="global-table-toolbar" style={{ padding: '10px 15px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.selectEntries} value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPageNumber(1); }}>
@@ -594,7 +605,7 @@ const PayoutHistory = () => {
                     <td>₹{(parseFloat(txn.closingBalance || txn.clBal) || 0).toFixed(2)}</td>
                     <td>₹{(parseFloat(txn.gst) || 0).toFixed(2)}</td>
                     <td style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{txn.orderId || 'N/A'}</td>
-                    <td style={{ fontSize: '0.8rem' }}>{txn.vendorId || txn.operatorId || 'N/A'}</td>
+                    <td style={{ fontSize: '0.8rem' }}>{txn.operatorName || txn.vendorId || txn.operatorId || 'N/A'}</td>
                     <td style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{txn.rrn || txn.refid || 'N/A'}</td>
                     <td style={{ textAlign: 'center' }}>
                       <span style={{ padding: '3px 10px', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700, background: txn.status?.toLowerCase() === 'success' ? '#DCFCE7' : txn.status?.toLowerCase() === 'pending' ? '#FEF3C7' : '#FEE2E2', color: txn.status?.toLowerCase() === 'success' ? '#15803D' : txn.status?.toLowerCase() === 'pending' ? '#B45309' : '#B91C1C' }}>

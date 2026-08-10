@@ -1,4 +1,3 @@
-// src/models/memberModel.js
 
 export const MemberRequestModel = (form) => {
     return {

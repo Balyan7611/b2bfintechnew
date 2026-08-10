@@ -30,7 +30,6 @@
   align-items: start;
 }
 
-/* Left Panel - Form */
 .formPanel {
   background: white;
   border-radius: 16px;
@@ -125,7 +124,6 @@
   color: #1756AA;
 }
 
-/* User Card */
 .userCard {
   background: linear-gradient(135deg, #f0f4ff 0%, #ffffff 100%);
   border: 1px solid #dbeafe;
@@ -195,7 +193,6 @@
   word-break: break-word;
 }
 
-/* Buttons */
 .submitBtn {
   width: 100%;
   padding: 14px;
@@ -225,7 +222,6 @@
   cursor: not-allowed;
 }
 
-/* Right Panel - Table */
 .historyPanel {
   background: white;
   border-radius: 16px;
@@ -233,8 +229,7 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
   border: 1px solid #f1f5f9;
   min-width: 0;
-  /* Prevents flex/grid blowouts */
-  width: 100%;
+    width: 100%;
   overflow: hidden;
 }
 
@@ -427,7 +422,6 @@
   color: #64748b;
 }
 
-/* Modal Overlay */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -456,8 +450,7 @@
 }
 
 .compactModal {
-  /* Added to modalCard for compact sizing */
-}
+  }
 
 .compactModal .modalTitle {
   font-size: 1.25rem;
@@ -551,8 +544,6 @@
   gap: 12px;
 }
 
-
-
 .btnCancel,
 .btnConfirm {
   flex: 1;
@@ -584,7 +575,6 @@
   background: #124385;
 }
 
-/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -619,7 +609,6 @@
   }
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
   .layout {
     grid-template-columns: 1fr;

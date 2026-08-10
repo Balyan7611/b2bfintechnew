@@ -411,8 +411,6 @@
   border-radius: 4px;
 }
 
-
-/* DETAIL VIEW (THE NEW ADDITION) */
 .detailContainer {
   background: #ffffff;
   border-radius: 16px;
@@ -657,7 +655,6 @@
   font-size: 0.9rem;
 }
 
-/* Mobile Responsiveness */
 @media screen and (max-width: 768px) {
   .header {
     flex-direction: column;

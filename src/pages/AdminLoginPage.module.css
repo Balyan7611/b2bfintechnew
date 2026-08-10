@@ -10,7 +10,6 @@
   position: relative;
 }
 
-/* ── DECORATIVE ELEMENTS ── */
 .bgDecor {
   position: absolute;
   top: 0;
@@ -41,7 +40,6 @@
   filter: blur(50px);
 }
 
-/* ── LOGIN CARD ── */
 .loginCard {
   width: 100%;
   max-width: 460px;
@@ -89,7 +87,6 @@
   margin: 0;
 }
 
-/* ── FORM ── */
 .formAnim {
   animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -211,7 +208,6 @@
   padding: 0;
 }
 
-/* ── FOOTER ── */
 .cardFooter {
   margin-top: 40px;
   padding-top: 30px;

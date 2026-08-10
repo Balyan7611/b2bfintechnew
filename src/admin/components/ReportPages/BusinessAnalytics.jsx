@@ -10,7 +10,6 @@ import { API } from '../../../api/endpoints';
 import AdminTable from '../../../shared/components/common/AdminTable';
 import styles from './BusinessAnalytics.module.css';
 
-/* ── Date helpers ─────────────────────────────────────────── */
 function toYMD(d) { return d.toISOString().slice(0, 10); }
 
 function periodDates(period) {
@@ -40,7 +39,6 @@ function relativeDate(isoStr) {
   return `Last used ${diff} days ago`;
 }
 
-/* ── Service icon map ────────────────────────────────────── */
 const SVC_ICON = {
   'MONEY TRANSFER':    <MdSwapHoriz size={13} />,
   'UPI TRANSFER':      <FiZap size={13} />,
@@ -80,13 +78,13 @@ const BusinessAnalytics = () => {
   const [memberList, setMemberList] = useState([]);
   const [selectedMember, setSelectedMember] = useState('');
   const [scope, setScope] = useState('Downline');
+  const scopeLabel = scope === 'ThisMemberOnly' ? 'This member only.' : 'Member + downline.';
   const [period, setPeriod] = useState('30days');
   const [loading, setLoading] = useState(false);
   const [analyzed, setAnalyzed] = useState(false);
   const [error, setError] = useState('');
 
-  // API response data
-  const [summary, setSummary] = useState(null);
+    const [summary, setSummary] = useState(null);
   const [services, setServices] = useState([]);
   const [members, setMembers] = useState([]);
   const [memberInfo, setMemberInfo] = useState(null);
@@ -118,8 +116,7 @@ const BusinessAnalytics = () => {
       setServices(data.services || []);
       setMembers(data.members || []);
 
-      // Find member name from list for the header
-      const mFound = memberList.find(m => String(m.id || m.memberId) === String(selectedMember));
+            const mFound = memberList.find(m => String(m.id || m.memberId) === String(selectedMember));
       setMemberInfo({
         id: mFound?.memberID || mFound?.memberId || selectedMember,
         name: data.members?.[0]?.memberName || mFound?.name || 'Member',
@@ -135,8 +132,7 @@ const BusinessAnalytics = () => {
     }
   };
 
-  // Table columns: # | MEMBER | SHOP | AEPS | MONEY TRANSFER | RECHARGE & BILLS | SETTLEMENT · WALLET | UPI TRANSFER | TOTAL
-  const TABLE_COLS = ['#', 'MEMBER', 'SHOP', 'AEPS', 'MONEY TRANSFER', 'RECHARGE & BILLS', 'SETTLEMENT · WALLET', 'UPI TRANSFER', 'TOTAL', 'TXNS', 'SUCCESS'];
+    const TABLE_COLS = ['#', 'MEMBER', 'SHOP', 'AEPS', 'MONEY TRANSFER', 'RECHARGE & BILLS', 'SETTLEMENT · WALLET', 'UPI TRANSFER', 'TOTAL', 'TXNS', 'SUCCESS'];
 
   const fmt = (n) => n > 0
     ? `₹${Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
@@ -145,8 +141,7 @@ const BusinessAnalytics = () => {
   return (
     <div className={styles.container}>
 
-      {/* ── FILTERS ── */}
-      <div className={styles.filterSection}>
+            <div className={styles.filterSection}>
         <div className={styles.filterHeader}><FaFilter className={styles.filterHeaderIcon} /><span>Choose what to look at</span></div>
         <div className={styles.filterGrid}>
           <div className={styles.inputGroup}>
@@ -166,7 +161,7 @@ const BusinessAnalytics = () => {
           <div className={styles.inputGroup}>
             <label className={styles.label}>Scope</label>
             <div className={styles.scopeToggle}>
-              <button type="button" className={`${styles.scopeButton} ${scope === 'Self' ? styles.activeScope : ''}`} onClick={() => setScope('Self')}>This member only</button>
+              <button type="button" className={`${styles.scopeButton} ${scope === 'ThisMemberOnly' ? styles.activeScope : ''}`} onClick={() => setScope('ThisMemberOnly')}>This member only</button>
               <button type="button" className={`${styles.scopeButton} ${scope === 'Downline' ? styles.activeScope : ''}`} onClick={() => setScope('Downline')}>Member + full downline</button>
             </div>
           </div>
@@ -191,11 +186,12 @@ const BusinessAnalytics = () => {
           </button>
           {analyzed && (
             <button className={styles.exportButton} onClick={() => {
-              const hdrs = ['#', 'Member', 'Shop', 'AEPS', 'Money Transfer', 'Recharge & Bills', 'Settlement-Wallet', 'UPI Transfer', 'Total'];
+              const hdrs = ['#', 'LoginId', 'Member', 'Shop', 'AEPS', 'Money Transfer', 'Recharge & Bills', 'Settlement-Wallet', 'UPI Transfer', 'Total', 'Txns', 'Success'];
               const rows = members.map((m, i) => [
-                i + 1, m.memberName, m.shopName,
+                i + 1, m.loginId, m.memberName, m.shopName || 'N/A',
                 m.aepsBusiness, m.moneyTransferBusiness, m.rechargeBillsBusiness,
-                m.settlementBusiness, m.upiTransferBusiness, m.totalBusinessValue
+                m.settlementBusiness, m.upiTransferBusiness, m.totalBusinessValue,
+                m.totalTxns, m.successfulTxns
               ]);
               const csv = 'data:text/csv;charset=utf-8,' + [hdrs, ...rows].map(r => r.join(',')).join('\n');
               const a = document.createElement('a'); a.href = encodeURI(csv); a.download = 'business_analytics.csv'; a.click();
@@ -207,12 +203,10 @@ const BusinessAnalytics = () => {
         {error && <div style={{ color: '#DC2626', fontSize: '0.82rem', marginTop: 8 }}>{error}</div>}
       </div>
 
-      {/* ── RESULTS ── */}
-      {analyzed && summary && (
+            {analyzed && summary && (
         <div className={styles.resultsArea}>
 
-          {/* Member header bar */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1px solid #E8EDF5', borderRadius: 10, padding: '12px 20px', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1px solid #E8EDF5', borderRadius: 10, padding: '12px 20px', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <FaUser size={13} color="#4B5DB8" />
               <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0D1B3E' }}>
@@ -223,8 +217,7 @@ const BusinessAnalytics = () => {
             <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: 600 }}>{dateRange}</span>
           </div>
 
-          {/* KPI Cards */}
-          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 20 }}>
+                    <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 20 }}>
             {[
               {
                 icon: <FiDollarSign size={13} />, label: 'TOTAL BUSINESS',
@@ -244,7 +237,7 @@ const BusinessAnalytics = () => {
               {
                 icon: <FaUsers size={13} />, label: 'MEMBERS COUNTED',
                 value: Number(summary.membersCounted).toLocaleString(),
-                sub: scope === 'Downline' ? 'Member + full downline.' : 'This member only.'
+                sub: scopeLabel
               },
             ].map(c => (
               <div key={c.label} style={{ flex: 1, minWidth: 160, background: '#fff', border: '1px solid #E8EDF5', borderRadius: 12, padding: '18px 20px' }}>
@@ -257,8 +250,7 @@ const BusinessAnalytics = () => {
             ))}
           </div>
 
-          {/* Service by Service cards */}
-          {services.length > 0 && (
+                    {services.length > 0 && (
             <div style={{ marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <FiActivity size={14} color="#4B5DB8" />
@@ -270,27 +262,26 @@ const BusinessAnalytics = () => {
             </div>
           )}
 
-          {/* Member × Service Table */}
-          <AdminTable
+                    <AdminTable
             title="BUSINESS ANALYTICS"
             columns={TABLE_COLS}
             data={members}
             renderRow={(row, i) => (
               <tr key={row.memberId || i}>
-                <td style={{ color: '#94A3B8', fontWeight: 700 }}>{i + 1}</td>
+                <td><span style={{ background: '#F1F5F9', color: '#4B5DB8', fontWeight: 700, fontSize: '0.72rem', padding: '3px 8px', borderRadius: 6 }}>{row.loginId || i + 1}</span></td>
                 <td style={{ fontWeight: 800, color: '#0D1B3E' }}>
                   <div>{row.memberName}</div>
-                  <div style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 500 }}>#{row.memberId}</div>
+                  <div style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 500 }}>{row.loginId}</div>
                 </td>
-                <td style={{ color: '#64748B', fontSize: '0.82rem' }}>{row.shopName || '—'}</td>
+                <td style={{ color: '#64748B', fontSize: '0.82rem' }}>{row.shopName || 'N/A'}</td>
                 <td style={{ fontWeight: 600, color: row.aepsBusiness > 0 ? '#0369A1' : '#CBD5E1' }}>{fmt(row.aepsBusiness)}</td>
                 <td style={{ fontWeight: 600, color: row.moneyTransferBusiness > 0 ? '#0369A1' : '#CBD5E1' }}>{fmt(row.moneyTransferBusiness)}</td>
                 <td style={{ fontWeight: 600, color: row.rechargeBillsBusiness > 0 ? '#0369A1' : '#CBD5E1' }}>{fmt(row.rechargeBillsBusiness)}</td>
                 <td style={{ fontWeight: 600, color: row.settlementBusiness > 0 ? '#0369A1' : '#CBD5E1' }}>{fmt(row.settlementBusiness)}</td>
                 <td style={{ fontWeight: 600, color: row.upiTransferBusiness > 0 ? '#0369A1' : '#CBD5E1' }}>{fmt(row.upiTransferBusiness)}</td>
                 <td style={{ fontWeight: 800, color: '#0D1B3E' }}>₹{Number(row.totalBusinessValue).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                <td style={{ fontWeight: 600 }}>{row.totalTxns ?? '—'}</td>
-                <td style={{ color: '#16A34A', fontWeight: 700 }}>{row.successfulTxns ?? '—'}</td>
+                <td style={{ fontWeight: 600 }}>{row.totalTxns > 0 ? row.totalTxns : <span style={{ color: '#CBD5E1' }}>—</span>}</td>
+                <td style={{ color: '#16A34A', fontWeight: 700 }}>{row.successfulTxns > 0 ? row.successfulTxns : <span style={{ color: '#CBD5E1' }}>—</span>}</td>
               </tr>
             )}
             searchQuery=""
@@ -305,8 +296,7 @@ const BusinessAnalytics = () => {
         </div>
       )}
 
-      {/* Legend */}
-      <div className={styles.legendBlock}>
+            <div className={styles.legendBlock}>
         <div className={styles.legendHeader}><FaRegLightbulb className={styles.legendHeaderIcon} /><span>How the numbers are worked out.</span></div>
         <ul className={styles.legendList}>
           <li><strong>Business</strong> counts successful transactions only. Failed and pending ones show in the counts but add nothing to the value.</li>

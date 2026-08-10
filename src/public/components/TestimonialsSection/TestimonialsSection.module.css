@@ -1,6 +1,3 @@
-/* ===========================
-   Testimonials Section - Premium Design
-   =========================== */
 
 .testimonialsSection {
   padding: 100px 0;
@@ -9,7 +6,6 @@
   overflow: hidden;
 }
 
-/* Background decorations */
 .bgDecor1 {
   position: absolute;
   top: -80px;
@@ -32,7 +28,6 @@
   pointer-events: none;
 }
 
-/* Section Header */
 .sectionHeader {
   text-align: center;
   margin-bottom: 60px;
@@ -46,7 +41,6 @@
   margin-top: 10px;
 }
 
-/* ---- Animate on Scroll ---- */
 .animateOnScroll {
   opacity: 0;
   transform: translateY(40px) scale(0.95);
@@ -58,7 +52,6 @@
   transform: translateY(0) scale(1);
 }
 
-/* ---- Cards Grid ---- */
 .cardsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -67,7 +60,6 @@
   z-index: 1;
 }
 
-/* ---- Card ---- */
 .card {
   background: var(--color-surface);
   border-radius: 24px;
@@ -95,7 +87,6 @@
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
 }
 
-/* Quote Watermark */
 .quoteWatermark {
   position: absolute;
   top: 20px;
@@ -119,7 +110,6 @@
   color: #374151;
 }
 
-/* Stars */
 .stars {
   display: flex;
   gap: 4px;
@@ -131,7 +121,6 @@
   font-size: 0.85rem;
 }
 
-/* Quote Text */
 .quoteText {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.05rem;
@@ -143,7 +132,6 @@
   z-index: 1;
 }
 
-/* Author */
 .author {
   display: flex;
   align-items: center;
@@ -153,7 +141,6 @@
   margin-top: auto;
 }
 
-/* Avatar */
 .avatarWrapper {
   width: 52px;
   height: 52px;
@@ -172,7 +159,6 @@
   display: block;
 }
 
-/* Author Info */
 .authorInfo {
   flex: 1;
   min-width: 0;
@@ -194,7 +180,6 @@
   margin-top: 2px;
 }
 
-/* ---- Responsive ---- */
 @media (max-width: 968px) {
   .cardsGrid {
     grid-template-columns: repeat(2, 1fr);

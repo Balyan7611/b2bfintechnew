@@ -2,7 +2,6 @@
 .group { display: flex; flex-direction: column; gap: 10px; }
 .label { font-size: 0.875rem; font-weight: 600; color: var(--color-text-primary); }
 
-/* PAN Row */
 .panRow { display: flex; gap: 10px; align-items: stretch; }
 
 .inputWrap {
@@ -40,7 +39,6 @@
 }
 .input:disabled { opacity: 0.6; }
 
-/* Verify Button */
 .verifyBtn {
   padding: 0 20px;
   background: #1756AA;
@@ -59,7 +57,6 @@
 .disabled { background: var(--color-border); color: var(--color-text-secondary); cursor: not-allowed; box-shadow: none; }
 .loading  { background: #2563a8; cursor: wait; }
 
-/* Spinner */
 .spinner {
   width: 18px; height: 18px;
   border: 2px solid rgba(255,255,255,0.35);
@@ -70,7 +67,6 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Success */
 .successBox {
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   animation: popIn 0.4s cubic-bezier(0.34,1.5,0.64,1);
@@ -105,7 +101,6 @@
 
 .successText { font-size: 1rem; font-weight: 700; color: #27AE60; }
 
-/* Next Button */
 .nextBtn {
   width: 100%; padding: 13px;
   background: #27AE60; color: #fff; border: none; border-radius: 10px;

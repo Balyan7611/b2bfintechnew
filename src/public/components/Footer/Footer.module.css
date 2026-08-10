@@ -1,6 +1,3 @@
-/* ============================================
-   FOOTER — Desktop Grid + Mobile Accordion
-   ============================================ */
 
 .footer {
   background: linear-gradient(135deg, #0D1B5E 0%, #1756AA 100%);
@@ -44,9 +41,6 @@
   z-index: 1;
 }
 
-/* ==============================
-   DESKTOP LAYOUT
-============================== */
 .desktopFooter {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1.5fr;
@@ -59,7 +53,6 @@
   display: none;
 }
 
-/* Brand Column */
 .brandColumn {
   max-width: 340px;
 }
@@ -107,7 +100,6 @@
   transform: translateY(-3px);
 }
 
-/* Links Columns */
 .linksColumn,
 .contactColumn {
   padding-top: 8px;
@@ -159,7 +151,6 @@
   flex-shrink: 0;
 }
 
-/* Desktop Bottom Bar */
 .bottomBar {
   padding: 24px 0;
   text-align: center;
@@ -171,7 +162,6 @@
   margin: 0;
 }
 
-/* Desktop responsive — tablet */
 @media (max-width: 968px) {
   .desktopFooter {
     grid-template-columns: 1fr 1fr;
@@ -184,16 +174,12 @@
   }
 }
 
-/* ==============================
-   MOBILE LAYOUT (≤ 600px)
-============================== */
 @media (max-width: 600px) {
   .footer {
     padding-top: 0;
   }
 
-  /* Hide desktop grid, show mobile accordion */
-  .desktopFooter {
+    .desktopFooter {
     display: none;
   }
 
@@ -204,21 +190,18 @@
     padding: 0;
   }
 
-  /* Hide desktop bottom bar on mobile */
-  .bottomBar {
+    .bottomBar {
     display: none;
   }
 
-  /* ---- Divider ---- */
-  .mobileDivider {
+    .mobileDivider {
     height: 1px;
     background: rgba(255, 255, 255, 0.1);
     margin: 0;
     flex-shrink: 0;
   }
 
-  /* ---- 1. Brand Block ---- */
-  .mobileBrand {
+    .mobileBrand {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -257,8 +240,7 @@
     max-width: 300px;
   }
 
-  /* ---- 2. Social Icons Row ---- */
-  .mobileSocial {
+    .mobileSocial {
     display: flex;
     justify-content: center;
     gap: 16px;
@@ -281,8 +263,7 @@
     transform: scale(1.1);
   }
 
-  /* ---- 3/4/5. Accordion Sections ---- */
-  .mobileAccordion {
+    .mobileAccordion {
     width: 100%;
   }
 
@@ -321,8 +302,7 @@
     color: #ffffff;
   }
 
-  /* Accordion body — animated open/close */
-  .accordionBody {
+    .accordionBody {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
@@ -338,8 +318,7 @@
     padding: 4px 20px 16px;
   }
 
-  /* Links inside accordion */
-  .accordionLink {
+    .accordionLink {
     display: block;
     font-size: 0.875rem;
     color: rgba(255, 255, 255, 0.7);
@@ -359,8 +338,7 @@
     padding-left: 6px;
   }
 
-  /* Contact items inside accordion */
-  .accordionContactItem {
+    .accordionContactItem {
     display: flex;
     align-items: flex-start;
     gap: 12px;
@@ -388,8 +366,7 @@
     margin-top: 2px;
   }
 
-  /* ---- 6. Mobile Bottom Bar ---- */
-  .mobileBottomBar {
+    .mobileBottomBar {
     padding: 18px 20px;
     text-align: center;
   }

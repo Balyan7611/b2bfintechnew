@@ -23,14 +23,12 @@ const initialState = {
   searchQuery: '',
   filterStatus: 'All',
 
-  // Manage Support (Add Support page)
-  manageSupportList: MANAGE_SUPPORT_SAMPLE,
+    manageSupportList: MANAGE_SUPPORT_SAMPLE,
   addSupportPage: 1,
   addSupportRows: 10,
   addSupportSearch: '',
 
-  // Chat Popup / Detail View
-  isChatOpen: false,
+    isChatOpen: false,
   activeChatTicket: null,
   chatMessages: savedMessages ? JSON.parse(savedMessages) : {},
   chatInput: '',
@@ -40,8 +38,7 @@ const supportSlice = createSlice({
   name: 'support',
   initialState,
   reducers: {
-    // Complain List reducers
-    setCurrentPage: (state, action) => { state.currentPage = action.payload; },
+        setCurrentPage: (state, action) => { state.currentPage = action.payload; },
     setRowsPerPage: (state, action) => { state.rowsPerPage = action.payload; state.currentPage = 1; },
     setSearchQuery: (state, action) => { state.searchQuery = action.payload; state.currentPage = 1; },
     setFilterStatus: (state, action) => { state.filterStatus = action.payload; state.currentPage = 1; },
@@ -58,8 +55,7 @@ const supportSlice = createSlice({
       }
     },
 
-    // Manage Tickets (Member)
-    createTicket: (state, action) => {
+        createTicket: (state, action) => {
       const { category, txnId, message, priority, attachment, loginId, name, contact, apiRequest, apiResponse } = action.payload;
       const newTicket = {
         id: Date.now(),
@@ -78,8 +74,7 @@ const supportSlice = createSlice({
         apiResponse: apiResponse || ''
       };
       state.complainList.unshift(newTicket);
-      // add initial message
-      state.chatMessages[newTicket.id] = [{ 
+            state.chatMessages[newTicket.id] = [{ 
         sender: 'member', 
         text: message, 
         time: getFormattedDate().split(' ')[1],
@@ -90,8 +85,7 @@ const supportSlice = createSlice({
       localStorage.setItem('bss_chat_messages', JSON.stringify(state.chatMessages));
     },
 
-    // Manage Support reducers
-    addSupportEntry: (state, action) => {
+        addSupportEntry: (state, action) => {
       const newEntry = {
         id: Date.now(),
         name: action.payload.name,
@@ -122,14 +116,12 @@ const supportSlice = createSlice({
     setAddSupportRows: (state, action) => { state.addSupportRows = action.payload; state.addSupportPage = 1; },
     setAddSupportSearch: (state, action) => { state.addSupportSearch = action.payload; state.addSupportPage = 1; },
 
-    // Chat reducers
-    openChat: (state, action) => {
+        openChat: (state, action) => {
       const ticket = action.payload;
       state.isChatOpen = true;
       state.activeChatTicket = ticket;
       state.chatInput = '';
-      // Seed default messages if none exist for this ticket
-      if (!state.chatMessages[ticket.id]) {
+            if (!state.chatMessages[ticket.id]) {
         state.chatMessages[ticket.id] = [];
       }
     },
@@ -158,8 +150,7 @@ const supportSlice = createSlice({
     },
     setChatInput: (state, action) => { state.chatInput = action.payload; },
 
-    // Edit & Delete Tickets (Member)
-    deleteTicket: (state, action) => {
+        deleteTicket: (state, action) => {
       const ticketIdToDelete = action.payload;
       state.complainList = state.complainList.filter(t => t.id !== ticketIdToDelete);
       delete state.chatMessages[ticketIdToDelete];
@@ -178,8 +169,7 @@ const supportSlice = createSlice({
         ticket.apiRequest = apiRequest;
         ticket.apiResponse = apiResponse;
         
-        // update initial chat message too if it was changed
-        if (state.chatMessages[id] && state.chatMessages[id].length > 0) {
+                if (state.chatMessages[id] && state.chatMessages[id].length > 0) {
           state.chatMessages[id][0].text = message;
           state.chatMessages[id][0].attachment = attachment;
         }

@@ -18,16 +18,14 @@ const SupportList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPriority, setFilterPriority] = useState('All');
   
-  // Image Viewer Modal State
-  const [viewImage, setViewImage] = useState(null);
+    const [viewImage, setViewImage] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   
   const [detailTicket, setDetailTicket] = useState(null);
-  const [copiedField, setCopiedField] = useState(null); // 'request' | 'response'
-
+  const [copiedField, setCopiedField] = useState(null); 
   const normalizeTicket = (t) => {
     if (!t) return null;
     const service = t.service || t.Category || t.category || '';
@@ -91,20 +89,15 @@ const SupportList = () => {
       console.log('[SupportList] API raw response:', res);
 
       let rawData = [];
-      // New API format: { isSuccess: true, data: { items: [...] } }
-      if (res?.data?.items && Array.isArray(res.data.items)) {
+            if (res?.data?.items && Array.isArray(res.data.items)) {
         rawData = res.data.items;
-      // New API format flat: { isSuccess: true, items: [...] }
-      } else if (res?.items && Array.isArray(res.items)) {
+            } else if (res?.items && Array.isArray(res.items)) {
         rawData = res.items;
-      // Old format: { status: true, data: [...] }
-      } else if (res?.data && Array.isArray(res.data)) {
+            } else if (res?.data && Array.isArray(res.data)) {
         rawData = res.data;
-      // Direct array
-      } else if (Array.isArray(res)) {
+            } else if (Array.isArray(res)) {
         rawData = res;
-      // data.data nested
-      } else if (res?.data?.data && Array.isArray(res.data.data)) {
+            } else if (res?.data?.data && Array.isArray(res.data.data)) {
         rawData = res.data.data;
       }
 
@@ -131,8 +124,7 @@ const SupportList = () => {
     }, 1500);
   };
 
-  // Filter Data
-  const filteredData = tickets.filter(item => {
+    const filteredData = tickets.filter(item => {
     const matchSearch = (item.ticketId || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
                         (item.memberName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                         (item.memberId || '').toLowerCase().includes(searchQuery.toLowerCase());
@@ -184,12 +176,10 @@ const SupportList = () => {
   const handleWheelZoom = (e) => {
     e.preventDefault();
     if (e.deltaY < 0) {
-      setZoomLevel(prev => Math.min(prev + 0.15, 4)); // Zoom in (max 4x)
-    } else {
+      setZoomLevel(prev => Math.min(prev + 0.15, 4));     } else {
       setZoomLevel(prev => {
         const newZoom = Math.max(prev - 0.15, 0.3);
-        if (newZoom <= 1) setPosition({ x: 0, y: 0 }); // reset position if zoomed out fully
-        return newZoom;
+        if (newZoom <= 1) setPosition({ x: 0, y: 0 });         return newZoom;
       });
     }
   };
@@ -223,8 +213,7 @@ const SupportList = () => {
   return (
     <div className={styles.container}>
       
-      {/* Filters Card */}
-      <div className={styles.card}>
+            <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h3>Filter Tickets</h3>
         </div>
@@ -252,8 +241,7 @@ const SupportList = () => {
         </div>
       </div>
 
-      {/* Table Card */}
-      <div className={styles.card}>
+            <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h3>Support Tickets</h3>
         </div>
@@ -329,8 +317,7 @@ const SupportList = () => {
         </div>
       </div>
 
-      {/* Full Detail Modal */}
-      {detailTicket && (
+            {detailTicket && (
         <div className={styles.modalOverlay} onClick={() => setDetailTicket(null)}>
           <div className={styles.detailModal} onClick={e => e.stopPropagation()}>
             <div className={styles.detailHeader}>
@@ -372,13 +359,10 @@ const SupportList = () => {
                   <label className={styles.sectionLabel}>Attachment</label>
                   <div className={styles.smallAttachCard}>
                     {detailTicket.attachmentPath ? (() => {
-                      // Use the shared getImageUrl helper — same pattern as FundRequest, KYC, etc.
-                      // Tries SupportTickets folder first; falls back to bare path if already a full URL
-                      const resolveAttachmentUrl = (raw) => {
+                                                                  const resolveAttachmentUrl = (raw) => {
                         if (!raw) return '';
                         if (raw.startsWith('http') || raw.startsWith('data:')) return raw;
-                        // Bare filename → UploadedFiles/SupportTickets/{filename}
-                        return getImageUrl(raw, 'SupportTickets');
+                                                return getImageUrl(raw, 'SupportTickets');
                       };
                       const imgSrc = resolveAttachmentUrl(detailTicket.attachmentPath);
                       const pathLower = (detailTicket.attachmentPath || '').toLowerCase().split('?')[0];
@@ -393,8 +377,7 @@ const SupportList = () => {
                           onClick={() => setViewImage(imgSrc)}
                           onError={(e) => {
                             console.error('[SupportList] Image failed to load:', imgSrc);
-                            // Try without crossOrigin as fallback
-                            e.target.removeAttribute('crossorigin');
+                                                        e.target.removeAttribute('crossorigin');
                             e.target.onerror = (e2) => {
                               console.error('[SupportList] Image still failed, opening in new tab will work:', imgSrc);
                               e2.target.style.display = 'none';
@@ -415,8 +398,6 @@ const SupportList = () => {
                 </div>
               </div>
 
-
-
               <div className={styles.jsonRow}>
                 <div className={styles.jsonBox}>
                   <div className={styles.apiBoxHeader}>
@@ -432,14 +413,12 @@ const SupportList = () => {
                 </div>
               </div>
 
-
             </div>
           </div>
         </div>
       )}
 
-      {/* Image Viewer Modal */}
-      {viewImage && (
+            {viewImage && (
         <div className={styles.modalOverlay} onClick={closeImageViewer} style={{zIndex: 10000}}>
           <div 
             className={styles.imageModal} 
@@ -472,9 +451,7 @@ const SupportList = () => {
         </div>
       )}
 
-      {/* Admin Reply Chat Popup */}
-      {/* ChatPopup for regular bottom chat */}
-      {isChatOpen && <ChatPopup isMember={false} />}
+                  {isChatOpen && <ChatPopup isMember={false} />}
     </div>
   );
 };

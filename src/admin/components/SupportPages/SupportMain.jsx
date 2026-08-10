@@ -117,15 +117,13 @@ const SupportMain = () => {
 
   return (
     <div className={styles.page} style={{ padding: '0 10px', maxWidth: '100%' }}>
-      {/* ── TOAST ── */}
-      {toast && (
+            {toast && (
         <div className={`global-toast ${toast.type === 'error' ? 'global-toast-error' : 'global-toast-success'}`}>
           <FaCheck /> {toast.msg}
         </div>
       )}
 
-      {/* ── TABLE CARD ── */}
-      <div
+            <div
         className={styles.card}
         style={{
           width: '95%',
@@ -134,8 +132,7 @@ const SupportMain = () => {
           boxSizing: 'border-box',
         }}
       >
-        {/* Card Header */}
-        <div className={styles.cardHeader}>
+                <div className={styles.cardHeader}>
           <div className={styles.cardHeaderLeft}>
             <div className={styles.cardIconBox}>
               <FaHeadset />
@@ -153,8 +150,7 @@ const SupportMain = () => {
           </button>
         </div>
 
-        {/* Controls Row */}
-        <div className={styles.controls}>
+                <div className={styles.controls}>
           <div className={styles.rowsControl}>
             <span>Show</span>
             <select
@@ -183,8 +179,7 @@ const SupportMain = () => {
           </div>
         </div>
 
-        {/* Table */}
-        <div className={styles.tableWrapper} style={{ overflowX: 'auto' }}>
+                <div className={styles.tableWrapper} style={{ overflowX: 'auto' }}>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -239,8 +234,7 @@ const SupportMain = () => {
           </table>
         </div>
 
-        {/* Pagination */}
-        <div className={styles.pagination}>
+                <div className={styles.pagination}>
           <span className={styles.pageInfo}>
             Showing {filtered.length === 0 ? 0 : (addSupportPage - 1) * addSupportRows + 1} to {Math.min(addSupportPage * addSupportRows, filtered.length)} of {filtered.length} entries
           </span>
@@ -264,8 +258,7 @@ const SupportMain = () => {
         </div>
       </div>
 
-      {/* ── STATUS CHANGE MODAL ── */}
-      {statusModal.open && (
+            {statusModal.open && (
         <div className={styles.modalOverlay} onClick={() => setStatusModal({ open: false, row: null })}>
           <div className={styles.modalContainer} style={{ maxWidth: '380px', padding: '24px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: statusModal.row.status === 'Active' ? '#FFF5F5' : '#F0FDF4', color: statusModal.row.status === 'Active' ? '#E53E3E' : '#27AE60', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', margin: '0 auto 16px' }}>
@@ -281,13 +274,11 @@ const SupportMain = () => {
         </div>
       )}
 
-      {/* ── MODAL ── */}
-      {isModalOpen && (
+            {isModalOpen && (
         <div className={styles.modalOverlay} onClick={resetForm}>
           <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
 
-            {/* Modal Header */}
-            <div className={styles.modalHeader}>
+                        <div className={styles.modalHeader}>
               <div className={styles.modalHeaderLeft}>
                 <div className={styles.modalIconBox}><FaHeadset /></div>
                 <div>
@@ -303,8 +294,7 @@ const SupportMain = () => {
             </div>
 
             <div className={styles.modalBody}>
-              {/* Support Name */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label className={styles.label}>Support Name <span className={styles.req}>*</span></label>
                 <input
                   type="text"
@@ -315,8 +305,7 @@ const SupportMain = () => {
                 />
               </div>
 
-              {/* Rich Text Editor */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label className={styles.label}>Description <span className={styles.req}>*</span></label>
                 <div className={styles.editorToolbar}>
                   <button className={styles.toolBtn} type="button" onClick={() => execCmd('bold')} title="Bold"><FaBold /></button>
@@ -359,8 +348,7 @@ const SupportMain = () => {
                 />
               </div>
 
-              {/* Footer */}
-              <div className={styles.formFooter}>
+                            <div className={styles.formFooter}>
                 <button className={styles.cancelFormBtn} onClick={resetForm}>
                   Cancel
                 </button>

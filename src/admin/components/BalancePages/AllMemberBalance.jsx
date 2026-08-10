@@ -17,8 +17,7 @@ const AllMemberBalance = () => {
   const [balanceData, setBalanceData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Filters
-  const [fromDate, setFromDate] = useState('');
+    const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [search, setSearch] = useState('');
 
@@ -38,15 +37,12 @@ const AllMemberBalance = () => {
   const fetchBalanceData = async () => {
     setLoading(true);
     try {
-      // Assuming MemberID is mapped to search input or selectedMember based on backend expectation
-      // We will send selectedMember as memberId, and search if any other text
-      const res = await API.userWalletBalance.getAll({
+                  const res = await API.userWalletBalance.getAll({
         pageNumber: 1,
         pageSize: 100,
         fromDate,
         toDate,
-        memberId: selectedMember || search // For now, passing whatever is selected
-      });
+        memberId: selectedMember || search       });
       if (res && Array.isArray(res.data)) setBalanceData(res.data);
       else if (Array.isArray(res)) setBalanceData(res);
       else setBalanceData([]);
@@ -65,8 +61,7 @@ const AllMemberBalance = () => {
 
   return (
     <div className={styles.container}>
-      {/* ── PREMIUM FILTER CARD ── */}
-      <div style={{ 
+            <div style={{ 
         background: '#ffffff',
         borderRadius: '20px',
         boxShadow: '0 8px 24px rgba(23, 86, 170, 0.02), 0 1px 4px rgba(0, 0, 0, 0.01)',
@@ -74,16 +69,14 @@ const AllMemberBalance = () => {
         marginBottom: '20px',
         overflow: 'visible'
       }}>
-        {/* CARD TOP: TITLE */}
-        <div style={{ padding: '12px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ padding: '12px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', letterSpacing: '0.2px' }}>All Member Balance</h2>
           <div style={{ background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', padding: '6px 15px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
             <FaWallet /> Balance Tracker
           </div>
         </div>
 
-        {/* CARD BOTTOM: FILTERS */}
-        <div style={{ padding: '20px', background: '#FAFBFC' }}>
+                <div style={{ padding: '20px', background: '#FAFBFC' }}>
           <form onSubmit={handleSearch}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
               
@@ -149,8 +142,6 @@ const AllMemberBalance = () => {
                 />
               </div>
               
-
-
               <div>
                 <button type="submit" style={{ height: '42px', width: '100%', background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(34, 197, 94, 0.3)'; }} onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.2)'; }}>
                    <FiSearch /> Search
@@ -161,8 +152,7 @@ const AllMemberBalance = () => {
         </div>
       </div>
 
-      {/* ── DATA TABLE CARD ── */}
-      <div className={styles.cardFullMobile}>
+            <div className={styles.cardFullMobile}>
         <div className="global-table-toolbar">
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>

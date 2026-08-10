@@ -21,8 +21,7 @@ const RoleChange = () => {
     idChange: false
   });
 
-  // Fetch roles list initially for mapping in detectRole
-  useEffect(() => {
+    useEffect(() => {
     const fetchRoles = async () => {
       try {
         const rolesRes = await API.getRoles();
@@ -38,21 +37,18 @@ const RoleChange = () => {
   const detectRole = (member, rolesList) => {
     if (!member) return { roleName: '', roleId: '' };
     
-    // 1. If we already have a matched role in rolesList via member.roleId
-    if (member.roleId) {
+        if (member.roleId) {
       const found = rolesList.find(r => r.id.toString() === member.roleId.toString());
       if (found) return { roleName: found.name, roleId: found.id };
     }
 
-    // 2. If member has a roleName/role string, let's find it in rolesList
-    const roleStr = member.role || member.roleName;
+        const roleStr = member.role || member.roleName;
     if (roleStr && rolesList.length > 0) {
       const found = rolesList.find(r => r.name.toLowerCase() === roleStr.toLowerCase());
       if (found) return { roleName: found.name, roleId: found.id };
     }
 
-    // 3. Fallback to parsing memberId prefix
-    const mid = (member.memberId || member.id || '').toUpperCase();
+        const mid = (member.memberId || member.id || '').toUpperCase();
     let detectedRoleName = '';
     if (mid.includes('RT')) {
       detectedRoleName = 'Retailer';
@@ -63,8 +59,7 @@ const RoleChange = () => {
     } else if (mid.includes('API')) {
       detectedRoleName = 'API User';
     } else {
-      detectedRoleName = 'Retailer'; // Default fallback
-    }
+      detectedRoleName = 'Retailer';     }
 
     if (rolesList.length > 0) {
       const found = rolesList.find(r => r.name.toLowerCase().replace(/\s+/g, '') === detectedRoleName.toLowerCase().replace(/\s+/g, ''));
@@ -118,8 +113,7 @@ const RoleChange = () => {
     <div className={styles.container} style={{ padding: '20px', maxWidth: '100%', background: '#F4F7FE', minHeight: '100vh' }}>
       
       <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', border: '1px solid #F1F5F9', background: '#fff' }}>
-        {/* HEADER */}
-        <div style={{ padding: '6px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '34px' }}>
+                <div style={{ padding: '6px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '34px' }}>
           <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>Role Change</h3>
           {successMessage && (
             <div style={{ background: '#DCFCE7', color: '#16A34A', padding: '6px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -128,13 +122,11 @@ const RoleChange = () => {
           )}
         </div>
 
-        {/* TOP FORM */}
-        <div style={{ padding: '20px 25px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <div style={{ padding: '20px 25px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px', alignItems: 'flex-end' }}>
             
-            {/* Member ID Autocomplete */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1E293B' }}>Member ID :</label>
               <MemberSearchSelect 
                 value={fetchedMember ? (fetchedMember.memberId || fetchedMember.id) : ""} 
@@ -144,8 +136,7 @@ const RoleChange = () => {
               />
             </div>
 
-            {/* Role Dropdown */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1E293B' }}>Role</label>
               <RoleSelect 
                 value={formData.roleId} 
@@ -155,8 +146,7 @@ const RoleChange = () => {
               />
             </div>
 
-            {/* Package Dropdown */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1E293B' }}>Package</label>
               <PackageSelect 
                 value={formData.packageId}
@@ -166,8 +156,7 @@ const RoleChange = () => {
               />
             </div>
 
-            {/* ID Change Checkbox */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1E293B' }}>ID Change(Yes/No)</label>
               <div style={{ padding: '0 15px', borderRadius: '8px', border: '1px solid #CBD5E1', display: 'flex', alignItems: 'center', height: '42px', width: '100%', boxSizing: 'border-box', background: '#fff' }}>
                 <input 
@@ -179,8 +168,7 @@ const RoleChange = () => {
               </div>
             </div>
 
-            {/* Submit Button */}
-            <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%' }}>
               <button 
                 onClick={handleChangeRole}
                 disabled={isLoading || !fetchedMember || !formData.roleId}
@@ -207,8 +195,7 @@ const RoleChange = () => {
           </div>
         </div>
 
-        {/* TOOLBAR */}
-        <div className="global-table-toolbar" style={{ padding: '15px 25px', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '15px 25px', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#475569', fontWeight: 700 }}>Show</span>
             <select className={styles.selectEntries} style={{ borderRadius: '6px', border: '1px solid #CBD5E1', padding: '4px 8px' }}>
@@ -236,8 +223,7 @@ const RoleChange = () => {
           </div>
         </div>
 
-        {/* TABLE */}
-        <div className={styles.tableWrapper} style={{ borderTop: '1px solid #E2E8F0', borderBottom: '1px solid #E2E8F0' }}>
+                <div className={styles.tableWrapper} style={{ borderTop: '1px solid #E2E8F0', borderBottom: '1px solid #E2E8F0' }}>
           <table className={styles.table} style={{ width: '100%', minWidth: '800px', tableLayout: 'fixed', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -276,8 +262,7 @@ const RoleChange = () => {
           </table>
         </div>
 
-        {/* PAGINATION */}
-        <div className="global-pagination" style={{ padding: '15px 25px', borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                <div className="global-pagination" style={{ padding: '15px 25px', borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
           <div style={{ fontSize: '0.85rem', color: '#475569', fontWeight: 600 }}>
             Showing {fetchedMember ? '1 to 1 of 1' : '0 to 0 of 0'} entries
           </div>

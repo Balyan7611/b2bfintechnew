@@ -14,11 +14,7 @@ const MyServicesModal = ({ onClose }) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Real service catalog + this member's own assignments, used to decide
-  // which tiles above are unlocked (assigned) vs locked (need to be
-  // requested from the admin first).
-  const [serviceCatalog, setServiceCatalog] = useState([]); // [{id, name}]
-  const [assignedServiceIds, setAssignedServiceIds] = useState(new Set());
+        const [serviceCatalog, setServiceCatalog] = useState([]);   const [assignedServiceIds, setAssignedServiceIds] = useState(new Set());
   const [requestedServiceIds, setRequestedServiceIds] = useState(new Set());
   const [requestingId, setRequestingId] = useState(null);
   const [toast, setToast] = useState('');
@@ -62,19 +58,14 @@ const MyServicesModal = ({ onClose }) => {
     loadAccess();
   }, []);
 
-  // Matches a tile's display name against the real Service master list so we
-  // know its serviceId (needed to check/request access). Not every tile here
-  // has a real backend counterpart yet (some are placeholder '#' links) -
-  // those just behave as before (always clickable).
-  const matchService = (name) => {
+          const matchService = (name) => {
     const n = name.toLowerCase().replace(/\s+/g, '');
     return serviceCatalog.find(s => (s.name || '').toLowerCase().replace(/\s+/g, '').includes(n) || n.includes((s.name || '').toLowerCase().replace(/\s+/g, '')));
   };
 
   const getTileStatus = (name) => {
     const svc = matchService(name);
-    if (!svc) return { locked: false }; // no backend match -> treat as always available
-    const id = svc.id?.toString();
+    if (!svc) return { locked: false };     const id = svc.id?.toString();
     if (assignedServiceIds.has(id)) return { locked: false, serviceId: svc.id };
     if (requestedServiceIds.has(id)) return { locked: true, requested: true, serviceId: svc.id };
     return { locked: true, requested: false, serviceId: svc.id };
@@ -200,8 +191,7 @@ const MyServicesModal = ({ onClose }) => {
                     className={styles.bbpsItem}
                     style={status.locked ? { position: 'relative', opacity: 0.85 } : undefined}
                     onClick={() => {
-                      if (status.locked) return; // locked tiles only act via the Request button
-                      navigate(service.path);
+                      if (status.locked) return;                       navigate(service.path);
                       handleClose();
                     }}
                   >

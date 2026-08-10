@@ -23,8 +23,7 @@ const AEPSWalletReport = () => {
   const { list, filters, searchQuery, rowsPerPage, currentPage } =
     useSelector(state => state.report.aepsWalletReport);
 
-  // ── Member dropdown ──
-  useEffect(() => {
+    useEffect(() => {
     API.member.getAll({ pageNumber: 1, pageSize: 5000 })
       .then(res => {
         const raw   = res?.data?.items || res?.data?.data || res?.data || (Array.isArray(res) ? res : []);
@@ -41,8 +40,7 @@ const AEPSWalletReport = () => {
       .catch(err => console.warn('[AdminAEPSWallet] member list failed', err));
   }, []);
 
-  // ── Fetch AEPS wallet ledger ──
-  const loadHistory = useCallback(async (f = filters) => {
+    const loadHistory = useCallback(async (f = filters) => {
     setIsLoading(true);
     setApiError('');
     try {
@@ -82,11 +80,9 @@ const AEPSWalletReport = () => {
     } finally {
       setIsLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, filters]);
+    }, [dispatch, filters]);
 
-  useEffect(() => { loadHistory(); }, []); // eslint-disable-line
-
+  useEffect(() => { loadHistory(); }, []); 
   const lower = v => String(v ?? '').toLowerCase();
   const filteredList = list.filter(item =>
     lower(item.name).includes(lower(searchQuery)) ||

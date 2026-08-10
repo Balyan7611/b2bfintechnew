@@ -91,8 +91,7 @@ const StaffList = () => {
           </button>
         </div>
 
-        {/* Export & Search Controls */}
-        <div className={styles.directoryHeader} style={{ marginBottom: '24px', background: '#F8FAFF', padding: '16px', borderRadius: '14px', border: '1px solid #EEF3FC' }}>
+                <div className={styles.directoryHeader} style={{ marginBottom: '24px', background: '#F8FAFF', padding: '16px', borderRadius: '14px', border: '1px solid #EEF3FC' }}>
           <div className={styles.rowsSelector}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.inputControl} style={{ width: '80px', padding: '6px 10px', paddingLeft: '10px' }}>
@@ -116,8 +115,7 @@ const StaffList = () => {
           </div>
         </div>
 
-        {/* Modern Table */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ minWidth: '1200px' }}>
             <thead>
               <tr>
@@ -178,8 +176,7 @@ const StaffList = () => {
           </table>
         </div>
 
-        {/* Custom Pagination */}
-        <div className={styles.directoryHeader} style={{ marginTop: '24px', borderTop: '1px solid #F1F5F9', paddingTop: '20px' }}>
+                <div className={styles.directoryHeader} style={{ marginTop: '24px', borderTop: '1px solid #F1F5F9', paddingTop: '20px' }}>
           <span className={styles.directorySubtitle}>Showing 1 to {filteredStaff.length} of {staffList.length} staff members</span>
           <div style={{ display: 'flex', gap: '10px' }}>
             <button className={styles.pageBtn}><FaChevronLeft /></button>
@@ -189,8 +186,7 @@ const StaffList = () => {
         </div>
       </div>
 
-      {/* ── STATUS CHANGE MODAL ── */}
-      {statusModal.open && (
+            {statusModal.open && (
         <div className={styles.modalOverlay} onClick={() => setStatusModal({ open: false, staff: null })}>
           <div className={styles.modalContainer} style={{ maxWidth: '380px', padding: '24px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: statusModal.staff.active ? '#FFF5F5' : '#F0FDF4', color: statusModal.staff.active ? '#E53E3E' : '#27AE60', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', margin: '0 auto 16px' }}>
@@ -206,8 +202,7 @@ const StaffList = () => {
         </div>
       )}
 
-      {/* Premium Slide Drawer */}
-      {isDrawerOpen && (
+            {isDrawerOpen && (
         <div className={styles.drawerOverlay} onClick={() => dispatch(toggleDrawer(false))}>
           <div className={styles.drawer} onClick={(e) => e.stopPropagation()} style={{ width: '450px' }}>
             <div className={styles.drawerHeader} style={{ background: 'linear-gradient(135deg, #F8FAFF 0%, #fff 100%)', padding: '16px 24px', borderBottom: '1px solid #EEF3FC' }}>
@@ -360,8 +355,7 @@ const StaffList = () => {
         </div>
       )}
 
-      {/* DELETE CONFIRMATION MODAL */}
-      {showDeleteModal && (
+            {showDeleteModal && (
         <div className={styles.modalOverlay} onClick={cancelDelete}>
           <div className={styles.deleteModal} style={{ background: '#fff', borderRadius: '20px', padding: '24px', textAlign: 'center', maxWidth: '320px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }} onClick={(e) => e.stopPropagation()}>
             <div style={{

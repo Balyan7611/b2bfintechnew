@@ -4,6 +4,7 @@ import { GroupHeader, SubHeader, Cells as UplineCells } from '../../../shared/co
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import StatsGrid from '../../../shared/components/common/StatsGrid';
 import { API } from '../../../api/endpoints';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { normalizeTxnResponse } from '../../../services/transaction.service';
 import {
     FiSearch, FiChevronLeft, FiChevronRight, FiCheckCircle,
@@ -16,20 +17,16 @@ import ConfirmModal from '../../../shared/components/common/ConfirmModal';
 import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
 import LogModal from '../../../shared/components/common/LogModal';
 
-// Adjust this constant to match your UPI Transfer service ID
-const UPI_SERVICE_ID = '12'; // UPI Transfer sectionTypeId // Change as per your backend
-
+const UPI_SERVICE_ID = '12'; 
 const UPITransferHistory = () => {
-    // ─── State ──────────────────────────────────────────────
-    const [transactions, setTransactions] = useState([]);
+        const [transactions, setTransactions] = useState([]);
     const [breakdownTxn, setBreakdownTxn] = useState(null);
     const [totalRecords, setTotalRecords] = useState(0);
     const [pageNumber, setPageNumber] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [loading, setLoading] = useState(false);
 
-    // Filters
-    const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(today);
     const [toDate, setToDate] = useState(today);
     const [selectedService, setSelectedService] = useState('');
@@ -39,21 +36,19 @@ const UPITransferHistory = () => {
     const [selectedProvider, setSelectedProvider] = useState('');
     const [searchKeyword, setSearchKeyword] = useState('');
 
-    // Dropdown lists
-    const [serviceList, setServiceList] = useState([]);
+        const [serviceList, setServiceList] = useState([]);
     const [operatorList, setOperatorList] = useState([]);
     const [memberList, setMemberList] = useState([]);
+    const [apiList, setApiList] = useState([]);
 
-    // UI states
-    const [showStats, setShowStats] = useState(false);
+        const [showStats, setShowStats] = useState(false);
     const [activeReceipt, setActiveReceipt] = useState(null);
     const [focusedField, setFocusedField] = useState(null);
     const [confirmData, setConfirmData] = useState({ show: false, action: null, txn: null });
     const [logModalData, setLogModalData] = useState({ show: false, txn: null });
     const { popup, showPopup, closePopup } = usePopup();
 
-    // ─── Stats Computation ──────────────────────────────────
-    const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
+        const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
     const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
     const failedCount = transactions.filter(t => t.status?.toLowerCase() === 'failed').length;
 
@@ -85,8 +80,7 @@ const UPITransferHistory = () => {
         netPayable,
     };
 
-    // ─── API Calls ──────────────────────────────────────────
-    const fetchTransactions = async () => {
+        const fetchTransactions = async () => {
         setLoading(true);
         try {
             const res = await API.transaction.getAll({
@@ -94,13 +88,12 @@ const UPITransferHistory = () => {
                 pageSize,
                 fromDate,
                 toDate,
-                sectionType: selectedService || UPI_SERVICE_ID, // sectionType 12 = UPI Transfer // fallback to fixed if not selected
-                operatorId: selectedOperator,
+                sectionType: selectedService || UPI_SERVICE_ID,                 operatorId: selectedOperator,
                 memberId: selectedMember,
                 status: selectedStatus,
                 search: searchKeyword,
-                // providerId: selectedProvider, // if needed
-            });
+                apiId: selectedProvider,
+                            });
 
                   const { items: _txns, totalItems: _total, totalSuccess: _succ, totalPending: _pend, totalFailed: _fail } = normalizeTxnResponse(res);
       setTransactions(_txns);
@@ -114,13 +107,11 @@ const UPITransferHistory = () => {
         }
     };
 
-    // ─── Effects ────────────────────────────────────────────
-    useEffect(() => {
+        useEffect(() => {
         fetchTransactions();
     }, [pageNumber, pageSize, selectedStatus, selectedMember, selectedService, selectedOperator, fromDate, toDate, searchKeyword]);
 
-    // Fetch dropdowns
-    useEffect(() => {
+        useEffect(() => {
         const fetchServices = async () => {
             try {
                 const res = await API.service.getAll();
@@ -129,31 +120,53 @@ const UPITransferHistory = () => {
                 else setServiceList([]);
             } catch (err) { console.error("Error fetching services:", err); }
         };
-        const fetchOperators = async () => {
-            try {
-                const res = await API.operator.getAll();
-                if (res?.data?.items) setOperatorList(res.data.items);
-                else if (res?.data && Array.isArray(res.data)) setOperatorList(res.data);
-                else if (Array.isArray(res)) setOperatorList(res);
-                else setOperatorList([]);
-            } catch (err) { console.error("Error fetching operators:", err); }
-        };
         const fetchMembers = async () => {
             try {
-                const res = await API.member.search('');
-                if (res && Array.isArray(res.data)) setMemberList(res.data);
-                else if (Array.isArray(res)) setMemberList(res);
-                else setMemberList([]);
+                const res = await API.member.getAll({ pageNumber: 1, pageSize: 5000 });
+                const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+                setMemberList(Array.isArray(list) ? list : []);
             } catch (err) { console.error("Error fetching members:", err); }
         };
 
         fetchServices();
-        fetchOperators();
         fetchMembers();
     }, []);
 
-    // ─── Handlers ────────────────────────────────────────────
-    const handleSearchSubmit = (e) => {
+    useEffect(() => {
+        const fetchOperators = async () => {
+            try {
+                const res = await API.operator.getAll();
+                let allOps = [];
+                if (res?.data?.items) allOps = res.data.items;
+                else if (res?.data && Array.isArray(res.data)) allOps = res.data;
+                else if (Array.isArray(res)) allOps = res;
+
+                if (selectedService) {
+                    allOps = allOps.filter(op => String(op.serviceId) === String(selectedService));
+                }
+                setOperatorList(allOps);
+            } catch (err) {
+                console.error("Failed to fetch operators:", err);
+            }
+        };
+        fetchOperators();
+        setSelectedOperator('');
+    }, [selectedService]);
+
+    useEffect(() => {
+        const fetchApis = async () => {
+            try {
+                const res = await API.masterApi.getAll();
+                const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+                setApiList(Array.isArray(list) ? list : []);
+            } catch (err) {
+                console.error("Failed to fetch APIs:", err);
+            }
+        };
+        fetchApis();
+    }, []);
+
+        const handleSearchSubmit = (e) => {
         e.preventDefault();
         setPageNumber(1);
         fetchTransactions();
@@ -188,11 +201,9 @@ const UPITransferHistory = () => {
         }, 300);
     };
 
-    // ─── Render ──────────────────────────────────────────────
-    return (
+        return (
         <div className={styles.container} style={{ padding: '12px', maxWidth: '100%' }}>
-            {/* ── Dynamic Keyframes ── */}
-            <style>{`
+                        <style>{`
                 @keyframes successGlow {
                     0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4); }
                     70% { box-shadow: 0 0 0 8px rgba(39, 174, 96, 0); }
@@ -210,8 +221,7 @@ const UPITransferHistory = () => {
                 }
             `}</style>
 
-            {/* ── FILTER CARD ── */}
-            <div style={{
+                        <div style={{
                 background: '#ffffff',
                 borderRadius: '24px',
                 boxShadow: '0 10px 30px rgba(23, 86, 170, 0.04), 0 1px 8px rgba(0, 0, 0, 0.02)',
@@ -253,18 +263,15 @@ const UPITransferHistory = () => {
 
                 <form onSubmit={handleSearchSubmit}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
-                        {/* From Date */}
-                        <div className={styles.formGroup}>
+                                                <div className={styles.formGroup}>
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>From Date</label>
                             <input type="date" className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'fromDate' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'fromDate' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} onFocus={() => setFocusedField('fromDate')} onBlur={() => setFocusedField(null)} />
                         </div>
-                        {/* To Date */}
-                        <div className={styles.formGroup}>
+                                                <div className={styles.formGroup}>
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>To Date</label>
                             <input type="date" className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'toDate' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'toDate' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={toDate} onChange={(e) => setToDate(e.target.value)} onFocus={() => setFocusedField('toDate')} onBlur={() => setFocusedField(null)} />
                         </div>
-                        {/* Service */}
-                        <div className={styles.formGroup}>
+                                                <div className={styles.formGroup}>
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Service</label>
                             <select className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'service' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'service' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={selectedService} onChange={(e) => setSelectedService(e.target.value)} onFocus={() => setFocusedField('service')} onBlur={() => setFocusedField(null)}>
                                 <option value="">All Services</option>
@@ -273,8 +280,7 @@ const UPITransferHistory = () => {
                                 ))}
                             </select>
                         </div>
-                        {/* Operator */}
-                        <div className={styles.formGroup}>
+                                                <div className={styles.formGroup}>
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Operator</label>
                             <select className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'operator' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'operator' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={selectedOperator} onChange={(e) => setSelectedOperator(e.target.value)} onFocus={() => setFocusedField('operator')} onBlur={() => setFocusedField(null)}>
                                 <option value="">All Operators</option>
@@ -285,28 +291,34 @@ const UPITransferHistory = () => {
                                 ))}
                             </select>
                         </div>
-                        {/* Member */}
-                        <div className={styles.formGroup}>
+                                                <div className={styles.formGroup}>
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Select Member</label>
-                            <select className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'member' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'member' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} onFocus={() => setFocusedField('member')} onBlur={() => setFocusedField(null)}>
-                                <option value="">All Members</option>
-                                {memberList.map((m) => (
-                                    <option key={m.id || m.memberId} value={m.id || m.memberId}>
-                                        {m.name || m.memberId} ({m.mobile})
+                            <SearchableSelect
+                                options={[
+                                    { value: '', label: 'All Members' },
+                                    ...memberList.map(m => {
+                                        const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
+                                        const loginId = m.memberID || m.memberid || m.loginID || m.loginId || String(m.id || m.msrno || '');
+                                        return { value: String(m.id || m.uniqueID || m.msrno || ''), label: name ? `${name} (${loginId})` : loginId };
+                                    })
+                                ]}
+                                value={selectedMember}
+                                onChange={val => setSelectedMember(val || '')}
+                                placeholder="All Members"
+                            />
+                        </div>
+                                                <div className={styles.formGroup}>
+                            <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>API Provider</label>
+                            <select className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'provider' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'provider' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)} onFocus={() => setFocusedField('provider')} onBlur={() => setFocusedField(null)}>
+                                <option value="">All Providers</option>
+                                {Array.isArray(apiList) && apiList.map((api) => (
+                                    <option key={api.id || api.apiId} value={api.id || api.apiId}>
+                                        {api.apiname || api.apiName || api.name || `API #${api.id}`}
                                     </option>
                                 ))}
                             </select>
                         </div>
-                        {/* API Provider */}
-                        <div className={styles.formGroup}>
-                            <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>API Provider</label>
-                            <select className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'provider' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'provider' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)} onFocus={() => setFocusedField('provider')} onBlur={() => setFocusedField(null)}>
-                                <option value="">All Providers</option>
-                                {/* You can populate this from an API if needed */}
-                            </select>
-                        </div>
-                        {/* Status */}
-                        <div className={styles.formGroup}>
+                                                <div className={styles.formGroup}>
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Transaction Status</label>
                             <select className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'status' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'status' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)} onFocus={() => setFocusedField('status')} onBlur={() => setFocusedField(null)}>
                                 <option value="">All Status</option>
@@ -315,8 +327,7 @@ const UPITransferHistory = () => {
                                 <option value="Failed">Failed</option>
                             </select>
                         </div>
-                        {/* Search */}
-                        <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
+                                                <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Search Anything (UPI ID, UTR, Order ID)</label>
                             <div style={{ position: 'relative', width: '100%' }}>
                                 <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}>
@@ -325,8 +336,7 @@ const UPITransferHistory = () => {
                                 <input type="text" placeholder="Enter keyword..." className={styles.inputControl} value={searchKeyword} onChange={(e) => setSearchKeyword(e.target.value)} style={{ paddingLeft: '32px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'search' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'search' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} onFocus={() => setFocusedField('search')} onBlur={() => setFocusedField(null)} />
                             </div>
                         </div>
-                        {/* Search Button */}
-                        <div className={styles.formGroup}>
+                                                <div className={styles.formGroup}>
                             <button type="submit" style={{ background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', color: '#ffffff', border: 'none', borderRadius: '10px', height: '38px', fontSize: '0.825rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(34, 197, 94, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)', width: '100%', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                 <FiSearch size={15} /> Search
                             </button>
@@ -335,8 +345,7 @@ const UPITransferHistory = () => {
                 </form>
             </div>
 
-            {/* ── STATS GRID ── */}
-            <StatsGrid stats={stats} showStats={showStats} />
+                        <StatsGrid stats={stats} showStats={showStats} />
 
             {/* ── DATA TABLE ── */}
             <div className={styles.cardFullMobile} style={{ padding: 0, marginBottom: '100px' }}>
@@ -471,8 +480,7 @@ const UPITransferHistory = () => {
                 </div>
             </div>
 
-            {/* ── Modals ── */}
-            {activeReceipt && (
+                        {activeReceipt && (
                 <TransactionReceipt
                     data={activeReceipt}
                     onClose={() => setActiveReceipt(null)}

@@ -27,8 +27,7 @@ const TDSReport = () => {
 
   return (
     <div className={styles.container}>
-      {/* ── PREMIUM FILTER CARD ── */}
-      <div style={{ 
+            <div style={{ 
         background: '#ffffff',
         borderRadius: '20px',
         boxShadow: '0 8px 24px rgba(23, 86, 170, 0.02), 0 1px 4px rgba(0, 0, 0, 0.01)',
@@ -36,16 +35,14 @@ const TDSReport = () => {
         marginBottom: '20px',
         overflow: 'hidden'
       }}>
-        {/* CARD TOP: TITLE */}
-        <div style={{ padding: '12px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ padding: '12px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', letterSpacing: '0.2px' }}>TDS Report</h2>
           <div style={{ background: 'rgba(56, 161, 105, 0.1)', color: '#38A169', padding: '6px 15px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
             <FiPercent /> Tax Compliance Audit
           </div>
         </div>
 
-        {/* CARD BOTTOM: FILTERS */}
-        <div style={{ padding: '20px', background: '#FAFBFC' }}>
+                <div style={{ padding: '20px', background: '#FAFBFC' }}>
           <form onSubmit={(e) => e.preventDefault()}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', alignItems: 'flex-end', maxWidth: '800px' }}>
               
@@ -84,8 +81,7 @@ const TDSReport = () => {
         </div>
       </div>
 
-      {/* ── DATA TABLE CARD ── */}
-      <div className={styles.cardFullMobile}>
+            <div className={styles.cardFullMobile}>
         <div className="global-table-toolbar">
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>

@@ -1,4 +1,3 @@
-// src/models/operatorModel.js
 export const OperatorResponseModel = (res) => {
     if (!res || !res.status) return [];
     const items = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);

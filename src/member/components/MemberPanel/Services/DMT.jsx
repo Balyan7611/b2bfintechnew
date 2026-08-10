@@ -9,7 +9,6 @@ import TransactionReceipt from './TransactionReceipt';
 import { SITE_CONFIG } from '../../../../config/siteConfig';
 import { useFetchServices } from '../../../../hooks/useFetchServices';
 
-// ---------- Constants ----------
 const DEFAULT_BENEFICIARIES = [];
 
 const CONTACTS = [];
@@ -28,7 +27,6 @@ const POPULAR_BANKS = [
 
 const MOCK_TRANSACTIONS = [];
 
-// ---------- Helpers ----------
 const getImagePath = (path) => {
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   const pathname = window.location.pathname;
@@ -67,9 +65,7 @@ const formatAadhaar = (val) => {
   return parts ? parts.join(' ') : raw;
 };
 
-// ---------- Component ----------
 const DMT = () => {
-  // ---------- State ----------
   const [view, setView] = useState('selection');
   const [selectedMobile, setSelectedMobile] = useState('');
   const [selectedService, setSelectedService] = useState('');
@@ -99,20 +95,17 @@ const DMT = () => {
   const [regOtpSent, setRegOtpSent] = useState(false);
   const [regOtpVerified, setRegOtpVerified] = useState(false);
 
-  // Transaction chunking states
   const [transferChunks, setTransferChunks] = useState([]);
   const [activeChunkId, setActiveChunkId] = useState(null);
   const [chunkOtp, setChunkOtp] = useState('');
   const [chunkLoading, setChunkLoading] = useState(false);
   const [chunkReceiptData, setChunkReceiptData] = useState(null);
 
-  // ---------- Effects ----------
   useEffect(() => {
     const saved = localStorage.getItem('dmt_beneficiaries');
     setBeneficiaries(saved ? JSON.parse(saved) : DEFAULT_BENEFICIARIES);
   }, []);
 
-  // Cleanup timeouts on unmount
   useEffect(() => {
     const timeouts = [];
     const addTimeout = (fn, delay) => {
@@ -120,13 +113,11 @@ const DMT = () => {
       timeouts.push(id);
       return id;
     };
-    // Expose to handlers via a ref or just cleanup all on unmount
     return () => {
       timeouts.forEach(clearTimeout);
     };
   }, []);
 
-  // ---------- Helpers ----------
   const saveBeneficiaries = useCallback((list) => {
     setBeneficiaries(list);
     localStorage.setItem('dmt_beneficiaries', JSON.stringify(list));
@@ -135,11 +126,6 @@ const DMT = () => {
   const showToast = useCallback((msg, type = 'success') => {
     setToast({ msg, type });
     const id = setTimeout(() => setToast(null), 3000);
-    // We'll just let the timeout run, but it will be cleaned up on unmount if we store it.
-    // However, we can't easily store all timeouts here; we'll rely on unmount cleanup.
-    // To be safe, we can store the timeout ID in a ref, but for simplicity we'll accept a small risk.
-    // Better: use a ref for timeouts.
-    // We'll implement with a ref.
   }, []);
 
   const closeModal = useCallback(() => {
@@ -159,12 +145,10 @@ const DMT = () => {
     setNewBen({ name: '', bank: '', accountNo: '', ifsc: '', mobile: '' });
   }, []);
 
-  // ---------- Event Handlers (with useCallback) ----------
   const handleFetchCustomer = useCallback(() => {
     if (!selectedMobile) return;
     setIsLoading(true);
     const customer = CONTACTS.find(c => c.mobile === selectedMobile);
-    // 🟢 FIX: handle not found
     if (!customer) {
       setIsLoading(false);
       showToast('Customer not found', 'error');
@@ -265,17 +249,14 @@ const DMT = () => {
       showToast('Chunk processed successfully!', 'success');
       setShowModal(null);
       setActiveChunkId(null);
-      // Check if all chunks are completed
-      if (updatedChunks.every(c => c.status === 'completed')) {
-        // Set the result and show receipt
-        handleFinalSubmit(updatedChunks);
+            if (updatedChunks.every(c => c.status === 'completed')) {
+                handleFinalSubmit(updatedChunks);
       }
     }, 1500);
   }, [chunkOtp, activeChunkId, transferChunks, showToast]);
 
   const handleFinalSubmit = useCallback((completedChunks) => {
-    // If called without args, just show modal if result exists
-    if (!completedChunks) {
+        if (!completedChunks) {
       if (txnResult) {
         setShowModal('finalConfirm');
       }
@@ -361,13 +342,11 @@ const DMT = () => {
     closeModal();
   }, [beneficiaries, deleteTargetId, saveBeneficiaries, showToast, closeModal]);
 
-  // ---------- Print receipt (FIXED with inline styles) ----------
-  const handlePrintReceipt = useCallback((format = 'A4') => {
+    const handlePrintReceipt = useCallback((format = 'A4') => {
     if (!txnResult) return;
     const printWindow = window.open('', '_blank', 'width=800,height=600');
 
-    // Define page and container styles based on format
-    let pageCss = '';
+        let pageCss = '';
     let containerCss = '';
     if (format === 'A4') {
       pageCss = '@page { size: A4 portrait; margin: 10mm; }';
@@ -383,8 +362,7 @@ const DMT = () => {
       containerCss = 'width: 54mm; margin: 0 auto; padding: 5px; box-shadow: none; border: none; border-radius: 0; font-size: 0.8em;';
     }
 
-    // Build the full HTML with inline styles
-    const printHtml = `
+        const printHtml = `
       <html>
         <head>
           <title>Receipt_${format}</title>
@@ -546,15 +524,13 @@ const DMT = () => {
     }, 500);
   }, [txnResult, showToast]);
 
-  // ---------- Memoized Computations ----------
-  const filteredBeneficiaries = useMemo(() => {
+    const filteredBeneficiaries = useMemo(() => {
     return beneficiaries.filter(b =>
       b.accountNo.includes(searchTerm) || b.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [beneficiaries, searchTerm]);
 
-  // Memoize amount-to-words for each beneficiary that has an amount
-  const amountWords = useMemo(() => {
+    const amountWords = useMemo(() => {
     const words = {};
     for (const [id, amount] of Object.entries(amounts)) {
       if (amount && parseInt(amount) > 0) {
@@ -564,12 +540,10 @@ const DMT = () => {
     return words;
   }, [amounts]);
 
-  // ---------- Modal Rendering ----------
-  const renderModal = useCallback(() => {
+    const renderModal = useCallback(() => {
     if (!showModal) return null;
 
-    // Receipt modal - full screen
-    if (showModal === 'finalConfirm' && txnResult) {
+        if (showModal === 'finalConfirm' && txnResult) {
       return <TransactionReceipt data={txnResult} onClose={closeModal} />;
     }
 
@@ -674,8 +648,7 @@ const DMT = () => {
     );
   }, [showModal, txnResult, closeModal, chunkOtp, chunkLoading, handleChunkOtpSubmit, confirmDeletion]);
 
-  // ---------- Render ----------
-  return (
+    return (
     <div className={styles.container}>
       {toast && (
         <div className="global-toast" style={{
@@ -1107,8 +1080,7 @@ const DMT = () => {
       ) : view === 'transferConfirm' ? (
         <div className={styles.verificationContainer} style={{ padding: '0px 2px' }}>
           <div className={styles.confirmFullCard}>
-            {/* Header */}
-            <div className={styles.confirmHeader}>
+                        <div className={styles.confirmHeader}>
               <div className={styles.headerTopLeft}>
                 <button onClick={() => setView('beneficiary')} className={styles.confirmBackBtn} title="Back">
                   <FaArrowLeft style={{ fontSize: '0.85rem' }} />
@@ -1138,8 +1110,7 @@ const DMT = () => {
               </div>
             </div>
 
-            {/* Beneficiary summary */}
-            <div className={styles.beneSummaryRow}>
+                        <div className={styles.beneSummaryRow}>
               <div className={styles.summaryCol}><label>Beneficiary Name</label><span>{transferData?.name}</span></div>
               <div className={styles.summaryCol}><label>Account Number</label><span style={{ color: '#E11D48', fontWeight: '800' }}>{transferData?.accountNo}</span></div>
               <div className={styles.summaryCol}><label>Bank</label><span>{transferData?.bank}</span></div>
@@ -1148,8 +1119,7 @@ const DMT = () => {
               <div className={styles.summaryCol}><label>Transfer Type</label><span className={styles.modeBadge}>{transferData?.mode}</span></div>
             </div>
 
-            {/* Confirm grid */}
-            <div className={styles.confirmGrid}>
+                        <div className={styles.confirmGrid}>
               <div className={styles.gridLeft}>
                 <div className={styles.sectionHeader}>Number of Transaction</div>
                 <div className={styles.tableResponsiveWrap}>
@@ -1333,8 +1303,7 @@ const DMT = () => {
           </div>
         </div>
       ) : (
-        // Selection view
-        <div className={styles.mainLayout}>
+                <div className={styles.mainLayout}>
           <div className={styles.rightPanel}>
             <h1 className={styles.title} style={{ marginTop: '15px', marginBottom: '20px', fontSize: '1.6rem', color: '#1756AA' }}>DMT Service</h1>
             <div className={styles.formGroup}>

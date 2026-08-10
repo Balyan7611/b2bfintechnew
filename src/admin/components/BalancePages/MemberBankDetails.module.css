@@ -82,7 +82,6 @@
   background: #fff;
 }
 
-/* ── TABLE CONTROLS ── */
 .topControls {
   display: flex;
   align-items: center;
@@ -141,7 +140,6 @@
 .searchBox:focus-within { border-color: #1756AA; background: #fff; box-shadow: 0 0 0 4px rgba(23, 86, 170, 0.1); }
 .searchInput { border: none; outline: none; font-size: 0.9rem; width: 200px; background: transparent; font-weight: 500; }
 
-/* ── TABLE ── */
 .tableWrapper {
   width: 100%;
   overflow-x: auto;
@@ -175,7 +173,6 @@
   border-bottom: 1px solid #EDF2F7;
 }
 
-/* ── POLISHED ROW STYLES ── */
 .rowEven {
   background: #ffffff;
 }
@@ -199,7 +196,6 @@
   border-bottom: none;
 }
 
-/* Make table rows rounded at corners */
 .table tbody tr:first-child td:first-child {
   border-top-left-radius: 10px;
 }
@@ -213,7 +209,6 @@
   border-bottom-right-radius: 10px;
 }
 
-/* ── CELL STYLES ── */
 .fwBold {
   font-weight: 700;
   color: #0D1B3E;
@@ -253,7 +248,6 @@
   transition: all 0.2s;
 }
 
-/* ── BADGES ── */
 .badgeActive {
   background: rgba(39, 174, 96, 0.12);
   color: #27AE60;
@@ -280,7 +274,6 @@
   border: 1px solid rgba(148, 163, 184, 0.15);
 }
 
-/* ── ACTION BUTTONS ── */
 .actionRow {
   display: flex;
   gap: 10px;
@@ -343,7 +336,6 @@
 
 .toggleBtn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-/* ── MODAL ── */
 .modalOverlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(13, 27, 62, 0.5); backdrop-filter: blur(4px);
@@ -397,7 +389,6 @@
 .cancelBtn { background: #EDF2F7; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; color: #4E6080; font-weight: 600; }
 .saveBtn { background: #1756AA; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; color: #fff; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 
-/* ── PAGINATION ── */
 .paginationRow { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 16px; }
 .pageInfo { font-size: 0.85rem; color: #4E6080; font-weight: 500; }
 .pagination { display: flex; gap: 6px; }
@@ -415,7 +406,6 @@
   .paginationRow { flex-direction: column; text-align: center; }
 }
 
-/* ── HEADER DROPDOWN ── */
 .dropdownWrapper {
   position: relative;
   min-width: 180px;
@@ -553,7 +543,6 @@
   color: #718096;
 }
 
-/* Delete Confirmation Modal */
 .deleteModal {
   background: #fff;
   border-radius: 28px;

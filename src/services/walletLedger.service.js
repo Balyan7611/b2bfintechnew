@@ -6,8 +6,7 @@ import {
 } from '../models/walletLedgerModel';
 
 export const WalletLedgerService = {
-    // Raw paginated fetch. Returns { items, totalItems }.
-    getAll: async ({
+        getAll: async ({
         memberId,
         walletTypeId = WALLET_TYPE_ID.MAIN,
         pageNumber = 1,
@@ -34,8 +33,7 @@ export const WalletLedgerService = {
         };
     },
 
-    // Convenience wrappers so screens don't have to remember the type ids.
-    getMainLedger: async (params = {}) =>
+        getMainLedger: async (params = {}) =>
         WalletLedgerService.getAll({ ...params, walletTypeId: WALLET_TYPE_ID.MAIN }),
 
     getAepsLedger: async (params = {}) =>

@@ -1,7 +1,6 @@
 .tickerContainer {
   width: 100%;
-  background: #ffffff; /* Changed to white */
-  padding: 30px 0;
+  background: #ffffff;   padding: 30px 0;
   overflow: hidden;
   position: relative;
   display: flex;
@@ -14,7 +13,6 @@
   border-bottom: 1px solid #1e293b;
 }
 
-/* Add a subtle fading mask on left and right for seamless loop look */
 .tickerContainer::before,
 .tickerContainer::after {
   content: '';
@@ -108,8 +106,7 @@
 
 @keyframes scrollTicker {
   0% { transform: translateX(0); }
-  /* Since we mapped the array 3 times (3 blocks), we can safely translate -33.33% to seamlessly loop 1 block */
-  100% { transform: translateX(calc(-33.333% - 8px)); }
+    100% { transform: translateX(calc(-33.333% - 8px)); }
 }
 
 @media (max-width: 768px) {

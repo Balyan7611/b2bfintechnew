@@ -17,8 +17,7 @@ const Transfer = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [amount, setAmount] = useState('');
@@ -55,8 +54,7 @@ const Transfer = () => {
     }
   };
 
-  // Map member details
-  const mappedTransferList = transferList.map(item => {
+    const mappedTransferList = transferList.map(item => {
     const rMsrno = parseInt(item.msrno) || 0;
     const member = memberList.find(m => (parseInt(m.msrno) || 0) === rMsrno || (parseInt(m.id) || 0) === rMsrno) || {};
     return {
@@ -67,15 +65,13 @@ const Transfer = () => {
     };
   });
 
-  // Filter Data
-  const filteredData = (mappedTransferList || []).filter(item => 
+    const filteredData = (mappedTransferList || []).filter(item => 
     (item.msrno?.toString() || '').includes(searchQuery) ||
     (item.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (item.mobile || '').includes(searchQuery)
   );
 
-  // Pagination Logic
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const currentData = filteredData.slice(startIndex, startIndex + rowsPerPage);
 
@@ -98,8 +94,7 @@ const Transfer = () => {
     try {
       const payload = {
         msrno: selectedUser.msrno,
-        byMsrno: 1, // Defaulting to 1, usually from auth context
-        amount: parseFloat(amount),
+        byMsrno: 1,         amount: parseFloat(amount),
         transactionType: modalTitle.includes('Revert') ? 'Debit' : 'Credit',
         walletType: modalTitle.includes('AEPS') ? 'Aeps' : 'Main',
         description: description
@@ -107,8 +102,7 @@ const Transfer = () => {
       await API.userWalletBalance.transfer(payload);
       alert('Transfer successful');
       closeModal();
-      fetchData(); // refresh data
-    } catch (e) {
+      fetchData();     } catch (e) {
       console.error(e);
       alert('Transfer failed');
     } finally {
@@ -122,12 +116,10 @@ const Transfer = () => {
 
   return (
     <div className={styles.container}>
-      {/* Main Card */}
-      <div className={styles.card}>
+            <div className={styles.card}>
         <h2 className={styles.pageTitle}>Balance Transfer (Credit / Debit)</h2>
         
-        {/* Top Controls */}
-        <div className={styles.topControls}>
+                <div className={styles.topControls}>
           <div className={styles.rowsSelector}>
             <span>Show</span>
             <select 
@@ -163,8 +155,7 @@ const Transfer = () => {
           </div>
         </div>
 
-        {/* Table Wrapper */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -233,8 +224,7 @@ const Transfer = () => {
           </table>
         </div>
 
-        {/* Pagination */}
-        <div className={styles.paginationRow}>
+                <div className={styles.paginationRow}>
           <div className={styles.pageInfo}>
             Showing {filteredData.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, filteredData.length)} of {filteredData.length} entries
           </div>
@@ -266,8 +256,7 @@ const Transfer = () => {
         </div>
       </div>
 
-      {/* Action Modal */}
-      {isModalOpen && (
+            {isModalOpen && (
         <div className={styles.modalOverlay} onClick={closeModal}>
           <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
@@ -298,4 +287,3 @@ const Transfer = () => {
 };
 
 export default Transfer;
-

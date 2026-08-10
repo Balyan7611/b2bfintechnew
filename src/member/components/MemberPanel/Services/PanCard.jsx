@@ -6,7 +6,6 @@ import {
 } from 'react-icons/fa';
 import styles from './PanCard.module.css';
 
-/* ─── 4 Card Service Definitions ─── */
 const PAN_SERVICES = [
   {
     id: 'new_pan',
@@ -74,17 +73,14 @@ const PAN_SERVICES = [
   },
 ];
 
-/* ─── Realistic PAN Card Component ─── */
 const PanCardVisual = ({ service }) => (
   <div className={styles.panCardImageBg} style={{ backgroundImage: "url('/images/pen_card.png')" }}>
-    {/* Dynamic Name Field */}
-    <div className={styles.pcImageName}>
+        <div className={styles.pcImageName}>
       <span className={styles.pcImgLabel}>Name / नाम</span>
       <span className={styles.pcImgValue}>{service.dummyName}</span>
     </div>
 
-    {/* Dynamic Father's Name Field */}
-    <div className={styles.pcImageFather}>
+        <div className={styles.pcImageFather}>
       <span className={styles.pcImgLabel}>Father's Name / पिता का नाम</span>
       <span className={styles.pcImgValue}>{service.dummyFather}</span>
     </div>
@@ -94,9 +90,6 @@ const PanCardVisual = ({ service }) => (
       <span className={styles.pcImgLabel}>Date of Birth / जन्म तिथि</span>
       <span className={styles.pcImgValue}>{service.dummyDob}</span>
     </div>
-
-
-
 
   </div>
 );
@@ -377,7 +370,6 @@ const PanApplyForm = ({ service, onBack, onSubmit }) => {
   );
 };
 
-/* ─── Main Page ─── */
 const PanCard = () => {
   const [currentView, setCurrentView] = useState('dashboard');
   const [activeServiceId, setActiveServiceId] = useState(null);
@@ -393,8 +385,7 @@ const PanCard = () => {
   const activeService = PAN_SERVICES.find(s => s.id === activeServiceId);
 
   const handleApplyNow = (serviceId) => {
-    // Show agent registration popup ONLY for 'new_pan' service if not registered
-    if (serviceId === 'new_pan' && !isAgentRegistered) {
+        if (serviceId === 'new_pan' && !isAgentRegistered) {
       setShowAgentAlert(true);
       return;
     }
@@ -415,12 +406,9 @@ const PanCard = () => {
         </div>
       )}
 
-
-
       {currentView === 'dashboard' && (
         <div className={styles.mainWhiteCard}>
-          {/* Integrated Card Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #f1f5f9' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #f1f5f9' }}>
             <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '800' }}>
               <FaIdCard color="#e11d48" size="1.4rem" /> PAN Card Services
             </h2>
@@ -434,8 +422,7 @@ const PanCard = () => {
           <div className={styles.panCardsGrid}>
             {PAN_SERVICES.map(service => (
               <div key={service.id} className={styles.panCardItem}>
-                {/* Top Row: Badge, Title & Details */}
-                <div className={styles.cardTopRow}>
+                                <div className={styles.cardTopRow}>
                   <div>
                     <h3 className={styles.cardServiceTitle}>{service.title}</h3>
                     <p className={styles.cardServiceDesc}>{service.desc}</p>
@@ -448,13 +435,11 @@ const PanCard = () => {
                   </span>
                 </div>
 
-                {/* The realistic PAN Card Visual representation */}
-                <div style={{ margin: '8px 0' }}>
+                                <div style={{ margin: '8px 0' }}>
                   <PanCardVisual service={service} />
                 </div>
 
-                {/* Action Button & Fee Information */}
-                <div className={styles.itemFooter}>
+                                <div className={styles.itemFooter}>
                   <span className={styles.feeInfo}>
                     <FaRupeeSign />
                     Govt. Fee:
@@ -473,8 +458,7 @@ const PanCard = () => {
         </div>
       )}
 
-      {/* Apply Form View */}
-      {currentView === 'apply' && activeService && (
+            {currentView === 'apply' && activeService && (
         <PanApplyForm
           service={activeService}
           onBack={() => setCurrentView('dashboard')}

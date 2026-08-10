@@ -12,8 +12,7 @@ const BusinessSummary = () => {
   const dispatch = useDispatch();
   const { list, filters } = useSelector(state => state.report.businessSummary);
 
-  // Load dummy data
-  useEffect(() => {
+    useEffect(() => {
     dispatch(setBusinessList([]));
   }, [dispatch]);
 

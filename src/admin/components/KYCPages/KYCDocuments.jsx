@@ -13,31 +13,26 @@ import styles from '../MemberPages/MemberPages.module.css';
 const KYCDocuments = () => {
   const dispatch = useDispatch();
   
-  // Data State
-  const [documents, setDocuments] = useState([]);
+    const [documents, setDocuments] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Pagination & Filters State
-  const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
   const [sideFilter, setSideFilter] = useState('All');
   
-  // Add Form State
-  const [form, setForm] = useState({
+    const [form, setForm] = useState({
     name: '',
     side: '1',
     isActive: true
   });
 
-  // Modals State
-  const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null });
+    const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null });
   const [editModal, setEditModal] = useState({ isOpen: false, data: null });
 
-  // Fetch Documents
-  const fetchDocuments = async () => {
+    const fetchDocuments = async () => {
     setIsLoading(true);
     try {
       const res = await KycDocumentService.getKycdocumentsMaster({
@@ -61,8 +56,7 @@ const KYCDocuments = () => {
 
   useEffect(() => {
     fetchDocuments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, rowsPerPage]);
+      }, [currentPage, rowsPerPage]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -186,8 +180,7 @@ const KYCDocuments = () => {
     }
   };
 
-  // Client side filtering for search & side format dropdown values
-  const filteredData = documents.filter(item => {
+    const filteredData = documents.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSide = sideFilter === 'All' 
       ? true 
@@ -207,8 +200,7 @@ const KYCDocuments = () => {
 
   return (
     <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
-      {/* ── PREMIUM HEADER & FORM SECTION ── */}
-      <div style={{ 
+            <div style={{ 
         background: '#ffffff',
         borderRadius: '20px',
         boxShadow: '0 8px 24px rgba(23, 86, 170, 0.02), 0 1px 4px rgba(23, 86, 170, 0.04)',
@@ -218,14 +210,12 @@ const KYCDocuments = () => {
         flexDirection: 'column',
         gap: '16px'
       }}>
-        {/* Title area */}
-        <div style={{ paddingBottom: '12px', borderBottom: '1px solid #E2E8F0' }}>
+                <div style={{ paddingBottom: '12px', borderBottom: '1px solid #E2E8F0' }}>
           <h2 style={{ fontSize: '1.2rem', margin: 0, padding: 0, color: '#0D1B3E', fontWeight: 800 }}>KYC Document Master</h2>
           <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748B' }}>Configure identification document requirements</p>
         </div>
 
-        {/* Form Grid Inline */}
-        <form onSubmit={handleAddSubmit} style={{ display: 'flex', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap' }}>
+                <form onSubmit={handleAddSubmit} style={{ display: 'flex', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '200px' }}>
             <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B' }}>Document Name</label>
             <input 
@@ -321,8 +311,7 @@ const KYCDocuments = () => {
         </form>
       </div>
 
-      {/* ── LISTING SECTION ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: '16px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', borderRadius: '20px' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: '16px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', borderRadius: '20px' }}>
         <div className={styles.cardHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 20px', borderBottom: '1px solid #F1F5F9' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <FiActivity style={{ color: '#1756AA' }} />
@@ -330,8 +319,7 @@ const KYCDocuments = () => {
           </div>
         </div>
 
-        {/* CONTROLS */}
-        <div className="global-table-toolbar" style={{ padding: '15px 20px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '15px 20px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select 
@@ -384,8 +372,7 @@ const KYCDocuments = () => {
           </div>
         </div>
 
-        {/* TABLE */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ minWidth: '700px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -451,8 +438,7 @@ const KYCDocuments = () => {
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                        {/* Toggle Switch */}
-                        <div 
+                                                <div 
                           onClick={() => handleToggleStatus(item)}
                           style={{
                             width: '36px',
@@ -504,8 +490,7 @@ const KYCDocuments = () => {
           </table>
         </div>
 
-        {/* FOOTER */}
-        <div className="global-pagination">
+                <div className="global-pagination">
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
             Showing {Math.min((currentPage - 1) * rowsPerPage + 1, totalItems)} to {Math.min(currentPage * rowsPerPage, totalItems)} of {totalItems} entries
           </div>
@@ -517,8 +502,7 @@ const KYCDocuments = () => {
         </div>
       </div>
 
-      {/* ── CUSTOM EDIT MODAL ── */}
-      {editModal.isOpen && editModal.data && (
+            {editModal.isOpen && editModal.data && (
         <div className={styles.modalOverlay} style={{ 
           position: 'fixed', 
           top: 0, 
@@ -639,8 +623,7 @@ const KYCDocuments = () => {
         </div>
       )}
 
-      {/* ── CUSTOM DELETE MODAL ── */}
-      {deleteModal.isOpen && (
+            {deleteModal.isOpen && (
         <div className={styles.modalOverlay} style={{ 
           position: 'fixed', 
           top: 0, 

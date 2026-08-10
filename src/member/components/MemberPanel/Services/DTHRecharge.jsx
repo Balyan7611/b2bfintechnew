@@ -27,8 +27,7 @@ const DTHRecharge = () => {
       </div>
       <div className={styles.mainCard}>
         
-        {/* Left Section: Form */}
-        <div className={styles.formSection}>
+                <div className={styles.formSection}>
           <h2 className={styles.title}>DTH Recharges</h2>
           
           <div className={styles.formGroup}>
@@ -71,8 +70,7 @@ const DTHRecharge = () => {
           </button>
         </div>
 
-        {/* Right Section: Plans */}
-        <div className={styles.planSection}>
+                <div className={styles.planSection}>
           <h2 className={styles.planHeader}>Browse Plans</h2>
           
           <div className={styles.planTableContainer}>

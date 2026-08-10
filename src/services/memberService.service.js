@@ -15,14 +15,7 @@ export const MemberServiceService = {
         return await apiService.get(`/MemberService/GetByID/${id}`);
     },
 
-    // Returns the logged-in user's own service rows as a plain array.
-    //
-    // Filtering by MemberID is only trustworthy when we actually have the real
-    // numeric Member.Id. If that lookup fails, or the server ignores/mismatches
-    // the filter and returns nothing, we pull the full table and match on
-    // LoginId instead — that string always comes straight from the session, so
-    // this path works even when the id is unknown.
-    getMine: async ({ memberId = null, loginId = '' } = {}) => {
+                                getMine: async ({ memberId = null, loginId = '' } = {}) => {
         const toArray = (res) => {
             if (Array.isArray(res?.data?.items)) return res.data.items;
             if (Array.isArray(res?.data)) return res.data;
@@ -31,8 +24,7 @@ export const MemberServiceService = {
             return [];
         };
 
-        // 1. Direct, server-side filter.
-        if (memberId) {
+                if (memberId) {
             try {
                 const res = await MemberServiceService.getAll({ MemberID: memberId });
                 const rows = toArray(res);
@@ -43,8 +35,7 @@ export const MemberServiceService = {
             }
         }
 
-        // 2. Fallback: whole table, matched client-side.
-        try {
+                try {
             const resAll = await MemberServiceService.getAll({ PageNumber: 1, PageSize: 5000 });
             const all = toArray(resAll);
             const wantedLogin = String(loginId || '').trim().toLowerCase();
@@ -68,10 +59,7 @@ export const MemberServiceService = {
             memberId: parseInt(data.memberId || data.MemberId || 0),
             serviceId: parseInt(data.serviceId || data.ServiceId || 0),
             isActive: data.isActive ?? false,
-            // If the caller didn't say, infer: active row = admin-assigned (1),
-            // inactive row = a member request awaiting approval (2). Sending 1
-            // for an inactive row would hide it from /PendingRequests.
-            assignTypeId: data.assignTypeId ?? ((data.isActive ?? false) ? 1 : 2),
+                                                assignTypeId: data.assignTypeId ?? ((data.isActive ?? false) ? 1 : 2),
             purchaseId: data.purchaseId || '',
             sourceReferenceId: data.sourceReferenceId || '',
             startDate: data.startDate || new Date().toISOString(),
@@ -101,11 +89,7 @@ export const MemberServiceService = {
         return await apiService.delete(`/MemberService/Delete/${id}`);
     },
 
-    // Member/API user requests activation of a locked/inactive service.
-    // Backend creates a MemberService record with IsActive=0, AssignTypeId=2 (Pending).
-    // memberId is optional — the backend reads MemberId from the JWT. It is only
-    // used by the fallback below if /Request/{serviceId} isn't deployed yet.
-    requestActivation: async (serviceId, memberId = null) => {
+                    requestActivation: async (serviceId, memberId = null) => {
         try {
             return await apiService.post(`/MemberService/Request/${serviceId}`, {});
         } catch (err) {
@@ -128,29 +112,24 @@ export const MemberServiceService = {
         }
     },
 
-    // Admin: list of all pending (AssignTypeId=2) requests awaiting approval.
-    getPendingRequests: async (params = {}) => {
+        getPendingRequests: async (params = {}) => {
         const { pageNumber = 1, pageSize = 50 } = params;
         return await apiService.get(`/MemberService/PendingRequests?PageNumber=${pageNumber}&PageSize=${pageSize}`);
     },
 
-    // Admin: approve a pending request -> IsActive=1, AssignTypeId=3 (Approved).
-    approve: async (memberServiceId) => {
+        approve: async (memberServiceId) => {
         return await apiService.post(`/MemberService/Approve/${memberServiceId}`, {});
     },
 
-    // Admin: reject a pending request with a reason -> IsActive=0, AssignTypeId=4 (Rejected).
-    reject: async (memberServiceId, reason = '') => {
+        reject: async (memberServiceId, reason = '') => {
         return await apiService.post(`/MemberService/Reject/${memberServiceId}?reason=${encodeURIComponent(reason)}`, {});
     },
 
-    // Pause service (IsActive=0, AssignTypeId=5)
-    pause: async (id) => {
+        pause: async (id) => {
         return await apiService.post(`/MemberService/Pause/${id}`, {});
     },
 
-    // Cancel service (IsActive=0, AssignTypeId=6)
-    cancel: async (id) => {
+        cancel: async (id) => {
         return await apiService.post(`/MemberService/Cancel/${id}`, {});
     }
 };

@@ -1,4 +1,3 @@
-// src/models/packageModel.js
 export const PackageResponseModel = (res) => {
     if (!res || !res.status) return [];
     const items = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);

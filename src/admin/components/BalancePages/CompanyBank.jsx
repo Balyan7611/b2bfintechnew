@@ -25,8 +25,7 @@ const CompanyBank = () => {
   const [qrLogoFile, setQrLogoFile] = useState(null);
   const [bankLogoFile, setBankLogoFile] = useState(null);
 
-  // ✅ Image preview state
-  const [previewImage, setPreviewImage] = useState(null);
+    const [previewImage, setPreviewImage] = useState(null);
 
   const [formState, setFormState] = useState({
     id: 0,
@@ -213,20 +212,17 @@ const CompanyBank = () => {
     }
   };
 
-  // Filter Data
-  const filteredData = bankList.filter(item => 
+    const filteredData = bankList.filter(item => 
     (item.bankName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (item.accountNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (item.accountHolderName || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Pagination Logic
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const currentData = filteredData.slice(startIndex, startIndex + rowsPerPage);
 
-  // Image URL helper
-  const getImageUrl = (filename, folder) => {
+    const getImageUrl = (filename, folder) => {
     if (!filename) return '';
     return `https://api.sahayatamoney.in/UploadedFiles/${folder}/${filename}`;
   };
@@ -234,8 +230,7 @@ const CompanyBank = () => {
   return (
     <div className={styles.container}>
       
-      {/* ── MODAL POPUP ── */}
-      {showModal && (
+            {showModal && (
         <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
           <form className={styles.modalContainer} onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
             <div className={styles.modalHeader}>
@@ -373,8 +368,7 @@ const CompanyBank = () => {
                 </div>
               </div>
 
-              {/* Tabs */}
-              <div className={styles.tabsWrapper}>
+                            <div className={styles.tabsWrapper}>
                 <button 
                   type="button"
                   className={`${styles.tabBtn} ${activeTab === 'BRANCH' ? styles.tabActive : ''}`}
@@ -398,8 +392,7 @@ const CompanyBank = () => {
                 </button>
               </div>
 
-              {/* Tab Content Area */}
-              <div className={styles.tabContentArea}>
+                            <div className={styles.tabContentArea}>
                 {activeTab === 'BRANCH' && (
                   <div className={styles.formGroup}>
                     <label>Branch Name</label>
@@ -448,8 +441,7 @@ const CompanyBank = () => {
                 )}
               </div>
 
-              {/* Action Row */}
-              <div className={styles.actionRow}>
+                            <div className={styles.actionRow}>
                 <div className={styles.toggleContainer}>
                   <span className={styles.toggleLabel}>Active</span>
                   <label className={styles.switch}>
@@ -471,8 +463,7 @@ const CompanyBank = () => {
         </div>
       )}
 
-      {/* Table Card */}
-      <div className={styles.card}>
+            <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h2 className={styles.pageTitle} style={{ marginBottom: 0, borderBottom: 'none', paddingBottom: 0 }}>
             Company Bank Detail
@@ -482,8 +473,7 @@ const CompanyBank = () => {
           </button>
         </div>
 
-        {/* Top Controls */}
-        <div className={styles.topControls}>
+                <div className={styles.topControls}>
           <div className={styles.rowsSelector}>
             <span>Show</span>
             <select 
@@ -641,8 +631,7 @@ const CompanyBank = () => {
           </table>
         </div>
 
-        {/* Pagination */}
-        <div className={styles.paginationRow}>
+                <div className={styles.paginationRow}>
           <div className={styles.pageInfo}>
             Showing {filteredData.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, filteredData.length)} of {filteredData.length} entries
           </div>
@@ -676,8 +665,7 @@ const CompanyBank = () => {
         </div>
       </div>
 
-      {/* ── ACTION DROPDOWN POPUP ── */}
-      {activeActionRow.row && (
+            {activeActionRow.row && (
         <div 
           className="action-dropdown-wrapper"
           style={{
@@ -738,8 +726,7 @@ const CompanyBank = () => {
         </div>
       )}
 
-      {/* ── STATUS CHANGE MODAL ── */}
-      {confirmToggleRow && (
+            {confirmToggleRow && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(13, 27, 62, 0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setConfirmToggleRow(null)}>
           <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '340px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', animation: 'slideUp 0.3s ease' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: confirmToggleRow.isActive ? '#FFF5F5' : '#F0FDF4', color: confirmToggleRow.isActive ? '#E53E3E' : '#27AE60', fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -755,8 +742,7 @@ const CompanyBank = () => {
         </div>
       )}
 
-      {/* ── DELETE CONFIRMATION MODAL ── */}
-      {confirmDeleteId && (
+            {confirmDeleteId && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(13, 27, 62, 0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setConfirmDeleteId(null)}>
           <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '340px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', animation: 'slideUp 0.3s ease' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#FFF5F5', color: '#E53E3E', fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -772,8 +758,7 @@ const CompanyBank = () => {
         </div>
       )}
 
-      {/* ── IMAGE PREVIEW MODAL ── */}
-      {previewImage && (
+            {previewImage && (
         <div 
           style={{
             position: 'fixed',

@@ -24,9 +24,6 @@ const AEPSReport = () => {
     currentPage 
   } = useSelector(state => state.report.aepsReport);
 
-  // Data will be fetched from API when backend endpoints are ready
-  // useEffect(() => { ... fetch AEPS data ... }, [filters]);
-
   const filteredList = list.filter(item => {
     const matchesSearch = item.memberName.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          item.memberId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -47,8 +44,7 @@ const AEPSReport = () => {
   };
 
   const handleApplyFilters = () => {
-    // Fetches would go here
-    console.log('Filters applied');
+        console.log('Filters applied');
   };
 
   return (

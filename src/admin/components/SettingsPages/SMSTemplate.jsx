@@ -67,8 +67,7 @@ const SMSTemplate = () => {
         else if (Array.isArray(integrationRes.items)) integrationsList = integrationRes.items;
       }
       
-      // Determine active services
-      const hasSms = integrationsList.some(item => item.integrationtype === 1);
+            const hasSms = integrationsList.some(item => item.integrationtype === 1);
       const hasWhatsapp = integrationsList.some(item => item.integrationtype === 2);
       const hasEmail = integrationsList.some(item => item.integrationtype === 3);
 
@@ -136,8 +135,7 @@ const SMSTemplate = () => {
       emailTemplate: formData.emailMessage,
       whatsAppTemplate: formData.whatsappMessage,
       isActive: true,
-      msrno: 3180, // Using default or keeping from item if available
-      companyMemberId: 7093,
+      msrno: 3180,       companyMemberId: 7093,
       integrationType: 7398,
       isSms: formData.isSms,
       isEmail: formData.isMail,
@@ -233,8 +231,7 @@ const SMSTemplate = () => {
         }
       `}</style>
 
-      {/* TOAST SUCCESS MESSAGE */}
-      {successToast && (
+            {successToast && (
         <div style={{
           position: 'fixed',
           top: '20px',
@@ -259,18 +256,15 @@ const SMSTemplate = () => {
         </div>
       )}
 
-      {/* ── MAIN LISTING CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap' }}>SMS & Notification Templates</h2>
           <PrimaryButton onClick={() => setIsDrawerOpen(true)}>
             <FaPlus /> <span>New Template</span>
           </PrimaryButton>
         </div>
 
-        {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select 
@@ -306,8 +300,7 @@ const SMSTemplate = () => {
           </div>
         </div>
 
-        {/* ── GRID TABLE VIEW ── */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ width: '100%', minWidth: '1550px', tableLayout: 'fixed' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -334,11 +327,9 @@ const SMSTemplate = () => {
                 paginatedTemplates.map((tmp, idx) => {
                   return (
                     <tr key={tmp.id} className={idx % 2 === 0 ? styles.rowEven : styles.rowOdd}>
-                      {/* S.No */}
-                      <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{startIndex + idx + 1}</td>
+                                            <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{startIndex + idx + 1}</td>
                       
-                      {/* Unified Action Column (Now 2nd Column) */}
-                      <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '12px 0' }}>
+                                            <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '12px 0' }}>
                         <div style={{ display: 'inline-flex', gap: '8px', justifyContent: 'center', alignItems: 'center', flexWrap: 'nowrap', flexDirection: 'row', margin: '0 auto' }}>
                           <button 
                             onClick={() => openEditDrawer(tmp)}
@@ -380,15 +371,13 @@ const SMSTemplate = () => {
                         </div>
                       </td>
 
-                      {/* Type / Category */}
-                      <td>
+                                            <td>
                         <span style={{ fontWeight: 800, color: '#0F172A', fontSize: '0.85rem' }}>
                           {categories.find(c => c.id == tmp.categoryId)?.name || tmp.categoryId || tmp.category || 'N/A'}
                         </span>
                       </td>
                       
-                      {/* Is SMS Toggle */}
-                      <td style={{ textAlign: 'center' }}>
+                                            <td style={{ textAlign: 'center' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                           <div 
                             onClick={() => toggleStatus(tmp, 'isSms')}
@@ -425,8 +414,7 @@ const SMSTemplate = () => {
                             {tmp.isSms ? 'ON' : 'OFF'}
                           </span></div></td>
                       
-                      {/* SMS Message textarea */}
-                      <td>
+                                            <td>
                         <div
                           style={{
                             width: '100%',
@@ -447,8 +435,7 @@ const SMSTemplate = () => {
                         </div>
                       </td>
                       
-                      {/* Template ID Input */}
-                      <td>
+                                            <td>
                         <div
                           style={{
                             width: '100%',
@@ -465,8 +452,7 @@ const SMSTemplate = () => {
                         </div>
                       </td>
                       
-                      {/* Is Mail Toggle */}
-                      <td style={{ textAlign: 'center' }}>
+                                            <td style={{ textAlign: 'center' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                           <div 
                             onClick={() => toggleStatus(tmp, 'isEmail')}
@@ -503,8 +489,7 @@ const SMSTemplate = () => {
                             {tmp.isEmail ? 'ON' : 'OFF'}
                           </span></div></td>
                       
-                      {/* Email Message textarea */}
-                      <td>
+                                            <td>
                         <div
                           style={{
                             width: '100%',
@@ -525,8 +510,7 @@ const SMSTemplate = () => {
                         </div>
                       </td>
                       
-                      {/* Is WhatsApp Toggle */}
-                      <td style={{ textAlign: 'center' }}>
+                                            <td style={{ textAlign: 'center' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                           <div 
                             onClick={() => toggleStatus(tmp, 'isWhatsApp')}
@@ -563,8 +547,7 @@ const SMSTemplate = () => {
                             {tmp.isWhatsApp ? 'ON' : 'OFF'}
                           </span></div></td>
                       
-                      {/* WhatsApp Message textarea */}
-                      <td>
+                                            <td>
                         <div
                           style={{
                             width: '100%',
@@ -627,8 +610,7 @@ const SMSTemplate = () => {
         </div>
       </div>
 
-      {/* ── PREMIUM RIGHT-SIDE SLIDING DRAWER ── */}
-      {isDrawerOpen && (
+            {isDrawerOpen && (
         <div 
           onClick={resetForm}
           style={{ 
@@ -656,8 +638,7 @@ const SMSTemplate = () => {
               animation: 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
           >
-            {/* Drawer Header */}
-            <div style={{ 
+                        <div style={{ 
               padding: '16px 24px', 
               borderBottom: '1px solid #E2E8F0', 
               display: 'flex', 
@@ -719,12 +700,10 @@ const SMSTemplate = () => {
                </button>
             </div>
 
-            {/* Drawer Body (Scrollable) */}
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
               <div style={{ padding: '24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
                  
-                 {/* Category */}
-                 <div className={styles.formGroup}>
+                                  <div className={styles.formGroup}>
                     <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4E6080', marginBottom: '6px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.02em' }}>Template Type / Name</label>
                     <select 
                       name="category" 
@@ -781,8 +760,7 @@ const SMSTemplate = () => {
                  </div>
                  )}
 
-                 {/* Email Configuration Block */}
-                 {activeIntegrations.email && (
+                                  {activeIntegrations.email && (
                  <div className={styles.sectionBlock} style={{ background: '#F8FAFC', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0', marginBottom: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: formData.isMail ? '15px' : '0' }}>
                        <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -808,8 +786,7 @@ const SMSTemplate = () => {
                  </div>
                  )}
 
-                 {/* WhatsApp Configuration Block */}
-                 {activeIntegrations.whatsapp && (
+                                  {activeIntegrations.whatsapp && (
                  <div className={styles.sectionBlock} style={{ background: '#F8FAFC', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0', marginBottom: '10px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: formData.isWhatsapp ? '15px' : '0' }}>
                        <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -836,8 +813,7 @@ const SMSTemplate = () => {
                  )}
               </div>
 
-              {/* Drawer Footer */}
-              <div style={{ 
+                            <div style={{ 
                 padding: '16px 24px', 
                 background: '#F8FAFC', 
                 borderTop: '1px solid #E2E8F0', 
@@ -871,8 +847,7 @@ const SMSTemplate = () => {
         </div>
       )}
 
-      {/* CONFIRM DELETE MODAL */}
-      {showConfirmModal.isOpen && (
+            {showConfirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3600 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>

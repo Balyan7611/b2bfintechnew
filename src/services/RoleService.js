@@ -18,8 +18,7 @@ export const RoleService = {
         return await apiService.post(`/Role/DeleteRole/${id}`, {});
     },
 
-    // Standard CRUD placeholders for future scaling
-    getRoleById: async (id) => {},
+        getRoleById: async (id) => {},
     
     getMasterRoles: async () => {
         const res = await apiService.get('/MasterRole?isActive=true');

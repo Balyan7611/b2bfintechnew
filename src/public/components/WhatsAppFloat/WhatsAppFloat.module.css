@@ -24,8 +24,7 @@
 .whatsappFloat:hover {
   transform: scale(1.1);
   box-shadow: 0 12px 30px rgba(37, 211, 102, 0.5);
-  animation: none; /* Stop pulsing on hover */
-}
+  animation: none; }
 
 .whatsappIcon {
   font-size: 28px;
@@ -69,7 +68,6 @@
   }
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .whatsappFloat {
     bottom: 20px;
@@ -87,6 +85,5 @@
   }
   
   .tooltip {
-    display: none; /* Hide tooltip on mobile to avoid screen overlap */
-  }
+    display: none;   }
 }

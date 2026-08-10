@@ -11,10 +11,6 @@ import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import styles from '../MemberPages/MemberPages.module.css';
 import { getLogoUrl, getSignatureUrl, getFaviconUrl } from '../../../config/siteConfig';
 
-
-/* ─────────────────────────────────────────────
-   Initial blank form
-───────────────────────────────────────────── */
 const INIT_FORM = {
   id: null,
   member: '1',
@@ -26,10 +22,8 @@ const INIT_FORM = {
   bankName: '', acName: '', acType: 'Current', acNumber: '', ifsc: '', micrcode: '',
   profileAmount: '0',
   headerColor: '#1756AA', bodyColor: '#F8FAFC', leftColor: '#0F172A',
-  // existing image paths (from API)
-  logo: '', signature: '', favicon: '',
-  // new file objects
-  logoFile: null, signatureFile: null, faviconFile: null,
+    logo: '', signature: '', favicon: '',
+    logoFile: null, signatureFile: null, faviconFile: null,
 };
 
 const ManageCompany = () => {
@@ -43,13 +37,11 @@ const ManageCompany = () => {
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null, name: '' });
   const [successMsg, setSuccessMsg]   = useState('');
 
-  // Pagination & Action Dropdown States
-  const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, comp: null });
 
-  // Close action dropdown on outside click and scroll
-  useEffect(() => {
+    useEffect(() => {
     const handleOutsideClick = (e) => {
       if (!e.target.closest('.action-dropdown-wrapper')) {
         setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, comp: null } : prev);
@@ -66,8 +58,7 @@ const ManageCompany = () => {
     };
   }, []);
 
-  /* ── Fetch all companies ── */
-  const fetchCompanies = async () => {
+    const fetchCompanies = async () => {
     setIsLoading(true);
     setErrorMsg('');
     try {
@@ -75,8 +66,7 @@ const ManageCompany = () => {
       if (res && res.status === true && res.data) {
         const items = Array.isArray(res.data.items) ? res.data.items : (Array.isArray(res.data) ? res.data : []);
         setLocalCompanies(items.map(item => ({
-          ...item,                                          // keep ALL raw fields
-          name:    item.name    || item.companyName || '',
+          ...item,                                                    name:    item.name    || item.companyName || '',
           owner:   item.ownerName || '',
           email:   item.email   || '',
           phone:   item.mobile  || '',
@@ -97,8 +87,7 @@ const ManageCompany = () => {
 
   useEffect(() => { fetchCompanies(); }, []);
 
-  /* ── Input handlers ── */
-  const handleInputChange = e => {
+    const handleInputChange = e => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -107,19 +96,16 @@ const ManageCompany = () => {
     const { name, files } = e.target;
     if (files && files[0]) {
       const file = files[0];
-      // Create local object URL for instant preview
-      const previewUrl = URL.createObjectURL(file);
+            const previewUrl = URL.createObjectURL(file);
       setFormData(prev => ({
         ...prev,
         [`${name}File`]:    file,
-        [`${name}Preview`]: previewUrl, // local blob URL for new file preview
-        [name]:             file.name,
+        [`${name}Preview`]: previewUrl,         [name]:             file.name,
       }));
     }
   };
 
-  /* ── Open Edit form ── */
-  const handleEdit = comp => {
+    const handleEdit = comp => {
     setFormData({
       id:             comp.id,
       member:         comp.memberId ? String(comp.memberId) : '1',
@@ -148,8 +134,7 @@ const ManageCompany = () => {
       headerColor:    comp.headerColor  || '#1756AA',
       bodyColor:      comp.bodyColor    || '#F8FAFC',
       leftColor:      comp.leftColor    || '#0F172A',
-      // Store raw filename from API (e.g. "logo.png" or "/logo.png")
-      logo:           comp.logo        || '',
+            logo:           comp.logo        || '',
       signature:      comp.signature   || '',
       favicon:        comp.feviconicon  || '',
       logoFile:       null,
@@ -162,8 +147,7 @@ const ManageCompany = () => {
     setViewState('add');
   };
 
-  /* ── Build FormData payload — matches curl exactly ── */
-  const buildFormData = () => {
+    const buildFormData = () => {
     const fd = new FormData();
 
     if (formData.id) {
@@ -200,9 +184,7 @@ const ManageCompany = () => {
     return fd;
   };
 
-
-  /* ── Save (Add / Update) ── */
-  const handleSave = async e => {
+    const handleSave = async e => {
     e.preventDefault();
     setIsSaving(true);
     setErrorMsg('');
@@ -222,8 +204,7 @@ const ManageCompany = () => {
         setErrorMsg(res?.mess || 'Save failed. Please check the server response.');
       }
     } catch (err) {
-      // Detect 404 — endpoint missing on backend
-      const status = err?.response?.status || err?.status;
+            const status = err?.response?.status || err?.status;
       if (status === 404) {
         setErrorMsg(
           formData.id
@@ -241,8 +222,7 @@ const ManageCompany = () => {
     }
   };
 
-  /* ── Delete ── */
-  const handleDeleteConfirm = async () => {
+    const handleDeleteConfirm = async () => {
     const id = deleteModal.id;
     setDeleteModal({ isOpen: false, id: null, name: '' });
     setIsLoading(true);
@@ -253,8 +233,7 @@ const ManageCompany = () => {
         setTimeout(() => setSuccessMsg(''), 3000);
         await fetchCompanies();
       } else {
-        // optimistic remove
-        setLocalCompanies(prev => prev.filter(c => c.id !== id));
+                setLocalCompanies(prev => prev.filter(c => c.id !== id));
         setSuccessMsg('Company removed.');
         setTimeout(() => setSuccessMsg(''), 2000);
       }
@@ -266,8 +245,7 @@ const ManageCompany = () => {
     }
   };
 
-  /* ── Toggle status ── */
-  const handleToggleStatus = async id => {
+    const handleToggleStatus = async id => {
     try {
       await API.company.toggleStatus(id);
       setLocalCompanies(prev =>
@@ -279,8 +257,7 @@ const ManageCompany = () => {
     } catch (err) { console.error(err); }
   };
 
-  /* ── Filtered list ── */
-  const filtered = localCompanies.filter(c => {
+    const filtered = localCompanies.filter(c => {
     const name = String(c.name || '').toLowerCase();
     const email = String(c.email || '').toLowerCase();
     const phone = String(c.phone || c.mobile || '').toLowerCase();
@@ -300,14 +277,10 @@ const ManageCompany = () => {
     setCurrentPage(1);
   }, [searchQuery, rowsPerPage]);
 
-  /* ─────────────────────────────────────────────
-     RENDER
-  ───────────────────────────────────────────── */
-  return (
+    return (
     <div className={styles.container} style={{ padding: '15px 12px', maxWidth: '100%' }}>
 
-      {/* ── Global success toast ── */}
-      {successMsg && (
+            {successMsg && (
         <div style={{
           position: 'fixed', top: '20px', right: '20px', zIndex: 9999,
           background: '#10B981', color: '#fff', padding: '12px 20px',
@@ -319,29 +292,23 @@ const ManageCompany = () => {
         </div>
       )}
 
-      {/* ══════════════════════════════════
-          TABLE VIEW
-      ══════════════════════════════════ */}
-      {viewState === 'table' && (
+            {viewState === 'table' && (
         <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.06)', borderRadius: '16px' }}>
 
-          {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '10px' }}>
             <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>Manage Companies</h3>
             <PrimaryButton onClick={() => { setFormData(INIT_FORM); setErrorMsg(''); setViewState('add'); }}>
               <FiPlus /> Add New Company
             </PrimaryButton>
           </div>
 
-          {/* Error */}
-          {errorMsg && (
+                    {errorMsg && (
             <div style={{ margin: '12px 20px 0', padding: '10px 16px', background: '#FFF5F5', color: '#E53E3E', borderRadius: '8px', border: '1px solid #FEB2B2', fontSize: '0.85rem', fontWeight: 600, display: 'flex', gap: '8px', alignItems: 'center' }}>
               <FiAlertTriangle /> {errorMsg}
             </div>
           )}
 
-          {/* Toolbar */}
-          <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                    <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
             <div className={styles.pillRow} style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
               <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
               <select className={styles.selectEntries} value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ border: '1px solid #E2E8F0', borderRadius: '8px', padding: '4px 8px', outline: 'none', cursor: 'pointer', fontWeight: 600, color: '#334155' }}>
@@ -371,8 +338,7 @@ const ManageCompany = () => {
             </div>
           </div>
 
-          {/* Table */}
-          <div className={styles.tableWrapper}>
+                    <div className={styles.tableWrapper}>
             <table className={styles.table} style={{ width: '100%', minWidth: '860px' }}>
               <thead>
                 <tr style={{ background: 'linear-gradient(90deg,#0D1B5E,#1a2f8a)' }}>
@@ -870,7 +836,6 @@ const Section = ({ title, icon, color, children }) => (
   </div>
 );
 
-
 const Grid = ({ children }) => (
   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: '20px' }}>
     {children}
@@ -971,5 +936,3 @@ const ImagePreview = ({ newPreview, existingPath, folder, label }) => {
 };
 
 export default ManageCompany;
-
-

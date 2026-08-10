@@ -24,11 +24,9 @@ const PackageManagement = () => {
   const [localPackages, setLocalPackages] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Pagination & Action Dropdown States
   const [currentPage, setCurrentPage] = useState(1);
   const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, pkg: null });
 
-  // Close action dropdown on outside click and scroll
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (!e.target.closest('.action-dropdown-wrapper')) {
@@ -83,8 +81,7 @@ const PackageManagement = () => {
   }, []);
 
   const handleDelete = () => {
-    // Delete endpoint is not defined in spec, keep it local/mock
-    setLocalPackages(localPackages.filter(p => p.id !== showConfirmModal.id));
+        setLocalPackages(localPackages.filter(p => p.id !== showConfirmModal.id));
     setShowConfirmModal({ isOpen: false, id: null });
   };
 
@@ -120,7 +117,7 @@ const PackageManagement = () => {
       };
       
       let res;
-      if (formData.id && !isNaN(formData.id) && parseInt(formData.id) > 0) { // If ID exists and > 0, it's an update (PUT)
+      if (formData.id && !isNaN(formData.id) && parseInt(formData.id) > 0) {
         res = await API.package.update(payload);
       } else {
         res = await API.package.create(payload);
@@ -129,7 +126,6 @@ const PackageManagement = () => {
       fetchPackages();
     } catch (err) {
       console.error("Error saving package:", err);
-      // Fallback local logic
       if (formData.id) {
         setLocalPackages(localPackages.map(p => p.id === formData.id ? { ...p, ...formData } : p));
       } else {
@@ -144,9 +140,7 @@ const PackageManagement = () => {
 
   return (
     <div className={styles.container} style={{ padding: '5px 2px 0px 2px', maxWidth: '100%' }}>
-      {/* ── MAIN REPOSITORY CARD ── */}
       <div className={styles.cardFullMobile} style={{ margin: '8px 8px 15px 8px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', background: '#fff', borderRadius: '16px' }}>
-        {/* CARD INTERNAL HEADER */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '10px' }}>
           <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0F172A' }}>Package List</h3>
           <PrimaryButton onClick={handleAddClick}>
@@ -160,7 +154,6 @@ const PackageManagement = () => {
           </div>
         )}
 
-        {/* ── TOOLBAR ── */}
         <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
@@ -193,7 +186,6 @@ const PackageManagement = () => {
           </div>
         </div>
 
-        {/* ── TABLE ── */}
         <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ width: '100%', minWidth: '850px', tableLayout: 'auto' }}>
             <thead>
@@ -294,7 +286,6 @@ const PackageManagement = () => {
           </table>
         </div>
 
-        {/* PAGINATION */}
         {(() => {
           const filtered = localPackages.filter(p => p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || p.role?.toLowerCase().includes(searchQuery.toLowerCase()));
           const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
@@ -349,7 +340,6 @@ const PackageManagement = () => {
         })()}
       </div>
 
-      {/* ── ACTION DROPDOWN PORTAL (fixed position, never clipped) ── */}
       {activeActionRow.id && (
         <>
           <style>{`
@@ -398,7 +388,6 @@ const PackageManagement = () => {
         </>
       )}
 
-      {/* ── ADD/EDIT MODAL (DRAWER STYLE) ── */}
       {isModalOpen && (
         <div className={styles.drawerOverlay} onClick={() => setIsModalOpen(false)}>
           <div className={styles.drawer} onClick={(e) => e.stopPropagation()} style={{ width: '520px', maxWidth: '95%', background: '#fff' }}>
@@ -479,7 +468,6 @@ const PackageManagement = () => {
         </div>
       )}
 
-      {/* CONFIRM DELETE MODAL */}
       {showConfirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3600 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px' }}>

@@ -10,34 +10,27 @@ import {
 import styles from '../MemberPages/MemberPages.module.css';
 import TransactionReceipt from '../../../member/components/MemberPanel/Services/TransactionReceipt';
 
-// Adjust this constant to match your Money Wallet Load service ID
-const WALLET_LOAD_SERVICE_ID = '11'; // Change as per your backend
-
+const WALLET_LOAD_SERVICE_ID = '11'; 
 const MoneyWalletLoadHistory = () => {
-    // ─── State ──────────────────────────────────────────────
-    const [transactions, setTransactions] = useState([]);
+        const [transactions, setTransactions] = useState([]);
     const [totalRecords, setTotalRecords] = useState(0);
     const [pageNumber, setPageNumber] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [loading, setLoading] = useState(false);
 
-    // Filters
-    const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(today);
     const [toDate, setToDate] = useState(today);
     const [selectedMember, setSelectedMember] = useState('');
     const [searchKeyword, setSearchKeyword] = useState('');
 
-    // Dropdown lists
-    const [memberList, setMemberList] = useState([]);
+        const [memberList, setMemberList] = useState([]);
 
-    // UI states
-    const [showStats, setShowStats] = useState(false);
+        const [showStats, setShowStats] = useState(false);
     const [activeReceipt, setActiveReceipt] = useState(null);
     const [focusedField, setFocusedField] = useState(null);
 
-    // ─── Stats Computation ──────────────────────────────────
-    const totalTxns = totalRecords;
+        const totalTxns = totalRecords;
     const totalAmount = transactions.reduce((acc, t) => acc + (parseFloat(t.loadAmount || t.amount) || 0), 0);
     const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
     const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
@@ -67,8 +60,7 @@ const MoneyWalletLoadHistory = () => {
         netPayable,
     };
 
-    // ─── API Calls ──────────────────────────────────────────
-    const fetchTransactions = async () => {
+        const fetchTransactions = async () => {
         setLoading(true);
         try {
             const res = await API.transaction.getAll({
@@ -76,8 +68,7 @@ const MoneyWalletLoadHistory = () => {
                 pageSize,
                 fromDate,
                 toDate,
-                serviceId: WALLET_LOAD_SERVICE_ID, // Use the specific service ID
-                memberId: selectedMember,
+                serviceId: WALLET_LOAD_SERVICE_ID,                 memberId: selectedMember,
                 search: searchKeyword,
             });
 
@@ -93,13 +84,11 @@ const MoneyWalletLoadHistory = () => {
         }
     };
 
-    // ─── Effects ────────────────────────────────────────────
-    useEffect(() => {
+        useEffect(() => {
         fetchTransactions();
     }, [pageNumber, pageSize, selectedMember, fromDate, toDate, searchKeyword]);
 
-    // Fetch members for dropdown
-    useEffect(() => {
+        useEffect(() => {
         const fetchMembers = async () => {
             try {
                 const res = await API.member.search('');
@@ -111,15 +100,13 @@ const MoneyWalletLoadHistory = () => {
         fetchMembers();
     }, []);
 
-    // ─── Handlers ────────────────────────────────────────────
-    const handleSearchSubmit = (e) => {
+        const handleSearchSubmit = (e) => {
         e.preventDefault();
         setPageNumber(1);
         fetchTransactions();
     };
 
-    // ─── Render ──────────────────────────────────────────────
-    const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+        const totalPages = Math.ceil(totalRecords / pageSize) || 1;
     const startIndex = (pageNumber - 1) * pageSize;
     const currentRows = transactions.slice(startIndex, startIndex + pageSize);
 
@@ -150,8 +137,7 @@ const MoneyWalletLoadHistory = () => {
 
     return (
         <div className={styles.container}>
-            {/* ── FILTER CARD ── */}
-            <div style={{
+                        <div style={{
                 background: '#ffffff',
                 borderRadius: '20px',
                 boxShadow: '0 8px 24px rgba(23, 86, 170, 0.02), 0 1px 4px rgba(0, 0, 0, 0.01)',
@@ -163,8 +149,7 @@ const MoneyWalletLoadHistory = () => {
                     <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>Money Wallet Load History</h2>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                         <div style={{ background: 'rgba(43, 108, 176, 0.1)', color: '#2B6CB0', padding: '6px 15px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            {/* <FiPlusCircle /> Wallet Audit Active */}
-                        </div>
+                                                    </div>
                         <button
                             type="button"
                             onClick={() => setShowStats(!showStats)}
@@ -233,8 +218,7 @@ const MoneyWalletLoadHistory = () => {
                 </div>
             </div>
 
-            {/* ── STATS GRID ── */}
-            <StatsGrid stats={stats} showStats={showStats} />
+                        <StatsGrid stats={stats} showStats={showStats} />
 
             {/* ── DATA TABLE ── */}
             <div className={styles.cardFullMobile}>
@@ -366,8 +350,7 @@ const MoneyWalletLoadHistory = () => {
                 </div>
             </div>
 
-            {/* ── Receipt Modal ── */}
-            {activeReceipt && (
+                        {activeReceipt && (
                 <TransactionReceipt
                     data={activeReceipt}
                     onClose={() => setActiveReceipt(null)}

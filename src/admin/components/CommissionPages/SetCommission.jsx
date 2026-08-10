@@ -7,37 +7,31 @@ import styles from './Commission.module.css';
 const SetCommission = () => {
   const topFormRef = useRef(null);
 
-  // ---- Dropdown Data State ----
-  const [packages, setPackages] = useState([]);
+    const [packages, setPackages] = useState([]);
   const [services, setServices] = useState([]);
   const [operators, setOperators] = useState([]);
   const [activeRoles, setActiveRoles] = useState([]);
 
-  // ---- Dynamic Matrix Selection State ----
-  const [dynPackage, setDynPackage] = useState('');
+    const [dynPackage, setDynPackage] = useState('');
   const [dynService, setDynService] = useState('');
   const [dynOperator, setDynOperator] = useState('');
 
-  // ---- Matrix Grid Slabs & Level Columns ----
-  const [dynLevels, setDynLevels] = useState(['slabCharges']);
+    const [dynLevels, setDynLevels] = useState(['slabCharges']);
   const [dynSlabs, setDynSlabs] = useState([]);
   const [showAddColumnSelect, setShowAddColumnSelect] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // ---- Live Bottom Table State ----
-  const [list, setList] = useState([]);
+    const [list, setList] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: '', id: null, title: '', desc: '' });
 
-  // Fetch Packages, Services, Operators, and Roles on mount
-  useEffect(() => {
+    useEffect(() => {
     const fetchDropdownData = async () => {
       try {
-        // Fetch packages
-        const pkgRes = await API.package.getAll();
+                const pkgRes = await API.package.getAll();
         let pkgs = [];
         if (pkgRes && pkgRes.status === true && pkgRes.data) {
           pkgs = Array.isArray(pkgRes.data.items)
@@ -46,28 +40,24 @@ const SetCommission = () => {
         }
         setPackages(pkgs);
 
-        // Fetch services
-        const svcRes = await API.service.getAll();
+                const svcRes = await API.service.getAll();
         let svcs = [];
         if (svcRes && svcRes.status === true && Array.isArray(svcRes.data)) {
           svcs = svcRes.data;
         }
         setServices(svcs);
 
-        // Fetch operators
-        const opRes = await API.operator.getAll({ pageNumber: 1, pageSize: 10000 });
+                const opRes = await API.operator.getAll({ pageNumber: 1, pageSize: 10000 });
         let ops = [];
         if (opRes && opRes.status === true && opRes.data && Array.isArray(opRes.data.items)) {
           ops = opRes.data.items;
         }
         setOperators(ops);
 
-        // Fetch active roles (levels) from Commission API
-        const rolesRes = await apiService.get('/Commission/GetRoles');
+                const rolesRes = await apiService.get('/Commission/GetRoles');
         if (rolesRes && rolesRes.status === true && Array.isArray(rolesRes.data)) {
           setActiveRoles(rolesRes.data);
-          // Initialize columns: slabCharges + fetched roles
-          const roleIds = rolesRes.data.map(r => r.id);
+                    const roleIds = rolesRes.data.map(r => r.id);
           setDynLevels(['slabCharges', ...roleIds]);
         }
       } catch (err) {
@@ -77,8 +67,7 @@ const SetCommission = () => {
     fetchDropdownData();
   }, []);
 
-  // Fetch Live Table Data from DB
-  const fetchList = async () => {
+    const fetchList = async () => {
     try {
       const payload = {
         pageNumber,
@@ -98,21 +87,17 @@ const SetCommission = () => {
     }
   };
 
-  // Reload report list on pagination/search changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
+      useEffect(() => {
     fetchList();
   }, [pageNumber, pageSize, searchQuery, dynPackage, dynService, dynOperator]);
 
-  // Filter operators dynamically based on selected service ID (handles all casings)
-  const filteredOperators = operators.filter(o => {
+    const filteredOperators = operators.filter(o => {
     if (!dynService) return true;
     const opSvcId = o.serviceId || o.serviceID || o.ServiceID;
     return String(opSvcId) === String(dynService);
   });
 
-  // Auto reset operator selection if service changes and it doesn't match
-  useEffect(() => {
+    useEffect(() => {
     if (dynOperator && dynService) {
       const match = filteredOperators.find(o => String(o.id || o.ID) === String(dynOperator));
       if (!match) {
@@ -121,8 +106,7 @@ const SetCommission = () => {
     }
   }, [dynService, dynOperator, filteredOperators]);
 
-  // Load slabs when Package, Service, or Operator selection changes
-  const handleLoadMatrix = async () => {
+    const handleLoadMatrix = async () => {
     if (!dynPackage || !dynService || !dynOperator) {
       setDynSlabs([]);
       return;
@@ -135,8 +119,7 @@ const SetCommission = () => {
         const levels = res.data.levels || [];
         const slabs = res.data.slabs || [];
 
-        // Update active column headers dynamically
-        setDynLevels(['slabCharges', ...levels]);
+                setDynLevels(['slabCharges', ...levels]);
 
         if (slabs.length > 0) {
           const mappedSlabs = slabs.map(s => {
@@ -178,9 +161,7 @@ const SetCommission = () => {
     }
   };
 
-  // Trigger matrix load on selection change
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
+      useEffect(() => {
     handleLoadMatrix();
   }, [dynPackage, dynService, dynOperator]);
 
@@ -273,13 +254,11 @@ const SetCommission = () => {
     });
   };
 
-  // Add Level Column
-  const handleAddLevelColumn = (roleId) => {
+    const handleAddLevelColumn = (roleId) => {
     const numId = Number(roleId);
     if (!dynLevels.includes(numId)) {
       setDynLevels(prev => [...prev, numId]);
-      // Update existing local slabs with new role level initialized to empty
-      setDynSlabs(prev => prev.map(slab => ({
+            setDynSlabs(prev => prev.map(slab => ({
         ...slab,
         slabs: {
           ...slab.slabs,
@@ -290,14 +269,11 @@ const SetCommission = () => {
     setShowAddColumnSelect(false);
   };
 
-  // Remove Level Column
-  const handleRemoveLevelColumn = (roleId) => {
-    if (roleId === 'slabCharges') return; // Slab Charges cannot be removed
-    setDynLevels(prev => prev.filter(lvl => lvl !== roleId));
+    const handleRemoveLevelColumn = (roleId) => {
+    if (roleId === 'slabCharges') return;     setDynLevels(prev => prev.filter(lvl => lvl !== roleId));
   };
 
-  // Check for overlaps in slabs
-  const getOverlapIndices = () => {
+    const getOverlapIndices = () => {
     const overlaps = new Set();
     for (let i = 0; i < dynSlabs.length; i++) {
       for (let j = i + 1; j < dynSlabs.length; j++) {
@@ -324,8 +300,7 @@ const SetCommission = () => {
 
   const overlapIndices = getOverlapIndices();
 
-  // Save Dynamic Matrix to Database REST API
-  const handleSaveMatrix = async () => {
+    const handleSaveMatrix = async () => {
     if (!dynPackage || !dynService || !dynOperator) {
       alert("Please select Package, Service, and Operator.");
       return;
@@ -374,9 +349,7 @@ const SetCommission = () => {
       const res = await apiService.post('/Commission/SaveDynamicMatrix', payload);
       if (res && res.status === true) {
         alert("Commission matrix saved successfully to database!");
-        handleLoadMatrix(); // Reload matrix
-        fetchList(); // Refresh bottom table
-      } else {
+        handleLoadMatrix();         fetchList();       } else {
         alert(res?.message || "Failed to save commission matrix.");
       }
     } catch (err) {
@@ -385,8 +358,7 @@ const SetCommission = () => {
     }
   };
 
-  // Perform Toggle / Delete actions in DB
-  const handleConfirmAction = async () => {
+    const handleConfirmAction = async () => {
     try {
       if (confirmModal.type === 'toggle') {
         const res = await apiService.post(`/Commission/ToggleActive/${confirmModal.id}`);
@@ -413,8 +385,7 @@ const SetCommission = () => {
     }
   };
 
-  // Maps all IDs to strings dynamically and schedules values safely
-  const handleEdit = (item) => {
+    const handleEdit = (item) => {
     setDynPackage(item.packageId ? String(item.packageId) : '');
     setDynService(item.serviceId ? String(item.serviceId) : '');
     setDynOperator(item.opId ? String(item.opId) : '');
@@ -425,8 +396,7 @@ const SetCommission = () => {
 
   return (
     <div className={styles.container} ref={topFormRef}>
-      {/* ── DYNAMIC MATRIX CARD ── */}
-      <div className={styles.dmCard}>
+            <div className={styles.dmCard}>
         <div className={styles.dmHeaderBar}>
           <div className={styles.directoryTitleGroup}>
             <h2 className={styles.dmTitle}>Dynamic Commission Matrix <span className={styles.dmTitleSub}>Configure network-wide slabs</span></h2>
@@ -442,8 +412,7 @@ const SetCommission = () => {
         </div>
 
         <div className={styles.dmCardPad}>
-          {/* Dropdowns Toolbar */}
-          <div className={styles.dmToolbar}>
+                    <div className={styles.dmToolbar}>
             <div className={styles.dmField}>
               <label>Select Package *</label>
               <select value={dynPackage} onChange={(e) => setDynPackage(e.target.value)}>
@@ -499,8 +468,7 @@ const SetCommission = () => {
         ) : dynSlabs.length > 0 ? (
           <div className={styles.dmScroll}>
             <div className={styles.dmGrid} style={{ gridTemplateColumns: `220px repeat(${dynLevels.length}, 150px) 110px` }}>
-              {/* Grid Header */}
-              <div className={styles.dmSlabHead}>
+                            <div className={styles.dmSlabHead}>
                 <span className={styles.t1}>Slab Range</span>
                 <span className={styles.t2}>Amount in ₹</span>
               </div>
@@ -525,8 +493,7 @@ const SetCommission = () => {
                 );
               })}
 
-              {/* Add Level Column Button */}
-              <div className={styles.dmAddLevelCol} style={{ flexDirection: 'column', gap: '4px', justifyContent: 'center' }}>
+                            <div className={styles.dmAddLevelCol} style={{ flexDirection: 'column', gap: '4px', justifyContent: 'center' }}>
                 {showAddColumnSelect ? (
                   <select 
                     style={{ fontSize: '11px', padding: '6px', borderRadius: '8px', border: '1px solid #CBD5E0' }} 
@@ -551,13 +518,11 @@ const SetCommission = () => {
                 )}
               </div>
 
-              {/* Grid Body Rows */}
-              {dynSlabs.map((slab, si) => {
+                            {dynSlabs.map((slab, si) => {
                 const isOverlap = overlapIndices.has(si);
                 return (
                   <React.Fragment key={slab.id || si}>
-                    {/* Range Cell */}
-                    <div className={`${styles.dmSlabRangeCell} ${isOverlap ? styles.dmOverlap : ''}`}>
+                                        <div className={`${styles.dmSlabRangeCell} ${isOverlap ? styles.dmOverlap : ''}`}>
                       <div className={styles.dmRangeInputs}>
                         <input
                           type="number"
@@ -585,8 +550,7 @@ const SetCommission = () => {
                       </button>
                     </div>
 
-                    {/* Slabs Value Cards (Compact Inline Design) */}
-                    {dynLevels.map(lvl => {
+                                        {dynLevels.map(lvl => {
                       const value = slab.slabs[lvl] || { general: 0, amountType: 'COM', valueType: 'PER' };
                       return (
                         <div
@@ -620,8 +584,7 @@ const SetCommission = () => {
                       );
                     })}
 
-                    {/* Action space placeholder */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
                   </React.Fragment>
                 );
               })}
@@ -638,8 +601,7 @@ const SetCommission = () => {
         )}
       </div>
 
-      {/* ── TABLE CARD (Live Database Report) ── */}
-      <div className={styles.card} style={{ marginTop: '30px' }}>
+            <div className={styles.card} style={{ marginTop: '30px' }}>
         <div className="global-table-toolbar">
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
@@ -693,8 +655,7 @@ const SetCommission = () => {
                     <div style={{ fontWeight: 600, color: '#0D1B3E' }}>{item.operatorName || item.operator}</div>
                     <div style={{ fontSize: '0.75rem', color: '#718096' }}>{item.startVal || item.startValue} - {item.endVal || item.endValue}</div>
                   </td>
-                  {/* Slab Surcharge (RoleID = 0) */}
-                  <td key="slabCharges">
+                                    <td key="slabCharges">
                     {(() => {
                       const lvlVal = item.levels?.find(l => l.roleId === 0);
                       if (lvlVal) {
@@ -710,8 +671,7 @@ const SetCommission = () => {
                       return <span style={{ color: '#CBD5E0' }}>-</span>;
                     })()}
                   </td>
-                  {/* Active Dynamic Roles */}
-                  {activeRoles.map(role => (
+                                    {activeRoles.map(role => (
                     <td key={role.id}>
                       {(() => {
                         const lvlVal = item.levels?.find(l => l.roleId === role.id);
@@ -758,8 +718,7 @@ const SetCommission = () => {
         </div>
       </div>
 
-      {/* CONFIRM MODAL */}
-      {confirmModal.isOpen && (
+            {confirmModal.isOpen && (
         <div className={styles.modalOverlay}>
           <div className={styles.confirmModal}>
             <h3 className={styles.modalTitle}>{confirmModal.title}</h3>

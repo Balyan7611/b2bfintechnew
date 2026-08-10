@@ -36,8 +36,7 @@ const ServiceQuickNav = () => {
   const activeItemRef = useRef(null);
   const [isVisible, setIsVisible] = useState(true);
 
-  // Auto-scroll to active service on mount or path change
-  useEffect(() => {
+    useEffect(() => {
     if (isVisible && activeItemRef.current && scrollRef.current) {
       activeItemRef.current.scrollIntoView({
         behavior: 'smooth',

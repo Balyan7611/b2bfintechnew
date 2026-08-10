@@ -11,9 +11,6 @@ import {
 } from 'react-icons/fa';
 import styles from './FundRequest.module.css';
 
-// Fallback only — the live list comes from CompanyBankDetail/GetCompanyBankDetail.
-// Kept so the cards aren't blank while the first fetch is in flight or if the
-// endpoint is unreachable.
 const COMPANY_BANKS = [
   { 
     id: 1, 
@@ -53,13 +50,10 @@ const COMPANY_BANKS = [
   }
 ];
 
-// ✅ Removed INITIAL_REQUESTS — now the list starts empty
-
 const formatCardNumber = (accNo) => {
   return accNo.replace(/(\d{4})/g, '$1 ').trim();
 };
 
-// Shows slip image if it loads; otherwise falls back to null so parent shows default summary.
 const SlipViewer = ({ slip, fallback }) => {
   const [imgFailed, setImgFailed] = React.useState(false);
 
@@ -91,13 +85,11 @@ const SlipViewer = ({ slip, fallback }) => {
 const FundRequest = () => {
   const isApiPanel = typeof window !== 'undefined' && window.location.pathname.startsWith('/api-panel');
 
-  // Live data
-  const [memberId, setMemberId] = useState(null);
+    const [memberId, setMemberId] = useState(null);
   const [companyBanks, setCompanyBanks] = useState(COMPANY_BANKS);
   const [isLoadingList, setIsLoadingList] = useState(false);
 
-  // Form states — selectedBank holds the CompanyBankDetail Id, not the name.
-  const [selectedBank, setSelectedBank] = useState('');
+    const [selectedBank, setSelectedBank] = useState('');
   const [amount, setAmount] = useState('');
   const [refNo, setRefNo] = useState('');
   const [payMode, setPayMode] = useState('');
@@ -105,42 +97,33 @@ const FundRequest = () => {
   const [remark, setRemark] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   
-  // List states – now starts with an empty array ✅
-  const [requests, setRequests] = useState([]);
+    const [requests, setRequests] = useState([]);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   
-  // Modal / Interaction states
-  const [activeQrBank, setActiveQrBank] = useState(null);
+    const [activeQrBank, setActiveQrBank] = useState(null);
   const [activeSlip, setActiveSlip] = useState(null);
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
   const [copiedText, setCopiedText] = useState('');
 
-  // Stores blob URLs for slips uploaded in this session, keyed by bankRefId (UTR).
-  // Lets us show the image immediately after submit without needing backend to return a URL.
-  const slipMapRef = useRef({});
+      const slipMapRef = useRef({});
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Maps a FundRequest row from the API into the shape this table renders.
-  // Resolves a raw cashslip value (filename, relative path, or full URL) into a usable URL.
-  const resolveSlipUrl = useCallback((raw) => {
+      const resolveSlipUrl = useCallback((raw) => {
     if (!raw) return null;
-    // Already a full URL
-    if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
-    // If it already contains the UploadedFiles path, prepend base only
-    if (raw.includes('UploadedFiles/')) {
+        if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+        if (raw.includes('UploadedFiles/')) {
       return `https://api.sahayatamoney.in/${raw.replace(/^\/+/, '')}`;
     }
-    // Plain filename — build with folder
-    return getImageUrl(raw, 'FundRequest');
+        return getImageUrl(raw, 'FundRequest');
   }, []);
 
   const toRow = useCallback((r, banks) => {
@@ -246,8 +229,7 @@ const FundRequest = () => {
 
     setLoading(true);
     try {
-      // POST /api/FundRequest/Create — status Pending, isApprove false.
-      const res = await API.fundRequest.create({
+            const res = await API.fundRequest.create({
         msrno,
         companyBankId: parseInt(selectedBank),
         amount: parseFloat(amount),
@@ -255,14 +237,12 @@ const FundRequest = () => {
         transactionId: `TXN_${refNo}`,
         paymentMode: payMode,
         remark: remark || 'Wallet loading',
-        // slipFile triggers multipart/form-data in the service layer
-        slipFile: selectedFile || undefined
+                slipFile: selectedFile || undefined
       });
 
       if (res && (res.status === true || res.code === 'TXN')) {
         showToast('Fund request submitted successfully!', 'success');
-        // Fallback: if backend doesn't return cashslip yet, store blob locally
-        if (selectedFile && !res?.data?.cashslip) {
+                if (selectedFile && !res?.data?.cashslip) {
           slipMapRef.current[refNo] = URL.createObjectURL(selectedFile);
         }
         setSelectedBank('');
@@ -297,8 +277,7 @@ const FundRequest = () => {
     return matchesSearch && matchesDates;
   });
 
-  // Pagination Logic
-  const totalPages = Math.ceil(filteredRequests.length / rowsPerPage);
+    const totalPages = Math.ceil(filteredRequests.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const currentData = filteredRequests.slice(startIndex, startIndex + rowsPerPage);
 
@@ -317,8 +296,7 @@ const FundRequest = () => {
         </div>
       )}
 
-      {/* SECTION 1: Submit New Request */}
-      <div className={`${styles.premiumSectionCard} ${styles.formCard}`}>
+            <div className={`${styles.premiumSectionCard} ${styles.formCard}`}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionTitleWrap}>
             <FaWallet className={styles.headerIcon} />
@@ -445,8 +423,7 @@ const FundRequest = () => {
         </form>
       </div>
 
-      {/* SECTION 2: Company Bank Cards */}
-      <div className={styles.premiumSectionCard}>
+            <div className={styles.premiumSectionCard}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionTitleWrap}>
             <FaUniversity className={styles.headerIcon} />
@@ -461,9 +438,7 @@ const FundRequest = () => {
           {companyBanks.map((bank, bankIdx) => (
             <div
               key={bank.id}
-              // Themes are defined for cardTheme1..4 — cycle so live banks
-              // beyond the fourth still get a colour instead of no class.
-              className={`${styles.bankCardItem} ${styles['cardTheme' + ((bankIdx % 4) + 1)]}`}
+                                          className={`${styles.bankCardItem} ${styles['cardTheme' + ((bankIdx % 4) + 1)]}`}
             >
               <div className={styles.cardHeader}>
                 <div className={styles.cardBankLogo}>{bank.logo}</div>
@@ -540,8 +515,7 @@ const FundRequest = () => {
         </div>
       </div>
 
-      {/* SECTION 3: Fund Request History */}
-      <div className={styles.tableCard}>
+            <div className={styles.tableCard}>
         <div className={styles.tableHeaderRow}>
           <h2 className={styles.sectionTitle}><FaFileInvoiceDollar /> Fund Request List</h2>
           
@@ -684,8 +658,7 @@ const FundRequest = () => {
         </div>
       </div>
 
-      {/* QR overlay popup */}
-      {activeQrBank && (
+            {activeQrBank && (
         <div className={styles.overlay} onClick={() => setActiveQrBank(null)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
@@ -715,8 +688,7 @@ const FundRequest = () => {
         </div>
       )}
 
-      {/* Slip viewer modal */}
-      {activeSlip && (
+            {activeSlip && (
         <div className={styles.overlay} onClick={() => setActiveSlip(null)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>

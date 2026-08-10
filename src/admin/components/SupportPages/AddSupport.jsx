@@ -118,18 +118,15 @@ const AddSupport = () => {
   return (
     <div className={styles.page}>
 
-      {/* ── TOAST ── */}
-      {toast && (
+            {toast && (
         <div className={`global-toast ${toast.type === 'error' ? 'global-toast-error' : 'global-toast-success'}`}>
           <FaCheck /> {toast.msg}
         </div>
       )}
 
-      {/* ── TABLE CARD ── */}
-      <div className={styles.card}>
+            <div className={styles.card}>
 
-        {/* Card Header */}
-        <div className={styles.cardHeader}>
+                <div className={styles.cardHeader}>
           <div className={styles.cardHeaderLeft}>
             <div className={styles.cardIconBox}>
               <FaHeadset />
@@ -147,8 +144,7 @@ const AddSupport = () => {
           </button>
         </div>
 
-        {/* Controls Row */}
-        <div className={styles.controls}>
+                <div className={styles.controls}>
           <div className={styles.rowsControl}>
             <span>Show</span>
             <select
@@ -177,8 +173,7 @@ const AddSupport = () => {
           </div>
         </div>
 
-        {/* Table */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -231,8 +226,7 @@ const AddSupport = () => {
           </table>
         </div>
 
-        {/* Pagination */}
-        <div className={styles.pagination}>
+                <div className={styles.pagination}>
           <span className={styles.pageInfo}>
             Showing {filtered.length === 0 ? 0 : (addSupportPage - 1) * addSupportRows + 1} to {Math.min(addSupportPage * addSupportRows, filtered.length)} of {filtered.length} entries
           </span>
@@ -256,8 +250,7 @@ const AddSupport = () => {
         </div>
       </div>
 
-      {/* ── STATUS CHANGE MODAL ── */}
-      {statusModal.open && (
+            {statusModal.open && (
         <div className={styles.modalOverlay} onClick={() => setStatusModal({ open: false, row: null })}>
           <div className={styles.modalContainer} style={{ maxWidth: '380px', padding: '24px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: statusModal.row.status === 'Active' ? '#FFF5F5' : '#F0FDF4', color: statusModal.row.status === 'Active' ? '#E53E3E' : '#27AE60', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', margin: '0 auto 16px' }}>
@@ -273,13 +266,11 @@ const AddSupport = () => {
         </div>
       )}
 
-      {/* ── MODAL ── */}
-      {isModalOpen && (
+            {isModalOpen && (
         <div className={styles.modalOverlay} onClick={resetForm}>
           <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
 
-            {/* Modal Header */}
-            <div className={styles.modalHeader}>
+                        <div className={styles.modalHeader}>
               <div className={styles.modalHeaderLeft}>
                 <div className={styles.modalIconBox}><FaHeadset /></div>
                 <div>
@@ -295,8 +286,7 @@ const AddSupport = () => {
             </div>
 
             <div className={styles.modalBody}>
-              {/* Support Name */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label className={styles.label}>Support Name <span className={styles.req}>*</span></label>
                 <input
                   type="text"
@@ -307,8 +297,7 @@ const AddSupport = () => {
                 />
               </div>
 
-              {/* Rich Text Editor */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label className={styles.label}>Description <span className={styles.req}>*</span></label>
                 <div className={styles.editorToolbar}>
                   <button className={styles.toolBtn} type="button" onClick={() => execCmd('bold')} title="Bold"><FaBold /></button>
@@ -351,8 +340,7 @@ const AddSupport = () => {
                 />
               </div>
 
-              {/* Footer */}
-              <div className={styles.formFooter}>
+                            <div className={styles.formFooter}>
                 <button className={styles.cancelFormBtn} onClick={resetForm}>
                   Cancel
                 </button>

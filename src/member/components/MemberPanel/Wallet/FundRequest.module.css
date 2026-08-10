@@ -1,4 +1,3 @@
-/* Premium Unified Retailer Fund Request CSS Module */
 
 .container {
   width: 100%;
@@ -12,7 +11,6 @@
   gap: 12px;
 }
 
-/* Toast Message styling */
 .toast {
   position: fixed;
   top: 24px;
@@ -32,7 +30,6 @@
   box-shadow: 0 10px 25px rgba(239, 68, 68, 0.25);
 }
 
-/* Header Area - Highly Compact & Sleek */
 .heroSection {
   background: linear-gradient(135deg, #1756AA 0%, #0d1b3e 100%);
   border-radius: 12px;
@@ -96,7 +93,6 @@
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
-/* Premium Section Cards */
 .premiumSectionCard {
   background: white;
   border-radius: 16px;
@@ -140,7 +136,6 @@
   font-weight: 600;
 }
 
-/* SPECIFIC FORM CARD DECORATIONS */
 .formCard {
   border: 1.5px solid #e2e8f0;
   background: #ffffff;
@@ -159,7 +154,6 @@
   pointer-events: none;
 }
 
-/* Form Styles */
 .compactForm {
   display: flex;
   flex-direction: column;
@@ -189,7 +183,6 @@
   letter-spacing: 0.8px;
 }
 
-/* Modern Input Wrappers with Icons */
 .inputWrapper {
   position: relative;
   display: flex;
@@ -226,7 +219,6 @@
   color: #1756AA;
 }
 
-/* Beautiful custom select, text and date inputs */
 .selectInput, .textInput, .dateInput, .textInputPrefix {
   width: 100%;
   height: 40px;
@@ -242,7 +234,6 @@
   box-sizing: border-box;
 }
 
-/* Custom Vector Arrow for Select Field */
 .selectInput {
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -265,7 +256,6 @@
   transform: translateY(-1px);
 }
 
-/* Slimmed Side-by-Side Upload Row Styling */
 .uploadSubmitRow {
   display: flex;
   gap: 12px;
@@ -345,7 +335,6 @@
   box-shadow: 0 6px 18px rgba(23, 86, 170, 0.25);
 }
 
-/* REAL ATM / CREDIT CARDS STYLING */
 .bankCardsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -368,7 +357,6 @@
   -webkit-backdrop-filter: blur(12px);
 }
 
-/* Gloss reflective card overlay */
 .bankCardItem::before {
   content: '';
   position: absolute;
@@ -386,9 +374,6 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
 }
 
-/* CARD ATM THEMES: LIGHT & PREMIUM COLOR SCHEMES */
-
-/* ICICI Card: Platinum Mist */
 .cardTheme1 {
   background: linear-gradient(135deg, rgba(248, 250, 252, 0.6) 0%, rgba(226, 232, 240, 0.5) 100%);
   color: #1e293b;
@@ -416,7 +401,6 @@
   background: #0f172a;
 }
 
-/* Equitas Card: Champagne Rose Gold */
 .cardTheme2 {
   background: linear-gradient(135deg, rgba(254, 243, 199, 0.65) 0%, rgba(253, 230, 138, 0.55) 100%);
   color: #78350f;
@@ -444,7 +428,6 @@
   background: #451a03;
 }
 
-/* PNB Card: Pearl Mint Green */
 .cardTheme3 {
   background: linear-gradient(135deg, rgba(220, 252, 231, 0.65) 0%, rgba(187, 247, 208, 0.55) 100%);
   color: #064e3b;
@@ -472,7 +455,6 @@
   background: #022c22;
 }
 
-/* SBI Card: Lavendar Pearl */
 .cardTheme4 {
   background: linear-gradient(135deg, rgba(243, 232, 255, 0.65) 0%, rgba(233, 213, 255, 0.55) 100%);
   color: #581c87;
@@ -500,7 +482,6 @@
   background: #3b0764;
 }
 
-/* ATM Card Header Layout */
 .cardHeader {
   display: flex;
   align-items: center;
@@ -546,7 +527,6 @@
   opacity: 0.6;
 }
 
-/* Real EMV Card Smart Chip Design */
 .emvChip {
   width: 42px;
   height: 30px;
@@ -588,7 +568,6 @@
   background: transparent;
 }
 
-/* ATM Card Body Layout */
 .cardBody {
   display: flex;
   flex-direction: column;
@@ -703,7 +682,6 @@
   box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Reports Table & List Card */
 .tableCard {
   background: white;
   border-radius: 16px;
@@ -783,7 +761,6 @@
   opacity: 0.9;
 }
 
-/* Toolbar Controls */
 .toolbarControls {
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -843,7 +820,6 @@
   border-color: #1756AA;
 }
 
-/* Premium Table matching AePS layout */
 .tableWrapper {
   width: 100%;
   overflow-x: auto;
@@ -948,7 +924,6 @@
   color: #dc2626;
 }
 
-/* Pagination Section */
 .paginationSection {
   display: flex;
   justify-content: space-between;
@@ -999,7 +974,6 @@
   border-color: #1756AA !important;
 }
 
-/* Modal Overlay & Card Popups */
 .overlay {
   position: fixed;
   inset: 0;
@@ -1056,7 +1030,6 @@
   font-size: 0.8rem;
 }
 
-/* QR Scanner modal body */
 .qrModalBody {
   display: flex;
   flex-direction: column;
@@ -1156,7 +1129,6 @@
   line-height: 1.4;
 }
 
-/* Slip Modal details */
 .slipModalBody {
   display: flex;
   flex-direction: column;
@@ -1216,7 +1188,6 @@
   border-radius: 8px;
 }
 
-/* Spinner */
 .spinner {
   width: 20px;
   height: 20px;
@@ -1226,7 +1197,6 @@
   animation: spin 0.8s linear infinite;
 }
 
-/* Keyframes */
 @keyframes qrSweep {
   0% { top: 0%; opacity: 0; }
   10% { opacity: 1; }
@@ -1254,7 +1224,6 @@
   to { opacity: 1; }
 }
 
-/* RESPONSIVE LAYOUT OVERRIDES */
 @media (max-width: 1200px) {
   .compactFormGrid {
     grid-template-columns: 1fr 1fr;
@@ -1318,7 +1287,6 @@
   }
 }
 
-/* Compact Table View to prevent horizontal scroll where possible */
 .compactTableContainer th {
   padding: 8px 6px !important;
   font-size: 0.68rem !important;

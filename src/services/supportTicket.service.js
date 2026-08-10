@@ -40,8 +40,7 @@ export const SupportTicketService = {
     },
 
     create: async (formData) => {
-        // Get token explicitly and inject into postForm
-        const raw = sessionStorage.getItem('access_token')
+                const raw = sessionStorage.getItem('access_token')
             || localStorage.getItem('access_token')
             || sessionStorage.getItem('admin_token')
             || localStorage.getItem('admin_token')

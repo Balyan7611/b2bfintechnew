@@ -18,8 +18,7 @@ import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, backLabel = 'to Dashboard', setHasUnsavedChanges }) => {
   const dispatch = useDispatch();
 
-  // ── STATE DECLARATIONS ──
-  const [resetLocationModal, setResetLocationModal] = useState(false);
+    const [resetLocationModal, setResetLocationModal] = useState(false);
   const [resetLocationLoading, setResetLocationLoading] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(initialEdit);
   const [showTpinModal, setShowTpinModal] = useState(false);
@@ -27,8 +26,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
   const [adminTpin, setAdminTpin] = useState(['', '', '', '']);
   const [adminTpinError, setAdminTpinError] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [transactionStatus, setTransactionStatus] = useState(null); // { type: 'success'|'error', message: '' }
-  const [pendingProfilePayload, setPendingProfilePayload] = useState(null);
+  const [transactionStatus, setTransactionStatus] = useState(null);   const [pendingProfilePayload, setPendingProfilePayload] = useState(null);
   const adminTpinRefs = useRef([]);
   const [profileForm, setProfileForm] = useState({
     name: '', mobile: '', shop: '', aadhar: '', pan: '',
@@ -86,13 +84,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
     fetchGenders();
   }, []);
 
-  // State dropdown - was previously hardcoded to just 5 states, and stateId
-  // was guessed from the name via a hardcoded ternary chain (Delhi=2,
-  // Rajasthan=3, Haryana=4, Maharashtra=5, else 1) that had nothing to do
-  // with the real State IDs from the backend. Now pulled live from
-  // GET /State so every real state shows up and the id sent to the server
-  // is the actual one, not a guess.
-  const [stateOptions, setStateOptions] = useState([]);
+              const [stateOptions, setStateOptions] = useState([]);
 
   useEffect(() => {
     const fetchStates = async () => {
@@ -108,21 +100,18 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
     fetchStates();
   }, []);
 
-  // Look up the real backend id for a state selected by name in the dropdown
-  const getStateIdByName = (stateName) => {
+    const getStateIdByName = (stateName) => {
     const match = stateOptions.find(s => s.name === stateName);
     return match ? match.id : undefined;
   };
 
-  const [activeActionType, setActiveActionType] = useState(null); // null | 'addFund' | 'deductFund' | 'addAeps' | 'deductAeps' | 'creditLimit' | 'holdAmt'
-  const [actionAmount, setActionAmount] = useState('');
+  const [activeActionType, setActiveActionType] = useState(null);   const [actionAmount, setActionAmount] = useState('');
   const [pendingTransaction, setPendingTransaction] = useState(null);
   const [pendingStatusToggle, setPendingStatusToggle] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otpVal, setOtpVal] = useState('');
   const [otpTimer, setOtpTimer] = useState(0);
-  const [limitMode, setLimitMode] = useState('Credit'); // 'Credit' | 'Debit'
-  const [validationError, setValidationError] = useState(null);
+  const [limitMode, setLimitMode] = useState('Credit');   const [validationError, setValidationError] = useState(null);
 
   const [mainWalletBal, setMainWalletBal] = useState(0);
   const [aepsWalletBal, setAepsWalletBal] = useState(0);
@@ -134,8 +123,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
     }
   }, [activeMemberData]);
 
-  // ── OTP SECURE COUNTDOWN TIMER EFFECT ──
-  useEffect(() => {
+    useEffect(() => {
     let interval = null;
     if (otpTimer > 0) {
       interval = setInterval(() => {
@@ -149,8 +137,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
     };
   }, [otpTimer]);
 
-  // ── TRANSACTION SUBMIT HANDLER ──
-  const handleMemberActionSubmit = (e) => {
+    const handleMemberActionSubmit = (e) => {
     e.preventDefault();
     if (!activeActionType || !actionAmount || isNaN(actionAmount) || parseFloat(actionAmount) <= 0) return;
     
@@ -209,8 +196,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
     });
   };
 
-  // ── CONFIRM TRANSACTION DISPATCH ──
-  const confirmPendingTransaction = async () => {
+    const confirmPendingTransaction = async () => {
     if (!pendingTransaction) return;
 
     const isFundTransfer = ['addFund', 'deductFund', 'addAeps', 'deductAeps'].includes(pendingTransaction.type);
@@ -227,8 +213,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
         };
         await API.userWalletBalance.transfer(payload);
         
-        // Locally update state so that balance card updates immediately
-        if (pendingTransaction.updates.mainWallet !== undefined) {
+                if (pendingTransaction.updates.mainWallet !== undefined) {
           setMainWalletBal(pendingTransaction.updates.mainWallet);
         }
         if (pendingTransaction.updates.aepsWallet !== undefined) {
@@ -253,8 +238,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
     setLimitMode('Credit');
   };
 
-  // ── EDIT PROFILE SAVE HANDLER ──
-  const handleProfileFormSubmit = async (e) => {
+    const handleProfileFormSubmit = async (e) => {
     e.preventDefault();
     
     const payload = {
@@ -263,8 +247,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
       packageId: parseInt(activeMemberData.packageId) || 2,
       parentId: parseInt(activeMemberData.parentId) || 1,
       name: profileForm.name,
-      email: profileForm.shop, // email is bound here
-      mobile: profileForm.mobile,
+      email: profileForm.shop,       mobile: profileForm.mobile,
       alterNativeMobileNumber: profileForm.altMobile,
       genderId: profileForm.gender === 'Female' ? 2 : profileForm.gender === 'Other' ? 3 : 1,
       dob: profileForm.dob ? profileForm.dob.split('T')[0] : "",
@@ -298,8 +281,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
     setShowTpinModal(true);
   };
 
-  // Set Unsaved Changes
-  useEffect(() => {
+    useEffect(() => {
     if (setHasUnsavedChanges) {
       setHasUnsavedChanges(isEditingProfile);
     }
@@ -347,8 +329,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
     }
   };
 
-  // ── BLOCK / UNBLOCK MEMBER TENTATIVE ──
-  const handleToggleMemberStatus = () => {
+    const handleToggleMemberStatus = () => {
     setPendingStatusToggle(true);
   };
 
@@ -367,8 +348,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
 
   return (
     <div className={styles.memberControlPage}>
-      {/* Top Navigation Row */}
-      <div className={styles.memberControlTopBar}>
+            <div className={styles.memberControlTopBar}>
         <button 
           className={styles.pageBackBtn}
           onClick={() => {
@@ -394,19 +374,16 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
       </div>
 
       {isEditingProfile ? (
-        /* ── FULL PROFILE EDITING PAGE ── */
-        <form onSubmit={handleProfileFormSubmit} className={styles.editProfileFormPage}>
+                <form onSubmit={handleProfileFormSubmit} className={styles.editProfileFormPage}>
           
-          {/* Section 1: Personal Details */}
-          <div className={styles.formSection}>
+                    <div className={styles.formSection}>
             <div className={styles.formSectionHeader}>
               <span className={styles.roleBadge}>Role: {profileForm.role}</span>
               <h3 className={styles.formSectionTitle}>Personal Details</h3>
             </div>
             
             <div className={styles.formGrid}>
-              {/* Title Select */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>Title</label>
                 <select 
                   value={profileForm.title} 
@@ -419,8 +396,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 </select>
               </div>
 
-              {/* Name */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>Name</label>
                 <input 
                   type="text" 
@@ -431,8 +407,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* PackageID */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>PackageID</label>
                 <input 
                   type="text" 
@@ -443,8 +418,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* Email */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>Email</label>
                 <input 
                   type="email" 
@@ -455,8 +429,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* Mobile */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>Mobile</label>
                 <input 
                   type="text" 
@@ -467,8 +440,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* Alternative Mobile */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>Alternative Mobile</label>
                 <input 
                   type="text" 
@@ -478,8 +450,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* Aadhar Number */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>Aadhar Number</label>
                 <input 
                   type="text" 
@@ -489,8 +460,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* Pan Number */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>Pan Number</label>
                 <input 
                   type="text" 
@@ -500,8 +470,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* Gender Radio */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>Gender</label>
                 <div className={styles.radioGroup}>
                   {genderOptions.map(g => (
@@ -519,8 +488,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 </div>
               </div>
 
-              {/* Address */}
-              <div className={`${styles.formGroup} ${styles.fullWidthRow}`}>
+                            <div className={`${styles.formGroup} ${styles.fullWidthRow}`}>
                 <label>Address</label>
                 <input 
                   type="text" 
@@ -530,8 +498,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* State Dropdown - live from GET /State */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>State</label>
                 <select
                   value={profileForm.state}
@@ -547,8 +514,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 </select>
               </div>
 
-              {/* City */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>City</label>
                 <input 
                   type="text" 
@@ -558,8 +524,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* Pin Code */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>Pin Code</label>
                 <input 
                   type="text" 
@@ -569,8 +534,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* Post Office Dropdown */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>Post Office</label>
                 <select 
                   value={profileForm.postOffice} 
@@ -583,8 +547,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 </select>
               </div>
 
-              {/* DOB */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>DOB</label>
                 <input 
                   type="date" 
@@ -594,8 +557,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* Active Status Checkbox */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>Active Status</label>
                 <div className={styles.checkboxWrapper}>
                   <input 
@@ -610,15 +572,13 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
             </div>
           </div>
 
-          {/* Section 2: Business Details */}
-          <div className={styles.formSection} style={{ marginTop: '24px' }}>
+                    <div className={styles.formSection} style={{ marginTop: '24px' }}>
             <div className={styles.formSectionHeader}>
               <h3 className={styles.formSectionTitle}>Business Details</h3>
             </div>
             
             <div className={styles.formGrid}>
-              {/* Business Name */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>Business Name</label>
                 <input 
                   type="text" 
@@ -628,8 +588,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* Business Address */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>Business Address</label>
                 <input 
                   type="text" 
@@ -639,8 +598,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* City */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>City</label>
                 <input 
                   type="text" 
@@ -650,8 +608,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* State Dropdown - live from GET /State */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>State</label>
                 <select
                   value={profileForm.businessState}
@@ -667,8 +624,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 </select>
               </div>
 
-              {/* Pin Code */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>PinCode</label>
                 <input 
                   type="text" 
@@ -678,8 +634,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 />
               </div>
 
-              {/* Post Office Dropdown */}
-              <div className={styles.formGroup}>
+                            <div className={styles.formGroup}>
                 <label>Post Office</label>
                 <select 
                   value={profileForm.businessPostOffice} 
@@ -694,8 +649,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
             </div>
           </div>
 
-          {/* Form Action Buttons */}
-          <div className={styles.editPageActions}>
+                    <div className={styles.editPageActions}>
             <button 
               type="button" 
               onClick={() => {
@@ -727,8 +681,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
 
         </form>
       ) : activeActionType ? (
-        /* ── FULL PAGE FUND & WALLET MANAGEMENT ── */
-        <form onSubmit={handleMemberActionSubmit} className={styles.fundManagementPage}>
+                <form onSubmit={handleMemberActionSubmit} className={styles.fundManagementPage}>
           <div className={styles.fundPageHeader}>
             <h3 className={styles.fundPageTitle}>
               {activeActionType === 'addFund' && '💰 Add Wallet Fund'}
@@ -745,8 +698,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
 
           <div className={styles.fundSplitGrid}>
             
-            {/* Left Column: Balances Overview Panel */}
-            <div className={styles.fundBalancesPanel}>
+                        <div className={styles.fundBalancesPanel}>
               <h4 className={styles.panelSubtitle}>Account Balance Overview</h4>
               <div className={styles.miniBalCardGrid}>
                 <div className={`${styles.miniBalCard} ${styles.miniBalMain}`}>
@@ -776,8 +728,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
               </div>
             </div>
 
-            {/* Right Column: Transaction Input Controls */}
-            <div className={styles.fundInputsPanel}>
+                        <div className={styles.fundInputsPanel}>
               <h4 className={styles.panelSubtitle}>Enter Transaction Parameters</h4>
               
               <div className={styles.fundFormGroup}>
@@ -797,8 +748,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 </div>
               </div>
 
-              {/* Payment Options (Only for Add/Deduct Fund) */}
-              {(activeActionType === 'addFund' || activeActionType === 'deductFund') && (
+                            {(activeActionType === 'addFund' || activeActionType === 'deductFund') && (
                 <div className={styles.fundInputRow}>
                   <div className={styles.fundFormGroup} style={{ flex: 1 }}>
                     <label className={styles.fundInputLabel}>Transaction Category</label>
@@ -821,8 +771,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 </div>
               )}
 
-              {/* OTP Secure Verification Fields */}
-              {activeActionType && (
+                            {activeActionType && (
                 <>
                   <div className={styles.fundFormGroup}>
                     <label className={styles.fundInputLabel}>Registered Email ID</label>
@@ -869,8 +818,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 </>
               )}
 
-              {/* Credit Limit Specific Select Mode Option */}
-              {activeActionType === 'creditLimit' && (
+                            {activeActionType === 'creditLimit' && (
                 <div className={styles.fundFormGroup}>
                   <label className={styles.fundInputLabel}>Select Mode <span style={{ color: '#E53E3E' }}>*</span></label>
                   <select 
@@ -898,8 +846,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
 
           </div>
 
-          {/* Action Buttons Row */}
-          <div className={styles.fundActionsRow}>
+                    <div className={styles.fundActionsRow}>
             <button 
               type="button" 
               onClick={() => {
@@ -933,8 +880,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
         </form>
       ) : (
         <>
-          {/* Profile Header Block */}
-          <div className={styles.memberModalProfileHeader}>
+                    <div className={styles.memberModalProfileHeader}>
             <div className={styles.memberAvatarCircle}>
               {activeMemberData.name ? activeMemberData.name.charAt(0).toUpperCase() : '👤'}
             </div>
@@ -971,12 +917,9 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
             </div>
           </div>
 
-          {/* Modal Split Content Body Container */}
-          <div className={styles.memberModalBody}>
-            {/* LEFT COLUMN: Balances & Technical Specifications */}
-            <div className={styles.modalLeftColumn}>
-              {/* Balances Grid */}
-              <div className={styles.memberModalBalancesRow}>
+                    <div className={styles.memberModalBody}>
+                        <div className={styles.modalLeftColumn}>
+                            <div className={styles.memberModalBalancesRow}>
                 <div className={`${styles.memberBalCard} ${styles.balCardMain}`}>
                   <div className={styles.balCardHeader}>
                     <span className={styles.balCardLabel}>Main Wallet</span>
@@ -1006,11 +949,9 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
                 </div>
               </div>
 
-
             </div>
 
-            {/* RIGHT COLUMN: Quick Account Actions Panel */}
-            <div className={styles.modalRightColumn}>
+                        <div className={styles.modalRightColumn}>
               <h3 className={styles.modalSectionTitle}>Quick Account Operations</h3>
               
               <QuickActionGrid
@@ -1089,8 +1030,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
         </>
       )}
 
-      {/* Wallet Action Confirmation Dialog Modal */}
-      {pendingTransaction && (
+            {pendingTransaction && (
         <div className={styles.fundConfirmModalOverlay} onClick={() => setPendingTransaction(null)}>
           <div className={styles.fundConfirmModalCard} onClick={e => e.stopPropagation()}>
             <div className={styles.confirmModalIconCircle} style={{
@@ -1154,8 +1094,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
         </div>
       )}
 
-      {/* Account Status Toggle Confirmation Dialog Modal */}
-      {pendingStatusToggle && (
+            {pendingStatusToggle && (
         <div className={styles.fundConfirmModalOverlay} onClick={() => setPendingStatusToggle(false)}>
           <div className={styles.fundConfirmModalCard} onClick={e => e.stopPropagation()}>
             <div className={styles.confirmModalIconCircle} style={{
@@ -1202,8 +1141,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
         </div>
       )}
 
-      {/* Dynamic Validation Error Alert Modal */}
-      {validationError && (
+            {validationError && (
         <div className={styles.errorModalOverlay} onClick={() => setValidationError(null)}>
           <div className={styles.errorModalCard} onClick={e => e.stopPropagation()}>
             <div className={styles.errorModalIconCircle}>
@@ -1224,8 +1162,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
         </div>
       )}
 
-      {/* TPIN Modal */}
-      {showTpinModal && (
+            {showTpinModal && (
         <div className={styles.errorModalOverlay} onClick={() => setShowTpinModal(false)}>
           <div className={styles.errorModalCard} onClick={e => e.stopPropagation()} style={{ padding: '30px' }}>
             <div className={styles.errorModalIconCircle} style={{ background: '#EBF3FC', color: '#1756AA' }}>
@@ -1289,8 +1226,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
         </div>
       )}
 
-      {/* SUCCESS MESSAGE OVERLAY (Profile Update) */}
-      {showSuccessModal && (
+            {showSuccessModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.successModalCard}>
             <div className={styles.successIconCircle}>
@@ -1302,8 +1238,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
         </div>
       )}
 
-      {/* TRANSACTION STATUS MODAL */}
-      {transactionStatus && (
+            {transactionStatus && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(13, 27, 62, 0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '340px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', animation: 'slideUp 0.3s ease' }}>
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: transactionStatus.type === 'success' ? '#ECFDF5' : '#FFF5F5', color: transactionStatus.type === 'success' ? '#10B981' : '#E53E3E', fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -1325,8 +1260,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
         </div>
       )}
 
-      {/* UNSAVED CHANGES MODAL */}
-      {showUnsavedModal && (
+            {showUnsavedModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(13, 27, 62, 0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '340px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', animation: 'slideUp 0.3s ease' }}>
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#FFF5F5', color: '#E53E3E', fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -1341,14 +1275,12 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
           </div>
         </div>
       )}
-      {/* ── Reset Location History Confirmation Modal ── */}
-      {resetLocationModal && (
+            {resetLocationModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(13,27,62,0.45)', backdropFilter: 'blur(4px)', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={() => !resetLocationLoading && setResetLocationModal(false)}>
           <div style={{ background: '#fff', borderRadius: 16, padding: 28, width: '90%', maxWidth: 380, textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}
             onClick={e => e.stopPropagation()}>
-            {/* Icon */}
-            <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#FEF3C7', color: '#D97706', fontSize: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                        <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#FEF3C7', color: '#D97706', fontSize: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <FiMapPin />
             </div>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0D1B3E', margin: '0 0 10px' }}>Reset Location History?</h3>
@@ -1386,4 +1318,3 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
 };
 
 export default MemberControlPage;
-

@@ -15,8 +15,7 @@ const CountUp = ({ end, duration = 2000, suffix = '', prefix = '', decimals = 0 
     const step = (timestamp) => {
       if (!startTimestamp) startTimestamp = timestamp;
       const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      const easeProgress = 1 - Math.pow(1 - progress, 3); // cubic ease-out
-      setCount(easeProgress * end);
+      const easeProgress = 1 - Math.pow(1 - progress, 3);       setCount(easeProgress * end);
       if (progress < 1) {
         animationFrame = window.requestAnimationFrame(step);
       }
@@ -51,8 +50,7 @@ const Hero = () => {
 
   return (
     <section className={styles.hero}>
-      {/* Animated Blob Background */}
-      <div className={styles.bgGradient}>
+            <div className={styles.bgGradient}>
         <div className={styles.bgGrid}></div>
       </div>
 
@@ -60,24 +58,20 @@ const Hero = () => {
         <div className="container">
           <div className={styles.heroSplit}>
 
-            {/* ── LEFT COLUMN ── */}
-            <div className={styles.heroLeft}>
+                        <div className={styles.heroLeft}>
 
-              {/* Headline */}
-              <h1 className={styles.heroTitle}>
+                            <h1 className={styles.heroTitle}>
                 Smarter, Faster<br />
                 &amp; Safer{' '}
                 <span className={styles.heroGradientText}>Banking<br />For Businesses</span>
               </h1>
 
-              {/* Short punchy tagline only */}
-              <p className={styles.heroTagline}>
+                            <p className={styles.heroTagline}>
                 One platform for Recharge, DTH, Bill Payments,<br />
                 UPI Payouts &amp; Financial Services.
               </p>
 
-              {/* CTAs */}
-              <div className={styles.buttonGroup}>
+                            <div className={styles.buttonGroup}>
                 <Link
                   to="/register"
                   className={styles.primaryBtn}
@@ -94,8 +88,7 @@ const Hero = () => {
                 </button>
               </div>
 
-              {/* Stats row */}
-              <div className={styles.statsRow}>
+                            <div className={styles.statsRow}>
                 {dynamicConfig.liveStats?.map((stat, idx) => (
                   <React.Fragment key={idx}>
                     <div className={styles.statItem}>
@@ -109,20 +102,15 @@ const Hero = () => {
                 ))}
               </div>
 
-            </div>{/* /heroLeft */}
+            </div>
+                        <div className={styles.heroRight}>
 
-            {/* ── RIGHT COLUMN ── */}
-            <div className={styles.heroRight}>
+                            <div className={styles.phonePair}>
 
-              {/* Phone pair */}
-              <div className={styles.phonePair}>
-
-                {/* Back Phone — Live Payouts */}
-                <div className={`${styles.phoneFrame} ${styles.phoneBack}`}>
+                                <div className={`${styles.phoneFrame} ${styles.phoneBack}`}>
                   <div className={styles.phoneNotch}></div>
                   <div className={styles.phoneScreen}>
-                    {/* Status Bar */}
-                    <div className={styles.statusBar}>
+                                        <div className={styles.statusBar}>
                       <span className={styles.statusTime}>{currentTime}</span>
                       <div className={styles.statusIcons}>
                         <FaSignal className={`${styles.statusIcon} ${styles.signalAnim}`} />
@@ -166,13 +154,11 @@ const Hero = () => {
                   </div>
                 </div>
 
-                {/* Front Phone — Dashboard */}
-                <div className={`${styles.phoneFrame} ${styles.phoneFront}`}>
+                                <div className={`${styles.phoneFrame} ${styles.phoneFront}`}>
                   <div className={styles.phoneNotch}></div>
                   <div className={styles.phoneScreen}>
 
-                    {/* Status Bar */}
-                    <div className={styles.statusBar}>
+                                        <div className={styles.statusBar}>
                       <span className={styles.statusTime}>{currentTime}</span>
                       <div className={styles.statusIcons}>
                         <FaSignal className={`${styles.statusIcon} ${styles.signalAnim}`} />
@@ -191,8 +177,7 @@ const Hero = () => {
                       </div>
                     </div>
 
-                    {/* Wallet Card */}
-                    <div className={styles.walletCard}>
+                                        <div className={styles.walletCard}>
                       <div className={styles.walletTop}>
                         <span className={styles.walletLabel}>BUSINESS WALLET</span>
                         <div className={styles.walletChip}></div>
@@ -207,8 +192,7 @@ const Hero = () => {
                       </div>
                     </div>
 
-                    {/* Our Services */}
-                    <div className={styles.servicesHeader}>
+                                        <div className={styles.servicesHeader}>
                       <span>Our Services</span>
                       <span className={styles.seeAll}>View All</span>
                     </div>
@@ -232,8 +216,7 @@ const Hero = () => {
                       ))}
                     </div>
 
-                    {/* DMT Services */}
-                    <div className={styles.servicesHeader} style={{ marginTop: '8px' }}>
+                                        <div className={styles.servicesHeader} style={{ marginTop: '8px' }}>
                       <span>DMT Services</span>
                     </div>
                     <div className={styles.servicesGrid}>
@@ -252,8 +235,7 @@ const Hero = () => {
                       ))}
                     </div>
 
-                    {/* Recent payout */}
-                    <div className={styles.recentRow} style={{ marginTop: '10px' }}>
+                                        <div className={styles.recentRow} style={{ marginTop: '10px' }}>
                       <div className={styles.recentIcon}>✔</div>
                       <span className={styles.recentName}>Payout → SBI</span>
                       <span className={styles.recentAmt}>+₹45,000</span>
@@ -263,11 +245,8 @@ const Hero = () => {
                   </div>
                 </div>
 
-              </div>{/* /phonePair */}
-            </div>{/* /heroRight */}
-
-          </div>{/* /heroSplit */}
-        </div>
+              </div>            </div>
+          </div>        </div>
       </div>
     </section>
   );

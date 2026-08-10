@@ -4,7 +4,6 @@ import { getSession } from '../../../../utils/authUtils';
 
 const SIZES = ['A4', 'A5', '80mm', '58mm'];
 
-// Pixel widths at 96dpi
 const SIZE_PX = { A4: 794, A5: 559, '80mm': 304, '58mm': 220 };
 
 const sizeConfig = {
@@ -88,8 +87,7 @@ function ReceiptBody({ data, cfg }) {
   if (isThermal) {
     return (
       <div style={{ fontFamily: '"DM Sans",sans-serif', color: '#0F172A' }}>
-        {/* Header Logo */}
-        <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: cfg.sepMar }}>
+                <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: cfg.sepMar }}>
           <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block', margin: 0 }} />
         </div>
 
@@ -211,11 +209,9 @@ function ReceiptBody({ data, cfg }) {
     );
   }
 
-  // --- A4/A5 Masterpiece Payment Confirmation design ---
-  return (
+    return (
     <div style={{ fontFamily: '"DM Sans",sans-serif', color: '#0F172A', padding: '10px 0' }}>
-      {/* Top Banner Row: Logo Left, Success Pill Right */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block', margin: 0 }} />
         <div style={{
           display: 'flex',
@@ -244,8 +240,7 @@ function ReceiptBody({ data, cfg }) {
         </div>
       </div>
 
-      {/* Main Grid Table exactly matching the user request */}
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 25, fontSize: fs }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 25, fontSize: fs }}>
         <tbody>
           <tr>
             <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC', width: '20%' }}>Merchant:</td>
@@ -296,15 +291,13 @@ function ReceiptBody({ data, cfg }) {
         </tbody>
       </table>
 
-      {/* Transaction Summary header */}
-      <div style={{ textAlign: 'center', marginBottom: 15 }}>
+            <div style={{ textAlign: 'center', marginBottom: 15 }}>
         <span style={{ fontSize: fs + 1.5, fontWeight: '800', color: '#1756AA', textTransform: 'uppercase', letterSpacing: '1px' }}>
           Transaction Summary
         </span>
       </div>
 
-      {/* Table grid for Chunks */}
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20, fontSize: fs }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20, fontSize: fs }}>
         <thead>
           <tr>
             <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left' }}>TID</th>
@@ -342,8 +335,7 @@ function ReceiptBody({ data, cfg }) {
         </tbody>
       </table>
 
-      {/* Footer System Gen Alert */}
-      <div style={{ textAlign: 'center', marginTop: 25 }}>
+            <div style={{ textAlign: 'center', marginTop: 25 }}>
         <p style={{ color: '#64748B', fontSize: fs - 2, fontWeight: '500', margin: 0, letterSpacing: '0.2px' }}>
           This is a system generated receipt, so no seal or signature is required. All rights reserved @2026.
         </p>
@@ -361,7 +353,6 @@ function ReceiptBody({ data, cfg }) {
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
 export default function TransactionReceipt({ data, onClose }) {
   const [size, setSize] = useState('A4');
   const previewWrapRef = useRef(null);
@@ -371,8 +362,7 @@ export default function TransactionReceipt({ data, onClose }) {
   const cfg = sizeConfig[size];
   const receiptPxWidth = SIZE_PX[size];
 
-  // Normalize raw API response OR already-mapped data
-  const mappedData = data ? {
+    const mappedData = data ? {
     ...data,
     date: data.date || (data.createdDate ? new Date(data.createdDate).toLocaleString('en-IN') : data.txnDate || data.transactionDate || 'N/A'),
     status: data.status || 'PENDING',
@@ -402,14 +392,12 @@ export default function TransactionReceipt({ data, onClose }) {
       const scaleH = wrapH / receiptH;
       setScale(Math.min(scaleW, scaleH, 1));
     };
-    // Allow receipt to render first
-    const timer = setTimeout(compute, 50);
+        const timer = setTimeout(compute, 50);
     window.addEventListener('resize', compute);
     return () => { clearTimeout(timer); window.removeEventListener('resize', compute); };
   }, [size, receiptPxWidth]);
 
-  // ── Print ──────────────────────────────────────────────────────────────────
-  const printReceipt = () => {
+    const printReceipt = () => {
     const pw = window.open('', '_blank', 'width=900,height=700');
     const isTh = !cfg.twoCol;
     const fs = cfg.fontSize;
@@ -674,8 +662,7 @@ export default function TransactionReceipt({ data, onClose }) {
         overflow: 'hidden',
       }} onClick={e => e.stopPropagation()}>
 
-        {/* Top bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 24px', borderBottom: '1px solid #F1F5F9', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 24px', borderBottom: '1px solid #F1F5F9', flexShrink: 0 }}>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: '"DM Sans",sans-serif', fontSize: '1rem', fontWeight: 700, color: '#0D1B3E' }}>Transaction Receipt</div>
             <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: 2, fontFamily: '"DM Sans",sans-serif' }}>Select size & print</div>
@@ -700,8 +687,7 @@ export default function TransactionReceipt({ data, onClose }) {
           }}>✕</button>
         </div>
 
-        {/* Scaled preview — zero scrollbars */}
-        <div ref={previewWrapRef} style={{
+                <div ref={previewWrapRef} style={{
           flex: 1, background: '#EAEEF4',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: 24, overflow: 'hidden',
@@ -728,8 +714,7 @@ export default function TransactionReceipt({ data, onClose }) {
           </div>
         </div>
 
-        {/* Action bar */}
-        <div style={{ display: 'flex', gap: 10, padding: '16px 24px', borderTop: '1px solid #F1F5F9', background: '#fff', flexShrink: 0 }}>
+                <div style={{ display: 'flex', gap: 10, padding: '16px 24px', borderTop: '1px solid #F1F5F9', background: '#fff', flexShrink: 0 }}>
           <button onClick={printReceipt} style={{
             flex: 1, padding: 13, borderRadius: 10,
             background: '#0D1B3E', color: '#fff', border: 'none',

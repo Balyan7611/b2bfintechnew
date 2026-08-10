@@ -1,4 +1,3 @@
-/* Attendance.module.css */
 
 .attendanceContainer {
     padding: 20px;
@@ -8,7 +7,6 @@
     min-height: 100vh;
 }
 
-/* ─── Banner ─────────────────────────────────────────────── */
 .banner {
     background: linear-gradient(135deg, #0F2554 0%, #1A3A7A 50%, #1E4DB7 100%);
     border-radius: 16px;
@@ -146,7 +144,6 @@
     background: #FFB300;
 }
 
-/* ─── Main Table ──────────────────────────────────────────── */
 .attendanceTableWrapper {
     background: #fff;
     border-radius: 16px;
@@ -210,7 +207,6 @@
     height: 42px;
 }
 
-/* ─── Icon Buttons ────────────────────────────────────────── */
 .iconBtn {
     width: 42px;
     height: 42px;
@@ -238,7 +234,6 @@
     border-color: #0F2554;
 }
 
-/* ─── Table ───────────────────────────────────────────────── */
 .tableWrapper {
     overflow-x: auto;
 }
@@ -320,7 +315,6 @@
     color: #f44336;
 }
 
-/* ─── Summary Row ──────────────────────────────────────── */
 .summaryRow {
     display: flex;
     gap: 24px;
@@ -339,7 +333,6 @@
     gap: 4px;
 }
 
-/* ─── Status Badge ──────────────────────────────────────── */
 .statusBadge {
     display: inline-flex;
     align-items: center;
@@ -371,7 +364,6 @@
     color: #0d47a1;
 }
 
-/* ─── History Section ──────────────────────────────────── */
 .historySection {
     background: #fff;
     border-radius: 16px;
@@ -491,7 +483,6 @@
     border-bottom: 1px solid #f0f4f8;
 }
 
-/* ─── Modal ────────────────────────────────────────────── */
 .modalOverlay {
     position: fixed;
     top: 0;
@@ -609,7 +600,6 @@
     }
 }
 
-/* ─── Responsive tweaks ────────────────────────────────── */
 @media (max-width: 768px) {
     .bannerContent {
         flex-direction: column;

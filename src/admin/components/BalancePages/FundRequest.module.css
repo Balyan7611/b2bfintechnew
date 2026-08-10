@@ -63,7 +63,6 @@
   transform: translateY(-2px);
 }
 
-/* ── FILTERS GRID ── */
 .filterGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -124,7 +123,6 @@
   box-shadow: 0 6px 18px rgba(23,86,170,0.3);
 }
 
-/* ── TABLE CONTROLS ── */
 .topControls {
   display: flex;
   align-items: center;
@@ -183,7 +181,6 @@
 .searchBox:focus-within { border-color: #1756AA; background: #fff; box-shadow: 0 0 0 4px rgba(23, 86, 170, 0.1); }
 .searchInput { border: none; outline: none; font-size: 0.9rem; width: 200px; background: transparent; font-weight: 500; }
 
-/* ── TABLE ── */
 .tableWrapper { width: 100%; overflow-x: auto; border-radius: 12px; border: 1px solid #EDF2F7; }
 .table { width: 100%; border-collapse: collapse; white-space: nowrap; }
 .table th {
@@ -206,7 +203,6 @@
 .fwBold { font-weight: 700; color: #0D1B3E; }
 .amountText { font-weight: 800; color: #1756AA; font-size: 1rem; }
 
-/* ── STATUS BADGES ── */
 .badge {
   padding: 4px 12px;
   border-radius: 6px;
@@ -221,7 +217,6 @@
 .approved { background: rgba(39, 174, 96, 0.1); color: #27AE60; }
 .rejected { background: rgba(231, 76, 60, 0.1); color: #E74C3C; }
 
-/* ── ACTION BTNS & LINKS ── */
 .actionBtns {
   display: flex;
   gap: 8px;
@@ -284,7 +279,6 @@
   color: #fff;
 }
 
-/* ── PAGINATION ── */
 .paginationRow { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 16px; }
 .pageInfo { font-size: 0.85rem; color: #4E6080; font-weight: 500; }
 .pagination { display: flex; gap: 6px; }
@@ -302,7 +296,6 @@
   .paginationRow { flex-direction: column; text-align: center; }
 }
 
-/* ── MODAL ── */
 .modalOverlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(13, 27, 62, 0.6); backdrop-filter: blur(4px);
@@ -351,7 +344,6 @@
 @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUpModal { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-/* Slip Modal details */
 .slipOverlay {
   position: fixed;
   inset: 0;

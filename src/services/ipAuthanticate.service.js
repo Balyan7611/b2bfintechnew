@@ -42,4 +42,3 @@ export const IpAuthanticateService = {
     return await apiService.post('/IpAuthanticate/VerifyAndWhitelistIp', data);
   }
 };
-

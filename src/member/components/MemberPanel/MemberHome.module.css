@@ -1,6 +1,5 @@
 .container {
-  padding: 10px 2px 16px 2px; /* Super reduced side padding to decrease gap further */
-  display: flex;
+  padding: 10px 2px 16px 2px;   display: flex;
   flex-direction: column;
   gap: 20px;
   background: var(--color-background);
@@ -9,14 +8,10 @@
 
 .dashboardGrid {
   display: grid;
-  grid-template-columns: 2fr 3fr; /* Changed from 40% 60% to fix gap overflow */
-  gap: 16px; 
+  grid-template-columns: 2fr 3fr;   gap: 16px; 
   width: 100%;
 }
 
-/* =========================================================
-   SERVICES CARD CONTAINER
-   ========================================================= */
 .servicesCard {
   background: var(--color-surface);
   border-radius: 24px;
@@ -26,8 +21,7 @@
   display: flex;
   flex-direction: column;
   height: 630px;
-  width: 100%; /* Ensure full width */
-}
+  width: 100%; }
 
 .cardHeaderArea {
   display: flex;
@@ -59,12 +53,10 @@
   padding-right: 12px;
 }
 
-/* Custom Scrollbar */
 .servicesList::-webkit-scrollbar { width: 5px; }
 .servicesList::-webkit-scrollbar-track { background: var(--color-background); border-radius: 10px; }
 .servicesList::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 10px; }
 
-/* SERVICE ROW */
 .serviceRow {
   padding: 16px 0;
   border-bottom: 1px solid var(--color-border);
@@ -157,7 +149,6 @@
   color: var(--color-text-primary);
 }
 
-/* PERFORMANCE CARD */
 .performanceCard {
   background: var(--color-surface);
   border-radius: 24px;
@@ -167,8 +158,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  width: 100%; /* Ensure full width */
-}
+  width: 100%; }
 
 .performanceHeader {
   display: flex;
@@ -352,8 +342,7 @@
   }
 
   .chartControlsWrapper {
-    display: contents; /* Allow children to be placed in header grid */
-  }
+    display: contents;   }
 
   .chartTabs {
     grid-area: tabs;
@@ -366,8 +355,7 @@
   }
 
   .performanceTitle {
-    font-size: 0.95rem; /* Reduced size */
-    gap: 8px;
+    font-size: 0.95rem;     gap: 8px;
   }
 
   .performanceTitle svg {
@@ -455,7 +443,6 @@
 }
 
 .insightText { display: flex; flex-direction: column; gap: 2px; }
-/* ANALYTICS SECTION (Bar & Donut) */
 .analyticsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -485,7 +472,6 @@
   align-items: flex-end;
 }
 
-/* TOP SERVICES DONUT CHART CARD STYLES */
 .headerDropdowns {
   display: flex;
   gap: 10px;
@@ -564,8 +550,7 @@
 .donutCenterValue {
   font-size: 1.1rem;
   font-weight: 850;
-  color: #F472B6; /* Pink color matching image */
-  margin-bottom: 2px;
+  color: #F472B6;   margin-bottom: 2px;
 }
 
 .donutCenterLabel {
@@ -727,7 +712,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* RESPONSIVE MEDIA QUERIES */
 @media (max-width: 1200px) {
   .dashboardGrid { grid-template-columns: 1fr; }
   .analyticsGrid { grid-template-columns: 1fr; }
@@ -736,13 +720,11 @@
 }
 
 @media (max-width: 768px) {
-  .container { padding: 12px 6px; gap: 12px; } /* Slight padding for a better look */
-  .dashboardGrid { gap: 12px; }
+  .container { padding: 12px 6px; gap: 12px; }   .dashboardGrid { gap: 12px; }
   .servicesCard { padding: 16px; border-radius: 12px; width: 100%; }
   .performanceCard { padding: 16px; border-radius: 12px; width: 100%; }
   .transactionSection { padding: 16px; border-radius: 12px; width: 100%; margin-top: 5px; }
-  .performanceGrid { grid-template-columns: repeat(2, 1fr); gap: 10px; } /* 2 per row on mobile */
-  .insightCard { padding: 12px 10px; gap: 8px; }
+  .performanceGrid { grid-template-columns: repeat(2, 1fr); gap: 10px; }   .insightCard { padding: 12px 10px; gap: 8px; }
   .insightValue { font-size: 1rem; }
   .insightLabel { font-size: 0.6rem; }
   .insightIconWrap { width: 34px; height: 34px; font-size: 1rem; border-radius: 10px; }

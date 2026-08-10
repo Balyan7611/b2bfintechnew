@@ -9,33 +9,24 @@
 
 @media (max-width: 768px) {
   .card {
-    padding: 16px 12px; /* Internal padding */
-    border-radius: 14px; /* Rounded corners back */
-    border: 1px solid var(--color-border); /* Side borders back */
-    box-shadow: var(--shadow-card);
+    padding: 16px 12px;     border-radius: 14px;     border: 1px solid var(--color-border);     box-shadow: var(--shadow-card);
     margin-bottom: 12px;
   }
   .titleRow {
-    flex-direction: row; /* Horizontal row on mobile */
-    align-items: center;
+    flex-direction: row;     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    padding: 0 16px; /* Text doesn't touch edges */
-    flex-wrap: nowrap !important; /* Force single row */
-  }
+    padding: 0 16px;     flex-wrap: nowrap !important;   }
   .titleLeft {
-    flex: 1; /* Push right action to opposite side */
-    min-width: 0;
+    flex: 1;     min-width: 0;
   }
   .titleRight {
-    width: auto; /* Allow button to stay on same line */
-  }
+    width: auto;   }
   .premiumTitle {
     font-size: 1.1rem !important;
   }
 }
 
-/* Title Row */
 .titleRow {
   display: flex;
   justify-content: space-between;
@@ -89,7 +80,6 @@
   margin-bottom: 24px;
 }
 
-/* Controls Row */
 .controlsRow {
   display: flex;
   justify-content: space-between;
@@ -106,9 +96,7 @@
 
 @media (max-width: 768px) {
   .controlsRow {
-    padding: 12px 16px; /* Text doesn't touch edges */
-    margin: 0 8px 24px; /* Slight card effect for controls on mobile */
-    gap: 10px;
+    padding: 12px 16px;     margin: 0 8px 24px;     gap: 10px;
     justify-content: center;
     border-radius: 12px;
   }
@@ -207,7 +195,6 @@
   font-size: 1.1rem;
 }
 
-/* Table */
 .tableWrapper {
   width: 100%;
   overflow-x: auto;
@@ -261,7 +248,6 @@
   background: rgba(23, 86, 170, 0.05);
 }
 
-/* Empty State */
 .emptyState {
   padding: 40px 0;
   display: flex;
@@ -296,7 +282,6 @@
   margin: 0;
 }
 
-/* Pagination */
 .paginationRow {
   display: flex;
   justify-content: space-between;
@@ -308,8 +293,7 @@
 
 @media (max-width: 768px) {
   .paginationRow {
-    padding: 0 16px; /* Text doesn't touch edges */
-    justify-content: center;
+    padding: 0 16px;     justify-content: center;
     text-align: center;
   }
 }

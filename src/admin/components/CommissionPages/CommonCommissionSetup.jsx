@@ -26,13 +26,11 @@ const CommonCommissionSetup = () => {
   const dropdownRef = React.useRef(null);
   const [services, setServices] = useState([]);
 
-  // Load services from API
-  useEffect(() => {
+    useEffect(() => {
     const loadServices = async () => {
       try {
         const res = await API.service.getAll();
-        // Normalize — API may return array directly or wrapped in data/items
-        const raw = Array.isArray(res) ? res
+                const raw = Array.isArray(res) ? res
           : Array.isArray(res?.data) ? res.data
           : Array.isArray(res?.data?.items) ? res.data.items
           : Array.isArray(res?.items) ? res.items
@@ -48,10 +46,7 @@ const CommonCommissionSetup = () => {
     loadServices();
   }, []);
 
-  // Commission data will be fetched from API based on selected service
-
-  // CLOSE DROPDOWN ON CLICK OUTSIDE
-  useEffect(() => {
+    useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
@@ -71,8 +66,7 @@ const CommonCommissionSetup = () => {
   return (
     <div className={styles.container}>
       
-      {/* TABLE CARD WITH INLINE FILTERS */}
-      <AdminTable
+            <AdminTable
         title="Common Commission Setup"
         subtitle="View and manage operator-wise commission slabs"
         rightAction={

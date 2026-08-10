@@ -2,8 +2,7 @@ import React from 'react';
 import WalletReportTable from './WalletReportTable';
 
 const MainWallet = () => {
-  // Sample data can be fetched or passed here
-  const sampleData = []; 
+    const sampleData = []; 
 
   return (
     <WalletReportTable 

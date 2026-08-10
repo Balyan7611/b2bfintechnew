@@ -1,16 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 
-// Lightweight searchable dropdown — uses a fixed-position portal so the menu
-// always renders on top of any parent with overflow:hidden or z-index stacking.
-//
-// Props:
-//   options      - [{ value, label, meta }]
-//   value        - currently selected `value`
-//   onChange     - (value, option) => void
-//   placeholder  - text shown when nothing is selected
-//   disabled     - blocks interaction
-//   required     - native form validation
 const SearchableSelect = ({
     options = [],
     value = '',
@@ -27,8 +17,7 @@ const SearchableSelect = ({
 
     const selected = options.find(o => String(o.value) === String(value));
 
-    // Calculate fixed position based on trigger rect
-    const calcMenuStyle = useCallback(() => {
+        const calcMenuStyle = useCallback(() => {
         if (!wrapRef.current) return;
         const rect = wrapRef.current.getBoundingClientRect();
         const spaceBelow = window.innerHeight - rect.bottom;
@@ -57,8 +46,7 @@ const SearchableSelect = ({
         setOpen(o => !o);
     };
 
-    // Close on outside click
-    useEffect(() => {
+        useEffect(() => {
         const handler = (e) => {
             if (
                 wrapRef.current && !wrapRef.current.contains(e.target) &&
@@ -72,8 +60,7 @@ const SearchableSelect = ({
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
-    // Recalc on scroll/resize so menu tracks the trigger
-    useEffect(() => {
+        useEffect(() => {
         if (!open) return;
         const update = () => calcMenuStyle();
         window.addEventListener('scroll', update, true);

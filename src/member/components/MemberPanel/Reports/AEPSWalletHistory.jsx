@@ -26,8 +26,7 @@ const AEPSWalletHistory = () => {
   const { list, filters, searchQuery, rowsPerPage, currentPage } =
     useSelector(state => state.report.aepsWalletReport);
 
-  // ── Load member dropdown (always) ──
-  useEffect(() => {
+    useEffect(() => {
     API.member.getAll({ pageNumber: 1, pageSize: 5000 })
       .then(res => {
         const items = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
@@ -43,8 +42,7 @@ const AEPSWalletHistory = () => {
       .catch(err => console.warn('AEPSWallet: member list failed', err));
   }, []);
 
-  // ── Load AEPS wallet ledger ──
-  const loadHistory = useCallback(async (overrideFilters) => {
+    const loadHistory = useCallback(async (overrideFilters) => {
     setIsLoading(true);
     setApiError('');
     const f = overrideFilters || filters;
@@ -81,8 +79,7 @@ const AEPSWalletHistory = () => {
       }
 
       dispatch(setAEPSWalletList(items.map(r => {
-        // Normalize factor: API sends CR/DR or isCredit bool
-        const rawFactor = r.factor || (r.isCredit ? 'CR' : 'DR');
+                const rawFactor = r.factor || (r.isCredit ? 'CR' : 'DR');
         const factor = String(rawFactor).toUpperCase().includes('CR') ? 'CR' : 'DR';
         return {
           ...r,
@@ -109,12 +106,9 @@ const AEPSWalletHistory = () => {
     } finally {
       setIsLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, filters]);
+    }, [dispatch, filters]);
 
-  // Initial load
-  useEffect(() => { loadHistory(); }, []); // eslint-disable-line
-
+    useEffect(() => { loadHistory(); }, []); 
   const lower = v => String(v ?? '').toLowerCase();
   const filteredList = list.filter(item =>
     lower(item.name).includes(lower(searchQuery)) ||
@@ -132,8 +126,7 @@ const AEPSWalletHistory = () => {
             <form onSubmit={e => { e.preventDefault(); loadHistory(filters); }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
 
-                {/* From Date */}
-                <div className={styles.formGroup}>
+                                <div className={styles.formGroup}>
                   <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>From Date</label>
                   <input
                     type="date"
@@ -146,8 +139,7 @@ const AEPSWalletHistory = () => {
                   />
                 </div>
 
-                {/* To Date */}
-                <div className={styles.formGroup}>
+                                <div className={styles.formGroup}>
                   <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>To Date</label>
                   <input
                     type="date"
@@ -160,8 +152,7 @@ const AEPSWalletHistory = () => {
                   />
                 </div>
 
-                {/* Member */}
-                <div className={styles.formGroup}>
+                                <div className={styles.formGroup}>
                   <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>Member</label>
                   <SearchableSelect
                     options={memberOptions}
@@ -171,8 +162,7 @@ const AEPSWalletHistory = () => {
                   />
                 </div>
 
-                {/* Search Button */}
-                <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'flex-end' }}>
+                                <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'flex-end' }}>
                   <button
                     type="submit"
                     disabled={isLoading}

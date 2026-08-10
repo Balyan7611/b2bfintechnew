@@ -7,7 +7,6 @@
   color: var(--color-text-primary);
 }
 
-/* Dropdown */
 .dropdownWrap { position: relative; }
 
 .trigger {
@@ -55,7 +54,6 @@
 }
 .chevronUp { transform: rotate(-180deg); }
 
-/* Menu */
 .menu {
   position: absolute;
   top: calc(100% + 6px);
@@ -104,7 +102,6 @@
 }
 .checkIcon { color: #27AE60; font-size: 0.85rem; }
 
-/* Next Button */
 .nextBtn {
   width: 100%;
   padding: 14px;

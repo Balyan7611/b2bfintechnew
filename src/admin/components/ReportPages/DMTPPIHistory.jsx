@@ -10,19 +10,15 @@ import {
 import styles from '../MemberPages/MemberPages.module.css';
 import TransactionReceipt from '../../../member/components/MemberPanel/Services/TransactionReceipt';
 
-// Fixed service ID for DMT PPI – adjust as needed
-const DMT_PPI_SERVICE_ID = '16'; // Example ID, change to actual
-
+const DMT_PPI_SERVICE_ID = '16'; 
 const DMTPPIHistory = () => {
-    // ─── State ──────────────────────────────────────────────
-    const [transactions, setTransactions] = useState([]);
+        const [transactions, setTransactions] = useState([]);
     const [totalRecords, setTotalRecords] = useState(0);
     const [pageNumber, setPageNumber] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [loading, setLoading] = useState(false);
 
-    // Filters
-    const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(today);
     const [toDate, setToDate] = useState(today);
     const [selectedMember, setSelectedMember] = useState('');
@@ -30,14 +26,12 @@ const DMTPPIHistory = () => {
     const [txnMode, setTxnMode] = useState('');
     const [searchKeyword, setSearchKeyword] = useState('');
 
-    // Member list for dropdown
-    const [memberList, setMemberList] = useState([]);
+        const [memberList, setMemberList] = useState([]);
     const [showStats, setShowStats] = useState(false);
     const [activeReceipt, setActiveReceipt] = useState(null);
     const [focusedField, setFocusedField] = useState(null);
 
-    // ─── Stats Computation ──────────────────────────────────
-    const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
+        const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
     const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
     const failedCount = transactions.filter(t => t.status?.toLowerCase() === 'failed').length;
 
@@ -69,8 +63,7 @@ const DMTPPIHistory = () => {
         netPayable,
     };
 
-    // ─── API Calls ──────────────────────────────────────────
-    const fetchTransactions = async () => {
+        const fetchTransactions = async () => {
         setLoading(true);
         try {
             const res = await API.transaction.getAll({
@@ -78,13 +71,11 @@ const DMTPPIHistory = () => {
                 pageSize,
                 fromDate,
                 toDate,
-                sectionType: '7',    // DMT
-                serviceId: DMT_PPI_SERVICE_ID,
+                sectionType: '7',                    serviceId: DMT_PPI_SERVICE_ID,
                 memberId: selectedMember,
                 status: selectedStatus,
                 search: searchKeyword,
-                // additional filters like txnMode if needed
-            });
+                            });
 
                   const { items: _txns, totalItems: _total, totalSuccess: _succ, totalPending: _pend, totalFailed: _fail } = normalizeTxnResponse(res);
       setTransactions(_txns);
@@ -98,8 +89,7 @@ const DMTPPIHistory = () => {
         }
     };
 
-    // ─── Effects ────────────────────────────────────────────
-    useEffect(() => {
+        useEffect(() => {
         fetchTransactions();
     }, [pageNumber, pageSize, selectedStatus, selectedMember, fromDate, toDate, searchKeyword]);
 
@@ -115,18 +105,15 @@ const DMTPPIHistory = () => {
         fetchMembers();
     }, []);
 
-    // ─── Handlers ────────────────────────────────────────────
-    const handleSearchSubmit = (e) => {
+        const handleSearchSubmit = (e) => {
         e.preventDefault();
         setPageNumber(1);
         fetchTransactions();
     };
 
-    // ─── Render ──────────────────────────────────────────────
-    return (
+        return (
         <div className={styles.container} style={{ padding: '20px' }}>
-            {/* ── Dynamic Keyframes ── */}
-            <style>{`
+                        <style>{`
                 @keyframes successGlow {
                     0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4); }
                     70% { box-shadow: 0 0 0 8px rgba(39, 174, 96, 0); }
@@ -144,8 +131,7 @@ const DMTPPIHistory = () => {
                 }
             `}</style>
 
-            {/* ── FILTER CARD ── */}
-            <div style={{
+                        <div style={{
                 background: '#ffffff',
                 borderRadius: '20px',
                 boxShadow: '0 8px 24px rgba(23, 86, 170, 0.02), 0 1px 4px rgba(0, 0, 0, 0.01)',
@@ -156,8 +142,7 @@ const DMTPPIHistory = () => {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px', flexWrap: 'wrap', marginBottom: '16px' }}>
                     <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0F172A' }}>DMT PPI History</h3>
                     <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-                        {/* Toggle Stats Button */}
-                        <button
+                                                <button
                             type="button"
                             onClick={() => setShowStats(!showStats)}
                             style={{
@@ -211,8 +196,7 @@ const DMTPPIHistory = () => {
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Txn Mode</label>
                             <select value={txnMode} onChange={(e) => setTxnMode(e.target.value)} className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'mode' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'mode' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} onFocus={() => setFocusedField('mode')} onBlur={() => setFocusedField(null)}>
                                 <option value="">All Modes</option>
-                                {/* Add options as needed */}
-                            </select>
+                                                            </select>
                         </div>
                         <div className={styles.formGroup}>
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Status</label>
@@ -241,8 +225,7 @@ const DMTPPIHistory = () => {
                 </form>
             </div>
 
-            {/* ── STATS GRID ── */}
-            <StatsGrid stats={stats} showStats={showStats} />
+                        <StatsGrid stats={stats} showStats={showStats} />
 
             {/* ── DATA TABLE ── */}
             <div className={styles.cardFullMobile} style={{ padding: 0, marginBottom: '100px' }}>

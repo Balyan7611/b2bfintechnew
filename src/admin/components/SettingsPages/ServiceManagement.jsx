@@ -8,7 +8,6 @@ import ExportButtons from '../../../shared/components/common/ExportButtons';
 import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import styles from '../MemberPages/MemberPages.module.css';
 
-/* ─── input style helper ─── */
 const iStyle = {
   borderRadius: '10px', padding: '10px 14px',
   border: '1px solid #E2E8F0', background: '#F8FAFC',
@@ -29,8 +28,7 @@ const INIT_FORM = {
 
 const ServiceManagement = () => {
   const [localServices, setLocalServices]   = useState([]);
-  const [sectionTypes, setSectionTypes]     = useState([]);  // from API
-  const [isLoading, setIsLoading]           = useState(true);
+  const [sectionTypes, setSectionTypes]     = useState([]);    const [isLoading, setIsLoading]           = useState(true);
   const [errorMsg, setErrorMsg]             = useState('');
   const [successMsg, setSuccessMsg]         = useState('');
   const [searchQuery, setSearchQuery]       = useState('');
@@ -42,12 +40,10 @@ const ServiceManagement = () => {
   const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, service: null });
   const [toggleConfirmModal, setToggleConfirmModal] = useState({ isOpen: false, type: '', service: null });
   
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // Close action dropdown on outside click and scroll
-  React.useEffect(() => {
+    React.useEffect(() => {
     const handleOutsideClick = (e) => {
       if (!e.target.closest('.action-dropdown-wrapper')) {
         setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, service: null } : prev);
@@ -57,26 +53,22 @@ const ServiceManagement = () => {
       setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, service: null } : prev);
     };
     document.addEventListener('mousedown', handleOutsideClick);
-    window.addEventListener('scroll', handleScroll, true); // true for capturing scroll on any container
-    return () => {
+    window.addEventListener('scroll', handleScroll, true);     return () => {
       document.removeEventListener('mousedown', handleOutsideClick);
       window.removeEventListener('scroll', handleScroll, true);
     };
   }, []);
 
-  /* ── toast helper ── */
-  const toast = (msg, isError = false) => {
+    const toast = (msg, isError = false) => {
     setSuccessMsg(msg);
     setTimeout(() => setSuccessMsg(''), 3000);
     if (isError) setErrorMsg(msg); else setErrorMsg('');
   };
 
-  /* ── 1. Load SectionTypes ── */
-  const fetchSectionTypes = async () => {
+    const fetchSectionTypes = async () => {
     try {
       const res = await API.sectionType.getAll(true);
-      console.log('SectionType API response:', res); // debug
-      if (res && res.status === true && Array.isArray(res.data)) {
+      console.log('SectionType API response:', res);       if (res && res.status === true && Array.isArray(res.data)) {
         setSectionTypes(res.data);
       } else {
         console.warn('SectionType empty or error:', res);
@@ -86,8 +78,7 @@ const ServiceManagement = () => {
     }
   };
 
-  /* ── 2. Load Services ── */
-  const fetchServices = async () => {
+    const fetchServices = async () => {
     setIsLoading(true);
     try {
       const res = await API.service.getAll();
@@ -114,35 +105,29 @@ const ServiceManagement = () => {
   useEffect(() => {
     fetchSectionTypes();
     fetchServices();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
-
-  /* ── 3. Toggle isActive ── */
-  const handleToggleActive = async (service) => {
+    const handleToggleActive = async (service) => {
     const newVal = !service.isActive;
-    // Optimistic update UI immediately
-    setLocalServices(prev => prev.map(s =>
+        setLocalServices(prev => prev.map(s =>
       s.id === service.id ? { ...s, isActive: newVal } : s
     ));
     try {
-      // Pass full service object — service layer builds correct FormData
-      const res = await API.service.toggleActive({ ...service, isActive: newVal });
+            const res = await API.service.toggleActive({ ...service, isActive: newVal });
       if (res && (res.status === true || res.code === 'TXN')) {
         toast(res.mess || `"${service.name}" ${newVal ? 'Activated' : 'Deactivated'}`);
       } else {
         throw new Error(res?.mess || 'Toggle failed');
       }
     } catch (err) {
-      // Revert on error
-      setLocalServices(prev => prev.map(s =>
+            setLocalServices(prev => prev.map(s =>
         s.id === service.id ? { ...s, isActive: !newVal } : s
       ));
       toast(err.message || 'Failed to update status', true);
     }
   };
 
-  /* ── 4. Toggle onoff ── */
-  const handleToggleOnOff = async (service) => {
+    const handleToggleOnOff = async (service) => {
     const newVal = !service.onoff;
     setLocalServices(prev => prev.map(s =>
       s.id === service.id ? { ...s, onoff: newVal } : s
@@ -162,21 +147,18 @@ const ServiceManagement = () => {
     }
   };
 
-  /* ── 5. Open Add Modal ── */
-  const handleAddClick = () => {
+    const handleAddClick = () => {
     setFormData(INIT_FORM);
     setIsModalOpen(true);
   };
 
-  /* ── 6. Open Edit Modal ── */
-  const handleEdit = (service) => {
+    const handleEdit = (service) => {
     setFormData({
       id:        service.id,
       name:      service.name      || '',
       url:       service.url       || '',
       price:     service.price     || '0',
-      image:     null,  // file input reset
-      icon:      service.icon      || '',
+      image:     null,        icon:      service.icon      || '',
       sectionType: String(service.sectionType || ''),
       apiid:     String(service.apiid || ''),
       isActive:  service.isActive  ?? true,
@@ -195,8 +177,7 @@ const ServiceManagement = () => {
     setIsModalOpen(true);
   };
 
-  /* ── 7. Input changes ── */
-  const handleInputChange = (e) => {
+    const handleInputChange = (e) => {
     const { name, value, type, checked, files } = e.target;
     if (type === 'file') {
       setFormData(prev => ({ ...prev, [name]: files[0] || null }));
@@ -207,14 +188,12 @@ const ServiceManagement = () => {
     }
   };
 
-  /* ── 8. Save (Create / Update) ── */
-  const handleSave = async (e) => {
+    const handleSave = async (e) => {
     e.preventDefault();
 
     setFormSaving(true);
     try {
-      // Pass formData object directly — service layer handles FormData building
-      let res;
+            let res;
       if (formData.id) {
         res = await API.service.update(formData, formData.image || null);
       } else {
@@ -236,8 +215,7 @@ const ServiceManagement = () => {
     }
   };
 
-  /* ── 9. Delete ── */
-  const handleDelete = async () => {
+    const handleDelete = async () => {
     const { id, name } = showConfirmModal;
     setShowConfirmModal({ isOpen: false, id: null, name: '' });
     try {
@@ -246,19 +224,16 @@ const ServiceManagement = () => {
         setLocalServices(prev => prev.filter(s => s.id !== id));
         toast(`Service "${name}" deleted`);
       } else {
-        // fallback: remove locally
-        setLocalServices(prev => prev.filter(s => s.id !== id));
+                setLocalServices(prev => prev.filter(s => s.id !== id));
         toast(`Service "${name}" removed`);
       }
     } catch {
-      // Even if API fails, remove locally
-      setLocalServices(prev => prev.filter(s => s.id !== id));
+            setLocalServices(prev => prev.filter(s => s.id !== id));
       toast(`Service "${name}" removed`);
     }
   };
 
-  /* ── 10. Filtered list & Pagination ── */
-  const filtered = localServices.filter(s =>
+    const filtered = localServices.filter(s =>
     s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     String(s.sectionType || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -274,8 +249,7 @@ const ServiceManagement = () => {
     setCurrentPage(1);
   }, [searchQuery, rowsPerPage]);
 
-  /* ── Helper: sectionType name from id ── */
-  const getSectionName = (id) => {
+    const getSectionName = (id) => {
     const st = sectionTypes.find(s => s.id === Number(id));
     return st ? st.name : (id || '—');
   };
@@ -283,8 +257,7 @@ const ServiceManagement = () => {
   return (
     <div className={styles.container} style={{ padding: '5px 2px 60px 2px', maxWidth: '100%' }}>
 
-      {/* ── Toast ── */}
-      {successMsg && (
+            {successMsg && (
         <div style={{
           position: 'fixed', top: '20px', right: '20px', zIndex: 9999,
           background: errorMsg ? '#E53E3E' : '#10B981', color: '#fff',
@@ -295,11 +268,9 @@ const ServiceManagement = () => {
         </div>
       )}
 
-      {/* ── MAIN CARD ── */}
-      <div className={styles.cardFullMobile} style={{ margin: '8px 8px 60px 8px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', background: '#fff', borderRadius: '16px' }}>
+            <div className={styles.cardFullMobile} style={{ margin: '8px 8px 60px 8px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', background: '#fff', borderRadius: '16px' }}>
 
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '10px' }}>
           <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>Service Management</h3>
           <PrimaryButton onClick={handleAddClick}>
             <FiPlus size={16} /> Add New Service
@@ -312,8 +283,7 @@ const ServiceManagement = () => {
           </div>
         )}
 
-        {/* TOOLBAR */}
-        <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.selectEntries} value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ border: '1px solid #E2E8F0', borderRadius: '8px', padding: '4px 8px', outline: 'none', cursor: 'pointer', fontWeight: 600, color: '#334155' }}>
@@ -344,8 +314,7 @@ const ServiceManagement = () => {
           </div>
         </div>
 
-        {/* Table */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ width: '100%' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg,#0D1B5E,#1a2f8a)' }}>
@@ -374,12 +343,10 @@ const ServiceManagement = () => {
                 </tr>
               ) : currentData.map((service, idx) => (
                 <tr key={service.id} className={styles.hoverRow}>
-                  {/* S.NO */}
-                  <td style={{ textAlign: 'center', fontWeight: 700, color: '#A0AEC0' }}>
+                                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#A0AEC0' }}>
                     {startIndex + idx + 1}
                   </td>
-                  {/* Actions Column */}
-                  <td style={{ textAlign: 'center' }}>
+                                    <td style={{ textAlign: 'center' }}>
                     <div className="action-dropdown-wrapper" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                       <button
                         className="action-dropdown-wrapper"
@@ -408,21 +375,18 @@ const ServiceManagement = () => {
                       </button>
                     </div>
                   </td>
-                  {/* Name */}
-                  <td style={{ fontWeight: 600, color: '#334155' }}>
+                                    <td style={{ fontWeight: 600, color: '#334155' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: '120px' }}>
                       <span>{service.name}</span>
                       {service.isNew && <span style={{ fontSize: '0.62rem', background: '#FEF3C7', color: '#D97706', padding: '1px 5px', borderRadius: '8px', fontWeight: 700, width: 'fit-content' }}>NEW</span>}
                     </div>
                   </td>
-                  {/* Section */}
-                  <td style={{ minWidth: '120px' }}>
+                                    <td style={{ minWidth: '120px' }}>
                     <span style={{ background: '#EEF2FF', border: '1px solid #C7D2FE', padding: '4px 10px', borderRadius: '20px', fontWeight: 700, color: '#4338CA', fontSize: '0.72rem', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
                       {getSectionName(service.sectionType)}
                     </span>
                   </td>
-                  {/* URL */}
-                  <td style={{ width: '220px', maxWidth: '220px' }}>
+                                    <td style={{ width: '220px', maxWidth: '220px' }}>
                     <div style={{ color: '#4E6080', fontSize: '0.68rem', wordBreak: 'break-all', overflowWrap: 'break-word', whiteSpace: 'normal', lineHeight: '1.4', width: '100%', maxWidth: '220px' }}>
                       {service.url ? (
                         <a href={service.url} target="_blank" rel="noopener noreferrer" style={{ color: '#2563EB', textDecoration: 'none' }}>
@@ -433,10 +397,8 @@ const ServiceManagement = () => {
                       )}
                     </div>
                   </td>
-                  {/* Price */}
-                  <td style={{ fontWeight: 700, color: '#059669', fontSize: '0.9rem' }}>₹{service.price}</td>
-                  {/* Image */}
-                  <td style={{ textAlign: 'center' }}>
+                                    <td style={{ fontWeight: 700, color: '#059669', fontSize: '0.9rem' }}>₹{service.price}</td>
+                                    <td style={{ textAlign: 'center' }}>
                     {service.image ? (
                       <img 
                         src={`https://api.sahayatamoney.in/UploadedFiles/services/${service.image}`} 
@@ -452,16 +414,14 @@ const ServiceManagement = () => {
                       ><FiImage size={16} /></button>
                     )}
                   </td>
-                  {/* Order */}
-                  <td style={{ textAlign: 'center', fontWeight: 700, color: '#64748B' }}>{service.position}</td>
+                                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#64748B' }}>{service.position}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        {/* PAGINATION */}
-        <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9' }}>
+                <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9' }}>
           <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
             Showing {filtered.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, filtered.length)} of {filtered.length} entries
           </span>
@@ -490,8 +450,7 @@ const ServiceManagement = () => {
         </div>
       </div>
 
-      {/* ── ACTION DROPDOWN PORTAL (fixed position, never clipped) ── */}
-      {activeActionRow.id && (
+            {activeActionRow.id && (
         <>
           <style>{`
             @keyframes dropdownFadeInSide {
@@ -554,8 +513,7 @@ const ServiceManagement = () => {
         </>
       )}
 
-      {/* ═══════════════ CONFIRM TOGGLE ═══════════════ */}
-      {toggleConfirmModal.isOpen && (
+            {toggleConfirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3600 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
@@ -581,15 +539,11 @@ const ServiceManagement = () => {
           </div>
       )}
 
-      {/* ═══════════════════════════════════════
-          ADD / EDIT MODAL DRAWER
-      ═══════════════════════════════════════ */}
-      {isModalOpen && (
+            {isModalOpen && (
         <div className={styles.drawerOverlay} onClick={() => setIsModalOpen(false)}>
           <div className={styles.drawer} onClick={e => e.stopPropagation()} style={{ width: '820px', maxWidth: '95%', background: '#fff' }}>
 
-            {/* Drawer Header */}
-            <div className={styles.drawerHeader} style={{ padding: '12px 24px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC' }}>
+                        <div className={styles.drawerHeader} style={{ padding: '12px 24px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(59,130,246,0.1)', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <FiLayers size={16} />
@@ -603,13 +557,11 @@ const ServiceManagement = () => {
               </button>
             </div>
 
-            {/* Drawer Body */}
-            <div className={styles.drawerBody} style={{ padding: '20px 24px', overflowY: 'auto', maxHeight: 'calc(100vh - 120px)' }}>
+                        <div className={styles.drawerBody} style={{ padding: '20px 24px', overflowY: 'auto', maxHeight: 'calc(100vh - 120px)' }}>
               <form onSubmit={handleSave}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
 
-                  {/* ROW 1: Name, URL, Price */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '14px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '14px' }}>
                     <div>
                       <label style={labelStyle}>Service Name *</label>
                       <input name="name" value={formData.name} onChange={handleInputChange} required style={iStyle} placeholder="e.g. Prepaid Recharge" />
@@ -631,8 +583,7 @@ const ServiceManagement = () => {
                     </div>
                   </div>
 
-                  {/* ROW 2: Image, Icon, SectionType (API), API ID, Order */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '14px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '14px' }}>
                     <div>
                       <label style={labelStyle}>Image</label>
                       <input name="image" type="file" accept="image/*" onChange={handleInputChange} style={{ ...iStyle, padding: '7px' }} />
@@ -660,8 +611,7 @@ const ServiceManagement = () => {
                     </div>
                   </div>
 
-                  {/* ROW 3: Checkboxes */}
-                  <div style={{ background: '#F8FAFC', borderRadius: '10px', padding: '14px', border: '1px solid #E2E8F0' }}>
+                                    <div style={{ background: '#F8FAFC', borderRadius: '10px', padding: '14px', border: '1px solid #E2E8F0' }}>
                     <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>Flags & Status</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: '8px' }}>
                       {[
@@ -681,8 +631,7 @@ const ServiceManagement = () => {
                     </div>
                   </div>
 
-                  {/* ROW 4: Times & TDS */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '14px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '14px' }}>
                     <div>
                       <label style={labelStyle}>On Time (Hour)</label>
                       <input name="onTime" type="number" value={formData.onTime} onChange={handleInputChange} style={iStyle} min="0" max="23" />
@@ -703,8 +652,7 @@ const ServiceManagement = () => {
 
                 </div>
 
-                {/* Footer Buttons */}
-                <div style={{ display: 'flex', gap: '10px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #E2E8F0' }}>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #E2E8F0' }}>
                   <PrimaryButton
                     type="submit"
                     disabled={formSaving}
@@ -725,8 +673,7 @@ const ServiceManagement = () => {
         </div>
       )}
 
-      {/* ═══════════════ CONFIRM DELETE ═══════════════ */}
-      {showConfirmModal.isOpen && (
+            {showConfirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3600 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
@@ -750,8 +697,7 @@ const ServiceManagement = () => {
         </div>
       )}
 
-      {/* ═══════════════ IMAGE PREVIEW ═══════════════ */}
-      {showImageModal.isOpen && (
+            {showImageModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3600 }} onClick={() => setShowImageModal({ isOpen: false, url: null })}>
           <div className={styles.modalContainer} style={{ width: '420px', borderRadius: '16px', padding: '20px', textAlign: 'center', position: 'relative' }} onClick={e => e.stopPropagation()}>
             <button onClick={() => setShowImageModal({ isOpen: false, url: null })} style={{ position: 'absolute', top: '14px', right: '14px', background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>

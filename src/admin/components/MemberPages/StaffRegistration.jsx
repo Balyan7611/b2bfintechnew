@@ -22,8 +22,7 @@ const StaffRegistration = () => {
   const [successData, setSuccessData] = useState(null);
   const [errors, setErrors] = useState({});
 
-  // Refs for scrolling and focusing
-  const roleRef = useRef(null);
+    const roleRef = useRef(null);
   const nameRef = useRef(null);
   const mobileRef = useRef(null);
   const passwordRef = useRef(null);
@@ -31,18 +30,12 @@ const StaffRegistration = () => {
   const handleInputChange = (e) => {
     let { name, value, type, checked } = e.target;
 
-    // Apply strict formatting rules
-    if (name === 'mobile') {
-      value = value.replace(/\D/g, '').slice(0, 10); // Only numbers, max 10
-    } else if (name === 'aadhar') {
-      value = value.replace(/\D/g, '').slice(0, 12); // Only numbers, max 12
-    } else if (name === 'pincode') {
-      value = value.replace(/\D/g, '').slice(0, 6); // Only numbers, max 6
-    } else if (name === 'loginPin') {
-      value = value.replace(/\D/g, '').slice(0, 6); // Only numbers, max 6
-    } else if (name === 'pan') {
-      value = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10); // Alphanumeric, max 10
-    }
+        if (name === 'mobile') {
+      value = value.replace(/\D/g, '').slice(0, 10);     } else if (name === 'aadhar') {
+      value = value.replace(/\D/g, '').slice(0, 12);     } else if (name === 'pincode') {
+      value = value.replace(/\D/g, '').slice(0, 6);     } else if (name === 'loginPin') {
+      value = value.replace(/\D/g, '').slice(0, 6);     } else if (name === 'pan') {
+      value = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);     }
 
     dispatch(updateStaffForm({ [name]: type === 'checkbox' ? checked : value }));
     if (errors[name]) {
@@ -101,8 +94,7 @@ const StaffRegistration = () => {
     setErrors({});
   };
 
-  // Modern input styling
-  const getInputStyle = (isError) => ({
+    const getInputStyle = (isError) => ({
     height: '48px',
     border: isError ? '1.5px solid #E53E3E' : '1.5px solid #E2E8F0',
     background: '#F8FAFF',
@@ -116,12 +108,10 @@ const StaffRegistration = () => {
 
   return (
     <div className={styles.container}>
-      {/* HEADER SECTION REMOVED */}
-
+      
       <div className={styles.cardFullMobile} style={{ padding: '40px', background: '#fff', borderRadius: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.03)', border: '1px solid #EEF3FC' }}>
 
-        {/* SECTION 1: IDENTITY */}
-        <div style={{ marginBottom: '40px' }}>
+                <div style={{ marginBottom: '40px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1.5px dashed #E2E8F0' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(23,86,170,0.08)', color: '#1756AA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
               <FaUserShield />
@@ -172,8 +162,7 @@ const StaffRegistration = () => {
           </div>
         </div>
 
-        {/* SECTION 2: CONTACT */}
-        <div style={{ marginBottom: '40px' }}>
+                <div style={{ marginBottom: '40px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1.5px dashed #E2E8F0' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(39, 174, 96, 0.08)', color: '#27AE60', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
               <FaMobileAlt />
@@ -210,8 +199,7 @@ const StaffRegistration = () => {
           </div>
         </div>
 
-        {/* SECTION 3: KYC */}
-        <div style={{ marginBottom: '40px' }}>
+                <div style={{ marginBottom: '40px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1.5px dashed #E2E8F0' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(234, 162, 31, 0.08)', color: '#EAA21F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
               <FaIdCard />
@@ -235,8 +223,7 @@ const StaffRegistration = () => {
           </div>
         </div>
 
-        {/* SECTION 4: SECURITY */}
-        <div style={{ marginBottom: '30px' }}>
+                <div style={{ marginBottom: '30px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1.5px dashed #E2E8F0' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(229, 62, 62, 0.08)', color: '#E53E3E', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
               <FaLock />
@@ -281,8 +268,7 @@ const StaffRegistration = () => {
           </div>
         </div>
 
-        {/* ACTION BUTTONS */}
-        <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '2px solid #EEF3FC', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '60px' }}>
+                <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '2px solid #EEF3FC', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '60px' }}>
           <button
             onClick={resetForm}
             style={{ padding: '12px 24px', background: '#F1F5F9', border: 'none', borderRadius: '10px', color: '#4E6080', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
@@ -303,12 +289,10 @@ const StaffRegistration = () => {
           </button>
         </div>
 
-        {/* EXTRA SPACING FOR SCROLLING */}
-        <div style={{ height: '40px' }}></div>
+                <div style={{ height: '40px' }}></div>
       </div>
 
-      {/* SUCCESS MODAL */}
-      {showSuccessModal && (
+            {showSuccessModal && (
         <div className={styles.modalOverlay} onClick={() => setShowSuccessModal(false)}>
           <div className={styles.deleteModal} style={{ background: '#fff', borderRadius: '24px', padding: '30px', textAlign: 'center', maxWidth: '400px' }} onClick={(e) => e.stopPropagation()}>
             <div style={{

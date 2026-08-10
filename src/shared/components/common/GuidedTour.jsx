@@ -18,8 +18,7 @@ const GuidedTour = ({ steps = [], onFinish }) => {
 
   useEffect(() => {
     positionTooltip();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep]);
+    }, [currentStep]);
 
   const positionTooltip = () => {
     const step = steps[currentStep];
@@ -33,11 +32,9 @@ const GuidedTour = ({ steps = [], onFinish }) => {
       return;
     }
 
-    // Scroll element into view so it's visible
-    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-    // Use a small delay to let scroll settle
-    setTimeout(() => {
+        setTimeout(() => {
       const rect = el.getBoundingClientRect();
       setHighlightRect({
         top: rect.top,
@@ -49,22 +46,18 @@ const GuidedTour = ({ steps = [], onFinish }) => {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
 
-      // Try below first
-      let top = rect.bottom + MARGIN;
+            let top = rect.bottom + MARGIN;
       let left = rect.left + rect.width / 2 - TOOLTIP_W / 2;
 
-      // Flip above if below goes off-screen
-      if (top + TOOLTIP_H > vh - 20) {
+            if (top + TOOLTIP_H > vh - 20) {
         top = rect.top - TOOLTIP_H - MARGIN;
       }
 
-      // If above also off-screen (element near top), center vertically
-      if (top < 20) {
+            if (top < 20) {
         top = Math.max(20, (vh - TOOLTIP_H) / 2);
       }
 
-      // Clamp horizontally
-      if (left + TOOLTIP_W > vw - 16) left = vw - TOOLTIP_W - 16;
+            if (left + TOOLTIP_W > vw - 16) left = vw - TOOLTIP_W - 16;
       if (left < 16) left = 16;
 
       setTooltipPos({ top, left });
@@ -89,8 +82,7 @@ const GuidedTour = ({ steps = [], onFinish }) => {
 
   return (
     <div className={styles.overlay}>
-      {/* Spotlight */}
-      {highlightRect && (
+            {highlightRect && (
         <svg className={styles.spotlight} xmlns="http://www.w3.org/2000/svg">
           <defs>
             <mask id="spotlight-mask">
@@ -130,8 +122,7 @@ const GuidedTour = ({ steps = [], onFinish }) => {
             : {}
         }
       >
-        {/* Header */}
-        <div className={styles.tooltipHeader}>
+                <div className={styles.tooltipHeader}>
           <div className={styles.stepBadge}>
             <span className={styles.stepIcon}>{step.icon}</span>
           </div>
@@ -140,19 +131,16 @@ const GuidedTour = ({ steps = [], onFinish }) => {
           </button>
         </div>
 
-        {/* Content */}
-        <div className={styles.tooltipContent}>
+                <div className={styles.tooltipContent}>
           <h3 className={styles.tooltipTitle}>{step.title}</h3>
           <p className={styles.tooltipDesc}>{step.description}</p>
         </div>
 
-        {/* Progress Bar */}
-        <div className={styles.progressTrack}>
+                <div className={styles.progressTrack}>
           <div className={styles.progressFill} style={{ width: `${progress}%` }} />
         </div>
 
-        {/* Footer */}
-        <div className={styles.tooltipFooter}>
+                <div className={styles.tooltipFooter}>
           <span className={styles.stepCounter}>{currentStep + 1} / {steps.length}</span>
           <div className={styles.stepDots}>
             {steps.map((_, i) => (

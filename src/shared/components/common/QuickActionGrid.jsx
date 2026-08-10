@@ -1,20 +1,3 @@
-/**
- * QuickActionGrid — Reusable Quick Account Operations Component
- *
- * Usage (kisi bhi page mein):
- *   import QuickActionGrid from '../../../shared/components/common/QuickActionGrid';
- *
- *   <QuickActionGrid
- *     isEditingProfile={bool}
- *     activeActionType={string | null}
- *     memberType={'DeActive' | 'Active'}
- *     holdAmt={number | string}
- *     creditLimit={number | string}
- *     onEditProfile={() => void}
- *     onAction={(type, defaultAmt?) => void}
- *     onBlock={() => void}
- *   />
- */
 
 import React from 'react';
 import {

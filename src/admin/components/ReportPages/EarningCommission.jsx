@@ -8,38 +8,36 @@ import {
     FiDatabase, FiAlertCircle, FiXCircle, FiBarChart2, FiInfo, FiTrendingUp
 } from 'react-icons/fi';
 import styles from '../MemberPages/MemberPages.module.css';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import TransactionReceipt from '../../../member/components/MemberPanel/Services/TransactionReceipt';
 
-// Fixed service ID for commission transactions – adjust if needed
-const COMMISSION_SERVICE_ID = '0'; // Use a specific service ID for commissions if required
-
+const COMMISSION_SERVICE_ID = '0'; 
 const EarningCommission = () => {
-    // ─── State ──────────────────────────────────────────────
-    const [transactions, setTransactions] = useState([]);
+        const [transactions, setTransactions] = useState([]);
     const [totalRecords, setTotalRecords] = useState(0);
     const [pageNumber, setPageNumber] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [loading, setLoading] = useState(false);
 
-    // Filters
-    const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(today);
     const [toDate, setToDate] = useState(today);
     const [selectedMember, setSelectedMember] = useState('');
     const [selectedService, setSelectedService] = useState('');
     const [searchKeyword, setSearchKeyword] = useState('');
 
-    // Dropdown lists
-    const [memberList, setMemberList] = useState([]);
+        const [memberList, setMemberList] = useState([]);
     const [serviceList, setServiceList] = useState([]);
+    const [operatorList, setOperatorList] = useState([]);
+    const [selectedOperator, setSelectedOperator] = useState('');
+    const [apiList, setApiList] = useState([]);
+    const [selectedApi, setSelectedApi] = useState('');
 
-    // UI states
-    const [showStats, setShowStats] = useState(false);
+        const [showStats, setShowStats] = useState(false);
     const [activeReceipt, setActiveReceipt] = useState(null);
     const [focusedField, setFocusedField] = useState(null);
 
-    // ─── Stats Computation ──────────────────────────────────
-    const totalTxns = totalRecords;
+        const totalTxns = totalRecords;
     const totalAmount = transactions.reduce((acc, t) => acc + (parseFloat(t.amount) || 0), 0);
     const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
     const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
@@ -48,8 +46,7 @@ const EarningCommission = () => {
     const totalCommission = transactions.reduce((acc, t) => acc + (parseFloat(t.commission) || 0), 0);
     const totalTDS = transactions.reduce((acc, t) => acc + (parseFloat(t.tds) || 0), 0);
 
-    // Derived values (using typical ratios)
-    const uplineCommission = totalCommission * 0.6;
+        const uplineCommission = totalCommission * 0.6;
     const adminCommission = totalCommission * 0.4;
     const adminProfit = totalCommission * 0.15;
     const tdsPayable = totalTDS * 0.95;
@@ -70,22 +67,20 @@ const EarningCommission = () => {
         netPayable,
     };
 
-    // ─── API Calls ──────────────────────────────────────────
-    const fetchTransactions = async () => {
+        const fetchTransactions = async () => {
         setLoading(true);
         try {
-            // Use the transaction API to fetch commission data
-            // You can filter by serviceId, or use a dedicated commission endpoint
-            const res = await API.transaction.getAll({
+                                    const res = await API.transaction.getAll({
                 pageNumber,
                 pageSize,
                 fromDate,
                 toDate,
                 serviceId: selectedService || COMMISSION_SERVICE_ID,
+                operatorId: selectedOperator,
+                apiId: selectedApi,
                 memberId: selectedMember,
                 search: searchKeyword,
-                // Add other filters if needed (e.g., hasCommission: true)
-            });
+                            });
 
                   const { items: _txns, totalItems: _total, totalSuccess: _succ, totalPending: _pend, totalFailed: _fail } = normalizeTxnResponse(res);
       setTransactions(_txns);
@@ -99,40 +94,71 @@ const EarningCommission = () => {
         }
     };
 
-    // ─── Effects ────────────────────────────────────────────
-    useEffect(() => {
+        useEffect(() => {
         fetchTransactions();
     }, [pageNumber, pageSize, selectedMember, selectedService, fromDate, toDate, searchKeyword]);
 
-    // Fetch dropdowns
-    useEffect(() => {
+        useEffect(() => {
         const fetchMembers = async () => {
             try {
-                const res = await API.member.search('');
-                setMemberList(res || []);
+                const res = await API.member.getAll({ pageNumber: 1, pageSize: 5000 });
+                const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+                setMemberList(Array.isArray(list) ? list : []);
             } catch (err) { console.error("Failed to fetch members:", err); }
         };
         const fetchServices = async () => {
             try {
                 const res = await API.service.getAll();
-                if (res && Array.isArray(res.data)) setServiceList(res.data);
-                else if (Array.isArray(res)) setServiceList(res);
-                else setServiceList([]);
+                let list = [];
+                if (res && Array.isArray(res.data)) list = res.data;
+                else if (Array.isArray(res)) list = res;
+                setServiceList(list);
             } catch (err) { console.error("Failed to fetch services:", err); }
         };
         fetchMembers();
         fetchServices();
     }, []);
 
-    // ─── Handlers ────────────────────────────────────────────
-    const handleSearchSubmit = (e) => {
+    useEffect(() => {
+        const fetchOperators = async () => {
+            try {
+                const res = await API.operator.getAll();
+                let allOps = [];
+                if (res?.data?.items) allOps = res.data.items;
+                else if (res?.data && Array.isArray(res.data)) allOps = res.data;
+                else if (Array.isArray(res)) allOps = res;
+                if (selectedService) {
+                    allOps = allOps.filter(op => String(op.serviceId) === String(selectedService));
+                }
+                setOperatorList(allOps);
+            } catch (err) {
+                console.error("Failed to fetch operators:", err);
+            }
+        };
+        fetchOperators();
+        setSelectedOperator('');
+    }, [selectedService]);
+
+    useEffect(() => {
+        const fetchApis = async () => {
+            try {
+                const res = await API.masterApi.getAll();
+                const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+                setApiList(Array.isArray(list) ? list : []);
+            } catch (err) {
+                console.error("Failed to fetch APIs:", err);
+            }
+        };
+        fetchApis();
+    }, []);
+
+        const handleSearchSubmit = (e) => {
         e.preventDefault();
         setPageNumber(1);
         fetchTransactions();
     };
 
-    // ─── Render ──────────────────────────────────────────────
-    const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+        const totalPages = Math.ceil(totalRecords / pageSize) || 1;
     const startIndex = (pageNumber - 1) * pageSize;
     const currentRows = transactions.slice(startIndex, startIndex + pageSize);
 
@@ -164,8 +190,7 @@ const EarningCommission = () => {
 
     return (
         <div className={styles.container}>
-            {/* ── FILTER CARD ── */}
-            <div style={{
+                        <div style={{
                 background: '#ffffff',
                 borderRadius: '20px',
                 boxShadow: '0 8px 24px rgba(23, 86, 170, 0.02), 0 1px 4px rgba(0, 0, 0, 0.01)',
@@ -221,14 +246,19 @@ const EarningCommission = () => {
                             </div>
                             <div className={styles.formGroup}>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Select User</label>
-                                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: focusedField === 'member' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', transition: 'all 0.25s', color: '#334155' }} value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} onFocus={() => setFocusedField('member')} onBlur={() => setFocusedField(null)}>
-                                    <option value="">All Downline Members</option>
-                                    {memberList.map(m => (
-                                        <option key={m.memberId || m.id} value={m.memberId || m.id}>
-                                            {m.name} ({m.mobile})
-                                        </option>
-                                    ))}
-                                </select>
+                                <SearchableSelect
+                                    options={[
+                                        { value: '', label: 'All Downline Members' },
+                                        ...memberList.map(m => {
+                                            const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
+                                            const loginId = m.memberID || m.memberid || m.loginID || m.loginId || String(m.id || m.msrno || '');
+                                            return { value: String(m.id || m.uniqueID || m.msrno || ''), label: name ? `${name} (${loginId})` : loginId };
+                                        })
+                                    ]}
+                                    value={selectedMember}
+                                    onChange={val => setSelectedMember(val || '')}
+                                    placeholder="All Downline Members"
+                                />
                             </div>
                             <div className={styles.formGroup}>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Service</label>
@@ -237,6 +267,28 @@ const EarningCommission = () => {
                                     {serviceList.map(s => (
                                         <option key={s.id || s.serviceId} value={s.id || s.serviceId}>
                                             {s.serviceName || s.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Operator</label>
+                                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: focusedField === 'operator' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', transition: 'all 0.25s', color: '#334155' }} value={selectedOperator} onChange={(e) => setSelectedOperator(e.target.value)} onFocus={() => setFocusedField('operator')} onBlur={() => setFocusedField(null)}>
+                                    <option value="">All Operators</option>
+                                    {operatorList.map(op => (
+                                        <option key={op.id || op.operatorId} value={op.id || op.operatorId}>
+                                            {op.operatorName || op.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Provider</label>
+                                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: focusedField === 'api' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', transition: 'all 0.25s', color: '#334155' }} value={selectedApi} onChange={(e) => setSelectedApi(e.target.value)} onFocus={() => setFocusedField('api')} onBlur={() => setFocusedField(null)}>
+                                    <option value="">All Providers</option>
+                                    {Array.isArray(apiList) && apiList.map((api) => (
+                                        <option key={api.id || api.apiId} value={api.id || api.apiId}>
+                                            {api.apiname || api.apiName || api.name || `API #${api.id}`}
                                         </option>
                                     ))}
                                 </select>
@@ -258,8 +310,7 @@ const EarningCommission = () => {
                 </div>
             </div>
 
-            {/* ── STATS GRID ── */}
-            <StatsGrid stats={stats} showStats={showStats} />
+                        <StatsGrid stats={stats} showStats={showStats} />
 
             {/* ── DATA TABLE ── */}
             <div className={styles.cardFullMobile}>
@@ -388,8 +439,7 @@ const EarningCommission = () => {
                 </div>
             </div>
 
-            {/* ── Receipt Modal ── */}
-            {activeReceipt && (
+                        {activeReceipt && (
                 <TransactionReceipt
                     data={activeReceipt}
                     onClose={() => setActiveReceipt(null)}

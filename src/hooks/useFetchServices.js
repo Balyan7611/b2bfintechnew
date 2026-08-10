@@ -12,9 +12,7 @@ export const useFetchServices = (sectionType) => {
     const fetchServices = async () => {
       try {
         setLoading(true);
-        // Workaround for backend bug: getBySectionType returns all services or incorrect data.
-        // We fetch ALL services and filter them strictly on the frontend.
-        const response = await API.service.getAll();
+                        const response = await API.service.getAll();
         
         if (isMounted) {
           const list = Array.isArray(response) 
@@ -25,8 +23,7 @@ export const useFetchServices = (sectionType) => {
           
           console.log(`[useFetchServices Debug] Fetched all ${list.length} services.`);
           
-          // Strict frontend filter
-          const filteredList = list.filter(s => {
+                    const filteredList = list.filter(s => {
             const serviceSection = String(s.sectionType || s.SectionType || '');
             return serviceSection === String(sectionType);
           });

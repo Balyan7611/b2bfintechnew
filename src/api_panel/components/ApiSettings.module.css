@@ -17,7 +17,6 @@
   border: 1px solid #e2e8f0;
 }
 
-/* Standalone page card — used by ApiCredentials, ApiSecurityPage (no inner sidebar) */
 .pageCard {
   background: #ffffff;
   border-radius: 12px;
@@ -28,7 +27,6 @@
   max-width: 640px;
 }
 
-/* Sidebar Navigation */
 .sidebar {
   width: 240px;
   background: #f8fafc;
@@ -71,7 +69,6 @@
   font-size: 1rem;
 }
 
-/* Content Area */
 .contentArea {
   flex: 1;
   padding: 24px 32px;
@@ -108,11 +105,9 @@
   font-size: 0.85rem;
 }
 
-/* Form Groups */
 .formGroup {
   margin-bottom: 20px;
-  max-width: 600px; /* limits the width of the form fields to make them look elegant */
-}
+  max-width: 600px; }
 
 .formGroup label {
   display: block;
@@ -231,7 +226,6 @@ textarea.inputField {
   background: #fecaca;
 }
 
-/* Dark Mode Overrides */
 .dark .pageHeader h1,
 .dark .sectionTitle h2,
 .dark .formGroup label {

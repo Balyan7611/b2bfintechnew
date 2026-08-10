@@ -1,4 +1,3 @@
-/* Premium PAN Card Service CSS Module */
 
 .container {
   width: 100%;
@@ -12,7 +11,6 @@
   gap: 12px;
 }
 
-/* Toast */
 .toast {
   position: fixed;
   top: 24px;
@@ -33,7 +31,6 @@
   to   { transform: translateX(0);    opacity: 1; }
 }
 
-/* Hero */
 .heroSection {
   background: linear-gradient(135deg, #1756AA 0%, #0d1b3e 100%);
   border-radius: 16px;
@@ -99,7 +96,6 @@
   letter-spacing: -0.3px;
 }
 
-/* Section title */
 .sectionTitle {
   font-size: 1.1rem;
   font-weight: 800;
@@ -111,9 +107,6 @@
 }
 .sectionTitle svg { color: #1756AA; }
 
-/* ────────────────────────────────────────────────
-   PAN CARD GRID  (2 per row)
-──────────────────────────────────────────────── */
 .mainWhiteCard {
   background: white;
   border-radius: 16px;
@@ -183,9 +176,6 @@
   letter-spacing: 0.5px;
 }
 
-/* ────────────────────────────────────────────────
-   REALISTIC PAN CARD (IMAGE BACKGROUND OVERLAY)
-──────────────────────────────────────────────── */
 .panCardImageBg {
   width: 100%;
   max-width: 380px;
@@ -282,7 +272,6 @@
   text-align: center;
 }
 
-/* ── Action button ── */
 .applyBtn {
   padding: 6px 12px;
   border-radius: 6px;
@@ -307,7 +296,6 @@
 
 .btnBlue   { background: linear-gradient(135deg, #1756AA, #0d3b7a); }
 
-/* Fee tag */
 .feeInfo {
   font-size: 0.72rem;
   font-weight: 700;
@@ -328,7 +316,6 @@
   color: #1756AA;
 }
 
-/* Split layout and preview card styling */
 .panPortalLayout {
   display: flex;
   gap: 24px;
@@ -441,7 +428,6 @@
   box-shadow: 0 6px 16px rgba(23,86,170,0.25);
 }
 
-/* Service Card Wrap Highlight when Active */
 .activeOption {
   border-color: #2f8ea8 !important;
   box-shadow: 0 8px 30px rgba(47,142,168,0.12) !important;
@@ -479,9 +465,6 @@
   margin-top: auto;
 }
 
-/* ────────────────────────────────────────────────
-   MODAL
-──────────────────────────────────────────────── */
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -607,9 +590,6 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ────────────────────────────────────────────────
-   FULL PAGE APPLY VIEW (NSDL FORM)
-──────────────────────────────────────────────── */
 .applyViewWrapper {
   background: white;
   border-radius: 16px;
@@ -852,9 +832,6 @@
 .guideLineList li {
 }
 
-/* ────────────────────────────────────────────────
-   AGENT REGISTRATION & SMALL MODALS
-──────────────────────────────────────────────── */
 .submitBtnTeal {
   background: linear-gradient(135deg, #14b8a6, #0f766e);
   color: white;
@@ -993,4 +970,3 @@
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(23,86,170,0.2);
 }
-

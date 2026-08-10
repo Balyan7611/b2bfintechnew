@@ -1,4 +1,3 @@
-/* ── Guided Tour Overlay ── */
 .overlay {
   position: fixed;
   inset: 0;
@@ -12,14 +11,12 @@
   to   { opacity: 1; }
 }
 
-/* Full dim when no spotlight target */
 .fullDim {
   position: absolute;
   inset: 0;
   background: rgba(13, 27, 62, 0.72);
 }
 
-/* SVG spotlight */
 .spotlight {
   position: absolute;
   inset: 0;
@@ -28,11 +25,9 @@
   pointer-events: all;
 }
 
-/* ── Tooltip Card ── */
 .tooltip {
   position: fixed;
-  /* overridden by inline style when spotlight active */
-  top: 50%;
+    top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 310px;
@@ -45,7 +40,6 @@
   z-index: 100001;
 }
 
-/* When spotlight is active, reset transform */
 .spotlight ~ .tooltip {
   transform: none;
 }
@@ -55,7 +49,6 @@
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* ── Header Row ── */
 .tooltipHeader {
   display: flex;
   align-items: center;
@@ -98,7 +91,6 @@
   border-color: #CBD5E0;
 }
 
-/* ── Content ── */
 .tooltipContent {
   margin-bottom: 16px;
 }
@@ -119,7 +111,6 @@
   margin: 0;
 }
 
-/* ── Progress Bar ── */
 .progressTrack {
   width: 100%;
   height: 3px;
@@ -136,7 +127,6 @@
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Footer Row ── */
 .tooltipFooter {
   display: flex;
   align-items: center;
@@ -177,7 +167,6 @@
   background: #93C5FD;
 }
 
-/* ── Next Button ── */
 .nextBtn {
   background: linear-gradient(135deg, #1756AA 0%, #2a7de1 100%);
   color: #ffffff;

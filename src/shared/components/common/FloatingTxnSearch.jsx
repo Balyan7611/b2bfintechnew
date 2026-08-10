@@ -13,8 +13,7 @@ const FloatingTxnSearch = () => {
   const searchContainerRef = useRef(null);
   const searchInputRef = useRef(null);
 
-  // Close search expand on outside click
-  useEffect(() => {
+    useEffect(() => {
     const handleClickOutsideSearch = (event) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
         setIsSearchExpanded(false);
@@ -26,8 +25,7 @@ const FloatingTxnSearch = () => {
     return () => document.removeEventListener('mousedown', handleClickOutsideSearch);
   }, [isSearchExpanded]);
 
-  // Focus input when search expands
-  useEffect(() => {
+    useEffect(() => {
     if (isSearchExpanded && searchInputRef.current) {
       searchInputRef.current.focus();
     }

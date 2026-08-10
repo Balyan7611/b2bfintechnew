@@ -18,17 +18,14 @@ const HoldAmount = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [showModal, setShowModal] = useState(false);
 
-  // Form State
-  const [amount, setAmount] = useState('');
+    const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  // Delete Confirmation State
-  const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
+    const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
 
-  // Custom Dropdown State
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [memberSearch, setMemberSearch] = useState('');
   const dropdownRef = useRef(null);
@@ -46,8 +43,7 @@ const HoldAmount = () => {
     m.memberId.toLowerCase().includes(memberSearch.toLowerCase())
   );
 
-  // Close dropdown on click outside
-  useEffect(() => {
+    useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
@@ -78,8 +74,7 @@ const HoldAmount = () => {
       }));
     }
 
-    // Reset Form & Close Modal
-    setShowModal(false);
+        setShowModal(false);
     setIsEditMode(false);
     setEditingId(null);
     setSelectedMember(null);
@@ -105,8 +100,7 @@ const HoldAmount = () => {
     setDeleteModal({ open: false, id: null });
   };
 
-  // Filter Table Data
-  const filteredData = useMemo(() => {
+    const filteredData = useMemo(() => {
     return holdAmountList.filter(item => 
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.memberId.toLowerCase().includes(searchQuery.toLowerCase())
@@ -117,16 +111,14 @@ const HoldAmount = () => {
     return filteredData.reduce((acc, item) => acc + (parseFloat(item.amount) || 0), 0);
   }, [filteredData]);
 
-  // Pagination Logic
-  const totalPages = useMemo(() => Math.ceil(filteredData.length / rowsPerPage), [filteredData.length, rowsPerPage]);
+    const totalPages = useMemo(() => Math.ceil(filteredData.length / rowsPerPage), [filteredData.length, rowsPerPage]);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const currentData = useMemo(() => filteredData.slice(startIndex, startIndex + rowsPerPage), [filteredData, startIndex, rowsPerPage]);
 
   return (
     <div className={styles.container}>
       
-      {/* ── MODAL POPUP ── */}
-      {showModal && (
+            {showModal && (
         <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
           <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
@@ -145,8 +137,7 @@ const HoldAmount = () => {
             
             <div className={styles.modalBody}>
               <div className={styles.modalForm}>
-                {/* Custom Searchable Dropdown */}
-                <div className={`${styles.formGroup} ${isEditMode ? styles.disabled : ''}`} ref={dropdownRef}>
+                                <div className={`${styles.formGroup} ${isEditMode ? styles.disabled : ''}`} ref={dropdownRef}>
                   <label>Select Member</label>
                   <div className={styles.dropdownContainer}>
                     <div 
@@ -236,8 +227,7 @@ const HoldAmount = () => {
         </div>
       )}
 
-      {/* ── DELETE CONFIRMATION MODAL ── */}
-      {deleteModal.open && (
+            {deleteModal.open && (
         <div className={styles.modalOverlay} onClick={() => setDeleteModal({ open: false, id: null })}>
           <div className={styles.deleteModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.deleteIconBox}>
@@ -253,8 +243,7 @@ const HoldAmount = () => {
         </div>
       )}
 
-      {/* Table Card */}
-      <div className={styles.card}>
+            <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h2 className={styles.pageTitle} style={{ marginBottom: 0, borderBottom: 'none', paddingBottom: 0 }}>
             Hold Amount List
@@ -264,8 +253,7 @@ const HoldAmount = () => {
           </button>
         </div>
         
-        {/* Top Controls */}
-        <div className={styles.topControls}>
+                <div className={styles.topControls}>
           <div className={styles.rowsSelector}>
             <span>Show</span>
             <select 
@@ -301,8 +289,7 @@ const HoldAmount = () => {
           </div>
         </div>
 
-        {/* Table Wrapper */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -361,8 +348,7 @@ const HoldAmount = () => {
           </table>
         </div>
 
-        {/* Pagination */}
-        <div className={styles.paginationRow}>
+                <div className={styles.paginationRow}>
           <div className={styles.pageInfo}>
             Showing {filteredData.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, filteredData.length)} of {filteredData.length} entries
           </div>
@@ -400,5 +386,3 @@ const HoldAmount = () => {
 };
 
 export default HoldAmount;
-
-

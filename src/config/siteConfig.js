@@ -1,29 +1,18 @@
-// src/config/siteConfig.js
 
-// ─── Image URL Base ───────────────────────────────────────────────────────────
 const API_BASE = 'https://api.sahayatamoney.in';
 
-/**
- * Build full image URL from filename returned by API.
- * API returns just the filename e.g. "logo.png" or "/logo.png"
- * Actual URL = https://api.sahayatamoney.in/UploadedFiles/{folder}/{filename}
- */
 export const getImageUrl = (filename, folder) => {
   if (!filename) return null;
-  // Already a full URL — return as-is
-  if (filename.startsWith('http://') || filename.startsWith('https://')) return filename;
-  // Strip any leading slashes
-  const clean = filename.replace(/^\/+/, '');
+    if (filename.startsWith('http://') || filename.startsWith('https://')) return filename;
+    const clean = filename.replace(/^\/+/, '');
   if (!clean) return null;
   return `${API_BASE}/UploadedFiles/${folder}/${clean}`;
 };
 
-// Convenience helpers
 export const getLogoUrl      = (f) => getImageUrl(f, 'logo');
 export const getSignatureUrl = (f) => getImageUrl(f, 'signature');
 export const getFaviconUrl   = (f) => getImageUrl(f, 'favicon');
 
-// ─── Site Config Object ───────────────────────────────────────────────────────
 export const SITE_CONFIG = {
   companyName: 'Loading...',
   brandName:   'Loading...',
@@ -33,10 +22,7 @@ export const SITE_CONFIG = {
   email:       'Loading...',
   address:     'Loading...',
   description: 'Loading...',
-  logo:        '/images/header_logo.png',   // ← Default logo or full URL will be stored here
-  signature:   null,   // ← Full URL
-  feviconIcon: null,   // ← Full URL
-  alternateEmail:  null,
+  logo:        '/images/header_logo.png',     signature:   null,     feviconIcon: null,     alternateEmail:  null,
   alternateMobile: null,
   bankName:    null,
   acName:      null,
@@ -61,8 +47,7 @@ export const SITE_CONFIG = {
   memberId:    null,
   memberName:  null,
   
-  // ── Dynamic Arrays ──
-  liveStats: [
+    liveStats: [
     { value: 500, suffix: '+', label: 'API Users', decimals: 0 },
     { value: 150, suffix: 'M+', label: 'Monthly Volume', decimals: 0 },
     { value: 99.9, suffix: '%', label: 'API Uptime', decimals: 1 }
@@ -119,7 +104,6 @@ export const SITE_CONFIG = {
   ]
 };
 
-// ─── Update from API response ─────────────────────────────────────────────────
 export const updateSiteConfig = (apiData) => {
   if (!apiData) return;
 
@@ -155,8 +139,7 @@ export const updateSiteConfig = (apiData) => {
     memberName:     'memberName',
   };
 
-  // Map all regular text fields
-  Object.keys(apiData).forEach(key => {
+    Object.keys(apiData).forEach(key => {
     if (map[key] !== undefined) {
       const val = apiData[key];
       if (val !== null && val !== undefined && val !== '') {
@@ -165,30 +148,25 @@ export const updateSiteConfig = (apiData) => {
     }
   });
 
-  // ── Image fields: build full URL with correct folder ──
-  // Forcefully use the new local header_logo.png regardless of what API returns
-  if (apiData.logo !== undefined) {
+      if (apiData.logo !== undefined) {
     SITE_CONFIG.logo = '/images/header_logo.png';
   }
   if (apiData.signature)  SITE_CONFIG.signature  = getSignatureUrl(apiData.signature);
   if (apiData.feviconicon)SITE_CONFIG.feviconIcon = getFaviconUrl(apiData.feviconicon);
 
-  // ── Name-derived fields ──
-  if (apiData.name) {
+    if (apiData.name) {
     SITE_CONFIG.companyName = apiData.name;
     SITE_CONFIG.brandName   = apiData.name;
     SITE_CONFIG.shortName   = apiData.name;
   }
 
-  // ── Description ──
-  if (apiData.copyright) {
+    if (apiData.copyright) {
     SITE_CONFIG.description = apiData.copyright;
   } else if (apiData.name) {
     SITE_CONFIG.description = `${apiData.name} — Digital Fintech Platform`;
   }
 
-  // ── Dynamic Arrays ──
-  if (apiData.liveStats && Array.isArray(apiData.liveStats)) {
+    if (apiData.liveStats && Array.isArray(apiData.liveStats)) {
     SITE_CONFIG.liveStats = apiData.liveStats;
   }
   if (apiData.services && Array.isArray(apiData.services)) {

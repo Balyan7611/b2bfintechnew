@@ -15,8 +15,7 @@ const ContactPage = () => {
     <>
       <Navbar />
       <div className={styles.pageContainer}>
-        {/* Header Section */}
-        <div className={styles.pageHeader}>
+                <div className={styles.pageHeader}>
           <div className={`container ${styles.headerContent}`}>
             <h1 className={styles.pageTitle}>Get in Touch</h1>
             <p className={styles.pageSubtitle}>
@@ -26,11 +25,9 @@ const ContactPage = () => {
         </div>
 
         <div className="container">
-          {/* Split Layout: Info/Image + Form */}
-          <div className={styles.contactSplit}>
+                    <div className={styles.contactSplit}>
             
-            {/* Left Side: Contact Info & Image */}
-            <div className={styles.leftSide}>
+                        <div className={styles.leftSide}>
               <div className={styles.infoCards}>
                 <div className={styles.infoCard}>
                   <div className={styles.iconBox}><FaPhoneAlt /></div>
@@ -63,8 +60,7 @@ const ContactPage = () => {
               </div>
             </div>
 
-            {/* Right Side: Form */}
-            <div className={styles.rightSide}>
+                        <div className={styles.rightSide}>
               <div className={styles.formCard}>
                 <h3 className={styles.formTitle}>Send a Message</h3>
                 <form onSubmit={(e) => e.preventDefault()} className={styles.contactForm}>
@@ -98,8 +94,7 @@ const ContactPage = () => {
           </div>
         </div>
 
-        {/* Map Section */}
-        <div className="container">
+                <div className="container">
           <div className={styles.mapCard}>
             <h2 className={styles.mapTitle}>Find Us on the Map</h2>
             <div className={styles.mapContainer}>

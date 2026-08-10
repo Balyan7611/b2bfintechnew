@@ -53,8 +53,7 @@ const FeaturesSection = () => {
 
   return (
     <section id="features" className={styles.featuresSection} ref={sectionRef}>
-      {/* Background decoration */}
-      <div className={styles.bgOrb1}></div>
+            <div className={styles.bgOrb1}></div>
       <div className={styles.bgOrb2}></div>
 
       <div className="container">
@@ -73,8 +72,7 @@ const FeaturesSection = () => {
                 key={index}
                 className={`${styles.featureRow} ${isReverse ? styles.rowReverse : ''}`}
               >
-                {/* Text Side */}
-                <div className={`${styles.textSide} ${styles.animateOnScroll} ${isReverse ? styles.slideInRight : styles.slideInLeft}`}>
+                                <div className={`${styles.textSide} ${styles.animateOnScroll} ${isReverse ? styles.slideInRight : styles.slideInLeft}`}>
                   <div className={styles.featureBadge} style={{ color: feature.color, backgroundColor: `${feature.color}1A` }}>
                     Feature 0{index + 1}
                   </div>
@@ -82,8 +80,7 @@ const FeaturesSection = () => {
                   <p className={styles.featureDescription}>{feature.description}</p>
                 </div>
 
-                {/* Image Side */}
-                <div className={`${styles.imageSide} ${styles.animateOnScroll} ${isReverse ? styles.slideInLeft : styles.slideInRight}`}>
+                                <div className={`${styles.imageSide} ${styles.animateOnScroll} ${isReverse ? styles.slideInLeft : styles.slideInRight}`}>
                   <div className={styles.imageWrapper}>
                     <img 
                       src={process.env.PUBLIC_URL + feature.image} 

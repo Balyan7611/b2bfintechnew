@@ -24,11 +24,9 @@ const MyProfile = () => {
   const [profileImg, setProfileImg] = useState("");
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   
-  // Session User
-  const [sessionUser, setSessionUser] = useState(null);
+    const [sessionUser, setSessionUser] = useState(null);
 
-  // Modal & File States for Cropper
-  const [showCropModal, setShowCropModal] = useState(false);
+    const [showCropModal, setShowCropModal] = useState(false);
   const [tempImg, setTempImg] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -37,8 +35,7 @@ const MyProfile = () => {
   const fileInputRef = useRef(null);
   const certRef = useRef(null);
 
-  // Profile Fields
-  const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState({
     id: 0,
     name: '',
     loginId: '',
@@ -54,30 +51,25 @@ const MyProfile = () => {
     role: 'Retailer'
   });
 
-  // Reset Password State
-  const [passwordData, setPasswordData] = useState({
+    const [passwordData, setPasswordData] = useState({
     oldPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  // Reset Pin State
-  const [pinData, setPinData] = useState({
+    const [pinData, setPinData] = useState({
     oldPin: '',
     newPin: '',
     confirmPin: ''
   });
   const [isUpdatingPin, setIsUpdatingPin] = useState(false);
 
-  // Account Details (Member Bank Accounts)
-  const [bankAccounts, setBankAccounts] = useState([]);
+    const [bankAccounts, setBankAccounts] = useState([]);
   const [isLoadingBanks, setIsLoadingBanks] = useState(false);
   const [showAddBankModal, setShowAddBankModal] = useState(false);
   const [isSubmittingBank, setIsSubmittingBank] = useState(false);
-  // Bank master list drives the searchable dropdown and IFSC auto-fill,
-  // exactly like the admin "Add Member Bank Detail" form does.
-  const [bankMasterList, setBankMasterList] = useState([]);
+      const [bankMasterList, setBankMasterList] = useState([]);
   const [newBank, setNewBank] = useState({
     bankId: '',
     bankName: '',
@@ -87,8 +79,7 @@ const MyProfile = () => {
     branchName: ''
   });
 
-  // KYC State
-  const [kycDocs, setKycDocs] = useState([]);
+    const [kycDocs, setKycDocs] = useState([]);
   const [isLoadingKyc, setIsLoadingKyc] = useState(false);
   const [showUploadKycModal, setShowUploadKycModal] = useState(false);
   const [isSubmittingKyc, setIsSubmittingKyc] = useState(false);
@@ -103,8 +94,7 @@ const MyProfile = () => {
   const [isLoadingServices, setIsLoadingServices] = useState(false);
   const [requestingServiceId, setRequestingServiceId] = useState(null);
   
-  // Custom confirmation modal
-  const [confirmModal, setConfirmModal] = useState({
+    const [confirmModal, setConfirmModal] = useState({
     show: false,
     title: '',
     message: '',
@@ -113,8 +103,7 @@ const MyProfile = () => {
     confirmBg: '#10B981'
   });
 
-  // 1. Initial Load: Get User Session & Profile
-  useEffect(() => {
+    useEffect(() => {
     const session = getSession();
     if (session) {
       setSessionUser(session);
@@ -122,8 +111,7 @@ const MyProfile = () => {
     }
   }, []);
 
-  // Fetch Member Details from API
-  const fetchMemberProfile = async (session) => {
+    const fetchMemberProfile = async (session) => {
     setIsLoadingProfile(true);
     try {
       const targetLoginId = String(session?.loginId || session?.username || session?.adminId || '').trim();
@@ -131,8 +119,7 @@ const MyProfile = () => {
 
       let fetchedMember = null;
 
-      // 1. Try getById if msrno is valid (>0)
-      if (targetMsrno > 0 && API.member?.getById) {
+            if (targetMsrno > 0 && API.member?.getById) {
         try {
           const res = await API.member.getById(targetMsrno);
           const candidate = res?.data?.data || res?.data || res;
@@ -145,8 +132,7 @@ const MyProfile = () => {
         } catch (_) {}
       }
 
-      // 2. If not found or mismatch, search explicitly by targetLoginId
-      if (!fetchedMember && targetLoginId && API.member?.getAll) {
+            if (!fetchedMember && targetLoginId && API.member?.getAll) {
         try {
           const allRes = await API.member.getAll({ search: targetLoginId });
           const items = allRes?.data?.items || allRes?.data?.data || allRes?.data || (Array.isArray(allRes) ? allRes : []);
@@ -191,16 +177,10 @@ const MyProfile = () => {
     }
   };
 
-  // 2. Fetch Tab Specific Data
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    // formData.id comes from fetchMemberProfile(), which verifies the member
-    // against the Member master — prefer it over the raw JWT claim, which on the
-    // API panel can be the LoginId string instead of the numeric Member.Id.
-    const memberId = formData.id || sessionUser?.msrno || sessionUser?.userId;
+      useEffect(() => {
+                const memberId = formData.id || sessionUser?.msrno || sessionUser?.userId;
     if (activeTab === 'MyService') {
-      // Services tab resolves its own id, so run it even if we have none yet.
-      fetchServicesData(memberId);
+            fetchServicesData(memberId);
       return;
     }
     if (!memberId) return;
@@ -211,16 +191,14 @@ const MyProfile = () => {
     }
   }, [activeTab, sessionUser, formData.id]);
 
-  // Fetch Member Bank Accounts (+ the bank master list for the dropdown)
-  const fetchBankAccounts = async (memberId) => {
+    const fetchBankAccounts = async (memberId) => {
     setIsLoadingBanks(true);
     try {
       const realId = (await resolveMemberId()) || memberId;
 
       const [accounts, banks] = await Promise.all([
         API.memberBankDetail.getMine(realId),
-        // Same source the admin form uses: BankMaster/AllBankMaster.
-        API.bank?.getAll
+                API.bank?.getAll
           ? API.bank.getAll({ pageNumber: 1, pageSize: 1000 }).catch(() => [])
           : Promise.resolve([])
       ]);
@@ -237,8 +215,7 @@ const MyProfile = () => {
     }
   };
 
-  // Fetch KYC Documents
-  const fetchKycDocs = async (memberId) => {
+    const fetchKycDocs = async (memberId) => {
     setIsLoadingKyc(true);
     try {
       if (API.kycDocument?.getKycdocumentsMaster) {
@@ -253,14 +230,10 @@ const MyProfile = () => {
     }
   };
 
-  // Fetch Master & Assigned Services
-  const fetchServicesData = async (memberIdHint) => {
+    const fetchServicesData = async (memberIdHint) => {
     setIsLoadingServices(true);
     try {
-      // Never trust a raw JWT claim here — resolve the real numeric Member.Id,
-      // and keep the LoginId around so getMine() can match rows even if the id
-      // lookup comes up empty.
-      const resolvedId = (await resolveMemberId()) || memberIdHint || null;
+                        const resolvedId = (await resolveMemberId()) || memberIdHint || null;
       const loginId = getLoginId() || formData.loginId || '';
 
       const [masterRes, assigned] = await Promise.all([
@@ -282,10 +255,7 @@ const MyProfile = () => {
     }
   };
 
-  // ── HANDLERS ──
-
-  // Save Profile Details
-  const handleSaveProfile = async () => {
+    const handleSaveProfile = async () => {
     const memberId = formData.id || sessionUser?.msrno;
     if (!memberId) {
       dispatch(setNotification({ type: 'error', message: 'Unable to identify member ID' }));
@@ -327,8 +297,7 @@ const MyProfile = () => {
     }
   };
 
-  // Update Password
-  const handleUpdatePassword = async (e) => {
+    const handleUpdatePassword = async (e) => {
     e.preventDefault();
     if (!passwordData.oldPassword || !passwordData.newPassword) {
       dispatch(setNotification({ type: 'error', message: 'Please enter old and new passwords' }));
@@ -367,8 +336,7 @@ const MyProfile = () => {
     }
   };
 
-  // Update Pin
-  const handleUpdatePin = async (e) => {
+    const handleUpdatePin = async (e) => {
     e.preventDefault();
     if (!pinData.oldPin || !pinData.newPin) {
       dispatch(setNotification({ type: 'error', message: 'Please enter current and new 4-digit PIN' }));
@@ -407,8 +375,7 @@ const MyProfile = () => {
     }
   };
 
-  // Submit New Bank Account
-  const handleSaveBank = async (e) => {
+    const handleSaveBank = async (e) => {
     e.preventDefault();
     if (!newBank.bankId || !newBank.accountNumber || !newBank.ifscCode) {
       dispatch(setNotification({ type: 'error', message: 'Please select a Bank and fill Account Number & IFSC Code' }));
@@ -423,10 +390,7 @@ const MyProfile = () => {
         return;
       }
 
-      // Field names must match MemberBankDetailRequestModel: bankId / name /
-      // ifsccode. The old payload sent bankName/ifscCode, which the model
-      // dropped — so every saved row had bankId 0 and an empty IFSC.
-      await API.memberBankDetail.create({
+                        await API.memberBankDetail.create({
         msrno: parseInt(memberId),
         bankId: parseInt(newBank.bankId),
         name: newBank.bankName,
@@ -451,8 +415,7 @@ const MyProfile = () => {
     }
   };
 
-  // Delete Bank Account
-  const handleDeleteBank = async (id) => {
+    const handleDeleteBank = async (id) => {
     if (!window.confirm('Are you sure you want to delete this bank account?')) return;
     try {
       if (API.memberBankDetail?.delete) {
@@ -466,8 +429,7 @@ const MyProfile = () => {
     }
   };
 
-  // Upload KYC Document
-  const handleSaveKyc = async (e) => {
+    const handleSaveKyc = async (e) => {
     e.preventDefault();
     if (!newKyc.docName || !newKyc.docNumber) {
       dispatch(setNotification({ type: 'error', message: 'Please fill document name and document number' }));
@@ -498,24 +460,15 @@ const MyProfile = () => {
     }
   };
 
-  // Request Service Activation
-  const handleRequestService = async (service) => {
-    // The backend reads MemberId from the JWT for /Request/{serviceId}, so a
-    // missing local id must not block the request — it's only used for the
-    // refetch and the legacy /Create fallback.
-    const memberId = (await resolveMemberId()) || formData.id || sessionUser?.msrno || null;
+    const handleRequestService = async (service) => {
+                const memberId = (await resolveMemberId()) || formData.id || sessionUser?.msrno || null;
 
     setRequestingServiceId(service.id);
     try {
-      // Use the dedicated request endpoint so the row lands as
-      // AssignTypeId = 2 (Pending) and shows up on the admin
-      // "Service Activation Requests" screen. Falls back to Create only
-      // if the endpoint isn't available.
-      await API.memberService.requestActivation(parseInt(service.id), memberId);
+                              await API.memberService.requestActivation(parseInt(service.id), memberId);
       dispatch(setNotification({ type: 'success', message: `Service request for '${service.name}' submitted successfully!` }));
 
-      // Show "Pending Approval" immediately, without waiting for the refetch.
-      setAssignedServices(prev => {
+            setAssignedServices(prev => {
         const rest = prev.filter(a => Number(a.serviceId ?? a.ServiceId ?? a.service_id) !== Number(service.id));
         return [...rest, {
           memberId: memberId ? parseInt(memberId) : null,
@@ -536,8 +489,7 @@ const MyProfile = () => {
     }
   };
 
-  // Pause Service
-  const handlePauseService = (serviceId) => {
+    const handlePauseService = (serviceId) => {
     setConfirmModal({
       show: true,
       title: 'Pause Service',
@@ -565,8 +517,7 @@ const MyProfile = () => {
     });
   };
 
-  // Cancel Service
-  const handleCancelService = (serviceId) => {
+    const handleCancelService = (serviceId) => {
     setConfirmModal({
       show: true,
       title: 'Cancel Service',
@@ -594,8 +545,7 @@ const MyProfile = () => {
     });
   };
 
-  // Download Certificate Image
-  const handleDownloadCertificate = async () => {
+    const handleDownloadCertificate = async () => {
     if (!certRef.current) return;
     try {
       const canvas = await html2canvas(certRef.current, { scale: 2, useCORS: true });
@@ -611,8 +561,7 @@ const MyProfile = () => {
     }
   };
 
-  // Image Cropper Drag Handlers
-  const handleCameraClick = () => fileInputRef.current.click();
+    const handleCameraClick = () => fileInputRef.current.click();
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -718,8 +667,7 @@ const MyProfile = () => {
         </div>
       )}
 
-      {/* ADD BANK ACCOUNT MODAL */}
-      {showAddBankModal && (
+            {showAddBankModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.cropModal}>
             <div className={styles.modalHeader}>
@@ -729,9 +677,7 @@ const MyProfile = () => {
             <form onSubmit={handleSaveBank} className={styles.modalForm}>
               <div className={styles.inputGroup}>
                 <label>Select Bank *</label>
-                {/* Bound to BankMaster, searchable, and auto-fills the IFSC —
-                    same behaviour as the admin Add Member Bank Detail form. */}
-                <SearchableSelect
+                                <SearchableSelect
                   required
                   placeholder={bankMasterList.length ? 'Search & choose your bank' : 'Loading banks...'}
                   value={newBank.bankId}
@@ -746,9 +692,7 @@ const MyProfile = () => {
                       ...prev,
                       bankId: val,
                       bankName: selected ? (selected.bankName || selected.name || '') : '',
-                      // Auto-fetched from the master; still editable below since
-                      // the branch-level IFSC often differs.
-                      ifscCode: selected?.ifscCode ? selected.ifscCode.toUpperCase() : prev.ifscCode
+                                                                  ifscCode: selected?.ifscCode ? selected.ifscCode.toUpperCase() : prev.ifscCode
                     }));
                   }}
                 />
@@ -806,8 +750,7 @@ const MyProfile = () => {
         </div>
       )}
 
-      {/* UPLOAD KYC MODAL */}
-      {showUploadKycModal && (
+            {showUploadKycModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.cropModal}>
             <div className={styles.modalHeader}>
@@ -851,8 +794,7 @@ const MyProfile = () => {
         </div>
       )}
 
-      {/* PROFILE HEADER */}
-      <div className={styles.profileHeader}>
+            <div className={styles.profileHeader}>
         <div className={styles.headerCover}></div>
         <div className={styles.headerContent}>
           <div className={styles.avatarSection}>
@@ -887,8 +829,7 @@ const MyProfile = () => {
         </div>
       </div>
 
-      {/* MAIN TABS & CONTENT */}
-      <div className={styles.mainLayout}>
+            <div className={styles.mainLayout}>
         <div className={styles.contentArea}>
           <nav className={styles.tabsNav}>
             {tabs.map(tab => (
@@ -904,8 +845,7 @@ const MyProfile = () => {
 
           <div className={styles.tabContent}>
 
-            {/* TAB 1: PROFILE */}
-            {activeTab === 'Profile' && (
+                        {activeTab === 'Profile' && (
               <div className={styles.detailsGrid}>
                 <div className={styles.gridHeader}>
                   <div className={styles.titleWithIcon}>
@@ -1049,8 +989,7 @@ const MyProfile = () => {
               </div>
             )}
 
-            {/* TAB 2: RESET PASSWORD */}
-            {activeTab === 'ResetPassword' && (
+                        {activeTab === 'ResetPassword' && (
               <div className={styles.resetSection}>
                 <div className={styles.resetImageContainer}>
                   <img src="/images/resetpassword.png" alt="Security Password" />
@@ -1122,8 +1061,7 @@ const MyProfile = () => {
               </div>
             )}
 
-            {/* TAB 3: RESET PIN */}
-            {activeTab === 'ResetPin' && (
+                        {activeTab === 'ResetPin' && (
               <div className={styles.resetSection}>
                 <div className={styles.resetImageContainer}>
                   <img src="/images/resetpin.jpg" alt="Pin Security" />
@@ -1198,8 +1136,7 @@ const MyProfile = () => {
               </div>
             )}
 
-            {/* TAB 4: KYC DOCUMENTS */}
-            {activeTab === 'KYC' && (
+                        {activeTab === 'KYC' && (
               <div>
                 <div className={styles.gridHeader}>
                   <div className={styles.titleWithIcon}>
@@ -1263,8 +1200,7 @@ const MyProfile = () => {
               </div>
             )}
 
-            {/* TAB 5: ACCOUNT DETAILS (MEMBER BANK ACCOUNTS) */}
-            {activeTab === 'AccountDetails' && (
+                        {activeTab === 'AccountDetails' && (
               <div>
                 <div className={styles.gridHeader}>
                   <div className={styles.titleWithIcon}>
@@ -1301,9 +1237,7 @@ const MyProfile = () => {
                           <div className={styles.cardTitleInfo}>
                             <div className={styles.cardIcon}><FaUniversity /></div>
                             <div>
-                              {/* API returns the bank name in `name`; fall back
-                                  to the master list when only bankId is set. */}
-                              <h4 className={styles.cardTitle}>
+                                                            <h4 className={styles.cardTitle}>
                                 {b.name || b.bankName || b.bank_name
                                   || bankMasterList.find(m => Number(m.id) === Number(b.bankId))?.bankName
                                   || 'Bank Account'}
@@ -1339,8 +1273,7 @@ const MyProfile = () => {
               </div>
             )}
 
-            {/* TAB 6: MY SERVICE */}
-            {activeTab === 'MyService' && (
+                        {activeTab === 'MyService' && (
               <div>
                 <div className={styles.gridHeader}>
                   <div className={styles.titleWithIcon}>
@@ -1481,25 +1414,20 @@ const MyProfile = () => {
               </div>
             )}
 
-            {/* TAB 7: CERTIFICATE */}
-            {activeTab === 'Certificate' && (
+                        {activeTab === 'Certificate' && (
               <div className={styles.certifiedWrapper}>
 
-                {/* scroll-wrapper so cert stays full width on small screens */}
-                <div className={styles.certScrollOuter}>
+                                <div className={styles.certScrollOuter}>
                   <div ref={certRef} className={styles.certificateCard} id="certificate-card">
 
-                    {/* ── OUTER GOLD BORDER FRAME ── */}
-                    <div className={styles.certFrame}>
+                                        <div className={styles.certFrame}>
 
-                      {/* Corner ornaments */}
-                      <span className={styles.cTL}>❋</span>
+                                            <span className={styles.cTL}>❋</span>
                       <span className={styles.cTR}>❋</span>
                       <span className={styles.cBL}>❋</span>
                       <span className={styles.cBR}>❋</span>
 
-                      {/* ── HEADER ROW ── */}
-                      <div className={styles.certHdr}>
+                                            <div className={styles.certHdr}>
                         <div className={styles.certHdrLeft}>
                           <img src={SITE_CONFIG.logo} alt="" crossOrigin="anonymous" className={styles.certHdrLogo} />
                         </div>
@@ -1515,31 +1443,26 @@ const MyProfile = () => {
                         </div>
                       </div>
 
-                      {/* Gold rule */}
-                      <div className={styles.certGoldRule}>
+                                            <div className={styles.certGoldRule}>
                         <div className={styles.certGoldLine}/>
                         <span className={styles.certGoldDiamond}>◆ ◆ ◆</span>
                         <div className={styles.certGoldLine}/>
                       </div>
 
-                      {/* ── TITLE ── */}
-                      <div className={styles.certTitleWrap}>
+                                            <div className={styles.certTitleWrap}>
                         <p className={styles.certOfLabel}>C E R T I F I C A T E &nbsp; O F</p>
                         <h1 className={styles.certMainTitle}>Authorization</h1>
                       </div>
 
-                      {/* ── BODY ── */}
-                      <div className={styles.certMainBody}>
+                                            <div className={styles.certMainBody}>
 
-                        {/* faint watermark */}
-                        <div className={styles.certWM}>
+                                                <div className={styles.certWM}>
                           <img src={SITE_CONFIG.logo} alt="" crossOrigin="anonymous" className={styles.certWMImg}/>
                         </div>
 
                         <p className={styles.certThis}>This is to certify that</p>
 
-                        {/* Name block */}
-                        <div className={styles.certNameWrap}>
+                                                <div className={styles.certNameWrap}>
                           <p className={styles.certMrMs}>Mr / Ms</p>
                           <h2 className={styles.certMemberName}>{formData.name || 'Member Name'}</h2>
                           <div className={styles.certNameUnderline}/>
@@ -1563,15 +1486,13 @@ const MyProfile = () => {
                         </p>
                       </div>
 
-                      {/* Gold rule */}
-                      <div className={styles.certGoldRule} style={{margin:'0 0 14px'}}>
+                                            <div className={styles.certGoldRule} style={{margin:'0 0 14px'}}>
                         <div className={styles.certGoldLine}/>
                         <span className={styles.certGoldDiamond}>◆ ◆ ◆</span>
                         <div className={styles.certGoldLine}/>
                       </div>
 
-                      {/* ── FOOTER ROW ── */}
-                      <div className={styles.certFtr}>
+                                            <div className={styles.certFtr}>
                         <div className={styles.certFtrCol}>
                           <span className={styles.certFtrVal}>{formData.loginId || 'N/A'}</span>
                           <div className={styles.certFtrLine}/>
@@ -1599,18 +1520,14 @@ const MyProfile = () => {
                         </div>
                       </div>
 
-                    </div>{/* /certFrame */}
-                  </div>{/* /certificateCard */}
-                </div>{/* /certScrollOuter */}
-
+                    </div>                  </div>                </div>
                 <button className={styles.certDownloadBtn} onClick={handleDownloadCertificate}>
                   <FaDownload /> Download Certificate
                 </button>
               </div>
             )}
 
-            {/* TAB 8: GALLERY */}
-            {activeTab === 'Gallery' && (
+                        {activeTab === 'Gallery' && (
               <div className={styles.detailsGrid}>
                 <div className={styles.gridHeader}>
                   <div className={styles.titleWithIcon}>

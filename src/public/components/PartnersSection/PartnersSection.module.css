@@ -68,8 +68,7 @@
 }
 
 .logoBox:nth-child(even) {
-  animation-delay: 1.5s; /* Stagger animation for even items */
-}
+  animation-delay: 1.5s; }
 
 @keyframes floatLogo {
   0%, 100% { transform: translateY(0); }
@@ -84,8 +83,7 @@
 }
 
 [data-theme="dark"] .logoImg {
-  /* Only add a slight brightness boost for dark mode to ensure they are visible, but keep colors natural */
-  filter: brightness(1.2);
+    filter: brightness(1.2);
 }
 
 .logoBox:hover .logoImg {

@@ -17,11 +17,9 @@ const ActionMenu = ({ txn, onViewReceipt, onAction, actions }) => {
 
     const handleMouseDown = (e) => {
       if (portalRef.current && portalRef.current.contains(e.target)) {
-        return; // Let the onClick handler of the item take care of it
-      }
+        return;       }
       if (menuRef.current && menuRef.current.contains(e.target)) {
-        return; // Button click will be handled by toggleMenu
-      }
+        return;       }
       setIsOpen(false);
     };
 
@@ -130,8 +128,7 @@ const ActionMenu = ({ txn, onViewReceipt, onAction, actions }) => {
         }}
         onClick={(e) => e.stopPropagation()}
         >
-          {/* Arrow */}
-          <div style={{
+                    <div style={{
             position: 'absolute',
             top: isTop ? 'auto' : '-5px',
             bottom: isTop ? '-5px' : 'auto',
@@ -140,8 +137,7 @@ const ActionMenu = ({ txn, onViewReceipt, onAction, actions }) => {
             width: '10px',
             height: '10px',
             background: 'white',
-            // Border sides based on position
-            borderLeft: isTop ? 'none' : '1px solid rgba(226, 232, 240, 0.8)',
+                        borderLeft: isTop ? 'none' : '1px solid rgba(226, 232, 240, 0.8)',
             borderTop: isTop ? 'none' : '1px solid rgba(226, 232, 240, 0.8)',
             borderRight: isTop ? '1px solid rgba(226, 232, 240, 0.8)' : 'none',
             borderBottom: isTop ? '1px solid rgba(226, 232, 240, 0.8)' : 'none',

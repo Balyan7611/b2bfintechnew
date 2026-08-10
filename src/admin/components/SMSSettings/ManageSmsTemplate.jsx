@@ -12,18 +12,15 @@ const ManageSmsTemplate = () => {
 
   return (
     <div className={styles.container}>
-      {/* ── MAIN REPOSITORY CARD ── */}
-      <div className={styles.cardFullMobile}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 25px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
+            <div className={styles.cardFullMobile}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 25px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
           <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap' }}>SMS Mappings</h3>
           <button className={styles.addBtn} onClick={() => setIsModalOpen(true)} style={{ height: '34px', padding: '0 12px', fontSize: '0.7rem', borderRadius: '8px', background: '#1756AA', minWidth: 'auto', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
             <FiPlus /> <span>New Mapping</span>
           </button>
         </div>
 
-        {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 700 }}>Show</span>
             <select className={styles.selectEntries} style={{ borderRadius: '8px', border: '1px solid #E2E8F0', height: '36px', width: '70px' }}>
@@ -52,8 +49,7 @@ const ManageSmsTemplate = () => {
           </div>
         </div>
 
-        {/* ── TABLE ── */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ minWidth: '1100px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -102,8 +98,7 @@ const ManageSmsTemplate = () => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div className="global-pagination" style={{ padding: '20px 25px', borderTop: '1px solid #F1F5F9', background: '#F9FBFF' }}>
+                <div className="global-pagination" style={{ padding: '20px 25px', borderTop: '1px solid #F1F5F9', background: '#F9FBFF' }}>
           <div style={{ fontSize: '0.8rem', color: '#718096', fontWeight: 600 }}>
             Showing 1 to 2 of 2 records
           </div>

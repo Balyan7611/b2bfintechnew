@@ -79,8 +79,7 @@ const QuickSearch = () => {
     }
   };
 
-  // Setup CSV exports mapping
-  const exportHeaders = ['Date', 'Order ID', 'Vendor ID', 'Ref ID', 'RRN', 'Customer Name', 'Mobile', 'Account No', 'IFSC', 'Amount', 'Surcharge', 'Commission', 'Opening Bal', 'Closing Bal', 'Status'];
+    const exportHeaders = ['Date', 'Order ID', 'Vendor ID', 'Ref ID', 'RRN', 'Customer Name', 'Mobile', 'Account No', 'IFSC', 'Amount', 'Surcharge', 'Commission', 'Opening Bal', 'Closing Bal', 'Status'];
   const exportRows = results.map(r => [
     r.createdDate ? new Date(r.createdDate).toLocaleString('en-IN') : '',
     r.orderId || '',
@@ -101,8 +100,7 @@ const QuickSearch = () => {
 
   return (
     <div className={styles.container}>
-      {/* ── PREMIUM FILTER CARD ── */}
-      <div style={{ 
+            <div style={{ 
         background: '#ffffff',
         borderRadius: '20px',
         boxShadow: '0 8px 24px rgba(23, 86, 170, 0.02), 0 1px 4px rgba(0, 0, 0, 0.01)',
@@ -110,16 +108,14 @@ const QuickSearch = () => {
         marginBottom: '20px',
         overflow: 'hidden'
       }}>
-        {/* CARD TOP: TITLE */}
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
           <div>
             <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', letterSpacing: '0.2px' }}>Quick Search</h2>
             <p style={{ margin: '2px 0 0 0', fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Real-time Universal Transaction Lookup</p>
           </div>
         </div>
 
-        {/* CARD BOTTOM: FILTERS */}
-        <div style={{ padding: '20px', background: '#FAFBFC' }}>
+                <div style={{ padding: '20px', background: '#FAFBFC' }}>
           <form onSubmit={(e) => handleSearch(e, 1)}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '16px', alignItems: 'flex-end', maxWidth: '800px' }}>
               
@@ -157,8 +153,7 @@ const QuickSearch = () => {
         </div>
       </div>
 
-      {/* Stats row if we have results */}
-      {results.length > 0 && (
+            {results.length > 0 && (
         <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
           <div style={{ background: '#fff', borderRadius: '12px', padding: '12px 20px', border: '1px solid #E2E8F0', flex: 1, minWidth: '150px' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>Success</div>
@@ -175,8 +170,7 @@ const QuickSearch = () => {
         </div>
       )}
 
-      {/* ── DATA TABLE CARD ── */}
-      <div className={styles.cardFullMobile}>
+            <div className={styles.cardFullMobile}>
         <div className="global-table-toolbar">
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>

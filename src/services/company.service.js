@@ -47,13 +47,11 @@ export const CompanyService = {
         return CompanyResponseModel(res);
     },
 
-    // POST multipart/form-data → /api/Company/create
-    create: async (formData) => {
+        create: async (formData) => {
         return await apiService.post('/Company/create', formData);
     },
 
-    // POST multipart/form-data → /api/Company/update
-    update: async (formData) => {
+        update: async (formData) => {
         return await apiService.post('/Company/update', formData);
     },
 

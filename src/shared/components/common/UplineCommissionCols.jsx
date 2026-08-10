@@ -1,18 +1,3 @@
-/**
- * UplineCommissionCols
- *
- * Shared component that renders grouped COMMISSION + UPLINE COMMISSION
- * header columns (2-row thead) and matching body cells.
- *
- * Usage — in thead row 1:
- *   <UplineCommissionCols.GroupHeader transactions={transactions} />
- *
- * Usage — in thead row 2 (sub-headers):
- *   <UplineCommissionCols.SubHeader transactions={transactions} />
- *
- * Usage — in tbody tr:
- *   <UplineCommissionCols.Cells txn={txn} transactions={transactions} onBreakdown={setBreakdownTxn} />
- */
 import React from 'react';
 
 const groupHeaderStyle = {
@@ -36,7 +21,6 @@ const subThBase = {
   lineHeight: '1',
 };
 
-/** Returns { roles, cols } from the first transaction that has uplineBreakdown */
 export const getUplineShape = (transactions = []) => {
   const sample = transactions.find(t => Array.isArray(t.uplineBreakdown) && t.uplineBreakdown.length > 0);
   const roles  = sample ? sample.uplineBreakdown : [];
@@ -44,7 +28,6 @@ export const getUplineShape = (transactions = []) => {
   return { roles, cols };
 };
 
-/** Row-1 group headers: <th colSpan="2">COMMISSION</th> + UPLINE COMMISSION group */
 export const GroupHeader = ({ transactions = [] }) => {
   const { cols } = getUplineShape(transactions);
   return (
@@ -55,7 +38,6 @@ export const GroupHeader = ({ transactions = [] }) => {
   );
 };
 
-/** Row-2 sub-headers: ADMIN | TDS | TOTAL | L1 | L2 … */
 export const SubHeader = ({ transactions = [] }) => {
   const { roles, cols } = getUplineShape(transactions);
   return (
@@ -72,7 +54,6 @@ export const SubHeader = ({ transactions = [] }) => {
   );
 };
 
-/** Body cells: admin | TDS | upline total+ⓘ | per-role cells */
 export const Cells = ({ txn, transactions = [], onBreakdown }) => {
   const { cols } = getUplineShape(transactions);
   const breakdown = txn.uplineBreakdown || [];
@@ -85,18 +66,15 @@ export const Cells = ({ txn, transactions = [], onBreakdown }) => {
 
   return (
     <>
-      {/* ADMIN */}
-      <td style={{ fontSize: '0.75rem', fontWeight: 700, color: '#166534' }}>
+            <td style={{ fontSize: '0.75rem', fontWeight: 700, color: '#166534' }}>
         ₹{adminComm.toFixed(2)}
       </td>
-      {/* TDS */}
-      <td>
+            <td>
         <span style={{ color: '#991B1B', fontWeight: 800, background: '#FEE2E2', padding: '3px 6px', borderRadius: 4, fontSize: '0.75rem' }}>
           ₹{tds.toFixed(2)}
         </span>
       </td>
-      {/* UPLINE TOTAL */}
-      <td style={{ borderLeft: '2px solid rgba(21,128,61,0.3)', background: 'rgba(240,253,244,0.4)' }}>
+            <td style={{ borderLeft: '2px solid rgba(21,128,61,0.3)', background: 'rgba(240,253,244,0.4)' }}>
         {txn.uplineCommission != null || breakdown.length > 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#15803d' }}>
@@ -112,8 +90,7 @@ export const Cells = ({ txn, transactions = [], onBreakdown }) => {
           </div>
         ) : <span style={{ color: '#94a3b8', fontSize: '0.72rem' }}>—</span>}
       </td>
-      {/* Per-role cells */}
-      {Array.from({ length: cols }, (_, i) => {
+            {Array.from({ length: cols }, (_, i) => {
         const row = breakdown[i];
         return (
           <td key={i} style={{ background: 'rgba(240,253,244,0.2)', fontSize: '0.72rem' }}>

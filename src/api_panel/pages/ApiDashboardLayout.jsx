@@ -22,7 +22,6 @@ import {
 import { MdAccountBalanceWallet } from 'react-icons/md';
 import styles from '../../pages/MemberDashboard.module.css';
 
-
 const ApiDashboardLayout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -36,8 +35,7 @@ const ApiDashboardLayout = () => {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1200);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Toast logic
-  const [currentToast, setCurrentToast] = useState(null);
+    const [currentToast, setCurrentToast] = useState(null);
   const [isToastClosing, setIsToastClosing] = useState(false);
   const prevNotifCountRef = useRef(notifList ? notifList.length : 0);
 
@@ -91,8 +89,7 @@ const ApiDashboardLayout = () => {
     }
     dispatch(setSearchTerm(''));
     
-    // Simulate loading
-    const timer = setTimeout(() => setIsLoading(false), 1500);
+        const timer = setTimeout(() => setIsLoading(false), 1500);
     return () => clearTimeout(timer);
   }, [isDarkMode, dispatch]);
 
@@ -105,8 +102,6 @@ const ApiDashboardLayout = () => {
       }
     }
   };
-
-
 
   if (isLoading) {
     return (
@@ -153,8 +148,7 @@ const ApiDashboardLayout = () => {
         </main>
       </div>
 
-      {/* Global Toast Notification */}
-      {currentToast && (
+            {currentToast && (
         <div className={`${styles.globalToast} ${isToastClosing ? styles.closing : ''}`}>
           <div className={styles.toastIconWrap} style={{ alignSelf: 'flex-start', marginTop: '2px' }}>
             <FaBell />

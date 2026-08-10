@@ -1,9 +1,6 @@
 import { apiService } from '../api/httpClient';
 import { ServiceResponseModel } from '../models/serviceModel';
 
-// Explicitly attach whatever auth token is available (access_token / admin_token /
-// member_token) so background/header calls never go out without an Authorization
-// header, regardless of which panel is calling.
 const getAuthConfig = (extra = {}) => {
   const raw = sessionStorage.getItem('access_token')
     || localStorage.getItem('access_token')
@@ -24,10 +21,6 @@ const getAuthConfig = (extra = {}) => {
   };
 };
 
-/* ──────────────────────────────────────────────
-   Helper: build FormData from service object
-   Field names match exactly the API curl spec
-────────────────────────────────────────────── */
 const buildServiceFormData = (data, fileObj = null) => {
   const fd = new FormData();
   fd.append('Name',      data.name      || '');
@@ -56,56 +49,46 @@ const buildServiceFormData = (data, fileObj = null) => {
 
 export const ServiceManagementService = {
 
-  // GET all services (POST method per API convention)
-  getAll: async () => {
+    getAll: async () => {
     return await apiService.post('/Service/get-all-services', {});
   },
 
-  // GET services by section type
-  getBySectionType: async (sectionType) => {
+    getBySectionType: async (sectionType) => {
     return await apiService.get(`/Service/get-services-by-sectiontype/${sectionType}?isActive=true`);
   },
 
-  // Clean, mapped list of services that are actually turned on for members/API
-  // users (isActive + onoff), used to populate the dynamic service tiles in
-  // the Member / Admin / API-panel dashboards instead of a hardcoded array.
-  getActiveServices: async () => {
+        getActiveServices: async () => {
     const res = await apiService.post('/Service/get-all-services', {}, getAuthConfig({ hideLoader: true, ignoreError: true }));
     const all = ServiceResponseModel(res);
     return all.filter(s => s.isActive && s.onoff);
   },
 
-  // CREATE service — POST multipart/form-data
-  create: async (data, fileObj = null) => {
+    create: async (data, fileObj = null) => {
     const fd = buildServiceFormData(data, fileObj);
     return await apiService.postForm('/Service/create-service', fd);
   },
 
-  // UPDATE service — PUT multipart/form-data (Id in URL)
-  update: async (data, fileObj = null) => {
+    update: async (data, fileObj = null) => {
     const fd = buildServiceFormData(data, fileObj);
     fd.append('Id', data.id);
     return await apiService.putForm(`/Service/update-service/${data.id}`, fd);
   },
 
-  // TOGGLE isActive — uses update-service PUT with full existing data
-  toggleActive: async (service) => {
+    toggleActive: async (service) => {
     const updated = { ...service, isActive: !service.isActive };
     const fd = buildServiceFormData(updated, null);
     fd.append('Id', service.id);
     return await apiService.putForm(`/Service/update-service/${service.id}`, fd);
   },
 
-  // TOGGLE onoff — uses update-service PUT with full existing data
-  toggleOnOff: async (service) => {
+    toggleOnOff: async (service) => {
     const updated = { ...service, onoff: !service.onoff };
     const fd = buildServiceFormData(updated, null);
     fd.append('Id', service.id);
     return await apiService.putForm(`/Service/update-service/${service.id}`, fd);
   },
 
-  // DELETE service
-  delete: async (id) => {
+    delete: async (id) => {
     return await apiService.post(`/Service/delete-service/${id}`, {});
   },
 };

@@ -1,4 +1,3 @@
-// src/components/RoleManagement.js
 import { useCallback, useEffect, useState } from 'react';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import {
@@ -16,8 +15,6 @@ import {
 import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import { API } from '../../../api/endpoints';
 import styles from '../MemberPages/MemberPages.module.css';
-
-
 
 const RoleManagement = () => {
   const [roles, setRoles] = useState([]);
@@ -56,8 +53,7 @@ const RoleManagement = () => {
 
   const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, role: null });
 
-  // Close action dropdown on outside click and scroll
-  useEffect(() => {
+    useEffect(() => {
     const handleOutsideClick = (e) => {
       if (!e.target.closest('.action-dropdown-wrapper')) {
         setActiveActionRow(prev => prev.id ? { id: null, x: 0, y: 0, role: null } : prev);
@@ -346,8 +342,6 @@ const RoleManagement = () => {
     }
   };
 
-  // handleExport logic has been delegated to the shared ExportButtons component
-
   const indexOfLastEntry = currentPage * entriesPerPage;
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
   const currentEntries = filteredRoles.slice(indexOfFirstEntry, indexOfLastEntry);
@@ -504,8 +498,7 @@ const RoleManagement = () => {
           </table>
         </div>
 
-        {/* PAGINATION */}
-        <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9' }}>
+                <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9' }}>
           <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
             Showing {filteredRoles.length === 0 ? 0 : indexOfFirstEntry + 1} to {Math.min(indexOfLastEntry, filteredRoles.length)} of {filteredRoles.length} entries
           </span>
@@ -519,8 +512,7 @@ const RoleManagement = () => {
               <FiChevronLeft />
             </button>
             
-            {/* Show only max 5 page numbers for better UI */}
-            {[...Array(totalPages)].map((_, i) => {
+                        {[...Array(totalPages)].map((_, i) => {
                if (i + 1 < currentPage - 2 || i + 1 > currentPage + 2) return null;
                return (
                 <button
@@ -552,8 +544,7 @@ const RoleManagement = () => {
         </div>
       </div>
 
-      {/* ── ACTION DROPDOWN PORTAL (fixed position, never clipped) ── */}
-      {activeActionRow.id && (
+            {activeActionRow.id && (
         <>
           <style>{`
             @keyframes dropdownFadeInSideRole {
@@ -626,8 +617,7 @@ const RoleManagement = () => {
         </>
       )}
 
-      {/* Placeholder Space for Future Card */}
-      <div style={{ minHeight: '250px', width: '100%' }}></div>
+            <div style={{ minHeight: '250px', width: '100%' }}></div>
 
       {hoveredRole && (
         <div 
@@ -869,8 +859,7 @@ const RoleManagement = () => {
         <div className={styles.modalOverlay} style={{ zIndex: 4000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className={styles.modalContainer} style={{ width: '700px', maxWidth: '95%', borderRadius: '16px', padding: '16px', background: '#fff', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
             
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '10px', marginBottom: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '10px', marginBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <FiList style={{ color: '#1756AA', fontSize: '1.15rem' }} />
                 <h3 style={{ margin: 0, fontSize: '1.05rem', color: '#0D1B3E', fontWeight: 800 }}>
@@ -885,8 +874,7 @@ const RoleManagement = () => {
               </button>
             </div>
 
-            {/* Toolbar: Search & Select All */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div className="global-search-box" style={{ maxWidth: '300px', margin: 0, flex: 1 }}>
                 <FiSearch />
                 <input
@@ -915,8 +903,7 @@ const RoleManagement = () => {
               </div>
             </div>
 
-            {/* Services Grid (Scrollable) */}
-            <div style={{ flex: 1, overflowY: 'auto', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '12px', marginBottom: '12px' }}>
+                        <div style={{ flex: 1, overflowY: 'auto', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '12px', marginBottom: '12px' }}>
               {getModalServices().length > 0 ? (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '8px' }}>
                   {getModalServices().filter(service => 
@@ -966,8 +953,7 @@ const RoleManagement = () => {
               )}
             </div>
 
-            {/* Footer Actions */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid #E2E8F0', paddingTop: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid #E2E8F0', paddingTop: '10px' }}>
               <button
                 type="button"
                 onClick={() => setIsAssignModalOpen(false)}

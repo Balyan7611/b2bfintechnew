@@ -30,8 +30,7 @@ const DesignService = () => {
   const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, design: null });
   const [toggleConfirmModal, setToggleConfirmModal] = useState({ isOpen: false, design: null });
 
-  // Close action dropdown on outside click
-  React.useEffect(() => {
+    React.useEffect(() => {
     const handleOutsideClick = (e) => {
       if (!e.target.closest('.action-dropdown-wrapper')) {
         setActiveActionRow({ id: null, x: 0, y: 0, design: null });
@@ -41,12 +40,10 @@ const DesignService = () => {
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  // Load section types and services from API and merge them dynamically
-  const fetchInitialData = async () => {
+    const fetchInitialData = async () => {
     setIsLoading(true);
     try {
-      const sectRes = await API.sectionType.getAll(null); // Get both active/inactive
-      const servRes = await API.service.getAll();
+      const sectRes = await API.sectionType.getAll(null);       const servRes = await API.service.getAll();
       
       let loadedSections = [];
       let loadedServices = [];
@@ -61,8 +58,7 @@ const DesignService = () => {
         setServices(servRes.data);
       }
 
-      // Map dynamic services to sections
-      const matchedDesigns = loadedSections.map((sect) => {
+            const matchedDesigns = loadedSections.map((sect) => {
         const matchingServices = loadedServices
           .filter(s => String(s.sectionType) === String(sect.id))
           .map(s => s.id);
@@ -112,12 +108,10 @@ const DesignService = () => {
       name: design.name, 
       boxColor: '#ffffff', 
       textColor: '#333333', 
-      serviceType: String(design.id), // Bind to selected section type ID
-      bannerImage: null
+      serviceType: String(design.id),       bannerImage: null
     });
     
-    // Parse services assigned to this design
-    const serviceIds = (design.service || '').split(',').map(s => s.trim()).filter(Boolean);
+        const serviceIds = (design.service || '').split(',').map(s => s.trim()).filter(Boolean);
     const selections = {};
     serviceIds.forEach(id => {
       selections[id] = true;
@@ -144,15 +138,13 @@ const DesignService = () => {
         const isPreviouslyAssigned = String(srv.sectionType) === String(targetSectionId);
         
         if (isCurrentlySelected && !isPreviouslyAssigned) {
-          // Assign service to this section
-          const payload = {
+                    const payload = {
             ...srv,
             sectionType: targetSectionId
           };
           promises.push(API.service.update(payload));
         } else if (!isCurrentlySelected && isPreviouslyAssigned) {
-          // Unassign service from this section
-          const payload = {
+                    const payload = {
             ...srv,
             sectionType: '0'
           };
@@ -166,8 +158,7 @@ const DesignService = () => {
 
       alert("Design service section updated successfully!");
       setIsModalOpen(false);
-      fetchInitialData(); // Reload list to reflect changes
-    } catch (err) {
+      fetchInitialData();     } catch (err) {
       console.error("Error saving design service", err);
       alert("Failed to save design service");
     } finally {
@@ -178,10 +169,8 @@ const DesignService = () => {
   return (
     <>
       <div className={styles.container} style={{ padding: '20px', maxWidth: '100%', background: '#F4F7FE', minHeight: '100vh' }}>
-        {/* ── MAIN REPOSITORY CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', border: '1px solid #F1F5F9' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
+              <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', border: '1px solid #F1F5F9' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0F172A' }}>Design Service</h3>
           <PrimaryButton onClick={() => {
             setFormData({ name: '', boxColor: '#ffffff', textColor: '#333333', serviceType: '', bannerImage: null });
@@ -192,8 +181,7 @@ const DesignService = () => {
           </PrimaryButton>
         </div>
 
-        {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '15px 20px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '15px 20px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#475569', fontWeight: 700 }}>Show</span>
             <select className={styles.selectEntries} style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}>
@@ -222,8 +210,7 @@ const DesignService = () => {
           </div>
         </div>
 
-        {/* ── TABLE ── */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ width: '100%', tableLayout: 'auto' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -285,8 +272,7 @@ const DesignService = () => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div className="global-pagination" style={{ padding: '20px', borderTop: '1px solid #F1F5F9' }}>
+                <div className="global-pagination" style={{ padding: '20px', borderTop: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
             Showing 1 to {designsList.length} of {designsList.length} records
           </div>
@@ -298,13 +284,11 @@ const DesignService = () => {
         </div>
       </div>
 
-      {/* ── ADD MODAL (PREMIUM FULL-PAGE DRAWER) ── */}
-      {isModalOpen && (
+            {isModalOpen && (
         <div className={styles.drawerOverlay} onClick={() => setIsModalOpen(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div className={styles.drawer} onClick={(e) => e.stopPropagation()} style={{ width: '1100px', maxWidth: '100%', maxHeight: '90vh', background: '#fff', borderRadius: '20px', transform: 'none', position: 'relative', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
             
-            {/* Header */}
-            <div style={{ padding: '12px 25px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', borderRadius: '20px 20px 0 0' }}>
+                        <div style={{ padding: '12px 25px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', borderRadius: '20px 20px 0 0' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <FiLayout size={18} />
@@ -316,12 +300,10 @@ const DesignService = () => {
               </button>
             </div>
             
-            {/* Body */}
-            <div style={{ padding: '30px', overflowY: 'auto', flex: 1, background: '#F8FAFC' }}>
+                        <div style={{ padding: '30px', overflowY: 'auto', flex: 1, background: '#F8FAFC' }}>
               <div style={{ background: '#fff', borderRadius: '16px', padding: '25px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)', border: '1px solid #F1F5F9' }}>
                 
-                {/* Top Form Controls */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Name</label>
                     <input type="text" placeholder="Enter service name" style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '0.95rem', background: '#F8FAFC', color: '#0F172A', outline: 'none' }} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
@@ -383,8 +365,7 @@ const DesignService = () => {
                   </div>
                 ) : (
                   <>
-                    {/* Services Checkbox Grid */}
-                    <div style={{ marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0F172A' }}>Assign Services</h4>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', color: '#475569', fontWeight: 700 }}>
@@ -444,8 +425,7 @@ const DesignService = () => {
               </div>
             </div>
 
-            {/* Footer */}
-            <div style={{ padding: '15px 25px', borderTop: '1px solid #F1F5F9', background: '#fff', borderRadius: '0 0 20px 20px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                        <div style={{ padding: '15px 25px', borderTop: '1px solid #F1F5F9', background: '#fff', borderRadius: '0 0 20px 20px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <button onClick={() => setIsModalOpen(false)} style={{ padding: '10px 20px', borderRadius: '8px', background: '#F1F5F9', color: '#475569', border: 'none', fontWeight: 700, cursor: 'pointer' }} disabled={isSaving}>Cancel</button>
               <PrimaryButton 
                 onClick={handleSave} 
@@ -467,8 +447,7 @@ const DesignService = () => {
         </div>
       )}
             
-      {/* ── DELETE CONFIRMATION MODAL ── */}
-      {showDeleteModal && (
+            {showDeleteModal && (
         <div className={styles.drawerOverlay} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
           <div style={{ background: '#fff', width: '360px', padding: '24px', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)', textAlign: 'center' }}>
             <div style={{ width: '60px', height: '60px', background: '#FEF2F2', color: '#EF4444', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto' }}>
@@ -486,8 +465,7 @@ const DesignService = () => {
         </div>
       )}
 
-      {/* ── ACTION DROPDOWN PORTAL ── */}
-      {activeActionRow.id && (
+            {activeActionRow.id && (
         <>
           <style>{`
             @keyframes dropdownFadeIn {
@@ -537,8 +515,7 @@ const DesignService = () => {
         </>
       )}
 
-      {/* ── CONFIRM TOGGLE ── */}
-      {toggleConfirmModal.isOpen && (
+            {toggleConfirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 9999 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
             

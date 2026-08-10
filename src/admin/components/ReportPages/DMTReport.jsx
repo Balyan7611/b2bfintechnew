@@ -22,9 +22,6 @@ const DMTReport = () => {
     currentPage 
   } = useSelector(state => state.report.dmtReport);
 
-  // Data will be fetched from API when backend endpoints are ready
-  // useEffect(() => { ... fetch DMT data ... }, [filters]);
-
   const totalEntries = list.length;
   const totalPages = Math.ceil(totalEntries / rowsPerPage);
 

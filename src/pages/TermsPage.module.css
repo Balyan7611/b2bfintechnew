@@ -1,6 +1,5 @@
 .pageContainer {
-  padding: 100px 20px 60px; /* Offset for fixed navbar */
-  max-width: 1000px;
+  padding: 100px 20px 60px;   max-width: 1000px;
   margin: 0 auto;
   font-family: 'Inter', sans-serif;
   color: #1A202C;

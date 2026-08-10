@@ -1,17 +1,6 @@
 import React from 'react';
 import { FiCheck, FiXCircle, FiAlertCircle, FiInfo } from 'react-icons/fi';
 
-/**
- * Reusable Premium Popup Modal
- * Usage:
- *   const [popup, setPopup] = useState({ show: false, type: 'success', title: '', message: '' });
- *   const showPopup = (type, title, message) => setPopup({ show: true, type, title, message });
- *   const closePopup = () => setPopup(p => ({ ...p, show: false }));
- *
- *   <PopupModal show={popup.show} type={popup.type} title={popup.title} message={popup.message} onClose={closePopup} />
- *
- * type: 'success' | 'error' | 'warning' | 'info'
- */
 const PopupModal = ({ show, type = 'success', title, message, onClose }) => {
   if (!show) return null;
 
@@ -80,8 +69,7 @@ const PopupModal = ({ show, type = 'success', title, message, onClose }) => {
           animation: 'slideUp 0.25s ease',
         }}
       >
-        {/* Top coloured section */}
-        <div style={{ background: c.bg, padding: '32px 28px 22px', textAlign: 'center' }}>
+                <div style={{ background: c.bg, padding: '32px 28px 22px', textAlign: 'center' }}>
           <div style={{
             width: '60px', height: '60px', borderRadius: '50%',
             background: c.iconBg,
@@ -99,8 +87,7 @@ const PopupModal = ({ show, type = 'success', title, message, onClose }) => {
           </p>
         </div>
 
-        {/* Button section */}
-        <div style={{ padding: '18px 28px 24px', textAlign: 'center', background: '#fff' }}>
+                <div style={{ padding: '18px 28px 24px', textAlign: 'center', background: '#fff' }}>
           <button
             onClick={onClose}
             style={{
@@ -124,10 +111,6 @@ const PopupModal = ({ show, type = 'success', title, message, onClose }) => {
   );
 };
 
-/**
- * Hook for easy popup usage
- * const { popup, showPopup, closePopup } = usePopup();
- */
 export const usePopup = () => {
   const [popup, setPopup] = React.useState({ show: false, type: 'success', title: '', message: '' });
   const showPopup = (type, title, message) => setPopup({ show: true, type, title, message });

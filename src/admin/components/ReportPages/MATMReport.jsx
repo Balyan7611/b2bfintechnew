@@ -22,8 +22,6 @@ const MATMReport = () => {
     currentPage 
   } = useSelector(state => state.report.matmReport);
 
-  // Data will be fetched from API when backend endpoints are ready
-
   const totalEntries = list.length;
   const totalPages = Math.ceil(totalEntries / rowsPerPage);
 

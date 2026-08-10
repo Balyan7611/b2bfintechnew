@@ -17,8 +17,7 @@ const ServiceSelectionGrid = ({
 
   return (
     <>
-      {/* SERVICE SELECTION GRID HEADER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '12px', borderBottom: '2px solid #F1F5F9' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '12px', borderBottom: '2px solid #F1F5F9' }}>
         <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#1756AA', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <FiGrid /> Available Services ({filteredServices.length})
         </h4>
@@ -53,8 +52,7 @@ const ServiceSelectionGrid = ({
         )}
       </div>
 
-      {/* SERVICES CARDS LAYOUT */}
-      <div style={{ 
+            <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 260px))', 
         gap: '16px', 

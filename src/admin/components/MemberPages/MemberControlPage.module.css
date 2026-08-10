@@ -52,7 +52,6 @@
   transform: translateX(-3px);
 }
 
-/* Profile Header Block */
 .memberModalProfileHeader {
   display: flex;
   gap: 16px;
@@ -160,7 +159,6 @@
   color: #0F172A;
 }
 
-/* Split Columns Modal Body Layout */
 .memberModalBody {
   display: flex;
   gap: 20px;
@@ -201,7 +199,6 @@
   padding-left: 28px;
 }
 
-/* Balances Display Row */
 .memberModalBalancesRow {
   display: flex;
   flex-direction: column;
@@ -270,7 +267,6 @@
   margin-top: 6px;
 }
 
-/* Actions Section */
 .memberActionsSection {
   flex: 1;
 }
@@ -340,7 +336,6 @@
   line-height: 1.2;
 }
 
-/* Account Specifications */
 .memberSpecsSection {
   background: #ffffff;
   border-radius: 16px;
@@ -443,11 +438,9 @@
   border: 1px solid rgba(234, 162, 31, 0.15);
 }
 
-/* Edit Profile Form Page */
 .editProfileFormPage {
   padding: 30px;
-  background: #F8FAFC; /* Softer background */
-  display: flex;
+  background: #F8FAFC;   display: flex;
   flex-direction: column;
   animation: fadeIn 0.3s ease-out;
   gap: 24px;
@@ -455,16 +448,13 @@
 
 .formSection {
   background: #ffffff;
-  border-radius: 16px; /* Rounder corners */
-  border: 1px solid #E2E8F0;
+  border-radius: 16px;   border: 1px solid #E2E8F0;
   padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Premium soft shadow */
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);   transition: all 0.3s ease;
 }
 
 .formSection:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); /* Hover effect */
-  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);   transform: translateY(-2px);
 }
 
 .formSectionHeader {
@@ -479,8 +469,7 @@
 .formSectionTitle {
   font-size: 1.1rem;
   font-weight: 800;
-  color: #0F172A; /* Darker title */
-  margin: 0;
+  color: #0F172A;   margin: 0;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -510,8 +499,7 @@
 .formGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px; /* More spacing */
-}
+  gap: 24px; }
 
 .formGroup {
   display: flex;
@@ -527,13 +515,10 @@
 
 .formInput {
   padding: 10px 14px;
-  border: 1.5px solid #E2E8F0; /* Slightly thicker border */
-  border-radius: 10px; /* Rounder inputs */
-  font-size: 0.85rem;
+  border: 1.5px solid #E2E8F0;   border-radius: 10px;   font-size: 0.85rem;
   font-family: inherit;
   color: #0F172A;
-  background: #F8FAFC; /* Greyish background */
-  outline: none;
+  background: #F8FAFC;   outline: none;
   transition: all 0.2s ease;
 }
 
@@ -641,7 +626,6 @@
   box-shadow: 0 6px 16px rgba(23, 86, 170, 0.3);
 }
 
-/* ── FULL PAGE FUND & WALLET MANAGEMENT ── */
 .fundManagementPage {
   padding: 24px 28px;
   background: #ffffff;
@@ -904,7 +888,6 @@
   box-shadow: 0 6px 16px rgba(23, 86, 170, 0.3);
 }
 
-/* ── WALLET CONFIRMATION OVERLAY MODAL ── */
 .fundConfirmModalOverlay {
   position: fixed;
   top: 0;
@@ -1064,7 +1047,6 @@
   box-shadow: none;
 }
 
-/* ── CUSTOM ERROR ALERT OVERLAY MODAL ── */
 .errorModalOverlay {
   position: fixed;
   top: 0;
@@ -1148,7 +1130,6 @@
   box-shadow: 0 8px 20px rgba(229, 62, 62, 0.35);
 }
 
-/* RESPONSIVE SCALING & DYNAMIC LAYOUTS */
 @media (max-width: 1024px) {
   .formGrid {
     grid-template-columns: repeat(2, 1fr) !important;

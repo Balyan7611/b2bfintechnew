@@ -29,7 +29,6 @@
   }
 }
 
-/* Dark Mode Support */
 :global([data-theme='dark']) .skeleton {
   background: #2d3748;
 }

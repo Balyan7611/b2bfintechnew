@@ -12,8 +12,7 @@ const DynamicTable = ({
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Search Filter Logic
-  const filteredData = useMemo(() => {
+    const filteredData = useMemo(() => {
     if (!searchQuery) return data;
     const lowerQuery = searchQuery.toLowerCase();
     return data.filter(item => 
@@ -23,8 +22,7 @@ const DynamicTable = ({
     );
   }, [data, searchQuery]);
 
-  // Pagination Logic
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const currentData = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
     return filteredData.slice(start, start + rowsPerPage);
@@ -40,14 +38,12 @@ const DynamicTable = ({
 
   return (
     <div className={styles.tableCard}>
-      {/* Header */}
-      <div className={styles.cardHeader}>
+            <div className={styles.cardHeader}>
         <h2 className={styles.cardTitle}>{title}</h2>
         {actions && <div className={styles.cardActions}>{actions}</div>}
       </div>
 
-      {/* Toolbar */}
-      <div className={styles.toolbar}>
+            <div className={styles.toolbar}>
         <div className={styles.entriesControl}>
           <span>Show</span>
           <select 
@@ -88,8 +84,7 @@ const DynamicTable = ({
         </div>
       </div>
 
-      {/* Table Wrapper */}
-      <div className={styles.tableWrapper}>
+            <div className={styles.tableWrapper}>
         <table className={styles.table}>
           <thead>
             <tr>
@@ -120,8 +115,7 @@ const DynamicTable = ({
         </table>
       </div>
 
-      {/* Pagination Footer */}
-      <div className={styles.paginationFooter}>
+            <div className={styles.paginationFooter}>
         <span className={styles.paginationInfo}>
           Showing {filteredData.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1} to {Math.min(currentPage * rowsPerPage, filteredData.length)} of {filteredData.length} entries
         </span>

@@ -30,15 +30,12 @@ const EmpLoginSecurity = () => {
 
   return (
     <div className={styles.container} style={{ padding: '20px 25px', maxWidth: '100%' }}>
-      {/* ── MAIN REPOSITORY CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ padding: '15px 25px', borderBottom: '1px solid #F1F5F9' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div style={{ padding: '15px 25px', borderBottom: '1px solid #F1F5F9' }}>
           <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#1E293B' }}>Employee Login List</h3>
         </div>
 
-        {/* ── FILTER SECTION ── */}
-        <div style={{ padding: '20px 25px', display: 'flex', flexWrap: 'wrap', gap: '25px', alignItems: 'flex-end', borderBottom: '1px solid #F1F5F9' }}>
+                <div style={{ padding: '20px 25px', display: 'flex', flexWrap: 'wrap', gap: '25px', alignItems: 'flex-end', borderBottom: '1px solid #F1F5F9' }}>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px' }}>
               <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1E293B' }}>IP Address</label>
               <input type="text" style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #E2E8F0', outline: 'none', fontSize: '0.95rem' }} />
@@ -62,8 +59,7 @@ const EmpLoginSecurity = () => {
            </div>
         </div>
 
-        {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '10px 15px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '10px 15px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.selectEntries} style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}>
@@ -92,8 +88,7 @@ const EmpLoginSecurity = () => {
           </div>
         </div>
 
-        {/* ── TABLE ── */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ width: '100%', minWidth: '950px', tableLayout: 'auto' }}>
             <thead>
               <tr style={{ background: '#F8FAFC' }}>
@@ -135,8 +130,7 @@ const EmpLoginSecurity = () => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div className="global-pagination" style={{ padding: '15px 25px', borderTop: '1px solid #F1F5F9' }}>
+                <div className="global-pagination" style={{ padding: '15px 25px', borderTop: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
             Showing {sampleSecurity.length > 0 ? 1 : 0} to {sampleSecurity.length} of {sampleSecurity.length} records
           </div>
@@ -148,8 +142,7 @@ const EmpLoginSecurity = () => {
         </div>
       </div>
 
-      {/* ── DELETE CONFIRMATION POPUP ── */}
-      {showDeleteModal && (
+            {showDeleteModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
            <div style={{ background: '#fff', padding: '25px', borderRadius: '16px', width: '90%', maxWidth: '360px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
               <div style={{ width: '50px', height: '50px', background: '#FFE4E6', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px auto' }}>

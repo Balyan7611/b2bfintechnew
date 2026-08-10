@@ -11,13 +11,11 @@ const MemberSearchSelect = ({ value, onChange, roleId, placeholder = "Search or 
   const [isLoadingAll, setIsLoadingAll] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Sync state if prop changes
-  useEffect(() => {
+    useEffect(() => {
     setSearchTerm(value || "");
   }, [value]);
 
-  // Load all members initially
-  useEffect(() => {
+    useEffect(() => {
     const fetchInitial = async () => {
       setIsLoadingAll(true);
       try {
@@ -38,16 +36,14 @@ const MemberSearchSelect = ({ value, onChange, roleId, placeholder = "Search or 
     fetchInitial();
   }, [roleId]);
 
-  // Search filter
-  useEffect(() => {
+    useEffect(() => {
     const performSearch = async () => {
       const trimmed = searchTerm.trim();
       if (!trimmed) {
         setMemberList([]);
         return;
       }
-      // Avoid infinite loop if selected value matches search term
-      if (value === trimmed) return;
+            if (value === trimmed) return;
 
       setIsSearching(true);
       try {
@@ -70,8 +66,7 @@ const MemberSearchSelect = ({ value, onChange, roleId, placeholder = "Search or 
     return () => clearTimeout(delayDebounce);
   }, [searchTerm, value, roleId]);
 
-  // Click outside to close dropdown
-  useEffect(() => {
+    useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
@@ -112,10 +107,7 @@ const MemberSearchSelect = ({ value, onChange, roleId, placeholder = "Search or 
         />
       </div>
       {showDropdown && (
-        // Kept well below modal/overlay z-index levels (e.g. the admin header's
-        // Quick Actions panel + its backdrop sit at 9998-10000) so this
-        // in-page dropdown never punches through a modal that's open above it.
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #CBD5E1', borderRadius: '10px', marginTop: '5px', zIndex: 100, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', maxHeight: '200px', overflowY: 'auto' }}>
+                                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #CBD5E1', borderRadius: '10px', marginTop: '5px', zIndex: 100, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', maxHeight: '200px', overflowY: 'auto' }}>
           {(isSearching || isLoadingAll) ? (
             <div style={{ padding: '12px 15px', display: 'flex', alignItems: 'center', gap: '8px', color: '#64748B', fontSize: '0.85rem' }}>
               <FiRefreshCw className="global-spin" /> Loading...

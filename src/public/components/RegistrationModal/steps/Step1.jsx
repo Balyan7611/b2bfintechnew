@@ -65,10 +65,7 @@ const Step1 = () => {
           type="button" 
           className={styles.loginLink} 
           onClick={() => {
-            // Close registration modal and navigate/open login
-            // For now, let's assume navigating to /login is best, or if it's a modal, open that.
-            // Since LoginPage is a separate page, we navigate.
-            window.location.href = '/login';
+                                                window.location.href = '/login';
           }}
         >
           Login

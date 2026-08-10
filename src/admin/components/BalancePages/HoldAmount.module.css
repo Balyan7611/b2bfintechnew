@@ -20,16 +20,12 @@
   border: 1px solid #EEF3FC;
   padding: 24px;
   margin-bottom: 24px;
-  /* overflow: hidden; */ /* Removed to prevent dropdown clipping */
-  position: relative; /* Ensure z-index works correctly */
-  z-index: 5;
+    position: relative;   z-index: 5;
 }
 
 .formCard {
-  z-index: 20; /* High z-index to ensure dropdown stays on top of other cards */
-}
+  z-index: 20; }
 
-/* Form Styles */
 .formRow {
   display: flex;
   align-items: flex-end;
@@ -98,7 +94,6 @@
   box-shadow: 0 6px 16px rgba(23,86,170,0.3);
 }
 
-/* Table Controls */
 .topControls {
   display: flex;
   align-items: center;
@@ -169,7 +164,6 @@
 .searchIcon { color: #A0AEC0; font-size: 1rem; }
 .searchInput { border: none; outline: none; font-size: 0.9rem; color: #0D1B3E; width: 200px; background: transparent; font-weight: 500; }
 
-/* Table Styles */
 .tableWrapper {
   width: 100%;
   overflow-x: auto;
@@ -225,7 +219,6 @@
 .subText { font-size: 0.75rem; color: #718096; font-weight: 500; }
 .noData { text-align: center; padding: 40px !important; color: #A0AEC0; font-weight: 500; }
 
-/* Pagination */
 .paginationRow {
   display: flex; justify-content: space-between; align-items: center;
   margin-top: 20px; flex-wrap: wrap; gap: 16px;
@@ -254,7 +247,6 @@
   box-shadow: 0 4px 10px rgba(23,86,170,0.3) !important;
 }
 
-/* Custom Dropdown */
 .dropdownContainer {
   position: relative;
   width: 100%;
@@ -408,7 +400,6 @@
   font-weight: 500;
 }
 
-/* Resized Submit Button */
 .submitBtnSmall {
   background: linear-gradient(135deg, #1756AA, #124d96);
   color: #fff;
@@ -466,7 +457,6 @@
   margin-top: 10px;
 }
 
-/* ── MODAL STYLES ── */
 .modalOverlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -482,16 +472,12 @@
 
 .modalContainer {
   background: #fff;
-  border-radius: 28px; /* More rounded corners */
-  width: 100%;
-  max-width: 420px; /* Reduced width as requested */
-  max-height: 90vh;
-  /* Removed overflow-y: auto to prevent dropdown clipping */
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  border-radius: 28px;   width: 100%;
+  max-width: 420px;   max-height: 90vh;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
   position: relative;
   animation: slideUpModal 0.3s ease;
-  overflow: visible; /* Allow dropdown to overflow the container */
-}
+  overflow: visible; }
 
 .modalHeader {
   padding: 20px 24px;
@@ -503,8 +489,7 @@
   top: 0;
   background: #fff;
   z-index: 10;
-  border-radius: 28px 28px 0 0; /* Match container top corners */
-}
+  border-radius: 28px 28px 0 0; }
 
 .modalHeader h2 {
   margin: 0;
@@ -578,7 +563,6 @@
   box-shadow: 0 6px 16px rgba(23, 86, 170, 0.3);
 }
 
-/* Action Icons */
 .actionIcons {
   display: flex;
   gap: 12px;
@@ -618,7 +602,6 @@
   color: #fff;
 }
 
-/* Delete Modal */
 .deleteModal {
   background: #fff;
   border-radius: 24px;
@@ -698,4 +681,3 @@
   opacity: 0.6;
   pointer-events: none;
 }
-

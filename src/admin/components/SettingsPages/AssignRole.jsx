@@ -16,8 +16,7 @@ const AssignRole = () => {
   const [isAssigning, setIsAssigning] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Fetch roles from API
-  useEffect(() => {
+    useEffect(() => {
     const fetchRoles = async () => {
       setIsLoadingRoles(true);
       try {
@@ -36,20 +35,17 @@ const AssignRole = () => {
     fetchRoles();
   }, []);
 
-  // When "Select Role" changes, derive possible down roles
-  const handleSelectRoleChange = (roleId) => {
+    const handleSelectRoleChange = (roleId) => {
     setSelectRole(roleId);
     setDownRole('');
 
-    // Find the selected role object
-    const selected = roles.find(r => String(r.id) === String(roleId));
+        const selected = roles.find(r => String(r.id) === String(roleId));
     if (!selected) {
       setAssignedList([]);
       return;
     }
 
-    // Determine hierarchy: roles below the selected one
-    const selectedIndex = roles.findIndex(r => String(r.id) === String(roleId));
+        const selectedIndex = roles.findIndex(r => String(r.id) === String(roleId));
     const below = roles.filter((r, idx) => {
       if (selected.typeRole !== undefined && r.typeRole !== undefined) {
         return r.typeRole > selected.typeRole;
@@ -63,8 +59,7 @@ const AssignRole = () => {
   const handleAssign = () => {
     if (!selectRole || !downRole) return;
     setIsAssigning(true);
-    // Simulate API call
-    setTimeout(() => {
+        setTimeout(() => {
       setIsAssigning(false);
       setSuccessMsg('Role assigned successfully!');
       setTimeout(() => setSuccessMsg(''), 3000);
@@ -86,8 +81,7 @@ const AssignRole = () => {
         border: '1px solid #F1F5F9', overflow: 'hidden'
       }}>
 
-        {/* ── HEADER ── */}
-        <div style={{
+                <div style={{
           padding: '14px 24px', borderBottom: '1px solid #F1F5F9',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center'
         }}>
@@ -119,15 +113,13 @@ const AssignRole = () => {
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0' }}>
 
-          {/* ── LEFT FORM PANEL ── */}
-          <div style={{
+                    <div style={{
             flex: '0 0 320px', padding: '28px 24px',
             borderRight: '1px solid #F1F5F9',
             display: 'flex', flexDirection: 'column', gap: '20px'
           }}>
 
-            {/* Select Role */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E293B', letterSpacing: '0.02em' }}>
                 Select Role <span style={{ color: '#EF4444' }}>*</span>
               </label>
@@ -139,8 +131,7 @@ const AssignRole = () => {
               />
             </div>
 
-            {/* Down Role */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E293B', letterSpacing: '0.02em' }}>
                 Down Role <span style={{ color: '#EF4444' }}>*</span>
               </label>
@@ -163,8 +154,7 @@ const AssignRole = () => {
               )}
             </div>
 
-            {/* Assign Button */}
-            <button
+                        <button
               onClick={handleAssign}
               disabled={isAssigning || !selectRole || !downRole}
               style={{
@@ -186,11 +176,9 @@ const AssignRole = () => {
             </button>
           </div>
 
-          {/* ── RIGHT TABLE PANEL ── */}
-          <div style={{ flex: 1, minWidth: '300px' }}>
+                    <div style={{ flex: 1, minWidth: '300px' }}>
 
-            {/* Panel Sub-header */}
-            <div style={{
+                        <div style={{
               padding: '14px 24px', borderBottom: '1px solid #F1F5F9',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between'
             }}>
@@ -209,8 +197,7 @@ const AssignRole = () => {
               )}
             </div>
 
-            {/* Table Header */}
-            <div style={{
+                        <div style={{
               display: 'grid', gridTemplateColumns: '60px 60px 1fr',
               padding: '10px 24px', background: '#F8FAFC',
               borderBottom: '1px solid #E2E8F0'
@@ -220,8 +207,7 @@ const AssignRole = () => {
               <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Role Name</div>
             </div>
 
-            {/* Table Body */}
-            {selectRole && assignedList.length > 0 ? (
+                        {selectRole && assignedList.length > 0 ? (
               <div style={{ maxHeight: '380px', overflowY: 'auto' }}>
                 {assignedList.map((role, idx) => (
                   <div

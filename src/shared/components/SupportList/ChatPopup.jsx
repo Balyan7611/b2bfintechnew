@@ -13,8 +13,7 @@ const ChatPopup = ({ isMember }) => {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Parse session dynamically to get senderId
-  const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
   let currentUserId = isMember ? 'MEM-1001' : 'AD1001';
   if (token) {
     try {
@@ -54,22 +53,19 @@ const ChatPopup = ({ isMember }) => {
     }
   };
 
-  // Scroll to bottom on new messages
-  useEffect(() => {
+    useEffect(() => {
     if (isChatOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isChatOpen]);
 
-  // Focus input when opened
-  useEffect(() => {
+    useEffect(() => {
     if (isChatOpen) {
       setTimeout(() => inputRef.current?.focus(), 200);
     }
   }, [isChatOpen]);
 
-  // Load messages from DB and set polling interval
-  useEffect(() => {
+    useEffect(() => {
     if (isChatOpen && activeChatTicket) {
       fetchMessages();
       const interval = setInterval(fetchMessages, 3000);
@@ -77,8 +73,7 @@ const ChatPopup = ({ isMember }) => {
     }
   }, [isChatOpen, activeChatTicket]);
 
-  // ESC key to close
-  useEffect(() => {
+    useEffect(() => {
     const handler = (e) => {
       if (e.key === 'Escape' && isChatOpen) dispatch(closeChat());
     };
@@ -137,14 +132,12 @@ const ChatPopup = ({ isMember }) => {
 
   return (
     <>
-      {/* Backdrop */}
-      <div className={styles.backdrop} onClick={() => dispatch(closeChat())} />
+            <div className={styles.backdrop} onClick={() => dispatch(closeChat())} />
 
       {/* Popup */}
       <div className={styles.popup}>
 
-        {/* Status Banner */}
-        {activeChatTicket.status === 'Approved' && (
+                {activeChatTicket.status === 'Approved' && (
           <div className={styles.bannerApproved}>
             <FaCheckCircle /> Ticket Approved
           </div>
@@ -155,8 +148,7 @@ const ChatPopup = ({ isMember }) => {
           </div>
         )}
 
-        {/* Header */}
-        <div className={styles.header}>
+                <div className={styles.header}>
           <div className={styles.headerLeft}>
             <div className={styles.avatar}>
               {getInitials(isMember ? 'Admin Support' : (activeChatTicket.memberName || activeChatTicket.name))}
@@ -171,14 +163,12 @@ const ChatPopup = ({ isMember }) => {
           </button>
         </div>
 
-        {/* Online status bar */}
-        <div className={styles.statusBar}>
+                <div className={styles.statusBar}>
           <span className={styles.statusDot} />
           Active Ticket
         </div>
 
-        {/* Messages Area */}
-        <div className={styles.messagesArea}>
+                <div className={styles.messagesArea}>
           <div className={styles.dateSeparator}>
             <span className={styles.datePill}>History</span>
           </div>
@@ -209,8 +199,7 @@ const ChatPopup = ({ isMember }) => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Bar */}
-        <div className={styles.inputBar}>
+                <div className={styles.inputBar}>
           <button className={styles.attachBtn} title="Attach file">
             <FaPaperclip />
           </button>

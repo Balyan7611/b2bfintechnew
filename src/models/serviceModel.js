@@ -1,11 +1,7 @@
-// src/models/serviceModel.js
 export const ServiceResponseModel = (res) => {
     if (!res || !res.status) return [];
 
-    // Backend paginated endpoints wrap the list as { data: { items: [...] } },
-    // not a bare array in `data` - handle every shape defensively so the real
-    // list is never silently swallowed into one broken fake item.
-    let items = [];
+                let items = [];
     if (Array.isArray(res.data)) {
         items = res.data;
     } else if (res.data && Array.isArray(res.data.items)) {

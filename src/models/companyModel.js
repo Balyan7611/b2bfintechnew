@@ -1,4 +1,3 @@
-// src/models/companyModel.js
 export const CompanyResponseModel = (res) => {
     if (!res || !res.status) return [];
     const items = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);

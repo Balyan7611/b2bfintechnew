@@ -53,8 +53,7 @@ const CreditLimit = () => {
 
   return (
     <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
-      {/* ── MAIN CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
         <div style={{ padding: '20px', borderBottom: '1px solid #F1F5F9' }}>
           <div className={styles.directoryTitleGroup} style={{ marginBottom: '20px' }}>
             <h2 className={styles.directoryTitle} style={{ fontSize: 'min(1.3rem, 5.5vw)', margin: 0 }}>Manage Credit Limit</h2>
@@ -174,8 +173,7 @@ const CreditLimit = () => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', padding: '15px 20px', borderTop: '1px solid #F1F5F9', background: '#fff' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', padding: '15px 20px', borderTop: '1px solid #F1F5F9', background: '#fff' }}>
           <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
             Showing 1 to {list.length} of {list.length} entries
           </span>
@@ -198,4 +196,3 @@ const CreditLimit = () => {
 };
 
 export default CreditLimit;
-

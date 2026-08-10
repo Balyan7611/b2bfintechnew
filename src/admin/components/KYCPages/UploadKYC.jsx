@@ -49,31 +49,24 @@ const getStatusDate = (doc) => {
 const UploadKYC = () => {
   const dispatch = useDispatch();
 
-  // Data State
-  const [documents, setDocuments] = useState([]);
+    const [documents, setDocuments] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Loaded Dropdown Data
-  const [memberList, setMemberList] = useState([]);
+    const [memberList, setMemberList] = useState([]);
   const [masterDocs, setMasterDocs] = useState([]);
-  const [selectedDocSide, setSelectedDocSide] = useState(null); // Side of the currently selected doc in Add Form
-  const [editDocSide, setEditDocSide] = useState(null); // Side of the currently selected doc in Edit Form
-
-  // Pagination & Filters State
-  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedDocSide, setSelectedDocSide] = useState(null);   const [editDocSide, setEditDocSide] = useState(null); 
+    const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Modals State
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editModal, setEditModal] = useState({ isOpen: false, data: null });
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null });
   const [viewModal, setViewModal] = useState({ isOpen: false, data: null });
 
-  // Add Form State
-  const [addForm, setAddForm] = useState({
+    const [addForm, setAddForm] = useState({
     Msrno: '',
     DocID: '',
     DocName: '',
@@ -118,8 +111,7 @@ const UploadKYC = () => {
     }
   };
 
-  // Fetch Documents
-  const fetchDocuments = async () => {
+    const fetchDocuments = async () => {
     setIsLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/get-all`, {
@@ -172,8 +164,7 @@ const UploadKYC = () => {
 
   useEffect(() => {
     fetchDocuments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, rowsPerPage]);
+      }, [currentPage, rowsPerPage]);
 
   const handleAddInputChange = (e) => {
     const { name, value, files } = e.target;
@@ -337,8 +328,7 @@ const UploadKYC = () => {
   return (
     <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
       
-      {/* KYC DOCUMENTS LIST */}
-      <AdminTable
+            <AdminTable
         title="MEMBER KYC UPLOAD"
         subtitle="Manage and track member submitted identification documents"
         rightAction={
@@ -576,8 +566,7 @@ const UploadKYC = () => {
         </div>
       )}
 
-      {/* --- EDIT MODAL --- */}
-      {editModal.isOpen && (
+            {editModal.isOpen && (
         <div className={styles.modalOverlay} onClick={() => { setEditModal({ isOpen: false, data: null }); setEditDocSide(null); }}>
           <div className={styles.modalContainer} onClick={e => e.stopPropagation()} style={{ width: '600px', maxWidth: '90%' }}>
             <div className={styles.modalHeader} style={{ background: 'linear-gradient(135deg, #1756AA 0%, #0D1B3E 100%)', padding: '16px 24px' }}>
@@ -701,8 +690,7 @@ const UploadKYC = () => {
         </div>
       )}
 
-      {/* --- DELETE CONFIRMATION MODAL --- */}
-      {deleteModal.isOpen && (
+            {deleteModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)', background: 'rgba(15, 23, 42, 0.4)' }}>
           <div className={styles.modalContainer} style={{ width: '90%', maxWidth: '400px', borderRadius: '24px', padding: '32px', textAlign: 'center', background: '#ffffff', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(0,0,0,0.05)', animation: 'modalSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)' }}>
             <div style={{ 
@@ -769,8 +757,7 @@ const UploadKYC = () => {
         </div>
       )}
 
-      {/* --- VIEW MODAL --- */}
-      {viewModal.isOpen && (
+            {viewModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3500, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)', background: 'rgba(15, 23, 42, 0.6)' }} onClick={() => setViewModal({ isOpen: false, data: null })}>
           <div className={styles.modalContainer} style={{ 
             width: '95%', 

@@ -1,8 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-// Read saved theme from localStorage, use app-specific key to avoid localhost conflicts
 const savedTheme = localStorage.getItem('bss_theme') || 'light';
-// Apply immediately to avoid flash
 document.documentElement.setAttribute('data-theme', savedTheme);
 
 const initialState = {
@@ -10,8 +8,7 @@ const initialState = {
   isMobileMenuOpen: false,
   isDarkMode: savedTheme === 'dark',
   globalLoading: false,
-  globalNotification: null, // { type: 'success' | 'error', message: 'string' }
-};
+  globalNotification: null, };
 
 const uiSlice = createSlice({
   name: 'ui',

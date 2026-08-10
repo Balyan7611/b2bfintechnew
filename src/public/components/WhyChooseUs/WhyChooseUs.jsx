@@ -33,8 +33,7 @@ const WhyChooseUs = () => {
     <section className={styles.whyChooseSection} ref={sectionRef}>
       <div className="container">
         <div className={styles.whyChooseContent}>
-          {/* Left Content */}
-          <div className={`${styles.leftContent} ${styles.animateOnScroll}`}>
+                    <div className={`${styles.leftContent} ${styles.animateOnScroll}`}>
             <h2 className="sectionTitle">
               Grow Your Business With {SITE_CONFIG.companyName}
             </h2>
@@ -49,8 +48,7 @@ const WhyChooseUs = () => {
             </Link>
           </div>
 
-          {/* Right Content - Vision & Mission Cards */}
-          <div className={`${styles.rightContent} ${styles.animateOnScroll}`}>
+                    <div className={`${styles.rightContent} ${styles.animateOnScroll}`}>
             <div className={styles.cardsWrapper}>
               <div className={styles.visionCard}>
                 <div className={styles.cardIcon} style={{ color: 'var(--color-secondary)' }}>

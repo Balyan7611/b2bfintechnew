@@ -65,8 +65,6 @@ import { setNavScrolled, setNotification } from './store/slices/uiSlice';
 import GlobalLoaderAndToast from './components/GlobalLoaderAndToast';
 import ActivityTracker from './components/ActivityTracker';
 
-// Capture GPS coords on app load; stored in localStorage so the httpClient
-// interceptor can attach X-Latitude / X-Longitude to every API request.
 function captureUserCoordinates() {
   if (!navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition(
@@ -74,7 +72,7 @@ function captureUserCoordinates() {
       localStorage.setItem('user_latitude',  String(pos.coords.latitude));
       localStorage.setItem('user_longitude', String(pos.coords.longitude));
     },
-    () => { /* silently ignore — headers simply won't be sent */ },
+    () => { },
     { enableHighAccuracy: true, timeout: 10000 }
   );
 }
@@ -85,16 +83,14 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Grab GPS once on mount; refreshed every 10 minutes so coords stay fresh
-  useEffect(() => {
+    useEffect(() => {
     captureUserCoordinates();
     const gpsInterval = setInterval(captureUserCoordinates, 10 * 60 * 1000);
     return () => clearInterval(gpsInterval);
   }, []);
 
   useEffect(() => {
-    // 1 hour of inactivity limit (3,600,000 ms)
-    const INACTIVITY_LIMIT = 60 * 60 * 1000;
+        const INACTIVITY_LIMIT = 60 * 60 * 1000;
     let timeoutId;
 
     const resetTimer = () => {
@@ -170,35 +166,14 @@ function App() {
     };
 
     const registerSessionOnBackend = async (session) => {
-      // Backend already records login history with the correct client IP
-      // during LoginUser / VerifyLoginOTP (via RecordLoginHistoryAsync).
-      // Creating a second frontend record here was overwriting that with
-      // 127.0.0.1, which caused the IP-same check to always fail on the
-      // next login → OTP every single time. So we now only track the
-      // sessionId in sessionStorage (needed by logout to mark session as
-      // inactive), without creating a duplicate DB entry.
-      if (!session?.sessionId) return;
+                                                if (!session?.sessionId) return;
       if (sessionStorage.getItem('bss_session_registered_id') === session.sessionId) return;
       sessionStorage.setItem('bss_session_registered_id', session.sessionId);
     };
 
     const checkConcurrentSession = async (session) => {
       try {
-        // Admins were being force-logged-out (and their fresh session wiped,
-        // including the login-history record that had just been created a
-        // moment earlier) almost immediately after login. Root cause: this
-        // check used to treat "latest record where loginType === 'Admin'"
-        // as if it meant "the same admin" - but UserLoginHistory has no
-        // adminId/loginID field, and every admin's msrno is 0, so there is
-        // no way to tell one admin account apart from another here. In
-        // practice ANY admin login (yours or someone else's, even old test
-        // data) counted as "someone else logged in", triggering an instant
-        // false concurrent-logout that cleared everything right after
-        // registration. Members are unaffected - they're correctly scoped
-        // by their own msrno below. Until the API exposes a real per-admin
-        // identifier on these records, this check is skipped for admins
-        // rather than firing false positives.
-        if (session.role === 1) return;
+                                                                                                                        if (session.role === 1) return;
 
         const response = await API.userLoginHistory.getAll({ hideLoader: true, ignoreError: true });
         let histories = [];
@@ -251,20 +226,16 @@ function App() {
           try {
             const parsedSession = JSON.parse(session);
             
-            // 1. Register the session to the server if not done yet
-            registerSessionOnBackend(parsedSession);
+                        registerSessionOnBackend(parsedSession);
 
-            // 2. Query the server to see if a newer session ID has logged in
-            checkConcurrentSession(parsedSession);
+                        checkConcurrentSession(parsedSession);
 
-            // 3. Absolute inactivity check
-            if (parsedSession.loggedInAt) {
+                        if (parsedSession.loggedInAt) {
               const loginTime = new Date(parsedSession.loggedInAt).getTime();
               if (!isNaN(loginTime)) {
                 const elapsedMs = Date.now() - loginTime;
                 
-                // Dynamic absolute 1 hour session limit
-                if (elapsedMs >= 60 * 60 * 1000) {
+                                if (elapsedMs >= 60 * 60 * 1000) {
                   handleTokenExpirationLogout();
                   return;
                 }
@@ -283,8 +254,7 @@ function App() {
       }
     };
 
-    // Check token expiration every 10 seconds
-    const tokenCheckInterval = setInterval(checkTokenExpiration, 10000);
+        const tokenCheckInterval = setInterval(checkTokenExpiration, 10000);
 
     const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
     
@@ -293,8 +263,7 @@ function App() {
     });
 
     resetTimer();
-    checkTokenExpiration(); // Check immediately on mount/route change
-
+    checkTokenExpiration(); 
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
       if (tokenCheckInterval) clearInterval(tokenCheckInterval);
@@ -305,8 +274,7 @@ function App() {
   }, [dispatch, navigate, location.pathname]);
 
   useEffect(() => {
-    // Dynamic page title and description
-    document.title = SITE_CONFIG.brandName;
+        document.title = SITE_CONFIG.brandName;
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute('content', `${SITE_CONFIG.companyName} - Complete digital platform for mobile & DTH recharge, bill payments, payout, and other financial services.`);
@@ -583,8 +551,7 @@ function App() {
     <div className="App">
       <ActivityTracker />
       <Routes>
-          {/* --- PUBLIC ROUTES --- */}
-          <Route path="/" element={<HomePage />} />
+                    <Route path="/" element={<HomePage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/refund" element={<RefundPolicyPage />} />
@@ -693,7 +660,6 @@ function App() {
             <Route path="certificate" element={<MemberCertificate />} />
           </Route>
 
-
           {/* --- ADMIN ROUTES --- */}
           <Route path="/admin/" element={<AdminLoginPage />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
@@ -734,4 +700,3 @@ function App() {
 }
 
 export default App;
-

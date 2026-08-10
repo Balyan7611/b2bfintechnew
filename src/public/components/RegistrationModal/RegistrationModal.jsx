@@ -55,8 +55,7 @@ const RegistrationModal = () => {
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className={styles.progressBar}>
+                <div className={styles.progressBar}>
           {STEP_LABELS.map((_, i) => (
             <div
               key={i}
@@ -65,8 +64,7 @@ const RegistrationModal = () => {
           ))}
         </div>
 
-        {/* Step Labels */}
-        <div className={styles.stepLabels}>
+                <div className={styles.stepLabels}>
           {STEP_LABELS.map((label, i) => (
             <span
               key={i}
@@ -77,8 +75,7 @@ const RegistrationModal = () => {
           ))}
         </div>
 
-        {/* Body */}
-        <div className={styles.body} key={currentStep}>
+                <div className={styles.body} key={currentStep}>
           {renderStep()}
         </div>
       </div>

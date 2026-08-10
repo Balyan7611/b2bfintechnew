@@ -26,8 +26,7 @@ const KYCViewModal = ({ isOpen, onClose, doc }) => {
         animation: 'modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
       }} onClick={e => e.stopPropagation()}>
         
-        {/* HEADER */}
-        <div className={styles.modalHeader} style={{ 
+                <div className={styles.modalHeader} style={{ 
           padding: '16px 24px', 
           background: '#ffffff', 
           borderBottom: '1px solid #E2E8F0', 
@@ -77,8 +76,7 @@ const KYCViewModal = ({ isOpen, onClose, doc }) => {
           </button>
         </div>
 
-        {/* BODY */}
-        <div className={styles.modalBody} style={{ padding: '24px', overflowY: 'auto', flex: 1, background: '#F8FAFC' }}>
+                <div className={styles.modalBody} style={{ padding: '24px', overflowY: 'auto', flex: 1, background: '#F8FAFC' }}>
           <div 
             style={{ 
               background: bg, 

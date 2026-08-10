@@ -1,6 +1,3 @@
-/* ═══════════════════════════════════════════
-   PAGE
-   ═══════════════════════════════════════════ */
 .page {
   display: flex;
   flex-direction: column;
@@ -54,9 +51,6 @@
   box-shadow: 0 6px 20px rgba(23,86,170,0.45);
 }
 
-/* ═══════════════════════════════════════════
-   CERTIFICATE CARD
-   ═══════════════════════════════════════════ */
 .certWrapper {
   display: flex;
   flex-direction: column;
@@ -80,7 +74,6 @@
   font-family: 'Georgia', 'Times New Roman', serif;
 }
 
-/* ── TOP BAR ── */
 .topBar {
   background: linear-gradient(135deg, #0D1B3E 0%, #1756AA 60%, #0D3080 100%);
   padding: 0;
@@ -129,20 +122,17 @@
   font-size: 1rem;
 }
 
-/* ── GOLD RIBBON ── */
 .goldRibbon {
   height: 6px;
   background: linear-gradient(90deg, #8B6914, #C9A84C 30%, #F0D080 50%, #C9A84C 70%, #8B6914);
 }
 
-/* ── MAIN BODY ── */
 .certBody {
   position: relative;
   padding: 28px 50px 20px;
   overflow: hidden;
 }
 
-/* Watermark */
 .watermark {
   position: absolute;
   inset: 0;
@@ -159,7 +149,6 @@
   filter: grayscale(100%);
 }
 
-/* ── TITLE BLOCK ── */
 .titleBlock {
   position: relative;
   z-index: 1;
@@ -200,7 +189,6 @@
   color: #C9A84C;
 }
 
-/* ── CERTIFY BLOCK ── */
 .certifyBlock {
   position: relative;
   z-index: 1;
@@ -214,7 +202,6 @@
   font-style: italic;
 }
 
-/* Name panel */
 .namePanel {
   display: inline-flex;
   align-items: center;
@@ -300,7 +287,6 @@
   margin: 0 auto;
 }
 
-/* ── INFO BOX ROW ── */
 .infoBoxRow {
   position: relative;
   z-index: 1;
@@ -350,7 +336,6 @@
   filter: drop-shadow(0 2px 4px rgba(201,168,76,0.4));
 }
 
-/* ── FOOTER ── */
 .certFooter {
   position: relative;
   z-index: 1;
@@ -396,15 +381,11 @@
   text-align: center;
 }
 
-/* ── BOTTOM GOLD BAR ── */
 .bottomBar {
   height: 8px;
   background: linear-gradient(90deg, #8B6914, #C9A84C 30%, #F0D080 50%, #C9A84C 70%, #8B6914);
 }
 
-/* ═══════════════════════════════════════════
-   DOWNLOAD BUTTON
-   ═══════════════════════════════════════════ */
 .downloadBtn {
   display: inline-flex;
   align-items: center;
@@ -433,9 +414,6 @@
   box-shadow: 0 4px 12px rgba(201,168,76,0.3);
 }
 
-/* ═══════════════════════════════════════════
-   MODAL
-   ═══════════════════════════════════════════ */
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -489,9 +467,6 @@
 }
 .previewScaler { width: 100%; }
 
-/* ═══════════════════════════════════════════
-   RESPONSIVE
-   ═══════════════════════════════════════════ */
 @media (max-width: 680px) {
   .certBody { padding: 20px 20px 16px; }
   .certTitle { font-size: 2rem; }

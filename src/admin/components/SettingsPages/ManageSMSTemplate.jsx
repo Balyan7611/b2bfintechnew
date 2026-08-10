@@ -181,8 +181,7 @@ const ManageSMSTemplate = () => {
         }
       `}</style>
 
-      {/* TOAST SUCCESS MESSAGE */}
-      {successToast && (
+            {successToast && (
         <div style={{
           position: 'fixed',
           top: '20px',
@@ -207,10 +206,8 @@ const ManageSMSTemplate = () => {
         </div>
       )}
 
-      {/* ── MAIN LISTING CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap' }}>Manage SMS Templates</h2>
           <button style={{ 
             display: 'flex', alignItems: 'center', gap: '8px', 
@@ -223,8 +220,7 @@ const ManageSMSTemplate = () => {
           </button>
         </div>
 
-        {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select 
@@ -395,8 +391,7 @@ const ManageSMSTemplate = () => {
         </div>
       </div>
 
-      {/* ── PREMIUM RIGHT-SIDE SLIDING DRAWER ── */}
-      {isDrawerOpen && (
+            {isDrawerOpen && (
         <div 
           onClick={resetForm}
           style={{ 
@@ -424,8 +419,7 @@ const ManageSMSTemplate = () => {
               animation: 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
           >
-            {/* Drawer Header */}
-            <div style={{ 
+                        <div style={{ 
               padding: '16px 24px', 
               borderBottom: '1px solid #E2E8F0', 
               display: 'flex', 
@@ -487,8 +481,7 @@ const ManageSMSTemplate = () => {
                </button>
             </div>
 
-            {/* Drawer Body */}
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
               <div style={{ padding: '24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
                  
                  <div className={styles.formGroup}>
@@ -525,8 +518,7 @@ const ManageSMSTemplate = () => {
                           <span style={{ fontSize: '0.7rem', color: '#64748B' }}>Enable template for immediate use</span>
                        </div>
                        
-                       {/* Custom Styled Switch Toggle for Approval */}
-                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                           <div 
                             onClick={() => setFormData(prev => ({ ...prev, approved: !prev.approved }))}
                             style={{
@@ -567,8 +559,7 @@ const ManageSMSTemplate = () => {
                  </div>
               </div>
 
-              {/* Drawer Footer */}
-              <div style={{ 
+                            <div style={{ 
                 padding: '16px 24px', 
                 background: '#F8FAFC', 
                 borderTop: '1px solid #E2E8F0', 
@@ -616,8 +607,7 @@ const ManageSMSTemplate = () => {
         </div>
       )}
 
-      {/* CONFIRM DELETE MODAL */}
-      {showConfirmModal.isOpen && (
+            {showConfirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3600 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>

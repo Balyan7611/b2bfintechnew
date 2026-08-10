@@ -14,19 +14,16 @@ const UPI_TAGS = [
 ];
 
 const UpiTransfer = () => {
-  // States
-  const [upiId, setUpiId] = useState('');
+    const [upiId, setUpiId] = useState('');
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [tPin, setTPin] = useState('');
-  const [step, setStep] = useState('form'); // 'form', 'confirm', or 'success'
-  
+  const [step, setStep] = useState('form');   
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [lastTxn, setLastTxn] = useState(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [transactions, setTransactions] = useState([]); // ✅ No dummy data
-  const [toast, setToast] = useState(null);
+  const [transactions, setTransactions] = useState([]);   const [toast, setToast] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   
   const [selectedTxnForReceipt, setSelectedTxnForReceipt] = useState(null);
@@ -38,12 +35,10 @@ const UpiTransfer = () => {
       charge: 0,
       total: parseFloat(txn.amount),
       beneficiary: txn.name,
-      accountNo: txn.upiId, // UPI ID
-      bank: 'UPI SETTLEMENT NETWORK',
+      accountNo: txn.upiId,       bank: 'UPI SETTLEMENT NETWORK',
       ifsc: 'UPI00000001',
       mode: 'UPI',
-      customerName: 'Vishnu Kumar', // simulated customer name
-      customerMobile: '9876543210',
+      customerName: 'Vishnu Kumar',       customerMobile: '9876543210',
       date: txn.date,
       status: 'SUCCESS',
       chunks: [
@@ -124,8 +119,7 @@ const UpiTransfer = () => {
       showToast('Please enter T-Pin to process', 'error');
       return;
     }
-    // Show confirmation modal first
-    setShowConfirmModal(true);
+        setShowConfirmModal(true);
   };
 
   const executeTransfer = () => {
@@ -149,8 +143,7 @@ const UpiTransfer = () => {
       setLastTxn(createdTxn);
       showToast(`Transfer of ₹${amount} successful!`, 'success');
       
-      // Auto trigger the DMT-like transaction receipt modal
-      const receiptData = {
+            const receiptData = {
         amount: parseFloat(amount),
         charge: 0,
         total: parseFloat(amount),
@@ -201,8 +194,7 @@ const UpiTransfer = () => {
         </div>
       )}
 
-      {/* Main Flow Section (Form / Confirm / Success) */}
-      <div className={styles.formCard}>
+            <div className={styles.formCard}>
         {step === 'form' && (
           <form onSubmit={handleNextStep} className={styles.inputGrid}>
             <h3 className={styles.cardTitle}>
@@ -211,8 +203,7 @@ const UpiTransfer = () => {
 
             <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
               
-              {/* Left Column: Form Fields */}
-              <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div className={styles.formGroup}>
                   <label>Enter UPIID</label>
                   <div className={styles.upiInputGroup}>
@@ -222,8 +213,7 @@ const UpiTransfer = () => {
                       value={upiId}
                       onChange={(e) => {
                         setUpiId(e.target.value);
-                        setName(''); // Reset name if UPI ID is changed
-                      }}
+                        setName('');                       }}
                       className={styles.inputField}
                       required
                     />
@@ -284,10 +274,8 @@ const UpiTransfer = () => {
                 </button>
               </div>
 
-              {/* Right Column: Tags & Bill */}
-              <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {/* UPI Tags Card */}
-                <div className={styles.tagsSection} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px' }}>
+                            <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                <div className={styles.tagsSection} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px' }}>
                   <div className={styles.tagsTitle} style={{ marginBottom: '12px', color: '#475569', fontSize: '0.85rem' }}>QUICK UPI TAGS</div>
                   <div className={styles.tagsGrid}>
                     {UPI_TAGS.map((col, cIdx) => (
@@ -308,8 +296,7 @@ const UpiTransfer = () => {
                   </div>
                 </div>
 
-                {/* Compact Bill Icon / Badge */}
-                <div style={{
+                                <div style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
@@ -388,8 +375,7 @@ const UpiTransfer = () => {
         )}
       </div>
 
-      {/* Confirmation Modal Popup */}
-      {showConfirmModal && (
+            {showConfirmModal && (
         <div className={styles.modalOverlay} onClick={() => setShowConfirmModal(false)}>
           <div className={styles.modalCard} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
@@ -421,8 +407,7 @@ const UpiTransfer = () => {
         </div>
       )}
 
-      {/* Bottom Table Card */}
-      <div className={styles.tableCard}>
+            <div className={styles.tableCard}>
         <div className={styles.tableHeader}>
           <h2 className={styles.sectionTitle}>UPI Transfer Reports</h2>
           <div className={styles.searchBox}>

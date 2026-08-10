@@ -1,11 +1,7 @@
 export const MemberBankDetailResponseModel = (res) => {
     if (!res) return [];
 
-    // GetMemberBankDetail returns the paginated wrapper { data: { items: [...] } }.
-    // The old code only handled `data` being an array, so it wrapped the wrapper
-    // object itself as a single row — producing one blank card with every field
-    // showing "—". Handle every shape the API can return.
-    let items = [];
+                    let items = [];
     if (Array.isArray(res)) items = res;
     else if (Array.isArray(res.data?.items)) items = res.data.items;
     else if (Array.isArray(res.data)) items = res.data;

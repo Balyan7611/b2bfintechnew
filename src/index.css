@@ -1,17 +1,7 @@
-/* ============================================
-   GLOBAL CSS — Logo-Matched Theme + Dark Mode
-   Logo Colors: Royal Blue var(--color-primary) | Gold #EAA21F | Green #27AE60
-   ============================================ */
 
-/* ---- LIGHT MODE (Default) ---- */
 :root {
-  /* Brand Colors — from Logo */
-  --color-primary: #1A237E;       /* Dark Navy Blue */
-  --color-secondary: #FF8C00;     /* Orange */
-  --color-accent: #00A651;        /* Green */
-
-  /* UI Colors */
-  --color-background: #F4F8FF;
+    --color-primary: #1A237E;         --color-secondary: #FF8C00;       --color-accent: #00A651;        
+    --color-background: #F4F8FF;
   --color-surface: #FFFFFF;
   --color-surface-2: #EEF3FC;
   --color-text-primary: #0D1B3E;
@@ -20,48 +10,37 @@
   --color-border: #DDE6F5;
   --color-success: #00A651;
 
-  /* Gradients */
-  --gradient-hero: linear-gradient(135deg, #1A237E 0%, #0D1B8E 55%, #00AAFF 100%);
+    --gradient-hero: linear-gradient(135deg, #1A237E 0%, #0D1B8E 55%, #00AAFF 100%);
   --gradient-brand: linear-gradient(135deg, #1A237E 0%, #FF8C00 100%);
   --gradient-features-bg: linear-gradient(160deg, #0D1B8E 0%, #1A237E 60%, #0D1B8E 100%);
 
-  /* Typography */
-  --font-family: 'Inter', 'Poppins', sans-serif;
+    --font-family: 'Inter', 'Poppins', sans-serif;
   --hero-title: clamp(2.2rem, 5vw, 3.8rem);
   --section-title: clamp(1.6rem, 3vw, 2.2rem);
   --font-body: 1rem;
   --font-small: 0.875rem;
 
-  /* Spacing */
-  --section-padding: 80px 0;
+    --section-padding: 80px 0;
   --container-max: 1200px;
   --container-padding: 0 20px;
 
-  /* Border Radius */
-  --border-radius-card: 16px;
+    --border-radius-card: 16px;
   --border-radius-button: 8px;
   --border-radius-pill: 50px;
 
-  /* Shadows */
-  --shadow-card: 0 4px 24px rgba(26, 35, 126, 0.08);
+    --shadow-card: 0 4px 24px rgba(26, 35, 126, 0.08);
   --shadow-hover: 0 8px 40px rgba(26, 35, 126, 0.18);
   --shadow-button: 0 4px 15px rgba(255, 140, 0, 0.35);
 
-  /* Transitions */
-  --transition-default: all 0.3s ease;
+    --transition-default: all 0.3s ease;
   --transition-slow: all 0.5s ease;
 
-  /* Navbar */
-  --navbar-bg: rgba(255, 255, 255, 0.92);
+    --navbar-bg: rgba(255, 255, 255, 0.92);
   --navbar-shadow: 0 2px 20px rgba(26, 35, 126, 0.08);
 }
 
-/* ---- DARK MODE ---- */
 [data-theme="dark"] {
-  --color-primary: #00AAFF;       /* Lighter blue for dark bg */
-  --color-secondary: #FF8C00;     /* Orange */
-  --color-accent: #00A651;        /* Green */
-
+  --color-primary: #00AAFF;         --color-secondary: #FF8C00;       --color-accent: #00A651;        
   --color-background: #0A1628;
   --color-surface: #111E35;
   --color-surface-2: #162240;
@@ -83,7 +62,6 @@
   --navbar-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* ============ Global Reset ============ */
 * {
   margin: 0;
   padding: 0;
@@ -129,7 +107,6 @@ button {
   outline: none;
 }
 
-/* ============ Utility Classes ============ */
 .container {
   max-width: var(--container-max);
   margin: 0 auto;
@@ -164,7 +141,6 @@ button {
   color: var(--color-text-light);
 }
 
-/* ============ Animations ============ */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(30px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -182,7 +158,6 @@ button {
   background-color: var(--color-background);
 }
 
-/* ============ Global Responsive ============ */
 @media (max-width: 968px) {
   :root {
     --section-padding: 60px 0;
@@ -202,28 +177,23 @@ button {
     --container-padding: 0 20px;
   }
 }
-/* ============ MEMBER MANAGEMENT UTILITIES (GLOBAL) ============ */
 :root {
-  /* Export Button Colors */
-  --export-copy: #718096;
+    --export-copy: #718096;
   --export-csv: var(--color-primary);
   --export-excel: #27AE60;
   --export-pdf: #E53E3E;
   --export-print: #F6AD55;
   
-  /* Table Colors */
-  --table-header-bg: linear-gradient(135deg, var(--color-primary) 0%, #0D1B3E 100%);
+    --table-header-bg: linear-gradient(135deg, var(--color-primary) 0%, #0D1B3E 100%);
   --table-row-hover: #F8FAFF;
   --table-border: #EEF3FC;
   
-  /* Pagination Colors */
-  --page-active-bg: var(--color-primary);
+    --page-active-bg: var(--color-primary);
   --page-border: #E2E8F0;
   --table-header-bg: linear-gradient(90deg, var(--color-primary) 0%, #0D1B3E 100%);
   --table-header-text: #ffffff;
 }
 
-/* Global Table Header Row (Toolbar) */
 .global-table-toolbar {
   display: flex;
   justify-content: space-between;
@@ -245,7 +215,6 @@ button {
   }
 }
 
-/* Global Export Buttons */
 .global-export-btn {
   width: 36px;
   height: 36px;
@@ -271,7 +240,6 @@ button {
 .btn-pdf { background: var(--export-pdf); }
 .btn-print { background: var(--export-print); }
 
-/* Global Pagination */
 .global-pagination {
   display: flex;
   justify-content: space-between;
@@ -315,7 +283,6 @@ button {
   border-color: var(--page-active-bg) !important;
 }
 
-/* Global Search Box */
 .global-search-box {
   display: flex;
   align-items: center;
@@ -343,12 +310,10 @@ button {
   width: 100%;
 }
 
-
 .global-search-box svg {
   color: #A0AEC0;
 }
 
-/* Global Toast Notification */
 .global-toast {
   position: fixed !important;
   z-index: 10001 !important;

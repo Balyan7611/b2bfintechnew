@@ -22,13 +22,11 @@ const ChangeTPIN = () => {
   const confirmRefs = useRef([]);
   const adminTpinRefs = useRef([]);
 
-  // Force reset on mount to prevent browser autofill
-  useEffect(() => {
+    useEffect(() => {
     dispatch(updateTpin({ member: '', tpin: ['', '', '', ''], confirmTpin: ['', '', '', ''] }));
   }, [dispatch]);
 
-  // Reset Admin TPIN when modal opens
-  useEffect(() => {
+    useEffect(() => {
     if (showConfirm) {
       setAdminTpin(['', '', '', '']);
       setAdminTpinError('');
@@ -55,14 +53,12 @@ const ChangeTPIN = () => {
       dispatch(updateTpin({ confirmTpin: currentArray }));
     }
 
-    // Auto focus next
-    if (val) {
+        if (val) {
       if (type === 'tpin') {
         if (index < 3) {
           pinRefs.current[index + 1]?.focus();
         } else {
-          confirmRefs.current[0]?.focus(); // Auto redirect to first field of confirm TPIN
-        }
+          confirmRefs.current[0]?.focus();         }
       } else if (type === 'confirmTpin') {
         if (index < 3) {
           confirmRefs.current[index + 1]?.focus();
@@ -87,8 +83,7 @@ const ChangeTPIN = () => {
     currentArray[index] = val.slice(-1);
     setAdminTpin(currentArray);
 
-    // Auto focus next
-    if (val && index < 3) {
+        if (val && index < 3) {
       adminTpinRefs.current[index + 1]?.focus();
     }
   };
@@ -142,8 +137,7 @@ const ChangeTPIN = () => {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        {/* Anti-Autofill Dummy */}
-        <input type="text" style={{ display: 'none' }} />
+                <input type="text" style={{ display: 'none' }} />
         <input type="password" style={{ display: 'none' }} />
 
         <div className={styles.cardHeader} style={{ padding: '10px 24px', borderBottom: '1px solid #EEF3FC', background: '#fff' }}>
@@ -152,8 +146,7 @@ const ChangeTPIN = () => {
 
         <div style={{ padding: '24px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-            {/* Select Member */}
-            <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+                        <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
               <label style={{ fontSize: '0.8rem', color: '#4E6080', fontWeight: 600, display: 'block', marginBottom: '8px' }}>Select Member</label>
               <div style={{ position: 'relative' }}>
                 <select 
@@ -178,8 +171,7 @@ const ChangeTPIN = () => {
               </div>
             </div>
 
-            {/* Selected Member Details */}
-            {tpinState.member && (
+                        {tpinState.member && (
               <div style={{ gridColumn: '1 / -1', display: 'flex', background: '#fff', border: '1px solid #EEF3FC', borderRadius: '8px', overflow: 'hidden', marginTop: '2px', marginBottom: '4px' }}>
                 <div style={{ flex: 1, padding: '6px 12px', borderRight: '1px solid #EEF3FC', textAlign: 'center', fontSize: '0.8rem', color: '#0D1B3E' }}>
                   <span style={{ fontWeight: 600, color: '#4E6080' }}>Name:</span> {tpinState.member.includes('Pay99') ? 'VIVEK VARSHNEY' : tpinState.member.includes('BALYAN') ? 'BALYAN' : 'FARIDABAD'}
@@ -193,8 +185,7 @@ const ChangeTPIN = () => {
               </div>
             )}
 
-            {/* Inline Error Messages */}
-            {memberError && (
+                        {memberError && (
               <div style={{ gridColumn: '1 / -1', color: '#E53E3E', fontSize: '0.85rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', background: '#FFF5F5', padding: '10px 14px', borderRadius: '8px', border: '1px solid #FED7D7' }}>
                 <span>⚠️</span> {memberError}
               </div>
@@ -209,8 +200,7 @@ const ChangeTPIN = () => {
               Set TPIN
             </div>
 
-            {/* New TPIN */}
-            <div className={styles.formGroup}>
+                        <div className={styles.formGroup}>
               <label style={{ fontSize: '0.8rem', color: '#4E6080', display: 'block', marginBottom: '8px' }}>New 4-Digit TPIN</label>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-start' }}>
                 {tpinState.tpin.map((digit, i) => (
@@ -241,8 +231,7 @@ const ChangeTPIN = () => {
               </div>
             </div>
 
-            {/* Confirm TPIN */}
-            <div className={styles.formGroup}>
+                        <div className={styles.formGroup}>
               <label style={{ fontSize: '0.8rem', color: '#4E6080', display: 'block', marginBottom: '8px' }}>Confirm TPIN</label>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-start' }}>
                 {tpinState.confirmTpin.map((digit, i) => (
@@ -274,8 +263,7 @@ const ChangeTPIN = () => {
             </div>
           </div>
 
-          {/* Action Footer */}
-          <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '32px', paddingTop: '24px', borderTop: '1px dashed #E2E8F0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '32px', paddingTop: '24px', borderTop: '1px dashed #E2E8F0' }}>
             <button 
               style={{ padding: '12px 35px', borderRadius: '12px', background: '#1756AA', color: '#fff', border: 'none', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 8px 20px rgba(23,86,170,0.25)', transition: 'all 0.3s' }}
               onClick={handleProcess}
@@ -293,8 +281,7 @@ const ChangeTPIN = () => {
         </div>
       </div>
 
-      {/* Confirmation Modal */}
-      {showConfirm && (
+            {showConfirm && (
         <div style={{
           position: 'fixed',
           top: 0,
@@ -338,8 +325,7 @@ const ChangeTPIN = () => {
               Are you sure you want to update the Transaction PIN for <span style={{ fontWeight: 600, color: '#1A202C' }}>{tpinState.member.split(' [')[0]}</span>?
             </p>
 
-            {/* Admin TPIN verification field */}
-            <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+                        <div style={{ marginBottom: '20px', textAlign: 'left' }}>
               <label style={{ fontSize: '0.8rem', color: '#4E6080', fontWeight: 600, display: 'block', marginBottom: '8px', textAlign: 'center' }}>
                 Enter Admin TPIN to Authorize
               </label>
@@ -418,8 +404,7 @@ const ChangeTPIN = () => {
         </div>
       )}
 
-      {/* Success Modal */}
-      {isSuccess && (
+            {isSuccess && (
         <div style={{
           position: 'fixed',
           top: 0,
@@ -491,4 +476,3 @@ const ChangeTPIN = () => {
 };
 
 export default ChangeTPIN;
-

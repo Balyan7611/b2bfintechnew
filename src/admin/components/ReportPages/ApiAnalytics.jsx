@@ -6,7 +6,6 @@ import { apiService } from '../../../api/httpClient';
 import AdminTable from '../../../shared/components/common/AdminTable';
 import styles from './ApiAnalytics.module.css';
 
-/* ── Date helpers ─────────────────────────────────────────── */
 function toYMD(d) { return d.toISOString().slice(0, 10); }
 function periodDates(period) {
   const today = new Date();
@@ -26,7 +25,6 @@ function periodDates(period) {
   }
 }
 
-/* ── Success-rate bar ─────────────────────────────────────── */
 function RateBar({ rate }) {
   const color = rate >= 90 ? '#22C55E' : rate >= 70 ? '#F59E0B' : '#EF4444';
   return (
@@ -39,7 +37,6 @@ function RateBar({ rate }) {
   );
 }
 
-/* ── KPI Card ─────────────────────────────────────────────── */
 function KpiCard({ icon, title, value, sub }) {
   return (
     <div style={{
@@ -65,9 +62,7 @@ const ApiAnalytics = () => {
 
   const [summary, setSummary]         = useState(null);
   const [providerRows, setProviderRows] = useState([]);
-  const [serviceGrid, setServiceGrid]   = useState([]);   // data.serviceGrid[]
-  const [providerNames, setProviderNames] = useState([]); // ordered list of provider names for columns
-  const [dateRange, setDateRange]       = useState('');
+  const [serviceGrid, setServiceGrid]   = useState([]);     const [providerNames, setProviderNames] = useState([]);   const [dateRange, setDateRange]       = useState('');
 
   const handleAnalyse = async () => {
     setLoading(true); setAnalyzed(false); setError('');
@@ -86,8 +81,7 @@ const ApiAnalytics = () => {
 
       const providers = data.providers || [];
       setProviderRows(providers);
-      // Extract ordered provider names — fallback chain if providerName is null
-      setProviderNames(providers.map((p, i) => p.providerName || p.apiName || p.name || `Provider ${p.apiId || i + 1}`));
+            setProviderNames(providers.map((p, i) => p.providerName || p.apiName || p.name || `Provider ${p.apiId || i + 1}`));
 
       setServiceGrid(data.serviceGrid || []);
       setAnalyzed(true);
@@ -101,8 +95,7 @@ const ApiAnalytics = () => {
 
   return (
     <div className={styles.container}>
-      {/* Header */}
-      <div className={styles.header}>
+            <div className={styles.header}>
         <div className={styles.titleArea}>
           <div className={styles.iconContainer}><MdApi className={styles.mainIcon} /></div>
           <div>
@@ -115,8 +108,7 @@ const ApiAnalytics = () => {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className={styles.filterSection}>
+            <div className={styles.filterSection}>
         <div className={styles.filterHeader}><FaFilter className={styles.filterHeaderIcon} /><span>Choose what to look at</span></div>
         <div className={styles.filterGrid}>
           <div className={styles.inputGroup}>
@@ -163,8 +155,7 @@ const ApiAnalytics = () => {
         {error && <div style={{ color: '#DC2626', fontSize: '0.82rem', marginTop: 8 }}>{error}</div>}
       </div>
 
-      {/* Legend (pre-analysis) */}
-      {!analyzed && (
+            {!analyzed && (
         <div className={styles.legendBlock}>
           <div className={styles.legendHeader}><span style={{ fontWeight: 800, color: '#1756AA' }}>How to read this.</span></div>
           <ul className={styles.legendList}>
@@ -175,12 +166,10 @@ const ApiAnalytics = () => {
         </div>
       )}
 
-      {/* Results */}
-      {analyzed && summary && (
+            {analyzed && summary && (
         <div className={styles.resultsArea}>
 
-          {/* ── KPI Cards ── */}
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 24 }}>
+                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 24 }}>
             <KpiCard
               icon={<FiBarChart2 size={14} />}
               title="Transactions"
@@ -249,16 +238,33 @@ const ApiAnalytics = () => {
               data={[...serviceGrid, '__total__']}
               renderRow={(row, i) => {
                 if (row === '__total__') {
-                  const grandTotal = serviceGrid.reduce((s, r) => s + (r.totalValue || 0), 0);
                   return (
                     <tr key="total" style={{ background: '#F8FAFC', fontWeight: 800 }}>
                       <td style={{ color: '#94A3B8', fontWeight: 700, padding: '10px 16px', textAlign: 'center', verticalAlign: 'middle' }}>—</td>
                       <td style={{ fontWeight: 800, color: '#0D1B3E', padding: '10px 16px', verticalAlign: 'middle' }}>Total</td>
                       {providerNames.map(p => {
-                        const colTotal = serviceGrid.reduce((s, r) => s + (r.providerValues?.[p] || 0), 0);
-                        return <td key={p} style={{ textAlign: 'center', fontWeight: 800, color: '#0D1B3E', padding: '10px 16px', verticalAlign: 'middle' }}>{colTotal.toLocaleString()}</td>;
+                        let colTotal;
+                        if (showAs === 'Business') {
+                          colTotal = serviceGrid.reduce((s, r) => s + (r.providerCells?.[p]?.businessValue || 0), 0);
+                          return <td key={p} style={{ textAlign: 'center', fontWeight: 800, color: '#0D1B3E', padding: '10px 16px', verticalAlign: 'middle' }}>{colTotal > 0 ? `₹${Number(colTotal).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '—'}</td>;
+                        } else if (showAs === 'Rates') {
+                          const totalTxns = serviceGrid.reduce((s, r) => s + (r.providerCells?.[p]?.txns || 0), 0);
+                          const totalSuccess = serviceGrid.reduce((s, r) => s + (r.providerCells?.[p]?.successTxns || 0), 0);
+                          const avgRate = totalTxns > 0 ? ((totalSuccess / totalTxns) * 100).toFixed(1) : 0;
+                          return <td key={p} style={{ textAlign: 'center', fontWeight: 800, color: '#0D1B3E', padding: '10px 16px', verticalAlign: 'middle' }}>{totalTxns > 0 ? `${avgRate}%` : '—'}</td>;
+                        } else {
+                          colTotal = serviceGrid.reduce((s, r) => s + (r.providerCells?.[p]?.txns || 0), 0);
+                          return <td key={p} style={{ textAlign: 'center', fontWeight: 800, color: '#0D1B3E', padding: '10px 16px', verticalAlign: 'middle' }}>{colTotal > 0 ? colTotal.toLocaleString() : '—'}</td>;
+                        }
                       })}
-                      <td style={{ textAlign: 'center', fontWeight: 800, color: '#1756AA', padding: '10px 16px', verticalAlign: 'middle' }}>{grandTotal.toLocaleString()}</td>
+                      <td style={{ textAlign: 'center', fontWeight: 800, color: '#1756AA', padding: '10px 16px', verticalAlign: 'middle' }}>
+                        {showAs === 'Business'
+                          ? `₹${Number(serviceGrid.reduce((s, r) => s + (r.totalBusiness || 0), 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+                          : showAs === 'Rates'
+                            ? (() => { const t = serviceGrid.reduce((s, r) => s + (r.totalTxns || 0), 0); const sc = serviceGrid.reduce((s, r) => s + (r.totalSuccessTxns || 0), 0); return t > 0 ? `${((sc / t) * 100).toFixed(1)}%` : '—'; })()
+                            : serviceGrid.reduce((s, r) => s + (r.totalTxns || 0), 0).toLocaleString()
+                        }
+                      </td>
                     </tr>
                   );
                 }
@@ -267,24 +273,19 @@ const ApiAnalytics = () => {
                     <td style={{ color: '#94A3B8', fontWeight: 700, padding: '10px 16px', textAlign: 'center', verticalAlign: 'middle' }}>{i + 1}</td>
                     <td style={{ fontWeight: 700, color: '#334155', padding: '10px 16px', verticalAlign: 'middle' }}>{row.serviceName}</td>
                     {providerNames.map(p => {
-                      const txnVal = row.providerValues?.[p] || 0;
-                      // For Business/Rate modes, get per-provider data from providerRows
-                      const provRow = providerRows.find(pr => (pr.providerName || pr.apiName || pr.name) === p);
+                      const cell = row.providerCells?.[p];
                       let display;
                       if (showAs === 'Business') {
-                        const biz = provRow?.businessAmount || 0;
-                        display = biz > 0
-                          ? <span style={{ fontWeight: 600, color: '#0369A1' }}>₹{Number(biz).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                        display = (cell?.businessValue > 0)
+                          ? <span style={{ fontWeight: 600, color: '#0369A1' }}>₹{Number(cell.businessValue).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                           : <span style={{ color: '#CBD5E1' }}>—</span>;
                       } else if (showAs === 'Rates') {
-                        const rate = provRow?.successRate || 0;
-                        const color = rate >= 90 ? '#16A34A' : rate >= 70 ? '#B45309' : '#DC2626';
-                        display = provRow
-                          ? <span style={{ color, fontWeight: 700 }}>{Number(rate).toFixed(1)}%</span>
+                        display = (cell?.txns > 0)
+                          ? <span style={{ color: cell.successRate >= 90 ? '#16A34A' : cell.successRate >= 70 ? '#B45309' : '#DC2626', fontWeight: 700 }}>{Number(cell.successRate).toFixed(1)}%</span>
                           : <span style={{ color: '#CBD5E1' }}>—</span>;
                       } else {
-                        display = txnVal > 0
-                          ? <span style={{ fontWeight: 600 }}>{txnVal.toLocaleString()}</span>
+                        display = (cell?.txns > 0)
+                          ? <span style={{ fontWeight: 600 }}>{cell.txns.toLocaleString()}</span>
                           : <span style={{ color: '#CBD5E1' }}>—</span>;
                       }
                       return (
@@ -294,7 +295,12 @@ const ApiAnalytics = () => {
                       );
                     })}
                     <td style={{ textAlign: 'center', fontWeight: 800, color: '#0D1B3E', padding: '10px 16px', verticalAlign: 'middle' }}>
-                      {(row.totalValue || 0).toLocaleString()}
+                      {showAs === 'Business'
+                        ? (row.totalBusiness > 0 ? `₹${Number(row.totalBusiness).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '—')
+                        : showAs === 'Rates'
+                          ? (row.totalTxns > 0 ? `${Number(row.overallSuccessRate).toFixed(1)}%` : '—')
+                          : (row.totalTxns > 0 ? row.totalTxns.toLocaleString() : '—')
+                      }
                     </td>
                   </tr>
                 );

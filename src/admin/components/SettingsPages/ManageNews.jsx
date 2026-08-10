@@ -18,18 +18,15 @@ const ManageNews = () => {
   const [content, setContent] = useState("");
   const editorRef = useRef(null);
 
-  // Form States
-  const [title, setTitle] = useState("");
+    const [title, setTitle] = useState("");
   const [targetType, setTargetType] = useState("Global");
   const [expiryDate, setExpiryDate] = useState("");
   const [editingId, setEditingId] = useState(null);
   
-  // Custom Delete States
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
 
-  // List State
-  const [newsList, setNewsList] = useState([]);
+    const [newsList, setNewsList] = useState([]);
 
   const executeCommand = (command, value = null) => {
     document.execCommand(command, false, value);
@@ -138,10 +135,8 @@ const ManageNews = () => {
 
   return (
     <div className={styles.container} style={{ padding: '15px 10px', maxWidth: '100%' }}>
-      {/* ── MAIN REPOSITORY CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E' }}>Manage Dashboard News</h3>
           <button style={{ 
             display: 'flex', alignItems: 'center', gap: '8px', 
@@ -153,8 +148,7 @@ const ManageNews = () => {
           </button>
         </div>
 
-        {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '10px 20px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '10px 20px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.selectEntries} style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}>
@@ -183,8 +177,7 @@ const ManageNews = () => {
           </div>
         </div>
 
-        {/* ── TABLE ── */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ width: '100%', minWidth: '1050px', tableLayout: 'auto' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -244,8 +237,7 @@ const ManageNews = () => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div className="global-pagination" style={{ padding: '20px 25px', borderTop: '1px solid #F1F5F9' }}>
+                <div className="global-pagination" style={{ padding: '20px 25px', borderTop: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
             Showing {newsList.length > 0 ? 1 : 0} to {newsList.length} of {newsList.length} records
           </div>
@@ -257,8 +249,7 @@ const ManageNews = () => {
         </div>
       </div>
 
-      {/* ── ADD MODAL (DRAWER STYLE) ── */}
-      {isModalOpen && (
+            {isModalOpen && (
         <div className={styles.drawerOverlay} onClick={() => setIsModalOpen(false)}>
           <div className={styles.drawer} onClick={(e) => e.stopPropagation()} style={{ width: '720px', maxWidth: '95%' }}>
             <div className={styles.drawerHeader}>
@@ -375,8 +366,7 @@ const ManageNews = () => {
         </div>
       )}
 
-      {/* ── CUSTOM DELETE CONFIRMATION MODAL ── */}
-      {isDeleteModalOpen && (
+            {isDeleteModalOpen && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)',

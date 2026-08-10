@@ -11,13 +11,8 @@ const firebaseConfig = {
   measurementId: "G-CN0NNXGPY1"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase Cloud Messaging only when the browser actually supports it
-// (getMessaging() throws synchronously on unsupported browsers/contexts, e.g. no
-// Service Worker / Push API support, or non-HTTPS non-localhost origins — that
-// throw used to happen at module load time and could blank out the whole app).
 let messaging = null;
 const messagingReady = isSupported()
   .then((supported) => {
@@ -35,7 +30,6 @@ const messagingReady = isSupported()
 
 export { messaging };
 
-// Function to request notification permission and get device token
 export const requestForToken = async () => {
   const vapidKey = "BAjk2czxYcmVqGl_csvea95wCI-sFjNcobaJoRGhUnLm_7X375JUBIQzpi2MmMyNsgK-o-FWTI8cD8jgu3UcUTk";
   try {
@@ -46,9 +40,7 @@ export const requestForToken = async () => {
     const currentToken = await getToken(activeMessaging, { vapidKey });
     if (currentToken) {
       console.log('FCM Device Token:', currentToken);
-      // In a real app, you send this token to your backend database
-      // so the backend knows exactly which device to send push notifications to.
-      return currentToken;
+                  return currentToken;
     } else {
       console.log('No registration token available. Request permission to generate one.');
       return null;
@@ -59,7 +51,6 @@ export const requestForToken = async () => {
   }
 };
 
-// Function to listen for incoming messages when the app is OPEN in the browser
 export const setupForegroundListener = (callback) => {
   let unsubscribe = () => {};
   messagingReady.then((activeMessaging) => {

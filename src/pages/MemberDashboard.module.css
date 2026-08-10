@@ -26,7 +26,6 @@
   scrollbar-gutter: stable;
 }
 
-/* Custom smooth, high-performance scrollbar to prevent scrolling lags */
 .mainWrapper::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -50,8 +49,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 8px 16px 16px 16px; /* Balanced side padding to prevent sticking to sidebar */
-}
+  padding: 8px 16px 16px 16px; }
 
 .newsTickerWrapper {
   height: 30px;
@@ -86,14 +84,12 @@
   100% { transform: translateX(-100%); }
 }
 
-/* Global Action Bar */
 .infoBar {
   min-height: 54px;
   background: linear-gradient(90deg, #1756AA 0%, #0D1B3E 100%);
   display: flex;
   align-items: center;
-  padding: 0 8px; /* Reduced from 16px to minimize horizontal gap */
-  color: white;
+  padding: 0 8px;   color: white;
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   position: sticky;
@@ -104,8 +100,7 @@
 .actionItems {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* Push groups to corners on PC */
-  width: 100%;
+  justify-content: space-between;   width: 100%;
   gap: 20px;
 }
 
@@ -122,14 +117,12 @@
   position: relative;
 }
 
-/* QUICK SERVICES STRIP (DESKTOP) */
 .quickServicesStrip {
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
-  padding: 6px 8px; /* Reduced from 16px to minimize horizontal gap */
-  gap: 20px;
+  padding: 6px 8px;   gap: 20px;
   position: sticky;
   top: 84px;
   z-index: 9;
@@ -207,8 +200,7 @@
     gap: 6px;
   }
   .miniBtn {
-    padding: 0 10px; /* Keep some padding for text */
-    justify-content: center;
+    padding: 0 10px;     justify-content: center;
   }
   .leftActionGroup {
     gap: 8px;
@@ -249,17 +241,14 @@
 
 @media (max-width: 1200px) {
   .compactSearch {
-    width: 180px; /* Reduced from 200px */
-  }
+    width: 180px;   }
   .actionItems {
-    gap: 10px; /* Reduced gap between groups */
-  }
+    gap: 10px;   }
 }
 
 @media (max-width: 992px) {
   .compactSearch {
-    width: 140px; /* Reduced further for mid-tablets */
-  }
+    width: 140px;   }
 }
 
 .compactSearch input {
@@ -296,7 +285,6 @@
   cursor: pointer;
 }
 
-/* MOBILE MODAL STYLES */
 .mobileServicesOverlay {
   position: fixed;
   top: 0;
@@ -384,7 +372,6 @@
   text-transform: uppercase;
 }
 
-/* RESPONSIVE */
 @media (max-width: 768px) {
   .layout {
     position: relative;
@@ -408,8 +395,7 @@
   .actionItems { flex-direction: column; gap: 10px; align-items: stretch; }
   .leftActionGroup { width: 100%; justify-content: flex-start; gap: 10px; }
   .rightActionGroup { width: 100%; }
-  .content { padding: 10px !important; } /* Balanced gap from screen edges */
-  .compactSearch { width: 100%; max-width: none; height: 36px; }
+  .content { padding: 10px !important; }   .compactSearch { width: 100%; max-width: none; height: 36px; }
   .buttonGroup { width: 100%; justify-content: space-between; }
   .miniBtn { 
     flex: 1; 
@@ -417,11 +403,9 @@
     height: 34px; 
     border-radius: 8px; 
     padding: 0 8px; 
-    font-size: 0.58rem; /* Smaller font for mobile */
-    gap: 4px;
+    font-size: 0.58rem;     gap: 4px;
   }
-  .miniBtn span { display: inline-block; } /* Ensure text stays visible but compact */
-  .newsTickerWrapper { display: flex !important; position: static; border-bottom: none; }
+  .miniBtn span { display: inline-block; }   .newsTickerWrapper { display: flex !important; position: static; border-bottom: none; }
   .quickServicesStrip { display: none !important; }
 }
 
@@ -450,7 +434,6 @@
   transform: scale(1.05);
 }
 
-/* ── PREMIUM SERVICES MODAL (TABLET & MOBILE) ── */
 .mobileServicesOverlay {
   position: fixed;
   inset: 0;
@@ -594,11 +577,9 @@
   .miniBtn span { font-size: 0.6rem; }
 }
 
-/* Custom scrollbar */
 .mainWrapper::-webkit-scrollbar { width: 8px; }
 .mainWrapper::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
 
-/* ── INFO BAR WALLET ICON (mobile only) ── */
 .infoBarWalletWrap {
   position: relative;
   flex-shrink: 0;
@@ -638,7 +619,6 @@
   transform: scale(0.96);
 }
 
-/* ── PREMIUM WALLET MODAL (MOBILE) ── */
 .walletModalOverlay {
   position: fixed;
   inset: 0;
@@ -785,9 +765,6 @@
   transform: rotate(-15deg);
 }
 
-/* =========================================================
-   FLOATING MY SERVICE FAB (Mobile Only) — Clean Design
-   ========================================================= */
 .fabMyService {
   position: fixed;
   bottom: 28px;
@@ -848,7 +825,6 @@
   }
 }
 
-/* ── GLOBAL TOAST NOTIFICATION (Premium Glassmorphism) ── */
 .globalToast {
   position: fixed;
   top: 30px;

@@ -33,15 +33,12 @@ const labelStyle = {
 const SwitchSystem = () => {
   const dispatch = useDispatch();
 
-  // ── Dropdown data ──────────────────────────────────────────
-  const [services,   setServices]   = useState([]);
+    const [services,   setServices]   = useState([]);
   const [allOperators, setAllOperators] = useState([]);
-  const [operators,  setOperators]  = useState([]);   // filtered by service
-  const [masterApis, setMasterApis] = useState([]);
+  const [operators,  setOperators]  = useState([]);     const [masterApis, setMasterApis] = useState([]);
   const [allMembers, setAllMembers] = useState([]);
 
-  // ── Form state ─────────────────────────────────────────────
-  const [switchType,  setSwitchType]  = useState('');
+    const [switchType,  setSwitchType]  = useState('');
   const [serviceId,   setServiceId]   = useState('');
   const [operatorId,  setOperatorId]  = useState('');
   const [apiId,       setApiId]       = useState('');
@@ -58,27 +55,23 @@ const SwitchSystem = () => {
 
   const [packages,    setPackages]    = useState([]);
 
-  // ── Table / status ─────────────────────────────────────────
-  const [switchRules, setSwitchRules] = useState([]);
+    const [switchRules, setSwitchRules] = useState([]);
   const [isLoading,   setIsLoading]   = useState(false);
   const [isSaving,    setIsSaving]    = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // ── Load all static dropdown data on mount ─────────────────
-  useEffect(() => {
+    useEffect(() => {
     const init = async () => {
       try {
-        // Services
-        const svcRes = await API.service.getAll();
+                const svcRes = await API.service.getAll();
         const svcList = ServiceResponseModel(svcRes);
         setServices(svcList);
       } catch (e) { console.warn('SwitchSystem: services load failed', e); }
 
       try {
-        // All operators — we filter client-side when service changes
-        const opRes = await API.operator.getAll({ pageSize: 1000 });
+                const opRes = await API.operator.getAll({ pageSize: 1000 });
         const rawOps = Array.isArray(opRes?.data) ? opRes.data
           : Array.isArray(opRes?.data?.items) ? opRes.data.items
           : Array.isArray(opRes) ? opRes : [];
@@ -88,8 +81,7 @@ const SwitchSystem = () => {
       } catch (e) { console.warn('SwitchSystem: operators load failed', e); }
 
       try {
-        // Master APIs (API providers)
-        const apiRes = await API.masterApi.getAll({ pageSize: 500 });
+                const apiRes = await API.masterApi.getAll({ pageSize: 500 });
         const rawApis = Array.isArray(apiRes?.data) ? apiRes.data
           : Array.isArray(apiRes?.data?.items) ? apiRes.data.items
           : Array.isArray(apiRes) ? apiRes : [];
@@ -105,8 +97,7 @@ const SwitchSystem = () => {
       } catch (e) { console.warn('SwitchSystem: packages load failed', e); }
 
       try {
-        // All members for table mapping
-        const memRes = await API.member.search("");
+                const memRes = await API.member.search("");
         if (memRes && Array.isArray(memRes)) {
           setAllMembers(memRes.map(m => ({ 
             id: m.id || m.memberId || m.msrno, 
@@ -119,10 +110,8 @@ const SwitchSystem = () => {
       loadRules();
     };
     init();
-  }, []); // eslint-disable-line
-
-  // Filter operators whenever service changes
-  useEffect(() => {
+  }, []); 
+    useEffect(() => {
     if (!serviceId) {
       setOperators([]);
       setOperatorId('');
@@ -133,8 +122,7 @@ const SwitchSystem = () => {
     setOperatorId('');
   }, [serviceId, allOperators]);
 
-  // ── Load existing switch rules (APISwitchingConcept) ───────────────
-  const loadRules = useCallback(async () => {
+    const loadRules = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await API.apiSwitchingConcept.getAll({ pageNumber: 1, pageSize: 5000 });
@@ -148,14 +136,14 @@ const SwitchSystem = () => {
     }
   }, []);
 
-  // ── Resolve helpers ───────────────────────────────────────
-  const getServiceName = (id) =>
-    services.find(s => String(s.id) === String(id))?.name || (id ? `Service #${id}` : '-');
+    const getServiceName = (idOrItem) => {
+    if (idOrItem && typeof idOrItem === 'object') return idOrItem.serviceName || services.find(s => String(s.id) === String(idOrItem.serviceId))?.name || (idOrItem.serviceId ? `Service #${idOrItem.serviceId}` : '-');
+    return services.find(s => String(s.id) === String(idOrItem))?.name || (idOrItem ? `Service #${idOrItem}` : '-');
+  };
 
   const getApiName = (pipeName) => pipeName || '-';
 
-  // ── Save ──────────────────────────────────────────────────
-  const handleSave = async () => {
+    const handleSave = async () => {
     if (!switchType) return dispatch(setNotification({ type: 'error', message: 'Please select a Switch Type' }));
     if (!serviceId)  return dispatch(setNotification({ type: 'error', message: 'Please select a Service' }));
     if (!apiId)      return dispatch(setNotification({ type: 'error', message: 'Please select an API' }));
@@ -200,8 +188,7 @@ const SwitchSystem = () => {
     }
   };
 
-  // ── Delete ────────────────────────────────────────────────
-  const handleDelete = async (id) => {
+    const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this switch rule?')) return;
     try {
       await API.apiSwitchingConcept.delete(id);
@@ -212,8 +199,7 @@ const SwitchSystem = () => {
     }
   };
 
-  // ── Pagination / search ───────────────────────────────────
-  const filtered = switchRules.filter(r => {
+    const filtered = switchRules.filter(r => {
     const q = searchQuery.toLowerCase();
     return (
       getServiceName(r.serviceId).toLowerCase().includes(q) ||
@@ -225,22 +211,18 @@ const SwitchSystem = () => {
   const startIndex  = (currentPage - 1) * rowsPerPage;
   const currentData = filtered.slice(startIndex, startIndex + rowsPerPage);
 
-  // ── Render ────────────────────────────────────────────────
-  return (
+    return (
     <div className={styles.container} style={{ padding: '15px 15px 0 15px', maxWidth: '100%' }}>
       <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
 
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 20px', borderBottom: '1px solid #F1F5F9' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 20px', borderBottom: '1px solid #F1F5F9' }}>
           <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E' }}>Switch System</h3>
         </div>
 
-        {/* ── Form ── */}
-        <div style={{ padding: '24px 28px', borderBottom: '1px solid #F1F5F9', background: '#fff' }}>
+                <div style={{ padding: '24px 28px', borderBottom: '1px solid #F1F5F9', background: '#fff' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', alignItems: 'flex-end' }}>
 
-            {/* 1. Switch Type */}
-            <div className={styles.formGroup} style={{ margin: 0 }}>
+                        <div className={styles.formGroup} style={{ margin: 0 }}>
               <label style={labelStyle}>Switch Type</label>
               <SearchableSelect
                 options={SWITCH_TYPES}
@@ -251,8 +233,7 @@ const SwitchSystem = () => {
               />
             </div>
 
-            {/* 2. Dynamic Field Space (Appears right next to Switch Type) */}
-            {switchType === 'User Switch' ? (
+                        {switchType === 'User Switch' ? (
               <div className={styles.formGroup} style={{ margin: 0 }}>
                 <label style={labelStyle}>Select Member</label>
                 <MemberSearchSelect
@@ -285,8 +266,7 @@ const SwitchSystem = () => {
               </div>
             ) : null}
 
-            {/* 3. Service */}
-            <div className={styles.formGroup} style={{ margin: 0 }}>
+                        <div className={styles.formGroup} style={{ margin: 0 }}>
               <label style={labelStyle}>
                 Service {services.length === 0 && <span style={{ color: '#94a3b8', fontWeight: 400 }}>(loading...)</span>}
               </label>
@@ -299,8 +279,7 @@ const SwitchSystem = () => {
               />
             </div>
 
-            {/* 4. Operator */}
-            <div className={styles.formGroup} style={{ margin: 0 }}>
+                        <div className={styles.formGroup} style={{ margin: 0 }}>
               <label style={labelStyle}>Operator</label>
               <SearchableSelect
                 options={[
@@ -315,8 +294,7 @@ const SwitchSystem = () => {
               />
             </div>
 
-            {/* 5. API List (Starts Row 2) */}
-            <div className={styles.formGroup} style={{ margin: 0, marginTop: '12px' }}>
+                        <div className={styles.formGroup} style={{ margin: 0, marginTop: '12px' }}>
               <label style={labelStyle}>
                 API List {masterApis.length === 0 && <span style={{ color: '#94a3b8', fontWeight: 400 }}>(loading...)</span>}
               </label>
@@ -329,8 +307,7 @@ const SwitchSystem = () => {
               />
             </div>
 
-            {/* 6. Slab (Permanent) */}
-            <div className={styles.formGroup} style={{ margin: 0, marginTop: '12px' }}>
+                        <div className={styles.formGroup} style={{ margin: 0, marginTop: '12px' }}>
               <label style={labelStyle}>Slab</label>
               <input
                 type="text"
@@ -344,8 +321,7 @@ const SwitchSystem = () => {
               />
             </div>
 
-            {/* 7. Block Slab (Permanent) */}
-            <div className={styles.formGroup} style={{ margin: 0, marginTop: '12px' }}>
+                        <div className={styles.formGroup} style={{ margin: 0, marginTop: '12px' }}>
               <label style={labelStyle}>Block Slab</label>
               <input
                 type="text"
@@ -359,8 +335,7 @@ const SwitchSystem = () => {
               />
             </div>
 
-            {/* Bill Fetch */}
-            <div className={styles.formGroup} style={{ margin: 0, marginTop: '12px' }}>
+                        <div className={styles.formGroup} style={{ margin: 0, marginTop: '12px' }}>
               <label style={labelStyle}>Bill Fetch</label>
               <SearchableSelect
                 options={masterApis.map(a => ({ value: a.id, label: a.name }))}
@@ -371,8 +346,7 @@ const SwitchSystem = () => {
               />
             </div>
 
-            {/* Save Button */}
-            <div className={styles.formGroup} style={{ margin: 0, gridColumn: 'span 1', marginTop: '12px' }}>
+                        <div className={styles.formGroup} style={{ margin: 0, gridColumn: 'span 1', marginTop: '12px' }}>
               <button
                 onClick={handleSave}
                 disabled={isSaving}
@@ -393,8 +367,7 @@ const SwitchSystem = () => {
               </button>
             </div>
 
-            {/* Note */}
-            <div style={{ gridColumn: 'span 4', marginTop: '4px' }}>
+                        <div style={{ gridColumn: 'span 4', marginTop: '4px' }}>
               <p style={{ fontSize: '0.75rem', color: '#64748B', lineHeight: '1.4', margin: 0 }}>
                 <strong>Note:</strong> if you want fix amount then use "," and for range use "-" like (eg. 10, 20, 50-200, 300-500)
               </p>
@@ -403,8 +376,7 @@ const SwitchSystem = () => {
           </div>
         </div>
 
-        {/* ── Toolbar ── */}
-        <div className="global-table-toolbar" style={{ padding: '15px 20px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '15px 20px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select
@@ -440,8 +412,7 @@ const SwitchSystem = () => {
           </div>
         </div>
 
-        {/* ── Table ── */}
-        <div className={styles.tableWrapper} style={{ borderRadius: '16px', border: '1px solid #E2E8F0', overflowX: 'auto', overflowY: 'hidden', minHeight: 'auto' }}>
+                <div className={styles.tableWrapper} style={{ borderRadius: '16px', border: '1px solid #E2E8F0', overflowX: 'auto', overflowY: 'hidden', minHeight: 'auto' }}>
           <table className={styles.table} style={{ minWidth: '900px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -549,8 +520,7 @@ const SwitchSystem = () => {
           </table>
         </div>
 
-        {/* ── Pagination ── */}
-        <div className="global-pagination" style={{ padding: '15px 20px', borderTop: '1px solid #F1F5F9' }}>
+                <div className="global-pagination" style={{ padding: '15px 20px', borderTop: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
             Showing {filtered.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, filtered.length)} of {filtered.length} records
           </div>

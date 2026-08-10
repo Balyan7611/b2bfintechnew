@@ -138,7 +138,6 @@ import Attendance from '../components/AttendancePages/Attendance';
 import BusinessAnalytics from '../components/ReportPages/BusinessAnalytics';
 import styles from './DashboardPage.module.css';
 
-// --- DATA ---
 const SIDEBAR_LINKS = [
   { id: 'dashboard', label: 'Dashboard', icon: FaTachometerAlt },
   { 
@@ -179,14 +178,11 @@ const SIDEBAR_LINKS = [
     label: 'Member Management', 
     icon: FaUserTie,
     subLinks: [
-      // { id: 'staff_reg', label: 'Staff Registration' },
-      // { id: 'staff_list', label: 'Staff List' },
-      { id: 'set_password', label: 'Set Member Password' },
+                  { id: 'set_password', label: 'Set Member Password' },
       { id: 'set_tpin', label: 'Set Member T-Pin' },
       { id: 'login_security', label: 'Login Security' },
       { id: 'credit_limit', label: 'Credit Limit' },
-      // { id: 'registration_main', label: 'Registration' },
-      { id: 'manage_member', label: 'Manage Member' },
+            { id: 'manage_member', label: 'Manage Member' },
       { id: 'assign_tid', label: 'Assign TID' }
     ]
   },
@@ -234,9 +230,7 @@ const SIDEBAR_LINKS = [
       { id: 'wallet_ppi_registration', label: 'Wallet PPI Registration' },
       { id: 'quick_search', label: 'Quick Search' },
       { id: 'tds_report', label: 'TDS Report' },
-      // Same live FundRequest screen as Balance > Fund Request, surfaced here
-      // so admins can approve/reject top-ups from the reports menu too.
-      { id: 'fund_request_management', label: 'Fund Request Management' }
+                  { id: 'fund_request_management', label: 'Fund Request Management' }
     ]
   },
   { 
@@ -297,8 +291,7 @@ const SIDEBAR_LINKS = [
       { id: 'manage_news', label: 'Manage News' },
       { id: 'assign_service', label: 'Assign Service' },
       { id: 'service_requests', label: 'Service Requests' },
-      // { id: 'assign_service_role', label: 'Assign Service On Role' },
-      { id: 'check_txn', label: 'Check TXN' },
+            { id: 'check_txn', label: 'Check TXN' },
       { id: 'employee_login_list', label: 'Employee Login List' }
     ]
   },
@@ -361,7 +354,6 @@ const STAT_CARDS = [
   { id: 4, title: 'Net Flow', value: '₹ 0.00', icon: FaChartPie, color: 'yellow' },
 ];
 
-// ✅ Removed dummy transaction data – table will be empty
 const RECENT_TXNS = [];
 
 const ServiceRow = ({ card, index }) => {
@@ -403,8 +395,7 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Emergency Freeze Switch
-  const [isSystemFrozen, setIsSystemFrozen] = useState(() => {
+    const [isSystemFrozen, setIsSystemFrozen] = useState(() => {
     return localStorage.getItem('bss_system_frozen') === 'true';
   });
   const [showFreezeModal, setShowFreezeModal] = useState(false);
@@ -428,8 +419,7 @@ const DashboardPage = () => {
       } else {
         localStorage.removeItem('bss_system_freeze_message');
       }
-      window.dispatchEvent(new Event('system_freeze_updated')); // Notify other components in the same window
-      
+      window.dispatchEvent(new Event('system_freeze_updated'));       
       setIsSystemFrozen(nextState);
       setShowFreezeModal(false);
       setFreezePassword('');
@@ -472,8 +462,7 @@ const DashboardPage = () => {
   
   const [isChartFilterOpen, setIsChartFilterOpen] = useState(false);
   const [selectedChartFilter, setSelectedChartFilter] = useState('Last 7 Days');
-  const [adminChartView, setAdminChartView] = useState('revenue'); // 'revenue' or 'health'
-  const [memberSearchQuery, setMemberSearchQuery] = useState('');
+  const [adminChartView, setAdminChartView] = useState('revenue');   const [memberSearchQuery, setMemberSearchQuery] = useState('');
 
   const { manageMemberState } = useSelector((s) => s.member);
   const memberList = useMemo(() => manageMemberState?.list || [], [manageMemberState?.list]);
@@ -484,8 +473,7 @@ const DashboardPage = () => {
   const [pendingSidebarAction, setPendingSidebarAction] = useState(null);
   const [selectedMember, setSelectedMember] = useState(null);
   
-  // Header Search
-  const [adminSearchQuery, setAdminSearchQuery] = useState('');
+    const [adminSearchQuery, setAdminSearchQuery] = useState('');
   const [showAdminSearchResults, setShowAdminSearchResults] = useState(false);
   const adminSearchRef = useRef(null);
 
@@ -516,8 +504,7 @@ const DashboardPage = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [isSearchingMember, setIsSearchingMember] = useState(false);
 
-  // Live Admin Dashboard State
-  const [overviewData, setOverviewData] = useState(null);
+    const [overviewData, setOverviewData] = useState(null);
   const [recentTxns, setRecentTxns] = useState([]);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
 
@@ -561,8 +548,7 @@ const DashboardPage = () => {
         const results = await API.member.search(memberSearchQuery.trim());
         console.log("DashboardPage: Search results returned:", results);
         
-        // Filter local memberList case-insensitively
-        const localMatches = memberList.filter(m => 
+                const localMatches = memberList.filter(m => 
           (m.name && m.name.toLowerCase().includes(query)) ||
           (m.memberId && m.memberId.toLowerCase().includes(query)) ||
           (m.mobile && m.mobile.toLowerCase().includes(query)) ||
@@ -570,8 +556,7 @@ const DashboardPage = () => {
           (m.shopName && m.shopName.toLowerCase().includes(query))
         );
 
-        // Merge API results with local matches, avoiding duplicates by id or memberId
-        const merged = [...(results || [])];
+                const merged = [...(results || [])];
         localMatches.forEach(lm => {
           const alreadyExists = merged.some(m => 
             String(m.id) === String(lm.id) || 
@@ -582,8 +567,7 @@ const DashboardPage = () => {
           }
         });
 
-        // Ensure all suggestions match the query case-insensitively for maximum relevance
-        const filteredSuggestions = merged.filter(m => 
+                const filteredSuggestions = merged.filter(m => 
           (m.name && m.name.toLowerCase().includes(query)) ||
           (m.memberId && m.memberId.toLowerCase().includes(query)) ||
           (m.mobile && m.mobile.toLowerCase().includes(query)) ||
@@ -594,8 +578,7 @@ const DashboardPage = () => {
         setSuggestions(filteredSuggestions);
       } catch (err) {
         console.error("DashboardPage: Member Search Error:", err);
-        // Fallback to local filter
-        const localMatches = memberList.filter(m => 
+                const localMatches = memberList.filter(m => 
           (m.name && m.name.toLowerCase().includes(query)) ||
           (m.memberId && m.memberId.toLowerCase().includes(query)) ||
           (m.mobile && m.mobile.toLowerCase().includes(query)) ||
@@ -630,10 +613,7 @@ const DashboardPage = () => {
   const chartFilterRef = useRef(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  // "Services Overview" list: seeded with the old static cards so the panel
-  // never looks empty, then replaced with the live, active-only service list
-  // from the backend (Service master table) as soon as it loads.
-  const [dashboardCards, setDashboardCards] = useState(DASHBOARD_CARDS);
+        const [dashboardCards, setDashboardCards] = useState(DASHBOARD_CARDS);
 
   useEffect(() => {
     const fetchServiceCards = async () => {
@@ -657,25 +637,13 @@ const DashboardPage = () => {
     fetchServiceCards();
   }, []);
 
-  // Seed with all wallet types visible by default so nothing is hidden while the
-  // first live fetch from WalletType (DB) is still in flight.
-  const [walletTypes, setWalletTypes] = useState([
+      const [walletTypes, setWalletTypes] = useState([
     { code: 'MAIN', name: 'Main', isActive: true },
     { code: 'AEPS', name: 'AEPS', isActive: true },
     { code: 'COMMISSION', name: 'Commission', isActive: true }
   ]);
 
-  // Fetch live wallet types + balances (AEPS / Main / Profit) for the header pills.
-  // Both the wallet name AND whether it's shown at all come live from the DB -
-  // deactivating a wallet type (WalletType.IsActive = 0) hides it here automatically.
-  //
-  // NOTE: Admin uses the same UserWalletBalance endpoint as Member/API-panel -
-  // confirmed working with an Admin JWT (returns mainBalance/aepsBalance/
-  // commissionBalance for the admin's own msrno). The earlier Member/GetByID
-  // attempt didn't actually return usable wallet fields, so it's reverted.
-  // "Independent from API panel" just means each panel fetches its own logged-in
-  // user's own msrno - it does not require a different endpoint.
-  useEffect(() => {
+                      useEffect(() => {
     const fetchWalletHeaderData = async () => {
       try {
         const memberId = await resolveMemberId();
@@ -711,9 +679,7 @@ const DashboardPage = () => {
     return () => clearInterval(interval);
   }, [dispatch]);
 
-  // Maps a WalletType DB record (Name: MAIN / AEPS / COMMISSION ...) to the matching
-  // balance field (already in Redux `wallets`) and a display color/icon tint.
-  const WALLET_TYPE_CONFIG = [
+      const WALLET_TYPE_CONFIG = [
     { match: 'AEPS', balanceKey: 'aeps', color: '#27AE60', bg: 'rgba(39,174,96,0.1)' },
     { match: 'MAIN', balanceKey: 'main', color: '#1756AA', bg: 'rgba(23,86,170,0.1)' },
     { match: 'COMMISSION', balanceKey: 'profit', color: '#EAA21F', bg: 'rgba(234,162,31,0.1)' }
@@ -722,10 +688,7 @@ const DashboardPage = () => {
   const headerWalletPills = walletTypes
     .filter(wt => wt.isActive)
     .map(wt => {
-      // `code` (MAIN/AEPS/COMMISSION) is only used internally to pick the right
-      // balance field/color. The label shown on screen is always the DB `name`
-      // exactly as typed - rename it in the DB and the pill updates to match.
-      const cfg = WALLET_TYPE_CONFIG.find(c => (wt.code || '').toUpperCase().includes(c.match));
+                        const cfg = WALLET_TYPE_CONFIG.find(c => (wt.code || '').toUpperCase().includes(c.match));
       const label = wt.name || wt.code || '';
       return {
         name: `${label} Wallet`,
@@ -751,8 +714,7 @@ const DashboardPage = () => {
       }
     };
 
-    // Close sidebar on mobile/tablet mount
-    if (window.innerWidth <= 1024) {
+        if (window.innerWidth <= 1024) {
       dispatch(setSidebarOpen(false));
     }
 
@@ -762,16 +724,14 @@ const DashboardPage = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isQuickActionsOpen, isMemberDropdownOpen, isChartFilterOpen, dispatch]);
 
-  // Sync Status query parameter from URL to load Recharge History
-  useEffect(() => {
+    useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get('Status')) {
       setActiveTab('recharge_history');
     }
   }, [location.search, setActiveTab]);
 
-  // Dynamic Browser Tab Title Update for all active pages/tabs
-  useEffect(() => {
+    useEffect(() => {
     let pageLabel = 'Dashboard';
     if (activeTab !== 'dashboard') {
       for (const link of SIDEBAR_LINKS) {
@@ -802,9 +762,7 @@ const DashboardPage = () => {
   };
 
   const confirmLogout = () => {
-    // Best-effort: mark this session's login-history record as logged out.
-    // Not awaited so it never delays the actual logout/navigation.
-    API.userLoginHistory.closeActiveSession();
+            API.userLoginHistory.closeActiveSession();
     clearSession();
     navigate('/admin/login');
   };
@@ -897,9 +855,7 @@ const DashboardPage = () => {
     const rect = e.currentTarget.getBoundingClientRect();
     const windowHeight = window.innerHeight;
     
-    // Check if near bottom
-    const isUpward = rect.top + 300 > windowHeight; // 300px estimated max height of popup
-    
+        const isUpward = rect.top + 300 > windowHeight;     
     setHoverPosition({
       top: isUpward ? rect.bottom : rect.top,
       isUpward,
@@ -912,8 +868,7 @@ const DashboardPage = () => {
     if (isSidebarOpen) return;
     hoverTimeoutRef.current = setTimeout(() => {
       dispatch(setHoveredMenu(null));
-    }, 150); // slight delay to allow moving mouse to popup
-  };
+    }, 150);   };
 
   const handlePopupMouseEnter = () => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
@@ -923,8 +878,7 @@ const DashboardPage = () => {
 
   return (
     <div className={styles.layout}>
-      {/* Mobile Overlay */}
-      <div 
+            <div 
         className={`${styles.sidebarOverlay} ${isSidebarOpen && window.innerWidth <= 800 ? styles.overlayActive : ''}`}
         onClick={() => dispatch(setSidebarOpen(false))}
       ></div>
@@ -993,8 +947,7 @@ const DashboardPage = () => {
               </div>
             ))}
           </div>
-          {/* Kill Switch (Emergency Freeze) */}
-          <div 
+                    <div 
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -1037,8 +990,7 @@ const DashboardPage = () => {
           </div>
 
           <div className={styles.headerActions}>
-            {/* Header Date Picker */}
-            <div className={styles.datePillWrapHeader}>
+                        <div className={styles.datePillWrapHeader}>
               <FaCalendarAlt className={styles.dateIcon} />
               <input 
                 type="date" 
@@ -1048,8 +1000,7 @@ const DashboardPage = () => {
               />
             </div>
 
-            {/* Quick Actions Toggle */}
-            <div className={styles.actionDropdownWrap} ref={actionPanelRef}>
+                        <div className={styles.actionDropdownWrap} ref={actionPanelRef}>
               <button 
                 className={`${styles.actionToggleBtn} ${isQuickActionsOpen ? styles.actionToggleActive : ''}`} 
                 onClick={() => dispatch(toggleQuickActions())}
@@ -1057,8 +1008,7 @@ const DashboardPage = () => {
                 <FiGrid />
               </button>
 
-              {/* Backdrop for Mobile */}
-              {isQuickActionsOpen && (
+                            {isQuickActionsOpen && (
                 <div 
                   className={styles.actionBackdrop} 
                   onClick={() => dispatch(setQuickActionsOpen(false))}
@@ -1099,8 +1049,7 @@ const DashboardPage = () => {
       </header>
 
       <div className={styles.mainContainer}>
-        {/* ── SIDEBAR ── */}
-        <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : styles.sidebarClosed}`}>
+                <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : styles.sidebarClosed}`}>
           <div className={styles.sidebarLogoWrapper}>
             <img src={SITE_CONFIG.logo} alt="Logo" className={styles.sidebarLogo} />
             <button 
@@ -1131,8 +1080,7 @@ const DashboardPage = () => {
                     )}
                   </button>
 
-                  {/* Submenu Drawer */}
-                  {link.subLinks && (
+                                    {link.subLinks && (
                     <div className={`${styles.subMenuDrawer} ${isExpanded && isSidebarOpen ? styles.subMenuOpen : ''}`}>
                       {link.subLinks.map(sub => (
                         <button 
@@ -1150,13 +1098,11 @@ const DashboardPage = () => {
               );
             })}
             
-            {/* Sidebar Bottom Spacer */}
-            <div style={{ height: '100px', width: '100%' }}></div>
+                        <div style={{ height: '100px', width: '100%' }}></div>
           </nav>
         </aside>
 
-        {/* Hover Popup Menu (Collapsed Sidebar Only) */}
-        {hoveredLinkData && (
+                {hoveredLinkData && (
           <div 
             className={`${styles.hoverPopup} ${hoverPosition.isUpward ? styles.hoverPopupUpward : ''}`}
             style={{ 
@@ -1182,8 +1128,7 @@ const DashboardPage = () => {
           </div>
         )}
 
-        {/* ── MAIN CONTENT ── */}
-        <main className={styles.content} ref={contentRef}>
+                <main className={styles.content} ref={contentRef}>
           {activeTab === 'business_analytics' ? (
             <BusinessAnalytics />
           ) : activeTab === 'api_analytics' ? (
@@ -1415,8 +1360,7 @@ const DashboardPage = () => {
                   </div>
                 </div>
 
-                {/* Search Member input field */}
-                <div className={styles.searchMemberContainer}>
+                                <div className={styles.searchMemberContainer}>
                   <div className={styles.searchMemberWrapper}>
                     <FaSearch className={styles.searchMemberIcon} />
                     <input 

@@ -18,22 +18,18 @@ const MemberBankDetails = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   
-  // Header filter Dropdown State
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedMemberFilter, setSelectedMemberFilter] = useState(null);
   const [memberSearchQuery, setMemberSearchQuery] = useState('');
   const dropdownRef = useRef(null);
 
-  // Action Dropdown state
   const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, row: null });
 
-  // Form Modal State
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [confirmToggleRow, setConfirmToggleRow] = useState(null);
 
-  // Form state
   const [formState, setFormState] = useState({
     id: 0,
     msrno: 0,
@@ -105,7 +101,6 @@ const MemberBankDetails = () => {
     }
   }, [memberSearchQuery]);
 
-  // Close dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -219,7 +214,6 @@ const MemberBankDetails = () => {
     }
   };
 
-  // Filter Data
   const filteredData = bankList.filter(item => {
     if (item.isDelete) return false;
     const matchMember = !selectedMemberFilter || item.msrno === parseInt(selectedMemberFilter.id) || item.name === selectedMemberFilter.name;
@@ -228,7 +222,6 @@ const MemberBankDetails = () => {
     return matchMember && matchSearch;
   });
 
-  // Pagination Logic
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const currentData = filteredData.slice(startIndex, startIndex + rowsPerPage);
@@ -236,7 +229,6 @@ const MemberBankDetails = () => {
   return (
     <div className={styles.container}>
       
-      {/* ── MODAL POPUP ── */}
       {showModal && (
         <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
           <form className={styles.modalContainer} onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
@@ -396,7 +388,6 @@ const MemberBankDetails = () => {
         </div>
       )}
 
-      {/* Table Card */}
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h2 className={styles.pageTitle} style={{ marginBottom: 0, borderBottom: 'none', paddingBottom: 0 }}>
@@ -404,7 +395,6 @@ const MemberBankDetails = () => {
           </h2>
           
           <div className={styles.headerFilters} style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-            {/* Custom Searchable Dropdown */}
             <div className={styles.dropdownWrapper} ref={dropdownRef}>
               <div 
                 className={`${styles.headerDropdown} ${isDropdownOpen ? styles.dropdownActive : ''}`}
@@ -463,7 +453,6 @@ const MemberBankDetails = () => {
             </button>
           </div>
         </div>
-        {/* Top Controls */}
         <div className={styles.topControls}>
           <div className={styles.rowsSelector}>
             <span>Show</span>
@@ -503,7 +492,6 @@ const MemberBankDetails = () => {
           </div>
         </div>
 
-        {/* Table Wrapper */}
         <div className={styles.tableWrapper}>
           <table className={styles.table}>
             <thead>
@@ -606,7 +594,6 @@ const MemberBankDetails = () => {
           </table>
         </div>
 
-        {/* Pagination */}
         <div className={styles.paginationRow}>
           <div className={styles.pageInfo}>
             Showing {filteredData.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, filteredData.length)} of {filteredData.length} entries
@@ -639,7 +626,6 @@ const MemberBankDetails = () => {
         </div>
       </div>
 
-      {/* ── ACTION DROPDOWN POPUP ── */}
       {activeActionRow.row && (
         <div 
           className="action-dropdown-wrapper"
@@ -701,7 +687,6 @@ const MemberBankDetails = () => {
         </div>
       )}
 
-      {/* ── DELETE CONFIRMATION MODAL ── */}
       {confirmDeleteId && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(13, 27, 62, 0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setConfirmDeleteId(null)}>
           <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '340px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', animation: 'slideUp 0.3s ease' }} onClick={(e) => e.stopPropagation()}>
@@ -718,7 +703,6 @@ const MemberBankDetails = () => {
         </div>
       )}
 
-      {/* ── STATUS CHANGE MODAL ── */}
       {confirmToggleRow && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(13, 27, 62, 0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setConfirmToggleRow(null)}>
           <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '340px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', animation: 'slideUp 0.3s ease' }} onClick={(e) => e.stopPropagation()}>

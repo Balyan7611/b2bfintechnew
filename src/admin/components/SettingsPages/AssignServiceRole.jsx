@@ -8,17 +8,14 @@ import ServiceSelectionGrid from '../../../shared/components/common/ServiceSelec
 import styles from '../MemberPages/MemberPages.module.css';
 
 const AssignServiceRole = () => {
-  // Master Lists loaded from API
-  const [categories, setCategories] = useState([]);
+    const [categories, setCategories] = useState([]);
   const [services, setServices] = useState([]);
   
-  // Interaction & UI States
-  const [selectedRoleId, setSelectedRoleId] = useState("");
+    const [selectedRoleId, setSelectedRoleId] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
 
-  // Filters & Modal
-  const [categoryFilter, setCategoryFilter] = useState("all");
+    const [categoryFilter, setCategoryFilter] = useState("all");
   const [modal, setModal] = useState({
     show: false,
     title: "",
@@ -37,8 +34,7 @@ const AssignServiceRole = () => {
     });
   };
 
-  // Fetch Section Types (Categories) and Services on Mount
-  useEffect(() => {
+    useEffect(() => {
     const fetchData = async () => {
       try {
         const sectRes = await API.sectionType.getAll(true);
@@ -69,8 +65,7 @@ const AssignServiceRole = () => {
       setServices(prev => prev.map(srv => ({ ...srv, checked: false })));
       return;
     }
-    // Simulate different assigned services per role
-    setServices(prev => prev.map((srv, index) => ({
+        setServices(prev => prev.map((srv, index) => ({
       ...srv,
       checked: index % 2 === 0
     })));
@@ -82,8 +77,7 @@ const AssignServiceRole = () => {
     ));
   };
 
-  // Toggle all filtered services
-  const handleSelectAllToggle = () => {
+    const handleSelectAllToggle = () => {
     const filtered = services.filter(srv => {
       if (categoryFilter === "all") return true;
       return srv.sectionType?.toString() === categoryFilter.toString();
@@ -118,10 +112,8 @@ const AssignServiceRole = () => {
   return (
     <div className={styles.container} style={{ padding: '15px 12px', maxWidth: '100%', background: '#F4F7FE', minHeight: '100vh' }}>
       
-      {/* ── MAIN CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', overflow: 'hidden', background: '#fff' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', borderBottom: '1px solid #F1F5F9' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', overflow: 'hidden', background: '#fff' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', borderBottom: '1px solid #F1F5F9' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', borderRadius: '8px' }}>
               <FiShield style={{ fontSize: '1.1rem' }} />
@@ -130,13 +122,10 @@ const AssignServiceRole = () => {
           </div>
         </div>
 
-        {/* CONTENT VIEW AREA */}
-        <div style={{ padding: '24px' }}>
+                <div style={{ padding: '24px' }}>
            
-           {/* CONFIG SECTION */}
-           <div className={styles.formGridTwo} style={{ gap: '24px', marginBottom: '30px' }}>
-              {/* Role Select Dropdown */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div className={styles.formGridTwo} style={{ gap: '24px', marginBottom: '30px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                  <label style={{ fontSize: '0.95rem', fontWeight: 800, color: '#4E6080', display: 'flex', alignItems: 'center', gap: '5px' }}>
                    <FiCheck style={{ color: '#1756AA' }} /> Role *
                  </label>
@@ -147,8 +136,7 @@ const AssignServiceRole = () => {
                  />
               </div>
 
-              {/* Category Filter */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                  <label style={{ fontSize: '0.95rem', fontWeight: 800, color: '#4E6080', display: 'flex', alignItems: 'center', gap: '5px' }}>
                    <FiGrid style={{ color: '#1756AA' }} /> Filter Service Category
                  </label>
@@ -165,8 +153,7 @@ const AssignServiceRole = () => {
               </div>
            </div>
 
-           {/* SERVICES SELECTION GRID */}
-           <ServiceSelectionGrid 
+                      <ServiceSelectionGrid 
              services={services} 
              categoryFilter={categoryFilter} 
              onToggleService={handleToggleService} 
@@ -208,8 +195,7 @@ const AssignServiceRole = () => {
         </div>
       </div>
 
-      {/* ── CUSTOM PREMIUM POPUP MODAL ── */}
-      {modal.show && (
+            {modal.show && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)',

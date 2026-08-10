@@ -118,10 +118,8 @@ const PrivacyPolicy = () => {
 
   return (
     <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
-      {/* ── DATA TABLE CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0D1B3E' }}>Privacy Policy List</h3>
           <button style={{ 
             display: 'flex', alignItems: 'center', gap: '8px', 
@@ -133,8 +131,7 @@ const PrivacyPolicy = () => {
           </button>
         </div>
 
-        {/* TOOLBAR */}
-        <div className="global-table-toolbar" style={{ padding: '12px 15px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '12px 15px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.8rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.selectEntries} style={{ borderRadius: '6px', border: '1px solid #E2E8F0', height: '30px', padding: '0 8px' }}>
@@ -164,8 +161,7 @@ const PrivacyPolicy = () => {
           </div>
         </div>
 
-        {/* DATA TABLE */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ minWidth: '1200px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -253,8 +249,7 @@ const PrivacyPolicy = () => {
           </table>
         </div>
 
-        {/* PAGINATION */}
-        <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9' }}>
+                <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: '0.8rem', color: '#718096', fontWeight: 600 }}>Showing 1 to {filteredList.length} entries</div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <button className="global-page-btn" disabled style={{ borderRadius: '6px', width: '30px', height: '30px' }}><FiChevronLeft size={14} /></button>
@@ -264,8 +259,7 @@ const PrivacyPolicy = () => {
         </div>
       </div>
 
-      {/* ── ADD/EDIT MODAL ── */}
-      {showFormModal && (
+            {showFormModal && (
         <div className={styles.drawerOverlay} onClick={() => setShowFormModal(false)}>
           <div className={styles.drawer} onClick={(e) => e.stopPropagation()} style={{ width: '480px', maxWidth: '95%' }}>
             <div className={styles.drawerHeader} style={{ padding: '15px 20px' }}>
@@ -375,8 +369,7 @@ const PrivacyPolicy = () => {
                 </div>
               </div>
 
-              {/* FOOTER */}
-              <div className={styles.drawerFooter} style={{ background: '#fff', borderTop: '1px solid #E2E8F0', padding: '12px 20px', paddingRight: '80px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                            <div className={styles.drawerFooter} style={{ background: '#fff', borderTop: '1px solid #E2E8F0', padding: '12px 20px', paddingRight: '80px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button type="button" className={styles.saveBtn} style={{ background: '#F1F5F9', color: '#4E6080', boxShadow: 'none' }} onClick={() => setShowFormModal(false)}>
                   Cancel
                 </button>
@@ -398,8 +391,7 @@ const PrivacyPolicy = () => {
         </div>
       )}
 
-      {/* ── DELETE CONFIRMATION ── */}
-      {confirmDeleteId && (
+            {confirmDeleteId && (
         <div className={styles.drawerOverlay} onClick={() => setConfirmDeleteId(null)} style={{ alignItems: 'center', justifyContent: 'center', background: 'rgba(13, 27, 62, 0.6)' }}>
           <div className={styles.card} onClick={(e) => e.stopPropagation()} style={{ width: '400px', maxWidth: '90%', textAlign: 'center', padding: '40px' }}>
             <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#FFF5F5', color: '#E74C3C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', margin: '0 auto 20px' }}>

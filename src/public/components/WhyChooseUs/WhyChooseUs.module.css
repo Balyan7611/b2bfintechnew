@@ -50,7 +50,6 @@
   box-shadow: 0 20px 35px rgba(16, 185, 129, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.3);
 }
 
-/* Right Content - Cards */
 .rightContent {
   opacity: 0;
   transform: translateX(80px);
@@ -117,7 +116,6 @@
   line-height: 1.6;
 }
 
-/* Responsive */
 @media (max-width: 968px) {
   .whyChooseContent {
     grid-template-columns: 1fr;

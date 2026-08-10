@@ -6,25 +6,21 @@ import { API } from '../../../api/endpoints';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const OnOffServices = () => {
-  // Live State from API
-  const [categories, setCategories] = useState([]);
+    const [categories, setCategories] = useState([]);
   const [services, setServices] = useState([]);
   
-  // Interaction & UI States
-  const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingAll, setIsLoadingAll] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
 
-  // Custom Modal State
-  const [modal, setModal] = useState({
+    const [modal, setModal] = useState({
     show: false,
     title: "",
     message: "",
     onConfirm: null,
-    type: "confirm" // 'alert' | 'confirm'
-  });
+    type: "confirm"   });
 
   const showCustomAlert = (title, message) => {
     setModal({
@@ -46,19 +42,16 @@ const OnOffServices = () => {
     });
   };
 
-  // Fetch initial data (Categories & Services)
-  useEffect(() => {
+    useEffect(() => {
     const fetchInitialData = async () => {
       setIsLoadingAll(true);
       try {
-        // 1. Fetch categories (section types)
-        const sectRes = await API.sectionType.getAll(true);
+                const sectRes = await API.sectionType.getAll(true);
         if (sectRes && sectRes.status === true && Array.isArray(sectRes.data)) {
           setCategories(sectRes.data);
         }
 
-        // 2. Fetch all services
-        const servRes = await API.service.getAll();
+                const servRes = await API.service.getAll();
         if (servRes && servRes.status === true && Array.isArray(servRes.data)) {
           const formatted = servRes.data.map(srv => ({
             id: srv.id,
@@ -78,8 +71,7 @@ const OnOffServices = () => {
     fetchInitialData();
   }, []);
 
-  // Filter & Search Logic
-  const filteredServices = services.filter(srv => {
+    const filteredServices = services.filter(srv => {
     const matchesSearch = srv.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "all" || srv.sectionType?.toString() === categoryFilter.toString();
     return matchesSearch && matchesCategory;
@@ -118,10 +110,7 @@ const OnOffServices = () => {
   const handleSaveChanges = async () => {
     setIsSaving(true);
     try {
-      // Loop over updated services and submit updates to server
-      // To prevent massive sequential requests, we can execute them or simulate saving
-      // In production, we'd batch update or save, but we'll show the actual loader correctly here.
-      await new Promise(resolve => setTimeout(resolve, 1500));
+                        await new Promise(resolve => setTimeout(resolve, 1500));
       setIsSaving(false);
       showCustomAlert("Success", "Service statuses updated successfully on the server.");
     } catch (err) {
@@ -133,11 +122,9 @@ const OnOffServices = () => {
 
   return (
     <div className={styles.container} style={{ padding: '15px 12px', maxWidth: '100%', background: '#F4F7FE', minHeight: '100vh' }}>
-      {/* ── MAIN CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', overflow: 'hidden', background: '#fff' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', overflow: 'hidden', background: '#fff' }}>
         
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', borderRadius: '8px' }}>
               <FiActivity style={{ fontSize: '1.1rem' }} />
@@ -161,11 +148,9 @@ const OnOffServices = () => {
           </div>
         </div>
 
-        {/* CONTENT VIEW AREA */}
-        <div style={{ padding: '24px' }}>
+                <div style={{ padding: '24px' }}>
            
-           {/* FILTER & SEARCH HEADER BAR */}
-           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '25px', alignItems: 'center' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '25px', alignItems: 'center' }}>
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                  <FiSearch style={{ position: 'absolute', left: '14px', color: '#94A3B8' }} />
                  <input 
@@ -196,8 +181,7 @@ const OnOffServices = () => {
               </div>
            </div>
 
-           {/* SERVICES STATUS CARDS GRID */}
-           <div style={{ 
+                      <div style={{ 
               display: 'grid', 
               gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 260px))', 
               gap: '12px', 
@@ -228,8 +212,7 @@ const OnOffServices = () => {
                       boxSizing: 'border-box'
                     }}
                   >
-                    {/* Left Side: Service Name */}
-                    <span style={{ 
+                                        <span style={{ 
                       fontSize: '0.82rem', 
                       fontWeight: 700, 
                       color: '#1E293B',
@@ -240,15 +223,13 @@ const OnOffServices = () => {
                       {srv.name}
                     </span>
  
-                    {/* Right Side: Toggle Control Container */}
-                    <div style={{ 
+                                        <div style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
                       gap: '8px',
                       flexShrink: 0
                     }}>
-                      {/* Toggle Switch */}
-                      <div 
+                                            <div 
                         onClick={() => handleToggleService(srv.id)}
                         style={{
                           width: '38px',
@@ -294,8 +275,7 @@ const OnOffServices = () => {
               ) : null}
            </div>
 
-           {/* ACTIONS BUTTONS AND MESSAGES */}
-           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
               <button 
                 disabled={isSaving}
                 onClick={handleSaveChanges}
@@ -328,8 +308,7 @@ const OnOffServices = () => {
         </div>
       </div>
 
-      {/* ── CUSTOM PREMIUM POPUP MODAL ── */}
-      {modal.show && (
+            {modal.show && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)',

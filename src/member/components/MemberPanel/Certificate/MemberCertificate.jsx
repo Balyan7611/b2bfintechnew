@@ -20,7 +20,7 @@ const MemberCertificate = () => {
         const res = await API.member.getProfile?.() || await API.member.getMyProfile?.();
         if (res?.data) setProfile(res.data);
         else if (res) setProfile(res);
-      } catch { /* silent */ }
+      } catch { }
     };
     load();
   }, []);
@@ -57,8 +57,7 @@ const MemberCertificate = () => {
 
   const Cert = React.forwardRef((_, ref) => (
     <div className={styles.certCard} ref={ref}>
-      {/* Deep blue top bar */}
-      <div className={styles.topBar}>
+            <div className={styles.topBar}>
         <div className={styles.topBarInner}>
           <img src={SITE_CONFIG.logo} alt={SITE_CONFIG.brandName} className={styles.topBarLogo} crossOrigin="anonymous" />
           <div className={styles.topBarText}>
@@ -71,18 +70,15 @@ const MemberCertificate = () => {
         </div>
       </div>
 
-      {/* Gold ribbon strip */}
-      <div className={styles.goldRibbon} />
+            <div className={styles.goldRibbon} />
 
       {/* Main body */}
       <div className={styles.certBody}>
-        {/* Watermark */}
-        <div className={styles.watermark}>
+                <div className={styles.watermark}>
           <img src={SITE_CONFIG.logo} alt="" crossOrigin="anonymous" className={styles.watermarkImg} />
         </div>
 
-        {/* Title */}
-        <div className={styles.titleBlock}>
+                <div className={styles.titleBlock}>
           <p className={styles.certOfText}>C E R T I F I C A T E &nbsp;&nbsp; O F</p>
           <h2 className={styles.certTitle}>Authorization</h2>
           <div className={styles.titleDivider}>
@@ -92,12 +88,10 @@ const MemberCertificate = () => {
           </div>
         </div>
 
-        {/* Certify block */}
-        <div className={styles.certifyBlock}>
+                <div className={styles.certifyBlock}>
           <p className={styles.certifyText}>This is to certify that</p>
 
-          {/* Name panel */}
-          <div className={styles.namePanel}>
+                    <div className={styles.namePanel}>
             <div className={styles.nameAvatar}>{initials}</div>
             <div className={styles.nameDetails}>
               <span className={styles.nameTitle}>Mr / Ms</span>
@@ -118,8 +112,7 @@ const MemberCertificate = () => {
           </p>
         </div>
 
-        {/* Three info boxes */}
-        <div className={styles.infoBoxRow}>
+                <div className={styles.infoBoxRow}>
           <div className={styles.infoBox}>
             <span className={styles.infoLabel}>AGENT CODE</span>
             <span className={styles.infoValue}>{agentCode}</span>
@@ -134,8 +127,7 @@ const MemberCertificate = () => {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className={styles.certFooter}>
+                <div className={styles.certFooter}>
           <div className={styles.footerCol}>
             <div className={styles.signSpace} />
             <div className={styles.signLine} />
@@ -152,8 +144,7 @@ const MemberCertificate = () => {
         </div>
       </div>
 
-      {/* Gold bottom bar */}
-      <div className={styles.bottomBar} />
+            <div className={styles.bottomBar} />
     </div>
   ));
 

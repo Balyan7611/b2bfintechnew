@@ -1,18 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FaShieldAlt, FaTimes, FaLock, FaMobileAlt, FaSpinner } from 'react-icons/fa';
 
-/**
- * AuthPinModal — Reusable TPIN / OTP confirmation modal.
- *
- * Props:
- *   isOpen        {boolean}   — show/hide
- *   onClose       {function}  — called on cancel / backdrop click
- *   onConfirm     {function(authMode, authCode) => Promise<void>}
- *   title         {string}    — modal heading
- *   description   {string}    — sub-heading / context text
- *   amount        {number}    — optional: highlight amount being transacted
- *   loading       {boolean}   — external loading flag (optional)
- */
 const AuthPinModal = ({
   isOpen,
   onClose,
@@ -22,14 +10,12 @@ const AuthPinModal = ({
   amount = null,
   loading: externalLoading = false,
 }) => {
-  const [mode, setMode] = useState('TPIN'); // 'TPIN' | 'OTP'
-  const [pin, setPin] = useState(['', '', '', '']);
+  const [mode, setMode] = useState('TPIN');   const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const inputRefs = useRef([]);
 
-  // Reset on open
-  useEffect(() => {
+    useEffect(() => {
     if (isOpen) {
       setPin(['', '', '', '']);
       setError('');
@@ -62,8 +48,7 @@ const AuthPinModal = ({
     if (e.key === 'ArrowRight' && idx < 3) inputRefs.current[idx + 1]?.focus();
   };
 
-  // Handle paste — fill boxes from clipboard
-  const handlePaste = (e) => {
+    const handlePaste = (e) => {
     e.preventDefault();
     const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
     const next = ['', '', '', ''];
@@ -90,8 +75,7 @@ const AuthPinModal = ({
 
   return (
     <>
-      {/* Backdrop */}
-      <div
+            <div
         onClick={() => !isLoading && onClose()}
         style={{
           position: 'fixed', inset: 0,
@@ -114,8 +98,7 @@ const AuthPinModal = ({
         fontFamily: 'Arial, sans-serif',
       }}>
 
-        {/* Header */}
-        <div style={{
+                <div style={{
           background: 'linear-gradient(135deg, #0A1428 0%, #1756AA 100%)',
           padding: '20px 24px 18px',
           display: 'flex', alignItems: 'center', gap: 12,
@@ -141,8 +124,7 @@ const AuthPinModal = ({
           </button>
         </div>
 
-        {/* Amount highlight */}
-        {amount != null && (
+                {amount != null && (
           <div style={{
             background: 'linear-gradient(90deg, #f0fdf4, #dcfce7)',
             borderBottom: '1px solid #bbf7d0',
@@ -156,11 +138,9 @@ const AuthPinModal = ({
           </div>
         )}
 
-        {/* Body */}
-        <div style={{ padding: '24px 24px 20px' }}>
+                <div style={{ padding: '24px 24px 20px' }}>
 
-          {/* Mode toggle */}
-          <div style={{
+                    <div style={{
             display: 'flex', background: '#f1f5f9', borderRadius: 10,
             padding: 4, marginBottom: 22, gap: 4,
           }}>
@@ -184,15 +164,13 @@ const AuthPinModal = ({
             ))}
           </div>
 
-          {/* Label */}
-          <p style={{ margin: '0 0 14px', fontSize: '0.8rem', color: '#64748b', textAlign: 'center' }}>
+                    <p style={{ margin: '0 0 14px', fontSize: '0.8rem', color: '#64748b', textAlign: 'center' }}>
             {mode === 'TPIN'
               ? 'Enter your 4-digit Transaction PIN'
               : 'Enter the 4-digit OTP sent to your registered mobile'}
           </p>
 
-          {/* Pin boxes */}
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 6 }}>
+                    <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 6 }}>
             {pin.map((digit, i) => (
               <input
                 key={i}
@@ -218,15 +196,13 @@ const AuthPinModal = ({
             ))}
           </div>
 
-          {/* Error */}
-          {error && (
+                    {error && (
             <p style={{ margin: '10px 0 0', textAlign: 'center', color: '#ef4444', fontSize: '0.78rem', fontWeight: 600 }}>
               ⚠ {error}
             </p>
           )}
 
-          {/* Confirm button */}
-          <button
+                    <button
             onClick={handleSubmit}
             disabled={isLoading || pin.join('').length < 4}
             style={{

@@ -8,8 +8,7 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 0; /* Full bleed container for mobile */
-  }
+    padding: 0;   }
 }
 
 @keyframes fadeIn {
@@ -171,5 +170,3 @@
     white-space: nowrap;
   }
 }
-
-/* AdminTable handles the rest */

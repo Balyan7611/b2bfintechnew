@@ -22,8 +22,6 @@ const BBPSReport = () => {
     currentPage 
   } = useSelector(state => state.report.bbpsReport);
 
-  // Data will be fetched from API when backend endpoints are ready
-
   const totalEntries = list.length;
   const totalPages = Math.ceil(totalEntries / rowsPerPage);
 

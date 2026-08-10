@@ -92,8 +92,7 @@ const MobileRecharge = () => {
   const handleFinalRecharge = () => {
     showToast("Recharge request submitted successfully!", "success");
     setShowConfirm(false);
-    // Reset form
-    setMobileNumber('');
+        setMobileNumber('');
     setService('');
     setAmount('0');
     setTp('');
@@ -116,8 +115,7 @@ const MobileRecharge = () => {
       </div>
 
       <div className={styles.mainLayout}>
-        {/* Form Card */}
-        <div className={styles.card}>
+                <div className={styles.card}>
           <div className={styles.cardHeader}>
             <div className={styles.cardTitle}>
               <MdPayment /> Recharge Details
@@ -239,8 +237,7 @@ const MobileRecharge = () => {
           </form>
         </div>
 
-        {/* Plans Section */}
-        <div className={styles.planSection}>
+                <div className={styles.planSection}>
           <div className={styles.planFilters}>
             {planTabs.map(tab => (
               <button 
@@ -248,8 +245,7 @@ const MobileRecharge = () => {
                 className={`${styles.filterBtn} ${activeTab === tab ? styles.filterBtnActive : ''}`}
                 onClick={() => {
                   setActiveTab(tab);
-                  setSelectedPlanPrice(null); // Reset selection when switching tabs
-                }}
+                  setSelectedPlanPrice(null);                 }}
               >
                 {tab}
               </button>
@@ -284,8 +280,7 @@ const MobileRecharge = () => {
         </div>
       </div>
 
-      {/* Confirmation Modal */}
-      {showConfirm && (
+            {showConfirm && (
         <div className={styles.modalOverlay} onClick={() => setShowConfirm(false)}>
           <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>

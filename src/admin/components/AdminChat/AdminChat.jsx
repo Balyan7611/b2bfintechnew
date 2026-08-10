@@ -8,7 +8,6 @@ import { addNotification } from '../../../store/slices/memberPanelSlice';
 import styles from './AdminChat.module.css';
 import memberStyles from '../MemberPages/MemberPages.module.css';
 
-// Pre-defined quick templates for B2B portal admin
 const QUICK_TEMPLATES = [
   { label: 'Select Template...', value: '' },
   { label: 'UPI Service Downtime', value: 'Dear Merchant, UPI Payment services are currently experiencing a temporary bank server downtime. We are working to resolve it shortly.' },
@@ -40,8 +39,7 @@ const AdminChat = () => {
   const canvasRef = useRef(null);
   const particlesRef = useRef([]);
 
-  // States and refs for Floating Transaction Search
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+    const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchTxnId, setSearchTxnId] = useState('');
   const [txnModalOpen, setTxnModalOpen] = useState(false);
   const [txnResult, setTxnResult] = useState(null);
@@ -50,8 +48,7 @@ const AdminChat = () => {
   const searchContainerRef = useRef(null);
   const searchInputRef = useRef(null);
 
-  // Close search expand on outside click
-  useEffect(() => {
+    useEffect(() => {
     const handleClickOutsideSearch = (event) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
         setIsSearchExpanded(false);
@@ -63,8 +60,7 @@ const AdminChat = () => {
     return () => document.removeEventListener('mousedown', handleClickOutsideSearch);
   }, [isSearchExpanded]);
 
-  // Focus input when search expands
-  useEffect(() => {
+    useEffect(() => {
     if (isSearchExpanded && searchInputRef.current) {
       searchInputRef.current.focus();
     }
@@ -135,8 +131,7 @@ const AdminChat = () => {
     });
   };
 
-  // Mouse Trail Animation
-  useEffect(() => {
+    useEffect(() => {
     if (!isOpen) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -187,9 +182,7 @@ const AdminChat = () => {
 
         p.x += p.speedX;
         p.y += p.speedY;
-        p.life -= 0.02; // Fade out speed
-        p.size *= 0.96; // Shrink speed
-      }
+        p.life -= 0.02;         p.size *= 0.96;       }
       particlesRef.current = particles.filter(p => p.life > 0 && p.size > 0.5);
       animationFrameId = requestAnimationFrame(render);
     };
@@ -203,8 +196,7 @@ const AdminChat = () => {
     };
   }, [isOpen]);
 
-  // Close menu on outside click
-  useEffect(() => {
+    useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setShowMenu(false);
@@ -218,8 +210,7 @@ const AdminChat = () => {
   const { notifList } = useSelector((state) => state.memberPanel);
   const memberList = useMemo(() => manageMemberState?.list || [], [manageMemberState?.list]);
 
-  // Sync AdminChat history with Member Notifications so when Member clears, Admin history clears
-  useEffect(() => {
+    useEffect(() => {
     if (notifList && notifList.length === 0) {
       setBroadcastLogs([]);
     }
@@ -258,8 +249,7 @@ const AdminChat = () => {
     return combined;
   }, [memberList]);
 
-  // Dynamically extract unique roles and statuses
-  const uniqueRoles = useMemo(() => ['All', ...new Set(allMembers.map(m => m.role))], [allMembers]);
+    const uniqueRoles = useMemo(() => ['All', ...new Set(allMembers.map(m => m.role))], [allMembers]);
   const uniqueStatuses = useMemo(() => ['All', ...new Set(allMembers.map(m => m.status))], [allMembers]);
 
   const filteredMembers = useMemo(() => {
@@ -276,8 +266,7 @@ const AdminChat = () => {
     });
   }, [allMembers, searchQuery, roleFilter, statusFilter]);
 
-  // Scroll to bottom on new message
-  useEffect(() => {
+    useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
@@ -329,11 +318,9 @@ const AdminChat = () => {
       fileName: selectedImage?.name
     };
 
-    // Add to bottom of chat
-    setBroadcastLogs(prev => [...prev, userMsg]);
+        setBroadcastLogs(prev => [...prev, userMsg]);
     
-    // Send to global notification state for local testing
-    dispatch(addNotification({
+        dispatch(addNotification({
       title: SITE_CONFIG.brandName,
       text: newMessage || 'File Attachment',
       time: timeString,
@@ -391,8 +378,7 @@ const AdminChat = () => {
 
   return (
     <>
-      {/* FLOATING TRANSACTION SEARCH BUTTON */}
-      <div 
+            <div 
         ref={searchContainerRef}
         className={`${styles.searchFloatingContainer} ${isSearchExpanded ? styles.expanded : ''} ${isOpen ? styles.hidden : ''}`}
         onClick={() => {
@@ -452,8 +438,7 @@ const AdminChat = () => {
 
       {isOpen && (
         <div className={styles.chatOverlay} onClick={() => setIsOpen(false)}>
-          {/* Animated Mouse Trail Canvas */}
-          <canvas ref={canvasRef} className={styles.trailCanvas} />
+                    <canvas ref={canvasRef} className={styles.trailCanvas} />
 
           {/* Animated Background Bubbles */}
           <div className={styles.bubbles}>
@@ -467,8 +452,7 @@ const AdminChat = () => {
           
           <div className={styles.chatWindow} onClick={(e) => e.stopPropagation()}>
             
-            {/* LEFT SIDEBAR */}
-            <aside className={styles.sidebar}>
+                        <aside className={styles.sidebar}>
               <div className={styles.sidebarHeader}>
                 <div className={styles.avatarAdmin} style={{ background: 'transparent', border: 'none', width: 'auto', padding: '0', display: 'flex', alignItems: 'center' }}>
                   <img src={SITE_CONFIG.logo || '/images/header_logo.png'} alt="Logo" className={styles.headerLogo} style={{ height: '35px', width: 'auto', objectFit: 'contain' }} />
@@ -552,8 +536,7 @@ const AdminChat = () => {
               </div>
             </aside>
 
-            {/* RIGHT MAIN AREA (WhatsApp Style) */}
-            <main className={styles.chatArea}>
+                        <main className={styles.chatArea}>
               
               <header className={styles.chatHeader}>
                 <div className={styles.activeHeaderInfo}>
@@ -593,18 +576,15 @@ const AdminChat = () => {
                 </div>
               </header>
 
-              {/* Message Thread (WhatsApp Doodle Background) */}
-              <div className={styles.messageThread}>
+                            <div className={styles.messageThread}>
                 {broadcastLogs.map((msg) => (
                   <div key={msg.id} className={styles.messageBubbleWrap}>
                     <div className={styles.messageCol}>
-                      {/* Recipients tag OUTSIDE the bubble, above it */}
-                      <div className={styles.msgRecipientTag}>
+                                            <div className={styles.msgRecipientTag}>
                         <FaCommentDots style={{ fontSize: '0.65rem' }}/> Sent to: {msg.targetDescription}
                       </div>
                       
-                      {/* WhatsApp style Bubble */}
-                      <div className={styles.msgAdmin}>
+                                            <div className={styles.msgAdmin}>
                         {msg.image && (
                           msg.isPdf ? (
                              <a href={msg.image} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', background: 'rgba(255,255,255,0.2)', borderRadius: '8px', textDecoration: 'none', color: 'inherit', marginBottom: '8px' }}>
@@ -626,11 +606,9 @@ const AdminChat = () => {
                 <div ref={chatEndRef} />
               </div>
 
-              {/* WhatsApp Style Footer Input Bar */}
-              <div className={styles.footerWrapper}>
+                            <div className={styles.footerWrapper}>
                 
-                {/* FLOATING TEMPLATE SELECTOR & PIN BUTTON */}
-                <div className={styles.floatingTemplateWrap} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <div className={styles.floatingTemplateWrap} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <select 
                     value={selectedTemplate} 
                     onChange={handleTemplateSelect}
@@ -669,8 +647,7 @@ const AdminChat = () => {
                 )}
                 
                 <footer className={styles.chatFooterInput}>
-                  {/* Hidden File Input (Kept for future logic if needed) */}
-                  <input 
+                                    <input 
                     type="file" 
                     ref={fileInputRef} 
                     style={{ display: 'none' }} 
@@ -708,8 +685,7 @@ const AdminChat = () => {
         </div>
       )}
 
-      {/* Transaction Details Card-like Modal */}
-      {txnModalOpen && txnResult && (
+            {txnModalOpen && txnResult && (
         <div className={styles.txnModalOverlay} onClick={() => setTxnModalOpen(false)}>
           <div className={styles.txnModalContent} style={{ width: '960px', maxWidth: '95vw' }} onClick={(e) => e.stopPropagation()}>
             <div className={styles.txnHeader} style={{ padding: '10px 20px' }}>

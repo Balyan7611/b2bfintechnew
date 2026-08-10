@@ -22,31 +22,26 @@ const SupportTickets = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const [activeTab, setActiveTab] = useState('raise'); // 'raise', 'history', 'detail'
-  const [zoomImage, setZoomImage] = useState(null);
+  const [activeTab, setActiveTab] = useState('raise');   const [zoomImage, setZoomImage] = useState(null);
   
-  // Action menu & confirmation states
-  const [activeActionMenuId, setActiveActionMenuId] = useState(null);
+    const [activeActionMenuId, setActiveActionMenuId] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [editingTicketId, setEditingTicketId] = useState(null);
 
-  // Close action menu on click outside
-  useEffect(() => {
+    useEffect(() => {
     const handleOutsideClick = () => setActiveActionMenuId(null);
     window.addEventListener('click', handleOutsideClick);
     return () => window.removeEventListener('click', handleOutsideClick);
   }, []);
 
-  // Parse session dynamically and decode JWT token priorities
-  const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token')
+    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token')
     || localStorage.getItem('member_token') || sessionStorage.getItem('member_token');
   let currentLoginId = 'MEM-1001';
   let currentName = 'Member';
   let currentMobile = '9876543210';
   let currentNumericId = '1';
 
-  // First try bss_current_session (most reliable, set during login)
-  const sessionStr = localStorage.getItem('bss_current_session');
+    const sessionStr = localStorage.getItem('bss_current_session');
   if (sessionStr) {
     try {
       const session = JSON.parse(sessionStr);
@@ -61,8 +56,7 @@ const SupportTickets = () => {
     } catch (e) {}
   }
 
-  // Fallback: decode JWT for remaining missing fields
-  if (token) {
+    if (token) {
     try {
       const payloadBase64 = token.split('.')[1];
       if (payloadBase64) {
@@ -84,7 +78,6 @@ const SupportTickets = () => {
       console.warn("JWT token decoding failed:", e);
     }
   }
-
 
   const normalizeTicket = (t) => {
     if (!t) return null;
@@ -140,8 +133,7 @@ const SupportTickets = () => {
     };
   };
 
-  // Fetch tickets from database
-  const fetchTickets = async () => {
+    const fetchTickets = async () => {
     setLoading(true);
     try {
       const res = await API.supportTicket.getAll({ 
@@ -160,8 +152,7 @@ const SupportTickets = () => {
         rawData = res.data.items;
       }
       
-      // Filter on frontend to bypass backend data type mismatch on MemberID query parameter
-      const myTickets = rawData.filter(t => {
+            const myTickets = rawData.filter(t => {
         if (!t) return false;
         const mId = t.memberId || t.MemberId || '';
         const cBy = t.createdBy || t.CreatedBy || '';
@@ -182,8 +173,7 @@ const SupportTickets = () => {
     fetchTickets();
   }, [currentLoginId]);
 
-  // Raise/Edit Ticket State
-  const [category, setCategory] = useState('');
+    const [category, setCategory] = useState('');
   const [txnId, setTxnId] = useState('');
   const [priority, setPriority] = useState('Normal');
   const [message, setMessage] = useState('');
@@ -195,8 +185,7 @@ const SupportTickets = () => {
   const [toast, setToast] = useState(null);
   const [search, setSearch] = useState('');
 
-  // Ticket Detail State
-  const [activeTicketId, setActiveTicketId] = useState(null);
+    const [activeTicketId, setActiveTicketId] = useState(null);
   const [chatInput, setChatInput] = useState('');
   const chatFileRef = useRef(null);
   const formFileRef = useRef(null);
@@ -237,16 +226,14 @@ const SupportTickets = () => {
 
     const generatedTicketId = editingTicketId ? editingTicketId : `TCK${Math.floor(100000 + Math.random() * 900000)}`;
 
-    // Prepare Multipart FormData
-    const formData = new FormData();
+        const formData = new FormData();
     formData.append('TicketId', generatedTicketId);
     formData.append('MemberId', currentLoginId);
     formData.append('MemberName', currentName);
     formData.append('ContactNumber', currentMobile);
     formData.append('Category', category);
     
-    // Only append optional fields if they have value
-    if (txnId) formData.append('TransactionId', txnId);
+        if (txnId) formData.append('TransactionId', txnId);
     formData.append('Priority', priority);
     formData.append('UserMessage', message);
     
@@ -289,8 +276,7 @@ const SupportTickets = () => {
   };
 
   const handleEditTicket = (t) => {
-    // Map backend response fields to form state
-    setEditingTicketId(t.id);
+        setEditingTicketId(t.id);
     setCategory(t.service || t.category || '');
     setTxnId(t.txnId || t.transactionId || '');
     setPriority(t.priority || 'Normal');
@@ -336,8 +322,7 @@ const SupportTickets = () => {
     setActiveTab('detail');
   };
 
-  // Filter member's tickets
-  const myTickets = tickets.filter(t => (t.loginId || t.memberId) === currentLoginId);
+    const myTickets = tickets.filter(t => (t.loginId || t.memberId) === currentLoginId);
   const filteredTickets = myTickets.filter(t => (t.ticketId || '').toLowerCase().includes(search.toLowerCase()) || (t.service || t.category || '').toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -348,8 +333,7 @@ const SupportTickets = () => {
         </div>
       )}
 
-      {/* Header section (Hide in detail view for immersive experience) */}
-      {activeTab !== 'detail' && (
+            {activeTab !== 'detail' && (
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <div className={styles.iconBox}>
@@ -371,8 +355,7 @@ const SupportTickets = () => {
         </div>
       )}
 
-      {/* RAISE TICKET */}
-      {activeTab === 'raise' && (
+            {activeTab === 'raise' && (
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h3 className={styles.cardTitle}>{editingTicketId ? 'Edit Ticket Details' : 'New Ticket Details'}</h3>
@@ -524,8 +507,7 @@ const SupportTickets = () => {
         </div>
       )}
 
-      {/* TICKET HISTORY */}
-      {activeTab === 'history' && (
+            {activeTab === 'history' && (
         <div className={styles.card}>
           <div className={styles.historyHeader}>
             <h3 className={styles.cardTitle}>Ticket History</h3>
@@ -614,8 +596,7 @@ const SupportTickets = () => {
                             >
                               <FaEdit style={{ color: '#3B82F6' }} /> Edit
                             </button>
-                            {/* Chat button removed for member users */}
-                            <button
+                                                        <button
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -715,8 +696,7 @@ const SupportTickets = () => {
         </div>
       )}
 
-      {/* Dynamic Image Zoom Modal */}
-      {zoomImage && (
+            {zoomImage && (
         <div 
           style={{
             position: 'fixed',
@@ -766,8 +746,7 @@ const SupportTickets = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {confirmDeleteId && (
+            {confirmDeleteId && (
         <div 
           style={{
             position: 'fixed',

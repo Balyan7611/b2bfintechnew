@@ -39,7 +39,6 @@
   font-size: 14px;
 }
 
-/* Search Bar - Sleek & Modern */
 .searchSection {
   background: #ffffff;
   padding: 12px 20px;
@@ -95,14 +94,12 @@
   color: var(--color-primary);
 }
 
-/* Grid */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 16px;
 }
 
-/* Card - Premium Navy Blue Theme */
 .card {
   background: #ffffff;
   border-radius: 12px;
@@ -192,13 +189,11 @@
   transition: all 0.3s;
 }
 
-
 .card:hover .arrow {
   color: var(--color-primary);
   transform: translateX(4px);
 }
 
-/* Modal Styles - High Fidelity */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -236,7 +231,6 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* White Header - Clean Look */
 .modalTopHeader {
   background: #ffffff;
   padding: 24px 28px 16px;
@@ -403,14 +397,12 @@
 .nextBtn:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 25px -8px rgba(23, 86, 170, 0.5);
-  background: #1a5fb4; /* Slightly darker blue */
-}
+  background: #1a5fb4; }
 
 .nextBtn:active {
   transform: translateY(-1px);
 }
 
-/* Recent Bills */
 .recentSection {
   margin-top: 48px;
 }
@@ -426,7 +418,6 @@
   font-weight: 500;
 }
 
-/* Responsive Optimization */
 @media (max-width: 640px) {
   .grid {
     grid-template-columns: repeat(2, 1fr);
@@ -460,8 +451,7 @@
     font-size: 20px;
   }
 
-  /* Premium Bottom Sheet for Mobile */
-  .modalCard {
+    .modalCard {
     max-width: 100%;
     border-radius: 24px 24px 0 0;
     position: fixed;

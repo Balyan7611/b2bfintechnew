@@ -23,8 +23,7 @@ const MainWalletReport = () => {
   const { list, filters, searchQuery, rowsPerPage, currentPage } =
     useSelector(state => state.report.mainWalletReport);
 
-  // ── Member dropdown ──
-  useEffect(() => {
+    useEffect(() => {
     API.member.getAll({ pageNumber: 1, pageSize: 5000 })
       .then(res => {
         const raw = res?.data?.items || res?.data?.data || res?.data || (Array.isArray(res) ? res : []);
@@ -41,14 +40,12 @@ const MainWalletReport = () => {
       .catch(err => console.warn('[AdminMainWallet] member list failed', err));
   }, []);
 
-  // ── Fetch wallet ledger ──
-  const loadHistory = useCallback(async (f = filters) => {
+    const loadHistory = useCallback(async (f = filters) => {
     setIsLoading(true);
     setApiError('');
     try {
       const params = {
-        walletTypeId: 1,   // Main Wallet
-        pageNumber: 1,
+        walletTypeId: 1,           pageNumber: 1,
         pageSize: 1000,
         ...(f.memberId && { memberId: f.memberId }),
         ...(f.fromDate && { fromDate: f.fromDate }),
@@ -88,11 +85,9 @@ const MainWalletReport = () => {
     } finally {
       setIsLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, filters]);
+    }, [dispatch, filters]);
 
-  useEffect(() => { loadHistory(); }, []); // eslint-disable-line
-
+  useEffect(() => { loadHistory(); }, []); 
   const lower = v => String(v ?? '').toLowerCase();
   const filteredList = list.filter(item =>
     lower(item.memberName).includes(lower(searchQuery)) ||

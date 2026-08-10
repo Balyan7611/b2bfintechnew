@@ -50,8 +50,7 @@ const AEPSHistory = () => {
     const { action, txn } = confirmData;
     setConfirmData({ show: false, action: null, txn: null });
     
-    // Simulate API call and show result dynamically based on status
-    setTimeout(() => {
+        setTimeout(() => {
       if (action === 'Check Status') {
         const status = txn && txn.status ? txn.status.toLowerCase() : 'pending';
         if (status === 'success') {
@@ -72,7 +71,6 @@ const AEPSHistory = () => {
     setEditingAadhaarId(null);
   };
 
-
   const [memberList, setMemberList] = useState([]);
 
   const [serviceList, setServiceList] = useState([]);
@@ -80,6 +78,8 @@ const AEPSHistory = () => {
 
   const [operatorList, setOperatorList] = useState([]);
   const [selectedOperator, setSelectedOperator] = useState('');
+  const [apiList, setApiList] = useState([]);
+  const [selectedApi, setSelectedApi] = useState('');
   const [selectedMember, setSelectedMember] = useState('');
   const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(today);
@@ -96,15 +96,13 @@ const AEPSHistory = () => {
   const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
   const failedCount = transactions.filter(t => t.status?.toLowerCase() === 'failed').length;
 
-  // Stats Card Computations — all from real API data
-  const totalTxns      = totalRecords || transactions.length;
+    const totalTxns      = totalRecords || transactions.length;
   const totalAmount    = transactions.reduce((acc, t) => acc + (parseFloat(t.amount)           || 0), 0);
   const successTxns    = successCount;
   const failedTxns     = failedCount;
   const pendingTxns    = pendingCount;
   const totalCommission= transactions.reduce((acc, t) => acc + (parseFloat(t.commission)       || 0), 0);
-  // Use actual uplineCommission from API; fallback to breakdown sum; last resort 0
-  const uplineCommission = transactions.reduce((acc, t) => {
+    const uplineCommission = transactions.reduce((acc, t) => {
     if (t.uplineCommission != null) return acc + (parseFloat(t.uplineCommission) || 0);
     if (Array.isArray(t.uplineBreakdown))
       return acc + t.uplineBreakdown.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
@@ -120,8 +118,7 @@ const AEPSHistory = () => {
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      // AEPS: serviceId 17,18 / sectionType 9,10
-      const params = {
+            const params = {
         pageNumber,
         pageSize,
         fromDate,
@@ -129,12 +126,11 @@ const AEPSHistory = () => {
         serviceId: '',
         sectionType: '9,10',
         operatorId: selectedOperator,
-        apiId: '',
+        apiId: selectedApi,
         memberId: selectedMember,
         status: selectedStatus,
       };
-      // Pass keyword to API for server-side search by txnId/orderId
-      if (searchKeyword.trim()) params.keyword = searchKeyword.trim();
+            if (searchKeyword.trim()) params.keyword = searchKeyword.trim();
       const res = await API.transaction.getAll(params);
 
             const { items: _txns, totalItems: _total, totalSuccess: _succ, totalPending: _pend, totalFailed: _fail } = normalizeTxnResponse(res);
@@ -170,8 +166,7 @@ const AEPSHistory = () => {
           list = res;
         }
         
-        // Filter specifically for AEPS services (sectionType 9 or Aeps related)
-        const aepsServices = list.filter(srv => String(srv.sectionType || '') === '9');
+                const aepsServices = list.filter(srv => String(srv.sectionType || '') === '9');
         setServiceList(aepsServices);
       } catch (err) {
         console.error("Failed to fetch services:", err);
@@ -182,21 +177,24 @@ const AEPSHistory = () => {
 
   useEffect(() => {
     const fetchOperators = async () => {
-      try {
-        const res = await API.operator.getAll();
-        if (res?.data?.items) {
-          setOperatorList(res.data.items);
-        } else if (res?.data && Array.isArray(res.data)) {
-          setOperatorList(res.data);
-        } else if (Array.isArray(res)) {
-          setOperatorList(res);
+        try {
+            const res = await API.operator.getAll();
+            let allOps = [];
+            if (res?.data?.items) allOps = res.data.items;
+            else if (res?.data && Array.isArray(res.data)) allOps = res.data;
+            else if (Array.isArray(res)) allOps = res;
+
+            if (selectedService) {
+                allOps = allOps.filter(op => String(op.serviceId) === String(selectedService));
+            }
+            setOperatorList(allOps);
+        } catch (err) {
+            console.error("Failed to fetch operators:", err);
         }
-      } catch (err) {
-        console.error("Failed to fetch operators:", err);
-      }
     };
     fetchOperators();
-  }, []);
+    setSelectedOperator('');
+  }, [selectedService]);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -212,6 +210,19 @@ const AEPSHistory = () => {
   }, []);
 
   useEffect(() => {
+    const fetchApis = async () => {
+        try {
+            const res = await API.masterApi.getAll();
+            const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+            setApiList(Array.isArray(list) ? list : []);
+        } catch (err) {
+            console.error("Failed to fetch APIs:", err);
+        }
+    };
+    fetchApis();
+  }, []);
+
+  useEffect(() => {
     const params = new URLSearchParams(location.search);
     const statusParam = params.get('Status') || '';
     setSelectedStatus(statusParam);
@@ -219,8 +230,7 @@ const AEPSHistory = () => {
 
   return (
     <div className={styles.container} style={{ padding: '12px', maxWidth: '100%' }}>
-      {/* Dynamic Keyframe Animations for Button Rays */}
-      <style>{`
+            <style>{`
         @keyframes successGlow {
           0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4); }
           70% { box-shadow: 0 0 0 8px rgba(39, 174, 96, 0); }
@@ -242,8 +252,7 @@ const AEPSHistory = () => {
         }
       `}</style>
 
-      {/* ── PREMIUM FILTER CARD ── */}
-      <div style={{ 
+            <div style={{ 
         background: '#ffffff',
         borderRadius: '24px',
         boxShadow: '0 10px 30px rgba(23, 86, 170, 0.04), 0 1px 8px rgba(0, 0, 0, 0.02)',
@@ -414,7 +423,7 @@ const AEPSHistory = () => {
                   ...memberList.map(m => {
                     const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
                     const loginId = m.memberID || m.memberid || m.loginID || m.loginId || String(m.id || m.msrno || '');
-                    return { value: String(m.id || m.msrno), label: name ? `${name} (${loginId})` : loginId };
+                    return { value: String(m.id || m.uniqueID || m.msrno || ''), label: name ? `${name} (${loginId})` : loginId };
                   })
                 ]}
                 value={selectedMember}
@@ -440,10 +449,17 @@ const AEPSHistory = () => {
                   color: '#334155',
                   fontWeight: 500
                 }} 
+                value={selectedApi}
+                onChange={(e) => setSelectedApi(e.target.value)}
                 onFocus={() => setFocusedField('provider')}
                 onBlur={() => setFocusedField(null)}
               >
                 <option value="">All Providers</option>
+                {Array.isArray(apiList) && apiList.map((api) => (
+                    <option key={api.id || api.apiId} value={api.id || api.apiId}>
+                        {api.apiname || api.apiName || api.name || `API #${api.id}`}
+                    </option>
+                ))}
               </select>
             </div>
             <div className={styles.formGroup}>
@@ -546,8 +562,7 @@ const AEPSHistory = () => {
         </form>
       </div>
 
-      {/* ── STATS CARDS GRID ── */}
-      <StatsGrid stats={{
+            <StatsGrid stats={{
         totalTxns,
         totalAmount,
         successTxns,
@@ -563,16 +578,13 @@ const AEPSHistory = () => {
         netPayable
       }} showStats={showStats} />
 
-
       {/* ── DATA TABLE CARD ── */}
       <div className={styles.cardFullMobile} style={{ padding: 0, marginBottom: '100px', boxShadow: '0 8px 24px rgba(0,0,0,0.02)' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '10px' }}>
           <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0F172A' }}>AEPS History List</h3>
         </div>
 
-        {/* TOOLBAR */}
-        <div className="global-table-toolbar" style={{ padding: '12px 20px' }}>
+                <div className="global-table-toolbar" style={{ padding: '12px 20px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.selectEntries} value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPageNumber(1); }}>
@@ -615,10 +627,8 @@ const AEPSHistory = () => {
                 <th rowSpan="2" style={{ width: '120px' }}>AADHAAR NO</th>
                 <th rowSpan="2" style={{ width: '100px' }}>OP BAL</th>
                 <th rowSpan="2" style={{ width: '100px' }}>CL BAL</th>
-                {/* COMMISSION group: ADMIN + TDS only (UPPER LINE removed — now part of UPLINE group) */}
-                <th colSpan="2" style={{ textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '4px 10px', height: '20px', lineHeight: '1' }}>COMMISSION</th>
-                {/* UPLINE COMMISSION group — TOTAL + per-role sub-cols */}
-                {(() => {
+                                <th colSpan="2" style={{ textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '4px 10px', height: '20px', lineHeight: '1' }}>COMMISSION</th>
+                                {(() => {
                   const sample = transactions.find(t => (t.uplineBreakdown || []).length > 0);
                   const roles = sample ? sample.uplineBreakdown : [];
                   const cols = roles.length > 0 ? roles.length : 2;
@@ -635,8 +645,7 @@ const AEPSHistory = () => {
               <tr style={{ background: 'linear-gradient(90deg, #1a2f8a 0%, #0D1B5E 100%)' }}>
                 <th style={{ width: '70px', fontSize: '0.65rem', padding: '4px 10px', height: '20px', lineHeight: '1' }}>ADMIN</th>
                 <th style={{ width: '60px', fontSize: '0.65rem', padding: '4px 10px', height: '20px', lineHeight: '1' }}>TDS</th>
-                {/* UPLINE sub-col headers: TOTAL + roleName from first sample row */}
-                {(() => {
+                                {(() => {
                   const sample = transactions.find(t => (t.uplineBreakdown || []).length > 0);
                   const roles = sample ? sample.uplineBreakdown : [];
                   const cols = roles.length > 0 ? roles.length : 2;

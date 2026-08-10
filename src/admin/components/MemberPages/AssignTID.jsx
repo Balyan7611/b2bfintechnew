@@ -18,8 +18,7 @@ const AssignTID = () => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  // Pagination & Search States
-  const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -45,8 +44,7 @@ const AssignTID = () => {
     setShowAssignModal(false);
   };
 
-  // Filter & Pagination Logic
-  const filteredList = list.filter(item => 
+    const filteredList = list.filter(item => 
     item.member?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.aepsid?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.mobile?.includes(searchTerm) ||
@@ -62,10 +60,8 @@ const AssignTID = () => {
 
   return (
     <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
-      {/* ── MAIN LISTING CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-        {/* TITLED HEADER INSIDE CARD */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', padding: '10px 20px', borderBottom: '1px solid #F1F5F9' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', padding: '10px 20px', borderBottom: '1px solid #F1F5F9' }}>
           <div className={styles.directoryTitleGroup} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <h2 className={styles.directoryTitle} style={{ fontSize: '1.1rem', margin: 0 }}>Assign TID</h2>
             <span style={{ fontSize: '0.75rem', color: '#718096', paddingLeft: '12px', borderLeft: '1px solid #E2E8F0' }}>Manage AEPS terminals</span>
@@ -75,8 +71,7 @@ const AssignTID = () => {
           </button>
         </div>
 
-        {/* TOOLBAR */}
-        <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '10px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.selectEntries} value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}>
@@ -102,8 +97,7 @@ const AssignTID = () => {
           </div>
         </div>
 
-        {/* TABLE CONTENT */}
-        <div className={styles.tableContainer} style={{ paddingBottom: '10px' }}>
+                <div className={styles.tableContainer} style={{ paddingBottom: '10px' }}>
           <table className={styles.tableFull} style={{ minWidth: '1400px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -168,8 +162,7 @@ const AssignTID = () => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
           <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
             Showing {filteredList.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, filteredList.length)} of {filteredList.length} entries
           </span>
@@ -198,8 +191,7 @@ const AssignTID = () => {
         </div>
       </div>
 
-      {/* ── ASSIGN TID MODAL ── */}
-      {showAssignModal && (
+            {showAssignModal && (
         <div className={styles.modalOverlay} style={{ zIndex: 4000 }}>
           <div className={styles.modalContainer} style={{ width: '600px', borderRadius: '24px' }}>
             <div className={styles.modalHeader} style={{ padding: '20px 30px', borderBottom: '1px solid #F1F5F9' }}>
@@ -270,8 +262,7 @@ const AssignTID = () => {
         </div>
       )}
 
-      {/* ── EDIT MODAL ── */}
-      {isDrawerOpen && (
+            {isDrawerOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 5000 }}>
           <div className={styles.modalContainer} style={{ width: '500px', borderRadius: '24px' }}>
             <div className={styles.modalHeader} style={{ padding: '18px 25px', borderBottom: '1px solid #F1F5F9' }}>
@@ -317,8 +308,7 @@ const AssignTID = () => {
         </div>
       )}
 
-      {/* ── DELETE CONFIRM MODAL ── */}
-      {confirmDelete && (
+            {confirmDelete && (
         <div className={styles.modalOverlay} style={{ zIndex: 6000 }}>
           <div className={styles.modalContainer} style={{ width: '360px', borderRadius: '20px', padding: '30px', textAlign: 'center', animation: 'premiumFadeIn 0.3s ease' }}>
              <div style={{ width: '64px', height: '64px', background: '#FFF5F5', color: '#E53E3E', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', margin: '0 auto 20px', boxShadow: '0 4px 15px rgba(229, 62, 62, 0.15)' }}>

@@ -7,8 +7,7 @@ const LogModal = ({ show, txn, onClose }) => {
 
   if (!show) return null;
 
-  // Dynamic dummy data based on txn
-  const dummyRequest = {
+    const dummyRequest = {
     method: "POST",
     url: "https://api.partner.com/v2/aeps/transaction",
     headers: {
@@ -74,8 +73,7 @@ const LogModal = ({ show, txn, onClose }) => {
           animation: 'slideUp 0.25s ease',
         }}
       >
-        {/* Header */}
-        <div style={{
+                <div style={{
           padding: '20px 24px',
           borderBottom: '1px solid #F1F5F9',
           display: 'flex',
@@ -103,11 +101,9 @@ const LogModal = ({ show, txn, onClose }) => {
           </button>
         </div>
 
-        {/* Content */}
-        <div style={{ padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
+                <div style={{ padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
           
-          {/* Request section */}
-          <div>
+                    <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Request API payload
@@ -136,8 +132,7 @@ const LogModal = ({ show, txn, onClose }) => {
             </pre>
           </div>
 
-          {/* Response section */}
-          <div>
+                    <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Response API response
@@ -168,8 +163,7 @@ const LogModal = ({ show, txn, onClose }) => {
 
         </div>
 
-        {/* Footer */}
-        <div style={{ padding: '16px 24px', borderTop: '1px solid #F1F5F9', textAlign: 'right', background: '#F8FAFC' }}>
+                <div style={{ padding: '16px 24px', borderTop: '1px solid #F1F5F9', textAlign: 'right', background: '#F8FAFC' }}>
           <button
             onClick={onClose}
             style={{

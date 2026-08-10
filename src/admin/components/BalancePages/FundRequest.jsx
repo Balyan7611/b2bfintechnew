@@ -14,18 +14,14 @@ import { FiDatabase } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import styles from './FundRequest.module.css';
 
-// Which wallet an approved top-up lands in. Main is the default for fund
-// requests; change here if the business wants AEPS/Commission instead.
 const CREDIT_WALLET_TYPE = 'Main';
-// Admin's own Member.Id, used as the "byMsrno" (source) on the transfer.
 const ADMIN_MSRNO = 1;
 
 const FundRequest = () => {
   const dispatch = useDispatch();
   const [fundRequestList, setFundRequestList] = useState([]);
   const [companyBanks, setCompanyBanks] = useState([]);
-  // msrno → { name, loginId } for fast lookup
-  const [memberMap, setMemberMap] = useState({});
+    const [memberMap, setMemberMap] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [busyId, setBusyId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,9 +36,7 @@ const FundRequest = () => {
   });
   const [tempFilters, setTempFilters] = useState(filters);
 
-  // Shapes a FundRequest API row for this table.
-  // banks = company banks array, mMap = { msrno: { name, loginId } }
-  const toRow = useCallback((r, banks = [], mMap = {}) => {
+      const toRow = useCallback((r, banks = [], mMap = {}) => {
     const bankId = r.bankId || r.companyBankId;
     const bankName = (banks.find(b => String(b.id) === String(bankId))?.name) 
       || r.companyBankName || r.bankName || 'Unknown Bank';
@@ -52,16 +46,14 @@ const FundRequest = () => {
     const resolvedName    = r.memberName || r.name || mem.name    || '';
     const resolvedLoginId = r.loginId   || mem.loginId || msrnoStr;
 
-    // Payment date: use dedicated paymentDate if available, fallback to createdDate
-    const rawPayDate = r.paymentDate || r.createdDate || '';
+        const rawPayDate = r.paymentDate || r.createdDate || '';
     const rawAddDate = r.createdDate || r.paymentDate || '';
 
     return {
       ...r,
       memberName: resolvedName,
       loginId: resolvedLoginId,
-      // Combined string used in search filter
-      memberId: String(resolvedLoginId || resolvedName || msrnoStr),
+            memberId: String(resolvedLoginId || resolvedName || msrnoStr),
       msrno: r.msrno || r.memberId,
       companyBankName: bankName,
       paymentDate: rawPayDate ? rawPayDate.slice(0, 10) : '-',
@@ -82,19 +74,16 @@ const FundRequest = () => {
       const rows = await API.fundRequest.getAll({ pageNumber: 1, pageSize: 500 });
       console.log('[Admin FundRequest] loaded', rows.length, 'request(s)', rows);
 
-      // Collect unique msrnos that we don't already have in the map
-      const uniqueMsrnos = [...new Set(rows.map(r => r.msrno || r.memberId).filter(Boolean))];
+            const uniqueMsrnos = [...new Set(rows.map(r => r.msrno || r.memberId).filter(Boolean))];
       const mMap = { ...existingMap };
 
-      // Fetch member details for any msrno not yet resolved
-      await Promise.allSettled(
+            await Promise.allSettled(
         uniqueMsrnos
           .filter(msrno => !mMap[String(msrno)])
           .map(async (msrno) => {
             try {
               const res = await API.member.getById(msrno);
-              // Handle: res | res.data | res.data.data
-              const m = res?.data?.data || res?.data || res || {};
+                            const m = res?.data?.data || res?.data || res || {};
               const name    = m.name || m.fullName || m.memberName || m.ownerName || m.firstName || m.firmName || '';
               const loginId = m.memberID || m.memberid || m.loginID   || m.loginId || m.username || String(msrno);
               console.log(`[FundRequest] member ${msrno} →`, name, loginId, m);
@@ -120,8 +109,7 @@ const FundRequest = () => {
     const init = async () => {
       let banks = [];
 
-      // Load company banks
-      try {
+            try {
         const res = await API.companyBankDetail.getAll({ pageNumber: 1, pageSize: 200 });
         banks = (Array.isArray(res) ? res : [])
           .filter(b => !b.isDelete)
@@ -136,10 +124,7 @@ const FundRequest = () => {
     init();
   }, [loadRequests]);
 
-  // Approve = mark the request approved, THEN credit the member's wallet.
-  // The credit is deliberately a separate call so a failed transfer is visible
-  // rather than silently leaving an "approved" request with no money moved.
-  const handleActionSubmit = async () => {
+        const handleActionSubmit = async () => {
     const row = actionModal.row;
     if (!row) return;
     const isApprove = actionModal.type === 'Approve';
@@ -186,24 +171,19 @@ const FundRequest = () => {
     }
   };
 
-  // Filter Data. API values can be numbers (msrno) or null, so everything is
-  // coerced to a string before any string method is called on it.
-  const lower = (v) => String(v ?? '').toLowerCase();
+      const lower = (v) => String(v ?? '').toLowerCase();
 
   const filteredData = fundRequestList.filter(item => {
     const q = lower(searchQuery);
     const matchesSearch = lower(item.memberId).includes(q) || lower(item.bankRefId).includes(q);
 
-    // Advanced Filters
-    let matchesFilters = true;
+        let matchesFilters = true;
     if (filters.memberId && lower(item.memberId) !== lower(filters.memberId)) matchesFilters = false;
     if (filters.status && lower(item.status) !== lower(filters.status)) matchesFilters = false;
     if (filters.paymentMode && lower(item.paymentMode) !== lower(filters.paymentMode)) matchesFilters = false;
     if (filters.bankName && !lower(item.companyBankName).includes(lower(filters.bankName))) matchesFilters = false;
     
-    // Date Filters
-    // The API gives YYYY-MM-DD; legacy rows used DD/MM/YYYY. Normalise both.
-    const parseDate = (dateStr) => {
+            const parseDate = (dateStr) => {
       if (!dateStr) return null;
       if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) return dateStr.slice(0, 10);
       const [d, m, y] = String(dateStr).split('/');
@@ -217,8 +197,7 @@ const FundRequest = () => {
     return matchesSearch && matchesFilters;
   });
 
-  // Pagination Logic
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const currentData = filteredData.slice(startIndex, startIndex + rowsPerPage);
 
@@ -233,8 +212,7 @@ const FundRequest = () => {
   return (
     <div className={styles.container}>
       
-      {/* ── FILTER MODAL ── */}
-      {showFilterModal && (
+            {showFilterModal && (
         <div className={styles.modalOverlay} onClick={() => setShowFilterModal(false)}>
           <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
@@ -335,8 +313,7 @@ const FundRequest = () => {
         </div>
       )}
 
-      {/* Table Card */}
-      <div className={styles.card}>
+            <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h2 className={styles.pageTitle} style={{ marginBottom: 0, borderBottom: 'none', paddingBottom: 0 }}>
             Fund Request Management
@@ -347,8 +324,7 @@ const FundRequest = () => {
             </button>
           </div>
         </div>
-        {/* Top Controls */}
-        <div className={styles.topControls}>
+                <div className={styles.topControls}>
           <div className={styles.rowsSelector}>
             <span>Show</span>
             <select 
@@ -384,8 +360,7 @@ const FundRequest = () => {
           </div>
         </div>
 
-        {/* Table Wrapper */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -461,8 +436,7 @@ const FundRequest = () => {
           </table>
         </div>
 
-        {/* Pagination */}
-        <div className={styles.paginationRow}>
+                <div className={styles.paginationRow}>
           <div className={styles.pageInfo}>
             Showing {filteredData.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, filteredData.length)} of {filteredData.length} entries
           </div>
@@ -494,8 +468,7 @@ const FundRequest = () => {
         </div>
       </div>
 
-      {/* ── ACTION MODAL ── */}
-      {actionModal.open && (
+            {actionModal.open && (
         <div className={styles.modalOverlay} onClick={() => setActionModal({ open: false, row: null, type: '', reason: '' })}>
           <div className={styles.modalContainer} style={{ maxWidth: '400px', padding: '24px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: actionModal.type === 'Approve' ? '#F0FDF4' : '#FFF5F5', color: actionModal.type === 'Approve' ? '#27AE60' : '#E53E3E', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', margin: '0 auto 16px' }}>
@@ -530,8 +503,7 @@ const FundRequest = () => {
         </div>
       )}
 
-      {/* ── SLIP VIEWER MODAL ── */}
-      {activeSlip && (
+            {activeSlip && (
         <div className={styles.modalOverlay} onClick={() => setActiveSlip(null)}>
           <div className={styles.modalContainer} style={{ maxWidth: '520px' }} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
@@ -540,8 +512,7 @@ const FundRequest = () => {
             </div>
             <div style={{ padding: '20px' }}>
               {activeSlip.slip ? (
-                /* ── Member uploaded a slip — show actual image or PDF link ── */
-                <>
+                                <>
                   {String(activeSlip.slip).toLowerCase().endsWith('.pdf') ? (
                     <div style={{ textAlign: 'center', padding: '20px 0' }}>
                       <a
@@ -578,8 +549,7 @@ const FundRequest = () => {
                   <p style={{ textAlign: 'center', marginTop: '10px', fontSize: '0.82rem', color: '#64748b' }}>📎 Payment receipt uploaded by member</p>
                 </>
               ) : (
-                /* ── No slip uploaded — show transaction summary ── */
-                <>
+                                <>
                   <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '18px', border: '1px solid #e2e8f0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px dashed #cbd5e1' }}>
                       <strong style={{ color: '#0f172a' }}>{activeSlip.companyBankName} — Transaction Log</strong>
@@ -606,4 +576,3 @@ const FundRequest = () => {
 };
 
 export default FundRequest;
-

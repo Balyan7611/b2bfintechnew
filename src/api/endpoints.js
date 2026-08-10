@@ -1,4 +1,3 @@
-// src/api/endpoints.js
 import { AuthService } from '../services/auth.service';
 import { RoleService } from '../services/RoleService';
 import { CompanyService } from '../services/company.service';
@@ -44,7 +43,6 @@ import { MemberWebhookService } from '../services/memberWebhook.service';
 import { AdminDashboardService } from '../services/adminDashboard.service';
 import { MemberDashboardService } from '../services/memberDashboard.service';
 
-// Re-exporting everything exactly as before to maintain backward compatibility
 export const API = {
     login: AuthService.login,
     verifyLoginOtp: AuthService.verifyLoginOtp,
@@ -59,8 +57,7 @@ export const API = {
     saveRole: RoleService.saveRole,
     deleteRole: RoleService.deleteRole,
     
-    // New dynamic API configurations
-    company: CompanyService,
+        company: CompanyService,
     package: PackageService,
     service: ServiceManagementService,
     operator: OperatorService,

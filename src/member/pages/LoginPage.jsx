@@ -23,7 +23,6 @@ import { backToStep1, proceedToStep2, setPassword, setUserId } from '../../store
 import { decodeToken, saveSession, getSession } from '../../utils/authUtils';
 import { checkMaliciousInput } from '../../utils/securityUtils';
 
-
 const FEATURES = [
   { icon: FaShieldAlt,  label: 'Bank-Grade Security' },
   { icon: FaMobileAlt,  label: 'Instant Settlements' },
@@ -47,24 +46,18 @@ const LoginPage = () => {
   const [forgotAadhar, setForgotAadhar] = useState('');
   const [forgotPan, setForgotPan] = useState('');
   const [forgotOtp, setForgotOtp] = useState('');
-  const [forgotToken, setForgotToken] = useState(''); // token returned by /UserAuth/forget-password
-  const [newPassword, setNewPassword] = useState('');
+  const [forgotToken, setForgotToken] = useState('');   const [newPassword, setNewPassword] = useState('');
   const [rePassword, setRePassword] = useState('');
   const [modalError, setModalError] = useState('');
   const [locationStatus, setLocationStatus] = useState(null);
 
-  // Step 3: OTP / T-PIN verification (LoginUser can respond with
-  // data.status === "OTP" or "TPIN" instead of logging in directly)
-  const [showVerifyStep, setShowVerifyStep] = useState(false);
-  const [authMode, setAuthMode] = useState(null); // 'OTP' | 'TPIN' | null
-  const [verifyToken, setVerifyToken] = useState('');
+      const [showVerifyStep, setShowVerifyStep] = useState(false);
+  const [authMode, setAuthMode] = useState(null);   const [verifyToken, setVerifyToken] = useState('');
   const [otpValue, setOtpValue] = useState('');
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyError, setVerifyError] = useState('');
-  const [loginLocation, setLoginLocation] = useState(null); // coords captured at password step, reused for OTP/TPIN verify
-
-  // Brute force protection
-  const [failedAttempts, setFailedAttempts] = useState(() => {
+  const [loginLocation, setLoginLocation] = useState(null); 
+    const [failedAttempts, setFailedAttempts] = useState(() => {
     const attempts = localStorage.getItem('member_login_attempts');
     return attempts ? parseInt(attempts, 10) : 0;
   });
@@ -74,8 +67,7 @@ const LoginPage = () => {
   });
   const [remainingTime, setRemainingTime] = useState(0);
 
-  // Auto-redirect if already logged in
-  useEffect(() => {
+    useEffect(() => {
     const token = localStorage.getItem('access_token');
     const session = getSession();
     if (token && session && session.sessionId) {
@@ -86,8 +78,7 @@ const LoginPage = () => {
     }
   }, [navigate]);
 
-  // Lockout countdown timer
-  useEffect(() => {
+    useEffect(() => {
     if (lockoutUntil > Date.now()) {
       setRemainingTime(Math.ceil((lockoutUntil - Date.now()) / 1000));
       const interval = setInterval(() => {
@@ -142,8 +133,7 @@ const LoginPage = () => {
             status: 'off',
             error: errorMsg
           });
-          resolve({ coords: { latitude: 28.6139, longitude: 77.2090 } }); // Resolve to Delhi coordinates instead of rejecting
-        },
+          resolve({ coords: { latitude: 28.6139, longitude: 77.2090 } });         },
         { timeout: 5000, enableHighAccuracy: true }
       );
     });
@@ -207,9 +197,7 @@ const LoginPage = () => {
         return;
       }
 
-      // Both password and T-PIN reset now call the real backend right away so
-      // the OTP actually gets sent, and we get back the token needed for step 3.
-      setModalLoading(true);
+                  setModalLoading(true);
       try {
         const res = isTpin
           ? await API.forgetTpin({
@@ -237,10 +225,7 @@ const LoginPage = () => {
     }
 
     if (forgotStep === 2) {
-      // Real OTP was sent by forget-password/forget-tpin above - just require
-      // it here, the actual verification happens together with the new
-      // password/T-PIN below.
-      if (!forgotOtp || forgotOtp.trim().length < 4) {
+                        if (!forgotOtp || forgotOtp.trim().length < 4) {
         setModalError('Please enter a valid OTP.');
         return;
       }
@@ -316,42 +301,29 @@ const LoginPage = () => {
     return '127.0.0.1';
   };
 
-  // Shared "final success" handler used both when LoginUser logs in directly
-  // and when VerifyLoginOTP / VerifyLoginTPIN completes the login.
-  // `location` = the coordinates captured on the password step, so they can
-  // be carried into the session and, from there, into the UserLoginHistory
-  // record created in App.jsx (instead of hardcoded 0,0).
-  const completeMemberLogin = (decoded, token, location, clientIp) => {
-    // Block pure admin (role===1) from logging in as member
-    const roleNum = decoded ? Number(decoded.role) : -1;
+            const completeMemberLogin = (decoded, token, location, clientIp) => {
+        const roleNum = decoded ? Number(decoded.role) : -1;
     if (roleNum === 1 && !decoded?.LoginId?.startsWith('MEM')) {
       throw new Error("Unauthorized access - Admin cannot login as Member");
     }
 
-    // Reset brute force counters on success
-    localStorage.removeItem('member_login_attempts');
+        localStorage.removeItem('member_login_attempts');
     localStorage.removeItem('member_lockout_until');
     setFailedAttempts(0);
     setLockoutUntil(0);
 
-    // Store token in all keys so every service call picks it up
-    localStorage.setItem('access_token', token);
+        localStorage.setItem('access_token', token);
     localStorage.setItem('member_token', token);
     sessionStorage.setItem('access_token', token);
     sessionStorage.setItem('member_token', token);
 
-    // Extract real user info from JWT decoded payload
-    const loginId = decoded?.LoginId || decoded?.loginId || decoded?.sub || userId;
+        const loginId = decoded?.LoginId || decoded?.loginId || decoded?.sub || userId;
     const userName = decoded?.unique_name || decoded?.name || decoded?.Name || 'Member';
     const mobileNo = decoded?.mobile || decoded?.Mobile || decoded?.phone || userId;
-    // `sub` on this backend is the LoginId string (e.g. "RT100"), NOT the numeric
-    // Member.Id. Only accept a genuinely numeric claim here — otherwise leave it 0
-    // and let resolveMemberId() look the real Id up from the Member master.
-    const rawNumeric = decoded?.MemberId ?? decoded?.memberId ?? decoded?.Id ?? decoded?.id ?? decoded?.nameid ?? decoded?.sub;
+                const rawNumeric = decoded?.MemberId ?? decoded?.memberId ?? decoded?.Id ?? decoded?.id ?? decoded?.nameid ?? decoded?.sub;
     const numericId = /^\d+$/.test(String(rawNumeric ?? '').trim()) ? parseInt(rawNumeric, 10) : 0;
 
-    // Save complete session object for MemberSupport and other components
-    saveSession({
+        saveSession({
       loginId: loginId,
       memberId: loginId,
       username: loginId,
@@ -406,10 +378,7 @@ const LoginPage = () => {
     try {
       const position = await checkLocationBeforeLogin();
 
-      // Reuse the coordinates we just captured above instead of letting the
-      // API layer fire a second, separate geolocation request - that second
-      // request was what silently dropped lat/long from the login payload.
-      const capturedLocation = {
+                        const capturedLocation = {
         latitude: position?.coords?.latitude ?? 0,
         longitude: position?.coords?.longitude ?? 0,
         accuracy: position?.coords?.accuracy ?? 0,
@@ -423,14 +392,11 @@ const LoginPage = () => {
       });
 
       if (response.status) {
-        // Backend wants a second factor before granting access
-        if (response.authStatus === 'OTP' || response.authStatus === 'TPIN') {
+                if (response.authStatus === 'OTP' || response.authStatus === 'TPIN') {
           const pendingToken = response.data?.refreshToken || response.refreshToken;
           if (!pendingToken) throw new Error("Verification token missing from server");
 
-          // Keep the same coordinates for the verify step below, instead of
-          // asking the browser for location a third time.
-          setLoginLocation(capturedLocation);
+                              setLoginLocation(capturedLocation);
           setVerifyToken(pendingToken);
           setAuthMode(response.authStatus);
           setOtpValue('');
@@ -454,21 +420,18 @@ const LoginPage = () => {
       setFailedAttempts(newAttempts);
       localStorage.setItem('member_login_attempts', newAttempts);
 
-      // Generic auth error to prevent credential enumeration
-      let errorMsg = "Invalid Login Credentials.";
+            let errorMsg = "Invalid Login Credentials.";
       
       if (err.message && (err.message.toLowerCase().includes('location') || err.message.toLowerCase().includes('unauthorized'))) {
         errorMsg = err.message;
       }
 
       if (newAttempts >= 5) {
-        const lockoutTime = Date.now() + 5 * 60 * 1000; // 5 minutes lockout
-        setLockoutUntil(lockoutTime);
+        const lockoutTime = Date.now() + 5 * 60 * 1000;         setLockoutUntil(lockoutTime);
         localStorage.setItem('member_lockout_until', lockoutTime);
         errorMsg = "Too many failed attempts. Account locked out for 5 minutes.";
       } else {
-        // Only append attempt count if it's a login failure, not a location failure
-        if (!errorMsg.toLowerCase().includes('location')) {
+                if (!errorMsg.toLowerCase().includes('location')) {
           errorMsg = `${errorMsg} (Attempt ${newAttempts}/5)`;
         }
       }
@@ -549,8 +512,7 @@ const LoginPage = () => {
   return (
     <div className={styles.page}>
       <div className={styles.loginContainer}>
-        {/* LEFT PANEL: Branding & Visuals */}
-        <div className={styles.brandingPanel}>
+                <div className={styles.brandingPanel}>
           <div className={styles.brandingContent}>
             <Link to="/" className={styles.logoWrap}>
               <img src={SITE_CONFIG.logo} alt="Logo" className={styles.logoImg} />

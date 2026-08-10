@@ -14,8 +14,7 @@ import AdminTable from '../../../../shared/components/common/AdminTable';
 import ReceiptModal from '../../../../shared/components/common/ReceiptModal';
 import StatsGrid from '../../../../shared/components/common/StatsGrid';
 import { FiBarChart2 } from 'react-icons/fi';
-import styles from './AEPSReport.module.css'; // Reusing common report styles
-import { API } from '../../../../api/endpoints';
+import styles from './AEPSReport.module.css'; import { API } from '../../../../api/endpoints';
 import { normalizeTxnResponse } from '../../../../services/transaction.service';
 
 const DMTHistory = () => {
@@ -55,7 +54,6 @@ const DMTHistory = () => {
 
   }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
 
-
   const fetchData = async () => {
     try {
       const res = await API.transaction.getAll({
@@ -78,9 +76,7 @@ const DMTHistory = () => {
     }
   };
 
-  // Auto-fetch on mount and when filters/page change
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
+      useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
 
   const filteredList = (list || []).filter(item => {
     const name = item.userName || '';

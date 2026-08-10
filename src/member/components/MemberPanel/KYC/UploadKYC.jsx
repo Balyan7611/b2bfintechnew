@@ -29,8 +29,7 @@ const UploadKYC = () => {
     currentPage 
   } = useSelector(state => state.kyc.memberUpload);
 
-  // Filter for table
-  const filteredDocs = myDocuments.filter(doc => 
+    const filteredDocs = myDocuments.filter(doc => 
     doc.documentName.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
@@ -45,8 +44,7 @@ const UploadKYC = () => {
   return (
     <div className={styles.container}>
       
-      {/* KYC DOCUMENTS LIST */}
-      <AdminTable
+            <AdminTable
         title="KYC DOCUMENTS"
         subtitle=""
         rightAction={

@@ -131,8 +131,7 @@ const Electricity = () => {
         ))}
       </div>
 
-      {/* Payment Modal */}
-      {selectedProvider && (
+            {selectedProvider && (
         <div className={styles.modalOverlay} onClick={() => setSelectedProvider(null)}>
           <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>

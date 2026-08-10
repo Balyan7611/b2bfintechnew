@@ -1,4 +1,3 @@
-// src/models/genderModel.js
 export const GenderResponseModel = (res) => {
     if (!res || !res.status) return [];
     const items = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);

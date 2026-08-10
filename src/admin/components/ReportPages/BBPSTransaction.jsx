@@ -19,6 +19,7 @@ import ConfirmModal from '../../../shared/components/common/ConfirmModal';
 import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
 import LogModal from '../../../shared/components/common/LogModal';
 import StatsGrid from '../../../shared/components/common/StatsGrid';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 
 const BBPSTransaction = () => {
   const [showStats, setShowStats] = useState(false);
@@ -35,6 +36,8 @@ const BBPSTransaction = () => {
   
   const [serviceList, setServiceList] = useState([]);
   const [operatorList, setOperatorList] = useState([]);
+  const [apiList, setApiList] = useState([]);
+  const [selectedApi, setSelectedApi] = useState('');
   const handleMenuAction = (actionName, txn) => {
     if (actionName === 'Force Fail' || actionName === 'Force Success' || actionName === 'Check Status') {
       setConfirmData({ show: true, action: actionName, txn });
@@ -90,7 +93,7 @@ const BBPSTransaction = () => {
         serviceId: selectedService || '',
         sectionType: '2',
         operatorId: selectedOperator,
-        apiId: '',
+        apiId: selectedApi,
         memberId: selectedMember,
         status: selectedStatus
       });
@@ -110,38 +113,60 @@ const BBPSTransaction = () => {
         let list = [];
         if (res && Array.isArray(res.data)) list = res.data;
         else if (Array.isArray(res)) list = res;
-        
-        // Filter specifically for BBPS/Electricity services (sectionType 2)
-        const bbpsServices = list.filter(srv => String(srv.sectionType || '') === '2');
+
+                const bbpsServices = list.filter(srv => String(srv.sectionType || '') === '2');
         setServiceList(bbpsServices);
       } catch (err) { console.error("Error fetching services:", err); }
     };
-    const fetchOperators = async () => {
-      try {
-        const res = await API.operator.getAll();
-        if (res && Array.isArray(res.data)) setOperatorList(res.data);
-        else if (Array.isArray(res)) setOperatorList(res);
-        else setOperatorList([]);
-      } catch (err) { console.error("Error fetching operators:", err); }
-    };
     const fetchMembers = async () => {
       try {
-        const res = await API.member.search('');
-        if (res && Array.isArray(res.data)) setMemberList(res.data);
-        else if (Array.isArray(res)) setMemberList(res);
-        else setMemberList([]);
+        const res = await API.member.getAll({ pageNumber: 1, pageSize: 5000 });
+        const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+        setMemberList(Array.isArray(list) ? list : []);
       } catch (err) { console.error("Error fetching members:", err); }
     };
 
     fetchServices();
-    fetchOperators();
     fetchMembers();
+  }, []);
+
+  useEffect(() => {
+    const fetchOperators = async () => {
+        try {
+            const res = await API.operator.getAll();
+            let allOps = [];
+            if (res?.data?.items) allOps = res.data.items;
+            else if (res?.data && Array.isArray(res.data)) allOps = res.data;
+            else if (Array.isArray(res)) allOps = res;
+
+            if (selectedService) {
+                allOps = allOps.filter(op => String(op.serviceId) === String(selectedService));
+            }
+            setOperatorList(allOps);
+        } catch (err) {
+            console.error("Failed to fetch operators:", err);
+        }
+    };
+    fetchOperators();
+    setSelectedOperator('');
+  }, [selectedService]);
+
+  useEffect(() => {
+    const fetchApis = async () => {
+        try {
+            const res = await API.masterApi.getAll();
+            const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+            setApiList(Array.isArray(list) ? list : []);
+        } catch (err) {
+            console.error("Failed to fetch APIs:", err);
+        }
+    };
+    fetchApis();
   }, []);
 
   return (
     <div className={styles.container} style={{ padding: '12px', maxWidth: '100%' }}>
-      {/* Dynamic Keyframe Animations for Button Rays */}
-      <style>{`
+            <style>{`
         @keyframes successGlow {
           0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4); }
           70% { box-shadow: 0 0 0 8px rgba(39, 174, 96, 0); }
@@ -162,8 +187,7 @@ const BBPSTransaction = () => {
           50% { opacity: 1; }
         }
       `}</style>
-      {/* ── PREMIUM FILTER CARD ── */}
-      <div style={{ 
+            <div style={{ 
         background: '#ffffff',
         borderRadius: '24px',
         boxShadow: '0 10px 30px rgba(23, 86, 170, 0.04), 0 1px 8px rgba(0, 0, 0, 0.02)',
@@ -178,8 +202,7 @@ const BBPSTransaction = () => {
           <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', letterSpacing: '0.3px' }}>BBPS Transaction</h3>
           
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            {/* View Stats Button */}
-            <button 
+                        <button 
               style={{
                 background: '#0F172A',
                 color: '#fff',
@@ -321,34 +344,50 @@ const BBPSTransaction = () => {
             </div>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Select Member</label>
-              <select 
-                className={styles.inputControl} 
-                style={{ 
-                  paddingLeft: '12px', 
-                  paddingRight: '12px',
-                  height: '38px', 
-                  borderRadius: '10px', 
-                  fontSize: '0.825rem', 
-                  border: focusedField === 'member' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', 
-                  boxShadow: focusedField === 'member' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', 
-                  transition: 'all 0.25s', 
-                  width: '100%', 
-                  background: '#FCFDFE',
-                  color: '#334155',
-                  fontWeight: 500
-                }} 
-                onFocus={() => setFocusedField('member')}
-                onBlur={() => setFocusedField(null)}
+              <SearchableSelect
+                options={[
+                  { value: '', label: 'All Members' },
+                  ...memberList.map(m => {
+                    const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
+                    const loginId = m.memberID || m.memberid || m.loginID || m.loginId || String(m.id || m.msrno || '');
+                    return { value: String(m.id || m.uniqueID || m.msrno || ''), label: name ? `${name} (${loginId})` : loginId };
+                  })
+                ]}
                 value={selectedMember}
-                onChange={(e) => setSelectedMember(e.target.value)}
-              >
-                <option value="">All Members</option>
-                {Array.isArray(memberList) && memberList.map((m) => (
-                  <option key={m.id || m.memberId} value={m.id || m.memberId}>
-                    {m.name || m.memberId} ({m.mobile})
-                  </option>
-                ))}
-              </select>
+                onChange={val => setSelectedMember(val || '')}
+                placeholder="All Members"
+              />
+            </div>
+            <div className={styles.formGroup}>
+                <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>API Provider</label>
+                <select
+                    className={styles.inputControl}
+                    style={{
+                        paddingLeft: '12px',
+                        paddingRight: '12px',
+                        height: '38px',
+                        borderRadius: '10px',
+                        fontSize: '0.825rem',
+                        border: focusedField === 'provider' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1',
+                        boxShadow: focusedField === 'provider' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none',
+                        transition: 'all 0.25s',
+                        width: '100%',
+                        background: '#FCFDFE',
+                        color: '#334155',
+                        fontWeight: 500
+                    }}
+                    value={selectedApi}
+                    onChange={(e) => setSelectedApi(e.target.value)}
+                    onFocus={() => setFocusedField('provider')}
+                    onBlur={() => setFocusedField(null)}
+                >
+                    <option value="">All Providers</option>
+                    {Array.isArray(apiList) && apiList.map((api) => (
+                        <option key={api.id || api.apiId} value={api.id || api.apiId}>
+                            {api.apiname || api.apiName || api.name || `API #${api.id}`}
+                        </option>
+                    ))}
+                </select>
             </div>
             <div className={styles.formGroup}>
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Transaction Status</label>
@@ -449,8 +488,7 @@ const BBPSTransaction = () => {
         </form>
       </div>
 
-      {/* ── STATS CARDS GRID ── */}
-      <StatsGrid stats={{
+            <StatsGrid stats={{
         totalTxns: transactions.length,
         totalAmount: transactions.reduce((acc, curr) => acc + (parseFloat(curr.amount || curr.txnAmount) || 0), 0),
         successTxns: transactions.filter(t => t.status?.toLowerCase() === 'success').length,
@@ -467,12 +505,10 @@ const BBPSTransaction = () => {
 
       {/* ── DATA TABLE CARD ── */}
       <div className={styles.cardFullMobile} style={{ padding: 0, marginBottom: '100px', boxShadow: '0 8px 24px rgba(0,0,0,0.02)' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '10px' }}>
           <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#0F172A' }}>BBPS Transaction List</h3>
         </div>
-        {/* TOOLBAR */}
-        <div className="global-table-toolbar" style={{ padding: '10px 15px' }}>
+                <div className="global-table-toolbar" style={{ padding: '10px 15px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.selectEntries} value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPageNumber(1); }}>

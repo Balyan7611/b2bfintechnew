@@ -28,16 +28,13 @@ const ServiceTicker = () => {
   return (
     <div className={styles.tickerContainer}>
       <div className={styles.tickerTrack}>
-        {/* We map twice to create an infinite loop effect */}
-        {[...services, ...services, ...services].map((service, index) => (
+                {[...services, ...services, ...services].map((service, index) => (
           <div key={index} className={styles.tickerCard}>
             <div 
               className={styles.iconBox} 
               style={{ 
                 color: service.color, 
-                backgroundColor: `${service.color}1A`, // 1A is ~10% opacity in hex
-                border: `1px solid ${service.color}33` // 33 is ~20% opacity
-              }}
+                backgroundColor: `${service.color}1A`,                 border: `1px solid ${service.color}33`               }}
             >
               {service.icon}
             </div>

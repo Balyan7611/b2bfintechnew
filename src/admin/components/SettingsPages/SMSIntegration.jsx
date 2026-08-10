@@ -168,18 +168,15 @@ const SMSIntegration = () => {
 
   return (
     <div className={styles.container} style={{ padding: '10px 15px', maxWidth: '100%' }}>
-      {/* ── MAIN LISTING CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap' }}>SMS Integration</h2>
           <PrimaryButton onClick={() => setShowModal(true)}>
             <FaPlus /> <span>New Integration</span>
           </PrimaryButton>
         </div>
 
-        {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select 
@@ -344,8 +341,7 @@ const SMSIntegration = () => {
         </div>
       </div>
 
-      {/* ── 2-STEP INTEGRATION MODAL ── */}
-      {showModal && (
+            {showModal && (
         <div className={styles.modalOverlay} style={{ zIndex: 3500 }}>
           <div className={styles.modalContainer} style={{ width: '700px', borderRadius: '16px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ 
@@ -413,14 +409,11 @@ const SMSIntegration = () => {
                </button>
             </div>
 
-            {/* STEPPER PROGRESS BAR - Compact */}
-            <div style={{ padding: '12px 0', background: '#FBFDFF', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'center' }}>
+                        <div style={{ padding: '12px 0', background: '#FBFDFF', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'center' }}>
                <div style={{ display: 'flex', alignItems: 'center', width: '250px', position: 'relative' }}>
-                  {/* Line */}
-                  <div style={{ position: 'absolute', top: '50%', left: '15%', right: '15%', height: '2px', background: currentStep === 2 ? '#1756AA' : '#E2E8F0', zIndex: 1 }}></div>
+                                    <div style={{ position: 'absolute', top: '50%', left: '15%', right: '15%', height: '2px', background: currentStep === 2 ? '#1756AA' : '#E2E8F0', zIndex: 1 }}></div>
                   
-                  {/* Step 1 */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', zIndex: 2 }}>
+                                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', zIndex: 2 }}>
                      <div style={{ 
                         width: '32px', height: '32px', borderRadius: '50%', 
                         background: '#1756AA', color: '#fff', 
@@ -431,8 +424,7 @@ const SMSIntegration = () => {
                      <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#1756AA' }}>API DETAILS</span>
                   </div>
 
-                  {/* Step 2 */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', zIndex: 2 }}>
+                                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', zIndex: 2 }}>
                      <div style={{ 
                         width: '32px', height: '32px', borderRadius: '50%', 
                         background: currentStep === 2 ? '#1756AA' : '#fff', 

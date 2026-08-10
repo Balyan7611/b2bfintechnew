@@ -30,8 +30,7 @@ const ApiUser = ({ onBack }) => {
 
   return (
     <div className={styles.container}>
-      {/* ── ENHANCED FILTER CARD ── */}
-      <div className={styles.card} style={{ marginBottom: '30px' }}>
+            <div className={styles.card} style={{ marginBottom: '30px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', marginBottom: '25px', paddingBottom: '20px', borderBottom: '1.5px solid #F8FAFF' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             {onBack && (
@@ -68,8 +67,7 @@ const ApiUser = ({ onBack }) => {
         </div>
         
         <div className={styles.formGrid4} style={{ marginTop: '20px' }}>
-          {/* MOBILE DATE ROW */}
-          <div style={{ display: 'flex', gap: '12px', gridColumn: 'span 2' }}>
+                    <div style={{ display: 'flex', gap: '12px', gridColumn: 'span 2' }}>
             <div className={styles.formGroup} style={{ flex: 1 }}>
               <label className={styles.label} style={{ fontSize: '0.75rem' }}>From Date</label>
               <div className={styles.inputWrap}>
@@ -134,8 +132,7 @@ const ApiUser = ({ onBack }) => {
         </div>
       </div>
 
-      {/* ── TABLE CARD ── */}
-      <div className={styles.card}>
+            <div className={styles.card}>
         <div className={styles.directoryHeader} style={{ marginBottom: '24px', background: '#F8FAFF', padding: '16px', borderRadius: '14px', border: '1px solid #EEF3FC', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
@@ -249,8 +246,7 @@ const ApiUser = ({ onBack }) => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
           <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
             Showing {list.length > 0 ? 1 : 0} to {list.length} of {list.length} entries
           </span>

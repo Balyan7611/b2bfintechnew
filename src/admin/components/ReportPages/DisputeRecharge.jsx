@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import StatsGrid from '../../../shared/components/common/StatsGrid';
 import ReceiptModal from '../../../shared/components/common/ReceiptModal';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { API } from '../../../api/endpoints';
 import {
     FiSearch, FiChevronLeft, FiChevronRight, FiCheckCircle,
@@ -11,27 +12,31 @@ import { FaExclamationTriangle } from 'react-icons/fa';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const DisputeRecharge = () => {
-    // ─── State ──────────────────────────────────────────────
-    const [disputeData, setDisputeData] = useState([]);
+        const [disputeData, setDisputeData] = useState([]);
     const [totalRecords, setTotalRecords] = useState(0);
     const [pageNumber, setPageNumber] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [loading, setLoading] = useState(false);
 
-    // Filters
-    const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(today);
     const [toDate, setToDate] = useState(today);
     const [searchKeyword, setSearchKeyword] = useState('');
+    const [selectedMember, setSelectedMember] = useState('');
+    const [selectedService, setSelectedService] = useState('');
+    const [selectedOperator, setSelectedOperator] = useState('');
+    const [selectedApi, setSelectedApi] = useState('');
+    const [memberList, setMemberList] = useState([]);
+    const [serviceList, setServiceList] = useState([]);
+    const [operatorList, setOperatorList] = useState([]);
+    const [apiList, setApiList] = useState([]);
 
-    // UI states
-    const [showStats, setShowStats] = useState(false);
+        const [showStats, setShowStats] = useState(false);
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: '', txid: null });
     const [activeReceipt, setActiveReceipt] = useState(null);
     const [focusedField, setFocusedField] = useState(null);
 
-    // ─── Stats Computation ──────────────────────────────────
-    const totalDisputes = totalRecords;
+        const totalDisputes = totalRecords;
     const acceptedCount = disputeData.filter(t => t.status?.toLowerCase() === 'accepted').length;
     const cancelledCount = disputeData.filter(t => t.status?.toLowerCase() === 'cancelled').length;
     const pendingCount = disputeData.filter(t => t.status?.toLowerCase() === 'success' || t.status?.toLowerCase() === 'pending').length;
@@ -50,9 +55,7 @@ const DisputeRecharge = () => {
     const stats = {
         totalTxns: totalDisputes,
         totalAmount,
-        successTxns: acceptedCount,      // reusing successTxns for accepted
-        failedTxns: cancelledCount,       // reusing failedTxns for cancelled
-        pendingTxns: pendingCount,
+        successTxns: acceptedCount,              failedTxns: cancelledCount,               pendingTxns: pendingCount,
         totalCommission,
         uplineCommission,
         adminCommission,
@@ -62,16 +65,11 @@ const DisputeRecharge = () => {
         netPayable,
     };
 
-    // ─── API Calls ──────────────────────────────────────────
-    const fetchDisputes = async () => {
+        const fetchDisputes = async () => {
         setLoading(true);
         try {
-            // Replace with actual API endpoint for dispute recharge
-            // Example: const res = await API.dispute.getAll({ pageNumber, pageSize, fromDate, toDate, search: searchKeyword });
-            // For now we simulate with a mock call using the existing static data
-            await new Promise(resolve => setTimeout(resolve, 300));
-            // Simulated API response
-            const mockData = [
+                                                await new Promise(resolve => setTimeout(resolve, 300));
+                        const mockData = [
                 { sno: 1, api: 'SoniTechno', txid: '9694935907', op: 'Jio', num: '9990167317', amt: '349.00', status: 'Success', opid: 'BR000C3CFHMW', by: 'Pay99RT4291 Suhail', date: '17/04/2025 18:45:58' },
                 { sno: 2, api: 'SoniTechno', txid: '5744464283', op: 'Airtel', num: '7289054316', amt: '22.00', status: 'Success', opid: '3104235732', by: 'Pay99RT4097 Brijesh Kumar', date: '15/04/2025 19:39:13' },
             ];
@@ -86,21 +84,73 @@ const DisputeRecharge = () => {
         }
     };
 
-    // ─── Effects ────────────────────────────────────────────
-    useEffect(() => {
+        useEffect(() => {
         fetchDisputes();
     }, [pageNumber, pageSize, fromDate, toDate, searchKeyword]);
 
-    // ─── Handlers ────────────────────────────────────────────
-    const handleSearchSubmit = (e) => {
+    useEffect(() => {
+        const fetchMembers = async () => {
+            try {
+                const res = await API.member.getAll({ pageNumber: 1, pageSize: 5000 });
+                const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+                setMemberList(Array.isArray(list) ? list : []);
+            } catch (err) { console.error("Failed to fetch members:", err); }
+        };
+        const fetchServices = async () => {
+            try {
+                const res = await API.service.getAll();
+                let list = [];
+                if (res && Array.isArray(res.data)) list = res.data;
+                else if (Array.isArray(res)) list = res;
+                const rechargeServices = list.filter(srv => String(srv.sectionType || '') === '1');
+                setServiceList(rechargeServices);
+            } catch (err) { console.error("Failed to fetch services:", err); }
+        };
+        fetchMembers();
+        fetchServices();
+    }, []);
+
+    useEffect(() => {
+        const fetchOperators = async () => {
+            try {
+                const res = await API.operator.getAll();
+                let allOps = [];
+                if (res?.data?.items) allOps = res.data.items;
+                else if (res?.data && Array.isArray(res.data)) allOps = res.data;
+                else if (Array.isArray(res)) allOps = res;
+                if (selectedService) {
+                    allOps = allOps.filter(op => String(op.serviceId) === String(selectedService));
+                }
+                setOperatorList(allOps);
+            } catch (err) {
+                console.error("Failed to fetch operators:", err);
+            }
+        };
+        fetchOperators();
+        setSelectedOperator('');
+    }, [selectedService]);
+
+    useEffect(() => {
+        const fetchApis = async () => {
+            try {
+                const res = await API.masterApi.getAll();
+                const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+                setApiList(Array.isArray(list) ? list : []);
+            } catch (err) {
+                console.error("Failed to fetch APIs:", err);
+            }
+        };
+        fetchApis();
+    }, []);
+
+        const handleSearchSubmit = (e) => {
         e.preventDefault();
         setPageNumber(1);
         fetchDisputes();
     };
 
     const handleAction = (type, txid) => {
-        // Update local state (simulate API call)
-        setDisputeData(prev =>
+                setDisputeData(prev =>
             prev.map(row =>
                 row.txid === txid
                     ? { ...row, status: type === 'accept' ? 'Accepted' : 'Cancelled' }
@@ -108,11 +158,9 @@ const DisputeRecharge = () => {
             )
         );
         setConfirmModal({ isOpen: false, type: '', txid: null });
-        // In real scenario, call API to update status
-    };
+            };
 
-    // ─── Render Helpers ──────────────────────────────────────
-    const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+        const totalPages = Math.ceil(totalRecords / pageSize) || 1;
     const startIndex = (pageNumber - 1) * pageSize;
     const currentRows = disputeData.slice(startIndex, startIndex + pageSize);
 
@@ -142,11 +190,9 @@ const DisputeRecharge = () => {
         );
     };
 
-    // ─── Render ──────────────────────────────────────────────
-    return (
+        return (
         <div className={styles.container} style={{ padding: '12px', maxWidth: '100%' }}>
-            {/* ── FILTER CARD ── */}
-            <div style={{
+                        <div style={{
                 background: '#ffffff',
                 borderRadius: '24px',
                 boxShadow: '0 10px 30px rgba(23, 86, 170, 0.04), 0 1px 8px rgba(0, 0, 0, 0.02)',
@@ -186,7 +232,7 @@ const DisputeRecharge = () => {
 
                 <div style={{ padding: '24px 28px', background: '#FAFBFC' }}>
                     <form onSubmit={handleSearchSubmit}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
                             <div className={styles.formGroup}>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>From Date</label>
                                 <input type="date" className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: focusedField === 'fromDate' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', transition: 'all 0.25s' }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} onFocus={() => setFocusedField('fromDate')} onBlur={() => setFocusedField(null)} />
@@ -194,6 +240,55 @@ const DisputeRecharge = () => {
                             <div className={styles.formGroup}>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>To Date</label>
                                 <input type="date" className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: focusedField === 'toDate' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', transition: 'all 0.25s' }} value={toDate} onChange={(e) => setToDate(e.target.value)} onFocus={() => setFocusedField('toDate')} onBlur={() => setFocusedField(null)} />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Select Member</label>
+                                <SearchableSelect
+                                    options={[
+                                        { value: '', label: 'All Members' },
+                                        ...memberList.map(m => {
+                                            const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
+                                            const loginId = m.memberID || m.memberid || m.loginID || m.loginId || String(m.id || m.msrno || '');
+                                            return { value: String(m.id || m.uniqueID || m.msrno || ''), label: name ? `${name} (${loginId})` : loginId };
+                                        })
+                                    ]}
+                                    value={selectedMember}
+                                    onChange={val => setSelectedMember(val || '')}
+                                    placeholder="All Members"
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Service</label>
+                                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: focusedField === 'service' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', transition: 'all 0.25s', color: '#334155' }} value={selectedService} onChange={(e) => setSelectedService(e.target.value)} onFocus={() => setFocusedField('service')} onBlur={() => setFocusedField(null)}>
+                                    <option value="">All Services</option>
+                                    {serviceList.map(s => (
+                                        <option key={s.id || s.serviceId} value={s.id || s.serviceId}>
+                                            {s.serviceName || s.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Operator</label>
+                                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: focusedField === 'operator' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', transition: 'all 0.25s', color: '#334155' }} value={selectedOperator} onChange={(e) => setSelectedOperator(e.target.value)} onFocus={() => setFocusedField('operator')} onBlur={() => setFocusedField(null)}>
+                                    <option value="">All Operators</option>
+                                    {operatorList.map(op => (
+                                        <option key={op.id || op.operatorId} value={op.id || op.operatorId}>
+                                            {op.operatorName || op.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Provider</label>
+                                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: focusedField === 'api' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', transition: 'all 0.25s', color: '#334155' }} value={selectedApi} onChange={(e) => setSelectedApi(e.target.value)} onFocus={() => setFocusedField('api')} onBlur={() => setFocusedField(null)}>
+                                    <option value="">All Providers</option>
+                                    {Array.isArray(apiList) && apiList.map((api) => (
+                                        <option key={api.id || api.apiId} value={api.id || api.apiId}>
+                                            {api.apiname || api.apiName || api.name || `API #${api.id}`}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div className={styles.formGroup}>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Search</label>
@@ -212,8 +307,7 @@ const DisputeRecharge = () => {
                 </div>
             </div>
 
-            {/* ── STATS GRID ── */}
-            <StatsGrid stats={stats} showStats={showStats} />
+                        <StatsGrid stats={stats} showStats={showStats} />
 
             {/* ── DATA TABLE ── */}
             <div className={styles.cardFullMobile} style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.02)' }}>
@@ -404,8 +498,7 @@ const DisputeRecharge = () => {
                 </div>
             </div>
 
-            {/* ── CONFIRMATION MODAL ── */}
-            {confirmModal.isOpen && (
+                        {confirmModal.isOpen && (
                 <div style={{
                     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                     background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(8px)',
@@ -458,8 +551,7 @@ const DisputeRecharge = () => {
                 </div>
             )}
 
-            {/* ── RECEIPT MODAL ── */}
-            <ReceiptModal
+                        <ReceiptModal
                 isOpen={!!activeReceipt}
                 onClose={() => setActiveReceipt(null)}
                 data={activeReceipt ? {

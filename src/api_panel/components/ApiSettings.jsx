@@ -14,15 +14,11 @@ const ApiSettings = () => {
   const [activeTab, setActiveTab] = useState('ApiCredentials');
   const [showSecret, setShowSecret] = useState(false);
 
-  // Real client credential state (was hardcoded fake strings before)
-  const [clientId, setClientId] = useState('');
+    const [clientId, setClientId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
   const [credError, setCredError] = useState('');
 
-  // OTP verification modal shared by both "Generate New" (CreateWithOtp) and
-  // "View Secret" (RevealSecretWithOtp) - both need SendOtp -> enter OTP first.
-  const [otpModal, setOtpModal] = useState({ open: false, mode: null }); // mode: 'create' | 'reveal'
-  const [otpToken, setOtpToken] = useState('');
+      const [otpModal, setOtpModal] = useState({ open: false, mode: null });   const [otpToken, setOtpToken] = useState('');
   const [otpValue, setOtpValue] = useState('');
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
@@ -33,9 +29,7 @@ const ApiSettings = () => {
     alert('Copied to clipboard!');
   };
 
-  // Kicks off SendOtp and opens the OTP entry modal for whichever action
-  // ("create" a new credential, or "reveal" the existing secret) was requested.
-  const startOtpFlow = async (mode) => {
+      const startOtpFlow = async (mode) => {
     setCredError('');
     setOtpError('');
     setSendingOtp(true);
@@ -105,9 +99,7 @@ const ApiSettings = () => {
     }
   };
 
-  // "View" toggles visibility if we already have the secret in memory;
-  // otherwise it needs a fresh OTP to actually reveal it from the server.
-  const handleViewSecretClick = () => {
+      const handleViewSecretClick = () => {
     if (clientSecret) {
       setShowSecret(v => !v);
     } else {
@@ -125,8 +117,7 @@ const ApiSettings = () => {
   return (
     <div className={`${styles.settingsContainer} ${isDarkMode ? styles.dark : ''}`}>
       <div className={styles.settingsCard}>
-        {/* Sidebar Navigation */}
-        <div className={styles.sidebar}>
+                <div className={styles.sidebar}>
           {tabs.map(tab => (
             <button 
               key={tab.id}
@@ -139,8 +130,7 @@ const ApiSettings = () => {
           ))}
         </div>
 
-        {/* Content Area */}
-        <div className={styles.contentArea}>
+                <div className={styles.contentArea}>
           
           {activeTab === 'ApiCredentials' && (
             <div>
@@ -263,8 +253,7 @@ const ApiSettings = () => {
         </div>
       </div>
 
-      {/* OTP VERIFICATION MODAL - shared by "Generate New" and "View Secret" */}
-      {otpModal.open && (
+            {otpModal.open && (
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
           onClick={closeOtpModal}

@@ -23,7 +23,6 @@ import styles from '../../pages/LoginPage.module.css';
 import { decodeToken, saveSession, getSession } from '../../utils/authUtils';
 import { checkMaliciousInput } from '../../utils/securityUtils';
 
-
 const AdminLoginPage = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -34,15 +33,10 @@ const AdminLoginPage = () => {
   const [error, setError] = useState('');
   const [locationStatus, setLocationStatus] = useState(null);
 
-  // Step 3: OTP / T-PIN verification (LoginUser can respond with
-  // data.status === "OTP" or "TPIN" instead of logging in directly)
-  const [authMode, setAuthMode] = useState(null); // 'OTP' | 'TPIN' | null
-  const [verifyToken, setVerifyToken] = useState('');
+      const [authMode, setAuthMode] = useState(null);   const [verifyToken, setVerifyToken] = useState('');
   const [otpValue, setOtpValue] = useState('');
-  const [loginLocation, setLoginLocation] = useState(null); // coords captured at password step, reused for OTP/TPIN verify
-
-  // Forgot password modal (real 2-step API: forget-password -> verify-forget-password)
-  const [forgotModalOpen, setForgotModalOpen] = useState(false);
+  const [loginLocation, setLoginLocation] = useState(null); 
+    const [forgotModalOpen, setForgotModalOpen] = useState(false);
   const [forgotStep, setForgotStep] = useState(1);
   const [forgotModalLoading, setForgotModalLoading] = useState(false);
   const [forgotModalError, setForgotModalError] = useState('');
@@ -54,8 +48,7 @@ const AdminLoginPage = () => {
   const [newPassword, setNewPassword] = useState('');
   const [rePassword, setRePassword] = useState('');
 
-  // Brute-force protection: Lockout after 5 failed attempts
-  const [failedAttempts, setFailedAttempts] = useState(() => {
+    const [failedAttempts, setFailedAttempts] = useState(() => {
     const attempts = localStorage.getItem('admin_login_attempts');
     return attempts ? parseInt(attempts, 10) : 0;
   });
@@ -65,8 +58,7 @@ const AdminLoginPage = () => {
   });
   const [remainingTime, setRemainingTime] = useState(0);
 
-  // Auto-redirect if already logged in
-  useEffect(() => {
+    useEffect(() => {
     const token = localStorage.getItem('admin_token');
     const session = getSession();
     if (token && session && session.sessionId) {
@@ -77,8 +69,7 @@ const AdminLoginPage = () => {
     }
   }, [navigate]);
 
-  // Lockout countdown timer
-  useEffect(() => {
+    useEffect(() => {
     if (lockoutUntil > Date.now()) {
       setRemainingTime(Math.ceil((lockoutUntil - Date.now()) / 1000));
       const interval = setInterval(() => {
@@ -176,14 +167,8 @@ const AdminLoginPage = () => {
     return '127.0.0.1';
   };
 
-  // Shared "final success" handler used both when LoginUser logs in directly
-  // and when VerifyLoginOTP / VerifyLoginTPIN completes the login.
-  // `location` = the coordinates captured on the password step, so they can
-  // be carried into the session and, from there, into the UserLoginHistory
-  // record created in App.jsx (instead of hardcoded 0,0).
-  const completeAdminLogin = (decoded, token, location, clientIp) => {
-    // Reset brute force counters on success
-    localStorage.removeItem('admin_login_attempts');
+            const completeAdminLogin = (decoded, token, location, clientIp) => {
+        localStorage.removeItem('admin_login_attempts');
     localStorage.removeItem('admin_lockout_until');
     setFailedAttempts(0);
     setLockoutUntil(0);
@@ -193,13 +178,9 @@ const AdminLoginPage = () => {
     sessionStorage.setItem('admin_token', token);
     sessionStorage.setItem('access_token', token);
 
-    // Extract the real numeric user ID from the JWT payload - same as member
-    // login does - so admin-only calls (e.g. Member/GetByID for the wallet
-    // header) have a valid ID to hit instead of falling back to 0/empty.
-    const numericId = decoded?.sub || decoded?.id || decoded?.nameid || '0';
+                const numericId = decoded?.sub || decoded?.id || decoded?.nameid || '0';
 
-    // Save the secure session
-    saveSession({
+        saveSession({
       adminId,
       fullName: decoded.name || 'Admin',
       role: 1,
@@ -238,10 +219,7 @@ const AdminLoginPage = () => {
     try {
       const position = await checkLocationBeforeLogin();
 
-      // Reuse the coordinates we just captured above instead of letting the
-      // API layer fire a second, separate geolocation request - that second
-      // request was what silently dropped lat/long from the login payload.
-      const capturedLocation = {
+                        const capturedLocation = {
         latitude: position?.coords?.latitude ?? 0,
         longitude: position?.coords?.longitude ?? 0,
         accuracy: position?.coords?.accuracy ?? 0,
@@ -255,14 +233,11 @@ const AdminLoginPage = () => {
       });
 
       if (response.status) {
-        // Backend wants a second factor before granting access
-        if (response.authStatus === 'OTP' || response.authStatus === 'TPIN') {
+                if (response.authStatus === 'OTP' || response.authStatus === 'TPIN') {
           const pendingToken = response.data?.refreshToken || response.refreshToken;
           if (!pendingToken) throw new Error("Verification token missing from server");
 
-          // Keep the same coordinates for the verify step below, instead of
-          // asking the browser for location a third time.
-          setLoginLocation(capturedLocation);
+                              setLoginLocation(capturedLocation);
           setVerifyToken(pendingToken);
           setAuthMode(response.authStatus);
           setOtpValue('');
@@ -290,21 +265,18 @@ const AdminLoginPage = () => {
       setFailedAttempts(newAttempts);
       localStorage.setItem('admin_login_attempts', newAttempts);
 
-      // Generic auth error to prevent credential enumeration
-      let errorMsg = "Invalid Login Credentials.";
+            let errorMsg = "Invalid Login Credentials.";
 
       if (err.message && (err.message.toLowerCase().includes('location') || err.message.toLowerCase().includes('unauthorized'))) {
         errorMsg = err.message;
       }
 
       if (newAttempts >= 5) {
-        const lockoutTime = Date.now() + 5 * 60 * 1000; // 5 minutes lockout
-        setLockoutUntil(lockoutTime);
+        const lockoutTime = Date.now() + 5 * 60 * 1000;         setLockoutUntil(lockoutTime);
         localStorage.setItem('admin_lockout_until', lockoutTime);
         errorMsg = "Too many failed attempts. Account locked out for 5 minutes.";
       } else {
-        // Only append attempt count if it's a login failure, not a location failure
-        if (!errorMsg.toLowerCase().includes('location')) {
+                if (!errorMsg.toLowerCase().includes('location')) {
           errorMsg = `${errorMsg} (Attempt ${newAttempts}/5)`;
         }
       }
@@ -473,8 +445,7 @@ const AdminLoginPage = () => {
   return (
     <div className={styles.page}>
       <div className={styles.loginContainer}>
-        {/* LEFT PANEL: Branding & Visuals */}
-        <div className={styles.brandingPanel} style={{ background: 'linear-gradient(135deg, #06113C 0%, #1756AA 100%)' }}>
+                <div className={styles.brandingPanel} style={{ background: 'linear-gradient(135deg, #06113C 0%, #1756AA 100%)' }}>
           <div className={styles.brandingContent}>
             <Link to="/" className={styles.logoWrap}>
               <img src={SITE_CONFIG.logo} alt="Logo" className={styles.logoImg} />
@@ -509,11 +480,9 @@ const AdminLoginPage = () => {
           </div>
         </div>
 
-        {/* RIGHT PANEL: Authentication Form */}
-        <div className={styles.authPanel}>
+                <div className={styles.authPanel}>
           <div className={styles.formCard}>
-             {/* Mobile Logo */}
-             <div className={styles.mobileLogoBox}>
+                          <div className={styles.mobileLogoBox}>
                <img src={SITE_CONFIG.logo} alt="Logo" className={styles.mobileLogo} />
              </div>
 
@@ -688,8 +657,7 @@ const AdminLoginPage = () => {
         </div>
       </div>
 
-      {/* FORGOT PASSWORD MODAL */}
-      {forgotModalOpen && (
+            {forgotModalOpen && (
         <div className={styles.modalOverlay} onClick={closeForgotModal}>
           <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
             <button className={styles.closeModalBtn} onClick={closeForgotModal}><FaTimes /></button>

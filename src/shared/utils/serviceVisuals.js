@@ -1,11 +1,3 @@
-// src/shared/utils/serviceVisuals.js
-//
-// Shared keyword -> {icon, color} lookup used to render the dynamic service
-// tiles (Member / Admin / API-panel dashboards) once the actual service list
-// comes from the backend (Service master table) instead of a hardcoded array.
-// Matching is done by keyword against the service's `name` field so any
-// service already known to the UI gets its familiar icon/color, and anything
-// new/unrecognized still renders sensibly with a default.
 import React from 'react';
 import {
   FaMoneyBillWave, FaMobileAlt, FaFingerprint, FaWallet, FaExchangeAlt,
@@ -52,10 +44,6 @@ export const getServiceVisual = (name = '') => {
 
 export const getServiceColor = (name = '') => getServiceVisual(name).color;
 
-// Some dashboards (e.g. the admin Services Overview list) only support a
-// fixed 4-color CSS palette (green/red/blue/yellow) rather than arbitrary hex
-// values. Deterministically bucket each service name into one of those so
-// the same service always gets the same palette color across renders.
 const PALETTE = ['green', 'blue', 'red', 'yellow'];
 export const getServicePaletteColor = (name = '') => {
   const n = String(name || '');

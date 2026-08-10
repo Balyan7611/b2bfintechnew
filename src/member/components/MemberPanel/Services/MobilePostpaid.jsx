@@ -126,8 +126,7 @@ const MobilePostpaid = () => {
         ))}
       </div>
 
-      {/* Bill Payment Modal */}
-      {selectedProvider && (
+            {selectedProvider && (
         <div className={styles.modalOverlay} onClick={handleCloseModal}>
           <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalTopHeader}>

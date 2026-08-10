@@ -13,7 +13,6 @@
   color: #f1f5f9;
 }
 
-/* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -64,7 +63,6 @@
   opacity: 0;
 }
 
-/* --- Top Status Cards Grid --- */
 .statusGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -145,21 +143,17 @@
   z-index: 1;
 }
 
-/* Glassmorphism Gradients (Original Colors but translucent) */
 .blueCard { background: linear-gradient(135deg, rgba(14, 165, 233, 0.85), rgba(2, 132, 199, 0.85)); }
 .greenCard { background: linear-gradient(135deg, rgba(16, 185, 129, 0.85), rgba(5, 150, 105, 0.85)); }
 .purpleCard { background: linear-gradient(135deg, rgba(139, 92, 246, 0.85), rgba(124, 58, 237, 0.85)); }
 .orangeCard { background: linear-gradient(135deg, rgba(245, 158, 11, 0.85), rgba(217, 119, 6, 0.85)); }
 
-
-/* --- Middle Section Grid (Live Deck + Radar) --- */
 .middleGrid {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-/* Generic Panel Styling */
 .panel {
   background: white;
   border-radius: 12px;
@@ -197,7 +191,6 @@
   margin: 0;
 }
 
-/* Service Live Deck Specifics */
 .deckHeaderRight {
   display: flex;
   align-items: center;
@@ -252,7 +245,6 @@
   }
 }
 
-/* Engine Health Radial Chart */
 .engineHealthCol {
   flex: 0 0 200px;
   display: flex;
@@ -329,7 +321,6 @@
   border-radius: 50%;
 }
 
-/* Focus Lane Controls */
 .focusLaneCol {
   flex: 1;
 }
@@ -501,7 +492,6 @@
   animation: progressMove 1s linear infinite;
 }
 
-/* Compact Money Footers */
 .deckFooter {
   display: flex;
   align-items: center;
@@ -554,8 +544,6 @@
 
 .dark .footerDivider { background-color: #334155; }
 
-
-/* Escalation Radar (Full width row) */
 .radarGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -613,7 +601,6 @@
   line-height: 1.5;
 }
 
-/* Radar Themes */
 .radarGreen {
   border-color: #bbf7d0;
 }
@@ -641,7 +628,6 @@
   line-height: 1.5;
 }
 
-/* --- QUICK SERVICES SECTION --- */
 .servicesSection {
   background: #ffffff;
   border-radius: 20px;
@@ -707,7 +693,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Add staggered animation delays for children */
 .overviewCard:nth-child(1) { animation-delay: 0.1s; }
 .overviewCard:nth-child(2) { animation-delay: 0.15s; }
 .overviewCard:nth-child(3) { animation-delay: 0.2s; }
@@ -846,7 +831,6 @@
   animation: fillProgress 2.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
-/* Staggered progress bar fill start delays to match card entry */
 .overviewCard:nth-child(1) .overviewProgressBar { animation-delay: 0.3s; }
 .overviewCard:nth-child(2) .overviewProgressBar { animation-delay: 0.35s; }
 .overviewCard:nth-child(3) .overviewProgressBar { animation-delay: 0.4s; }

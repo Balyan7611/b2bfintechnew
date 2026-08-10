@@ -16,27 +16,22 @@ const ApiHome = () => {
   const [currentTime, setCurrentTime] = useState('');
   const [healthScore, setHealthScore] = useState(0);
 
-  // Overview State
-  const [overviewMetrics, setOverviewMetrics] = useState({
+    const [overviewMetrics, setOverviewMetrics] = useState({
     todayVolume: 0,
     todayCommission: 0,
     successRatio: 0,
     totalTransactions: 0
   });
 
-  // Recent Transactions State
-  const [recentTxns, setRecentTxns] = useState([]);
+    const [recentTxns, setRecentTxns] = useState([]);
   const [txnSearchQuery, setTxnSearchQuery] = useState('');
   const [txnRowsPerPage, setTxnRowsPerPage] = useState(10);
   const [txnCurrentPage, setTxnCurrentPage] = useState(1);
 
-  // Smooth count up animation for health score
-  useEffect(() => {
+    useEffect(() => {
     let start = 0;
     const end = 97;
-    const duration = 1500; // 1.5 seconds
-    const increment = end / (duration / 16); // 60fps
-
+    const duration = 1500;     const increment = end / (duration / 16); 
     const timer = setInterval(() => {
       start += increment;
       if (start >= end) {
@@ -89,10 +84,7 @@ const ApiHome = () => {
     }
   };
 
-  // Seeded with the old static tiles so the section never looks empty, then
-  // replaced with the live, active-only service list from the backend
-  // (Service master table) as soon as it loads.
-  const [quickServices, setQuickServices] = useState([
+        const [quickServices, setQuickServices] = useState([
     { name: 'DMT', icon: <FaMoneyBillWave />, color: '#8E24AA', value: '₹ 0.00', max: '₹ 0.00', usagePercent: 0 },
     { name: 'RECHARGE', icon: <FaMobileAlt />, color: '#1E88E5', value: '₹ 0.00', max: '₹ 0.00', usagePercent: 0 },
     { name: 'AEPS', icon: <FaFingerprint />, color: '#43A047', value: '₹ 0.00', max: '₹ 0.00', usagePercent: 0 },
@@ -108,24 +100,20 @@ const ApiHome = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Fetch Overview
-        const overviewRes = await API.apiPartnerDashboard.getOverview();
+                const overviewRes = await API.apiPartnerDashboard.getOverview();
         if (overviewRes?.data) {
           setOverviewMetrics(overviewRes.data);
-        } else if (overviewRes?.data?.data) { // Handle double nested data if present
-          setOverviewMetrics(overviewRes.data.data);
+        } else if (overviewRes?.data?.data) {           setOverviewMetrics(overviewRes.data.data);
         }
 
-        // Fetch Recent Transactions
-        const txnsRes = await API.apiPartnerDashboard.getRecentTransactions(10);
+                const txnsRes = await API.apiPartnerDashboard.getRecentTransactions(10);
         if (txnsRes?.data) {
           setRecentTxns(Array.isArray(txnsRes.data) ? txnsRes.data : []);
         } else if (txnsRes?.data?.data) {
           setRecentTxns(Array.isArray(txnsRes.data.data) ? txnsRes.data.data : []);
         }
 
-        // Fetch Assigned Services directly from ApiPartner endpoint
-        const servicesRes = await API.apiPartnerDashboard.getAssignedServices();
+                const servicesRes = await API.apiPartnerDashboard.getAssignedServices();
         let assignedServices = [];
         if (Array.isArray(servicesRes?.data)) assignedServices = servicesRes.data;
         else if (Array.isArray(servicesRes?.data?.data)) assignedServices = servicesRes.data.data;
@@ -164,8 +152,7 @@ const ApiHome = () => {
   return (
     <div className={`${styles.container} ${isDarkMode ? styles.dark : ''}`}>
       
-      {/* Top Status Cards */}
-      <div className={styles.statusGrid}>
+            <div className={styles.statusGrid}>
         <div className={`${styles.statusCard} ${styles.blueCard} ${styles.animateCardPop}`} style={{ animationDelay: '0.1s' }}>
           <div className={styles.cardGlow}></div>
           <div className={styles.cardTitle}>TODAY'S VOLUME</div>
@@ -192,8 +179,7 @@ const ApiHome = () => {
         </div>
       </div>
 
-      {/* SERVICES OVERVIEW SECTION */}
-      <div className={`${styles.servicesSection} ${styles.animateFadeIn}`} style={{ animationDelay: '0.45s' }}>
+            <div className={`${styles.servicesSection} ${styles.animateFadeIn}`} style={{ animationDelay: '0.45s' }}>
         <div className={styles.servicesHeader}>
           <h2 className={styles.servicesTitle}>SERVICES OVERVIEW</h2>
           <p className={styles.servicesSubtitle}>Monitor API limits, daily usage, and active status in real-time</p>
@@ -234,11 +220,9 @@ const ApiHome = () => {
         </div>
       </div>
 
-      {/* Main Grid Layout */}
-      <div className={styles.middleGrid}>
+            <div className={styles.middleGrid}>
         
-        {/* Left Panel: Service Live Deck */}
-        <div className={`${styles.panel} ${styles.animateSlideUp}`} style={{ animationDelay: '0.5s' }}>
+                <div className={`${styles.panel} ${styles.animateSlideUp}`} style={{ animationDelay: '0.5s' }}>
           <div className={styles.panelHeader}>
             <div>
               <h2 className={styles.panelTitle}>SERVICE LIVE DECK</h2>
@@ -252,8 +236,7 @@ const ApiHome = () => {
           </div>
 
           <div className={styles.deckContent}>
-            {/* Chart Section */}
-            <div className={styles.engineHealthCol}>
+                        <div className={styles.engineHealthCol}>
               <div className={styles.radialChartWrapper}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -294,8 +277,7 @@ const ApiHome = () => {
               </div>
             </div>
 
-            {/* Focus Lane Section */}
-            <div className={styles.focusLaneCol}>
+                        <div className={styles.focusLaneCol}>
               <div className={styles.laneLabel}>Focus a lane:</div>
               <div className={styles.laneToggles}>
                 {Object.keys(laneData).map(lane => (
@@ -351,8 +333,7 @@ const ApiHome = () => {
             </div>
           </div>
 
-          {/* Money Footers (Compact) */}
-          <div className={styles.deckFooter}>
+                    <div className={styles.deckFooter}>
             <div className={`${styles.footerStat} ${styles.cleared}`}>
               <div className={styles.footerStatHeader}>
                 <FaCheckCircle className={styles.footerIcon} />
@@ -371,8 +352,7 @@ const ApiHome = () => {
           </div>
         </div>
 
-        {/* Right Panel: Escalation Radar */}
-        <div className={`${styles.panel} ${styles.animateSlideUp}`} style={{ animationDelay: '0.6s' }}>
+                <div className={`${styles.panel} ${styles.animateSlideUp}`} style={{ animationDelay: '0.6s' }}>
           <div className={styles.panelHeader}>
             <div>
               <h2 className={styles.panelTitle}>ESCALATION RADAR</h2>
@@ -418,8 +398,7 @@ const ApiHome = () => {
 
       </div>
 
-      {/* RECENT TRANSACTIONS SECTION */}
-      <div style={{ marginTop: '20px', animationDelay: '0.7s' }} className={styles.animateFadeIn}>
+            <div style={{ marginTop: '20px', animationDelay: '0.7s' }} className={styles.animateFadeIn}>
         <AdminTable
           title="RECENT TRANSACTIONS"
           subtitle="Your latest API activities and status"
@@ -458,4 +437,3 @@ const ApiHome = () => {
 };
 
 export default ApiHome;
-

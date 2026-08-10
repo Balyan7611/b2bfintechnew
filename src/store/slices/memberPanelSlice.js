@@ -64,9 +64,7 @@ const memberPanelSlice = createSlice({
     setSearchTerm: (state, action) => {
       state.searchTerm = action.payload;
     },
-    // Replaces the (initially hardcoded/dummy) service tiles with the live,
-    // active-only service list fetched from the backend Service master table.
-    setServiceCards: (state, action) => {
+            setServiceCards: (state, action) => {
       state.serviceCards = Array.isArray(action.payload) ? action.payload : [];
     },
     setActiveTab: (state, action) => {
@@ -129,8 +127,7 @@ const memberPanelSlice = createSlice({
         icon: action.payload.icon
       };
 
-      // Always fetch latest from localStorage to avoid reviving deleted messages from other tabs
-      const currentStorage = localStorage.getItem('local_notifications');
+            const currentStorage = localStorage.getItem('local_notifications');
       if (currentStorage) {
          state.notifList = JSON.parse(currentStorage);
       } else {
@@ -148,8 +145,7 @@ const memberPanelSlice = createSlice({
     },
     syncNotifications: (state, action) => {
       const newList = action.payload;
-      // If we are getting new items that aren't in our current list, increase unread
-      if (newList.length > state.notifList.length) {
+            if (newList.length > state.notifList.length) {
          state.unreadNotif += (newList.length - state.notifList.length);
       } else if (newList.length === 0) {
          state.unreadNotif = 0;

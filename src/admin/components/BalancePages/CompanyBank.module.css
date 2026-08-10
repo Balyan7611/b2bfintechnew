@@ -38,7 +38,6 @@
   border-bottom: 1.5px solid #EDF2F7;
 }
 
-/* ── FORM GRID ── */
 .formGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -94,7 +93,6 @@
   font-size: 0.8rem;
 }
 
-/* ── TABS ── */
 .tabsWrapper {
   display: flex;
   gap: 24px;
@@ -166,7 +164,6 @@
   color: #4E6080;
 }
 
-/* ── PREMIUM SWITCH ── */
 .switch {
   position: relative;
   display: inline-block;
@@ -227,7 +224,6 @@ input:checked + .slider:before {
   box-shadow: 0 6px 18px rgba(23, 86, 170, 0.3);
 }
 
-/* ── TABLE CONTROLS ── */
 .topControls {
   display: flex;
   align-items: center;
@@ -297,7 +293,6 @@ input:checked + .slider:before {
 .searchIcon { color: #A0AEC0; }
 .searchInput { border: none; outline: none; font-size: 0.9rem; color: #0D1B3E; width: 200px; background: transparent; font-weight: 500; }
 
-/* ── TABLE ── */
 .tableWrapper {
   width: 100%;
   overflow-x: auto;
@@ -369,7 +364,6 @@ input:checked + .slider:before {
 
 .noData { text-align: center; padding: 40px !important; color: #A0AEC0; font-weight: 500; }
 
-/* ── PAGINATION ── */
 .paginationRow {
   display: flex; justify-content: space-between; align-items: center;
   margin-top: 20px; flex-wrap: wrap; gap: 16px;
@@ -403,7 +397,6 @@ input:checked + .slider:before {
   .paginationRow { flex-direction: column; text-align: center; }
 }
 
-/* ── MODAL STYLES ── */
 .modalOverlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -503,4 +496,3 @@ input:checked + .slider:before {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(23, 86, 170, 0.3);
 }
-

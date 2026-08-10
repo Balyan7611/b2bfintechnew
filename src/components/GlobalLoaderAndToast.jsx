@@ -11,8 +11,7 @@ export const GlobalLoaderAndToast = () => {
 
     useEffect(() => {
         if (globalNotification) {
-            // Auto clear notification after 2 seconds
-            const timer = setTimeout(() => {
+                        const timer = setTimeout(() => {
                 dispatch(clearNotification());
             }, 2000);
             return () => clearTimeout(timer);
@@ -21,8 +20,7 @@ export const GlobalLoaderAndToast = () => {
 
     return (
         <>
-            {/* Global Loader Overlay */}
-            {globalLoading && (
+                        {globalLoading && (
                 <div className={styles.loaderOverlay}>
                     <div className={styles.loaderContent}>
                         <FaSpinner className={styles.spinner} />
@@ -31,8 +29,7 @@ export const GlobalLoaderAndToast = () => {
                 </div>
             )}
 
-            {/* Global Toast Notification */}
-            {globalNotification && (
+                        {globalNotification && (
                 <div 
                     className={`${styles.toast} ${
                         globalNotification.type === 'success' ? styles.toastSuccess : styles.toastError

@@ -1,10 +1,7 @@
 import { apiService } from '../api/httpClient';
 
-/* ── Normalize any response shape into { items, totalItems, totalSuccess, totalPending, totalFailed } ── */
 export const normalizeTxnResponse = (res) => {
-  // New API: { isSuccess, data: { items, totalItems, totalSuccess, totalPending, totalFailed } }
-  // Old API: { status: true, data: [...] } or { status: true, data: { items: [...] } }
-  const d = res?.data ?? res;
+      const d = res?.data ?? res;
 
   let items = [];
   if (Array.isArray(d?.items))      items = d.items;
@@ -23,8 +20,7 @@ export const normalizeTxnResponse = (res) => {
 };
 
 export const TransactionService = {
-  /* Get all / filtered transactions */
-  getAll: async ({
+    getAll: async ({
     pageNumber = 1, pageSize = 10,
     fromDate = '', toDate = '',
     serviceId = '', sectionType = '',
@@ -43,11 +39,9 @@ export const TransactionService = {
     if (status)      p.append('Status',      status);
     if (keyword)     p.append('Keyword',     keyword);
     const res = await apiService.get(`/Transaction/get-all?${p.toString()}`);
-    return res; // raw — callers can use normalizeTxnResponse(res) or the old shape checks
-  },
+    return res;   },
 
-  /* Global keyword search */
-  search: async ({ searchTerm = '', pageNumber = 1, pageSize = 10 } = {}) => {
+    search: async ({ searchTerm = '', pageNumber = 1, pageSize = 10 } = {}) => {
     const p = new URLSearchParams({
       searchTerm: searchTerm,
       PageNumber:  pageNumber,

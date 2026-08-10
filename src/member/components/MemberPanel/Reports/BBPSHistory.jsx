@@ -49,7 +49,6 @@ const BBPSHistory = () => {
 
   }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
 
-
   const fetchData = async () => {
     try {
       const res = await API.transaction.getAll({
@@ -72,9 +71,7 @@ const BBPSHistory = () => {
     }
   };
 
-  // Auto-fetch on mount and when filters/page change
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
+      useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
 
   const filteredList = list.filter(item => item.consumer?.toLowerCase().includes(searchQuery.toLowerCase()) || item.txnId?.toLowerCase().includes(searchQuery.toLowerCase()));
 

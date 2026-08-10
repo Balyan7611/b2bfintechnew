@@ -26,8 +26,7 @@ const AddBank = () => {
     addBankIsActive 
   } = useSelector((s) => s.balance);
   
-  // Use local state for the list to demonstrate 'Add' functionality
-  const [localBankList, setLocalBankList] = useState([]);
+    const [localBankList, setLocalBankList] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
   
   const fetchBanks = async () => {
@@ -59,8 +58,7 @@ const AddBank = () => {
   const panelRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Local State
-  const [manualBankName, setManualBankName] = useState('');
+    const [manualBankName, setManualBankName] = useState('');
   const [manualIfsc, setManualIfsc] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -71,8 +69,7 @@ const AddBank = () => {
   const [showSmartPanel, setShowSmartPanel] = useState(false);
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
 
-  // Bank master configurations
-  const [dailyLimit, setDailyLimit] = useState(1000000.00);
+    const [dailyLimit, setDailyLimit] = useState(1000000.00);
   const [perTransactionLimit, setPerTransactionLimit] = useState(200000.00);
   const [isRbirestricted, setIsRbirestricted] = useState(false);
   const [restrictionReason, setRestrictionReason] = useState('');
@@ -85,25 +82,21 @@ const AddBank = () => {
   const [maxTpsallowed, setMaxTpsallowed] = useState(10);
   const [priorityOrder, setPriorityOrder] = useState(1);
 
-  // Filter banks based on search query for the Smart Panel
-  const filteredBanks = addBankList.filter(bank => 
+    const filteredBanks = addBankList.filter(bank => 
     bank.name.toLowerCase().includes(addBankSearchQuery.toLowerCase()) || 
     bank.ifsc.toLowerCase().includes(addBankSearchQuery.toLowerCase())
   );
 
-  // Filter for Table
-  const tableFilteredData = localBankList.filter(item => 
+    const tableFilteredData = localBankList.filter(item => 
     item.name.toLowerCase().includes(tableSearch.toLowerCase()) ||
     item.ifsc.toLowerCase().includes(tableSearch.toLowerCase())
   );
 
-  // Pagination
-  const totalPages = Math.ceil(tableFilteredData.length / rowsPerPage);
+    const totalPages = Math.ceil(tableFilteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const currentData = tableFilteredData.slice(startIndex, startIndex + rowsPerPage);
 
-  // Click outside to close panel
-  useEffect(() => {
+    useEffect(() => {
     const handleClickOutside = (event) => {
       if (
         panelRef.current && !panelRef.current.contains(event.target) &&
@@ -240,8 +233,7 @@ const AddBank = () => {
   return (
     <div className={styles.container}>
       
-      {/* ── ADD/EDIT MODAL ── */}
-      {(isAddModalOpen || isEditModalOpen) && (
+            {(isAddModalOpen || isEditModalOpen) && (
         <div className={styles.modalOverlay} onClick={closeModals}>
           <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
@@ -320,8 +312,7 @@ const AddBank = () => {
                 </div>
               </div>
 
-              {/* Feature checkboxes */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginTop: '16px', borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginTop: '16px', borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', cursor: 'pointer' }}>
                   <input type="checkbox" checked={supportsImps} onChange={(e) => setSupportsImps(e.target.checked)} />
                   Supports IMPS
@@ -348,8 +339,7 @@ const AddBank = () => {
                 </label>
               </div>
 
-              {/* RBI Restriction Row */}
-              <div style={{ marginTop: '16px', borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>
+                            <div style={{ marginTop: '16px', borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', cursor: 'pointer', marginBottom: '8px' }}>
                   <input type="checkbox" checked={isRbirestricted} onChange={(e) => setIsRbirestricted(e.target.checked)} />
                   <span className={styles.fwBold} style={{ color: '#E53E3E' }}>RBI Restricted</span>
@@ -367,8 +357,7 @@ const AddBank = () => {
                 )}
               </div>
 
-              {/* Status Row */}
-              <div className={styles.statusRow}>
+                            <div className={styles.statusRow}>
                 <div className={styles.statusLabel}>
                   <span className={styles.fwBold}>Account Status</span>
                   <span className={styles.subText}>Enable or disable this bank account</span>
@@ -393,8 +382,7 @@ const AddBank = () => {
           </div>
         </div>
       )}
-      {/* ── DELETE CONFIRMATION MODAL ── */}
-      {deleteModal.open && (
+            {deleteModal.open && (
         <div className={styles.modalOverlay} onClick={() => setDeleteModal({ open: false, id: null })}>
           <div className={styles.deleteModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.deleteIconBox}>
@@ -410,8 +398,7 @@ const AddBank = () => {
         </div>
       )}
 
-      {/* Full List Table Card */}
-      <div className={styles.card}>
+            <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h2 className={styles.pageTitle} style={{ marginBottom: 0, borderBottom: 'none', paddingBottom: 0 }}>
             Bank List Management
@@ -427,8 +414,7 @@ const AddBank = () => {
           </div>
         )}
 
-        {/* Top Controls */}
-        <div className={styles.topControls}>
+                <div className={styles.topControls}>
           <div className={styles.rowsSelector}>
             <span>Show</span>
             <select 
@@ -481,8 +467,7 @@ const AddBank = () => {
                   <td className={styles.snoCell}>{startIndex + index + 1}</td>
                   <td>
                     <div className={styles.bankNameWrapper}>
-                      {/* ✅ LIGHT-COLORED BADGE (DOT) BEFORE BANK NAME */}
-                      <span className={styles.statusDot} style={{ backgroundColor: row.isActive ? '#22C55E' : '#94A3B8' }}></span>
+                                            <span className={styles.statusDot} style={{ backgroundColor: row.isActive ? '#22C55E' : '#94A3B8' }}></span>
                       <span className={styles.fwBold}>{row.name}</span>
                     </div>
                   </td>
@@ -541,8 +526,7 @@ const AddBank = () => {
           </table>
         </div>
 
-        {/* Pagination */}
-        <div className={styles.paginationRow}>
+                <div className={styles.paginationRow}>
           <div className={styles.pageInfo}>
             Showing {tableFilteredData.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, tableFilteredData.length)} of {tableFilteredData.length} entries
           </div>

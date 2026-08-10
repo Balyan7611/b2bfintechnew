@@ -3,7 +3,6 @@ import { API } from '../../../api/endpoints';
 import { FiUserCheck, FiPackage, FiCheckSquare, FiChevronRight, FiCheck, FiAlertCircle, FiXCircle } from 'react-icons/fi';
 import styles from '../MemberPages/MemberPages.module.css';
 
-// ── Premium Popup Modal Component ──────────────────────────────────────────────
 const PopupModal = ({ show, type, title, message, onClose }) => {
   if (!show) return null;
 
@@ -57,10 +56,8 @@ const PopupModal = ({ show, type, title, message, onClose }) => {
         overflow: 'hidden',
         animation: 'slideUp 0.25s ease',
       }}>
-        {/* Coloured top strip */}
-        <div style={{ background: c.bg, padding: '28px 28px 20px', textAlign: 'center' }}>
-          {/* Icon circle */}
-          <div style={{
+                <div style={{ background: c.bg, padding: '28px 28px 20px', textAlign: 'center' }}>
+                    <div style={{
             width: '56px', height: '56px', borderRadius: '50%',
             background: c.iconBg,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -77,8 +74,7 @@ const PopupModal = ({ show, type, title, message, onClose }) => {
           </p>
         </div>
 
-        {/* Action button */}
-        <div style={{ padding: '16px 28px 22px', textAlign: 'center' }}>
+                <div style={{ padding: '16px 28px 22px', textAlign: 'center' }}>
           <button
             onClick={onClose}
             style={{
@@ -102,7 +98,6 @@ const PopupModal = ({ show, type, title, message, onClose }) => {
   );
 };
 
-// ── Main Component ─────────────────────────────────────────────────────────────
 const AssignPackage = () => {
   const [packages, setPackages] = useState([]);
   const [roles, setRoles] = useState([]);
@@ -110,8 +105,7 @@ const AssignPackage = () => {
   const [selectedPackages, setSelectedPackages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Popup state
-  const [popup, setPopup] = useState({ show: false, type: 'success', title: '', message: '' });
+    const [popup, setPopup] = useState({ show: false, type: 'success', title: '', message: '' });
 
   const showPopup = (type, title, message) => setPopup({ show: true, type, title, message });
   const closePopup = () => setPopup(p => ({ ...p, show: false }));
@@ -137,8 +131,7 @@ const AssignPackage = () => {
     fetchData();
   }, []);
 
-  // Sync selected packages when role or packages change
-  useEffect(() => {
+    useEffect(() => {
     if (selectedRoleId) {
       const matchingIds = packages
         .filter(p => String(p.roleId) === String(selectedRoleId))
@@ -186,8 +179,7 @@ const AssignPackage = () => {
       if (promises.length > 0) {
         await Promise.all(promises);
 
-        // Refresh packages list
-        const pkgRes = await API.package.getAll();
+                const pkgRes = await API.package.getAll();
         if (pkgRes && pkgRes.status === true && pkgRes.data) {
           const items = Array.isArray(pkgRes.data.items) ? pkgRes.data.items : (Array.isArray(pkgRes.data) ? pkgRes.data : []);
           setPackages(items);
@@ -208,8 +200,7 @@ const AssignPackage = () => {
   return (
     <div className={styles.container} style={{ padding: '5px 2px 0px 2px', maxWidth: '100%' }}>
 
-      {/* ── POPUP MODAL ── */}
-      <PopupModal
+            <PopupModal
         show={popup.show}
         type={popup.type}
         title={popup.title}
@@ -219,14 +210,12 @@ const AssignPackage = () => {
 
       {/* ── MAIN CARD ── */}
       <div className={styles.cardFullMobile} style={{ margin: '8px 8px 15px 8px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', background: '#fff', borderRadius: '16px' }}>
-        {/* CARD HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 20px', borderBottom: '1px solid #F1F5F9', marginBottom: '12px', minHeight: '34px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 20px', borderBottom: '1px solid #F1F5F9', marginBottom: '12px', minHeight: '34px' }}>
           <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0F172A' }}>Assign Package</h3>
         </div>
 
         <div style={{ padding: '0 25px 30px 25px' }}>
-          {/* ROLE SELECT */}
-          <div className={styles.formGroup} style={{ maxWidth: '600px', marginBottom: '35px' }}>
+                    <div className={styles.formGroup} style={{ maxWidth: '600px', marginBottom: '35px' }}>
             <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <FiUserCheck size={14} /> Select Role
             </label>
@@ -243,8 +232,7 @@ const AssignPackage = () => {
             </select>
           </div>
 
-          {/* PACKAGE SELECTION HEADER */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid #F1F5F9' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid #F1F5F9' }}>
             <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Available Packages</h4>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#F8FAFC', padding: '6px 12px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
               <input
@@ -259,8 +247,7 @@ const AssignPackage = () => {
             </div>
           </div>
 
-          {/* CHECKBOX GRID */}
-          <div style={{
+                    <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
             gap: '15px', marginBottom: '40px',
@@ -303,8 +290,7 @@ const AssignPackage = () => {
             )}
           </div>
 
-          {/* ACTION BUTTON */}
-          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
             <button
               onClick={handleApply}
               disabled={isSubmitting || !selectedRoleId}

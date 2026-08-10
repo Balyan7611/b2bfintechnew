@@ -20,8 +20,7 @@ const RegisterDetailsPage = () => {
   const { mobile, pan } = useSelector((s) => s.registration);
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [kycState, setKycState] = useState('initial'); // 'initial', 'otp_sent', 'verified'
-  const [kycForm, setKycForm] = useState({
+  const [kycState, setKycState] = useState('initial');   const [kycForm, setKycForm] = useState({
     memberType: 'Retailer', mobile: mobile || '', otp: '', pan: pan || ''
   });
   const [form, setForm] = useState({
@@ -147,8 +146,7 @@ const RegisterDetailsPage = () => {
   return (
     <div className={styles.page}>
       <div className={styles.registerContainer}>
-        {/* SIDEBAR: Progress & Info */}
-        <div className={styles.sidePanel}>
+                <div className={styles.sidePanel}>
            <Link to="/" className={styles.logoLink}>
               <img src={SITE_CONFIG.logo} alt="Logo" className={styles.logoImg} />
            </Link>
@@ -181,8 +179,7 @@ const RegisterDetailsPage = () => {
            </div>
         </div>
 
-        {/* MAIN FORM */}
-        <div className={styles.formPanel}>
+                <div className={styles.formPanel}>
            <div className={styles.topToolbar}>
               <button className={styles.backBtn} onClick={() => {
                 if (currentStep === 2) setCurrentStep(1);

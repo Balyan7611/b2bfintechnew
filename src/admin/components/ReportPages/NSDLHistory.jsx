@@ -9,20 +9,18 @@ import {
 } from 'react-icons/fi';
 import styles from '../MemberPages/MemberPages.module.css';
 import TransactionReceipt from '../../../member/components/MemberPanel/Services/TransactionReceipt';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 
-// Adjust this constant to match your NSDL service ID
-const NSDL_SERVICE_ID = '19'; // Change as per your backend
+const NSDL_SERVICE_ID = '19';
 
 const NSDLHistory = () => {
-    // ─── State ──────────────────────────────────────────────
-    const [transactions, setTransactions] = useState([]);
+        const [transactions, setTransactions] = useState([]);
     const [totalRecords, setTotalRecords] = useState(0);
     const [pageNumber, setPageNumber] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [loading, setLoading] = useState(false);
 
-    // Filters
-    const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(today);
     const [toDate, setToDate] = useState(today);
     const [selectedService, setSelectedService] = useState('');
@@ -30,17 +28,18 @@ const NSDLHistory = () => {
     const [selectedStatus, setSelectedStatus] = useState('');
     const [searchKeyword, setSearchKeyword] = useState('');
 
-    // Dropdown lists
-    const [serviceList, setServiceList] = useState([]);
+        const [serviceList, setServiceList] = useState([]);
     const [memberList, setMemberList] = useState([]);
+    const [operatorList, setOperatorList] = useState([]);
+    const [selectedOperator, setSelectedOperator] = useState('');
+    const [apiList, setApiList] = useState([]);
+    const [selectedApi, setSelectedApi] = useState('');
 
-    // UI states
-    const [showStats, setShowStats] = useState(false);
+        const [showStats, setShowStats] = useState(false);
     const [activeReceipt, setActiveReceipt] = useState(null);
     const [focusedField, setFocusedField] = useState(null);
 
-    // ─── Stats Computation ──────────────────────────────────
-    const totalTxns = totalRecords;
+        const totalTxns = totalRecords;
     const totalAmount = transactions.reduce((acc, t) => acc + (parseFloat(t.amount) || 0), 0);
     const successCount = transactions.filter(t => t.status?.toLowerCase() === 'success').length;
     const pendingCount = transactions.filter(t => t.status?.toLowerCase() === 'pending').length;
@@ -70,8 +69,7 @@ const NSDLHistory = () => {
         netPayable,
     };
 
-    // ─── API Calls ──────────────────────────────────────────
-    const fetchTransactions = async () => {
+        const fetchTransactions = async () => {
         setLoading(true);
         try {
             const res = await API.transaction.getAll({
@@ -79,8 +77,7 @@ const NSDLHistory = () => {
                 pageSize,
                 fromDate,
                 toDate,
-                sectionType: '1',   // Recharge (PAN/Bank verification)
-                serviceId: selectedService || NSDL_SERVICE_ID,
+                sectionType: '1',                   serviceId: selectedService || NSDL_SERVICE_ID,
                 memberId: selectedMember,
                 status: selectedStatus,
                 search: searchKeyword,
@@ -98,42 +95,74 @@ const NSDLHistory = () => {
         }
     };
 
-    // ─── Effects ────────────────────────────────────────────
-    useEffect(() => {
+        useEffect(() => {
         fetchTransactions();
     }, [pageNumber, pageSize, selectedStatus, selectedMember, selectedService, fromDate, toDate, searchKeyword]);
 
-    // Fetch dropdowns
-    useEffect(() => {
+        useEffect(() => {
         const fetchServices = async () => {
             try {
                 const res = await API.service.getAll();
-                if (res && Array.isArray(res.data)) setServiceList(res.data);
-                else if (Array.isArray(res)) setServiceList(res);
-                else setServiceList([]);
+                let list = [];
+                if (res && Array.isArray(res.data)) list = res.data;
+                else if (Array.isArray(res)) list = res;
+                else list = [];
+                const nsdlServices = list.filter(srv => String(srv.sectionType || '') === '1');
+                setServiceList(nsdlServices);
             } catch (err) { console.error("Error fetching services:", err); }
         };
         const fetchMembers = async () => {
             try {
-                const res = await API.member.search('');
-                if (res && Array.isArray(res.data)) setMemberList(res.data);
-                else if (Array.isArray(res)) setMemberList(res);
-                else setMemberList([]);
+                const res = await API.member.getAll({ pageNumber: 1, pageSize: 5000 });
+                const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+                setMemberList(Array.isArray(list) ? list : []);
             } catch (err) { console.error("Error fetching members:", err); }
         };
         fetchServices();
         fetchMembers();
     }, []);
 
-    // ─── Handlers ────────────────────────────────────────────
-    const handleSearchSubmit = (e) => {
+    useEffect(() => {
+        const fetchOperators = async () => {
+            try {
+                const res = await API.operator.getAll();
+                let allOps = [];
+                if (res?.data?.items) allOps = res.data.items;
+                else if (res?.data && Array.isArray(res.data)) allOps = res.data;
+                else if (Array.isArray(res)) allOps = res;
+
+                if (selectedService) {
+                    allOps = allOps.filter(op => String(op.serviceId) === String(selectedService));
+                }
+                setOperatorList(allOps);
+            } catch (err) {
+                console.error("Failed to fetch operators:", err);
+            }
+        };
+        fetchOperators();
+        setSelectedOperator('');
+    }, [selectedService]);
+
+    useEffect(() => {
+        const fetchApis = async () => {
+            try {
+                const res = await API.masterApi.getAll();
+                const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+                setApiList(Array.isArray(list) ? list : []);
+            } catch (err) {
+                console.error("Failed to fetch APIs:", err);
+            }
+        };
+        fetchApis();
+    }, []);
+
+        const handleSearchSubmit = (e) => {
         e.preventDefault();
         setPageNumber(1);
         fetchTransactions();
     };
 
-    // ─── Render ──────────────────────────────────────────────
-    const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+        const totalPages = Math.ceil(totalRecords / pageSize) || 1;
     const startIndex = (pageNumber - 1) * pageSize;
     const currentRows = transactions.slice(startIndex, startIndex + pageSize);
 
@@ -164,8 +193,7 @@ const NSDLHistory = () => {
 
     return (
         <div className={styles.container} style={{ padding: '20px' }}>
-            {/* ── FILTER CARD ── */}
-            <div style={{
+                        <div style={{
                 background: '#ffffff',
                 borderRadius: '20px',
                 boxShadow: '0 8px 24px rgba(23, 86, 170, 0.02), 0 1px 4px rgba(0, 0, 0, 0.01)',
@@ -205,18 +233,15 @@ const NSDLHistory = () => {
 
                 <form onSubmit={handleSearchSubmit}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
-                        {/* From Date */}
-                        <div className={styles.formGroup}>
+                                                <div className={styles.formGroup}>
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>From Date</label>
                             <input type="date" className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'fromDate' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'fromDate' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} onFocus={() => setFocusedField('fromDate')} onBlur={() => setFocusedField(null)} />
                         </div>
-                        {/* To Date */}
-                        <div className={styles.formGroup}>
+                                                <div className={styles.formGroup}>
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>To Date</label>
                             <input type="date" className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'toDate' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'toDate' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={toDate} onChange={(e) => setToDate(e.target.value)} onFocus={() => setFocusedField('toDate')} onBlur={() => setFocusedField(null)} />
                         </div>
-                        {/* Service */}
-                        <div className={styles.formGroup}>
+                                                <div className={styles.formGroup}>
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Service</label>
                             <select className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'service' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'service' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={selectedService} onChange={(e) => setSelectedService(e.target.value)} onFocus={() => setFocusedField('service')} onBlur={() => setFocusedField(null)}>
                                 <option value="">All Services</option>
@@ -225,20 +250,45 @@ const NSDLHistory = () => {
                                 ))}
                             </select>
                         </div>
-                        {/* Member */}
-                        <div className={styles.formGroup}>
-                            <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Select Member</label>
-                            <select className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'member' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'member' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} onFocus={() => setFocusedField('member')} onBlur={() => setFocusedField(null)}>
-                                <option value="">All Members</option>
-                                {memberList.map((m) => (
-                                    <option key={m.id || m.memberId} value={m.id || m.memberId}>
-                                        {m.name || m.memberId} ({m.mobile})
+                                                <div className={styles.formGroup}>
+                            <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Operator</label>
+                            <select className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'operator' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'operator' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={selectedOperator} onChange={(e) => setSelectedOperator(e.target.value)} onFocus={() => setFocusedField('operator')} onBlur={() => setFocusedField(null)}>
+                                <option value="">All Operators</option>
+                                {Array.isArray(operatorList) && operatorList.map((op) => (
+                                    <option key={op.id || op.operatorId} value={op.id || op.operatorId}>
+                                        {op.name || op.operatorName || op.title || op.id || 'Unknown'}
                                     </option>
                                 ))}
                             </select>
                         </div>
-                        {/* Status */}
-                        <div className={styles.formGroup}>
+                                                <div className={styles.formGroup}>
+                            <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>API Provider</label>
+                            <select className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'provider' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'provider' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={selectedApi} onChange={(e) => setSelectedApi(e.target.value)} onFocus={() => setFocusedField('provider')} onBlur={() => setFocusedField(null)}>
+                                <option value="">All Providers</option>
+                                {Array.isArray(apiList) && apiList.map((api) => (
+                                    <option key={api.id || api.apiId} value={api.id || api.apiId}>
+                                        {api.apiname || api.apiName || api.name || `API #${api.id}`}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                                                <div className={styles.formGroup}>
+                            <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Select Member</label>
+                            <SearchableSelect
+                                options={[
+                                    { value: '', label: 'All Members' },
+                                    ...memberList.map(m => {
+                                        const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
+                                        const loginId = m.memberID || m.memberid || m.loginID || m.loginId || String(m.id || m.msrno || '');
+                                        return { value: String(m.id || m.uniqueID || m.msrno || ''), label: name ? `${name} (${loginId})` : loginId };
+                                    })
+                                ]}
+                                value={selectedMember}
+                                onChange={val => setSelectedMember(val || '')}
+                                placeholder="All Members"
+                            />
+                        </div>
+                                                <div className={styles.formGroup}>
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Transaction Status</label>
                             <select className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'status' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'status' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)} onFocus={() => setFocusedField('status')} onBlur={() => setFocusedField(null)}>
                                 <option value="">All Status</option>
@@ -247,8 +297,7 @@ const NSDLHistory = () => {
                                 <option value="Failed">Failed</option>
                             </select>
                         </div>
-                        {/* Search */}
-                        <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
+                                                <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Search Anything (Name, Number, Op ID)</label>
                             <div style={{ position: 'relative', width: '100%' }}>
                                 <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}>
@@ -257,8 +306,7 @@ const NSDLHistory = () => {
                                 <input type="text" placeholder="Enter keyword..." className={styles.inputControl} style={{ paddingLeft: '32px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'search' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'search' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} value={searchKeyword} onChange={(e) => setSearchKeyword(e.target.value)} onFocus={() => setFocusedField('search')} onBlur={() => setFocusedField(null)} />
                             </div>
                         </div>
-                        {/* Search Button */}
-                        <div className={styles.formGroup}>
+                                                <div className={styles.formGroup}>
                             <button type="submit" style={{ background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', color: '#ffffff', border: 'none', borderRadius: '10px', height: '38px', fontSize: '0.825rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(34, 197, 94, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)', width: '100%', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                 <FiSearch size={15} /> Search
                             </button>
@@ -267,8 +315,7 @@ const NSDLHistory = () => {
                 </form>
             </div>
 
-            {/* ── STATS GRID ── */}
-            <StatsGrid stats={stats} showStats={showStats} />
+                        <StatsGrid stats={stats} showStats={showStats} />
 
             {/* ── DATA TABLE ── */}
             <div className={styles.cardFullMobile} style={{ padding: 0, marginBottom: '100px', boxShadow: '0 8px 24px rgba(0,0,0,0.02)' }}>
@@ -394,8 +441,7 @@ const NSDLHistory = () => {
                 </div>
             </div>
 
-            {/* ── Receipt Modal ── */}
-            {activeReceipt && (
+                        {activeReceipt && (
                 <TransactionReceipt
                     data={activeReceipt}
                     onClose={() => setActiveReceipt(null)}

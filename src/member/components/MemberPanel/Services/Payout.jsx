@@ -61,8 +61,7 @@ const Payout = () => {
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [receiptData, setReceiptData] = useState(null);
   
-  // Master Transfer Form States
-  const [moveTo, setMoveTo] = useState('wallet');
+    const [moveTo, setMoveTo] = useState('wallet');
   const [masterAmount, setMasterAmount] = useState('');
   const [txnMode, setTxnMode] = useState('IMPS');
 
@@ -120,8 +119,7 @@ const Payout = () => {
     newPin[index] = val.slice(-1);
     setMpinDigits(newPin);
     
-    // auto focus next field
-    if (val && index < 3) {
+        if (val && index < 3) {
       const nextInput = document.getElementById(`pin-${index + 1}`);
       if (nextInput) nextInput.focus();
     }
@@ -220,14 +218,11 @@ const Payout = () => {
         </div>
       )}
 
-      {/* Main stacked layout */}
-      {currentView === 'dashboard' && (
+            {currentView === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
           
-          {/* Top Row: Payout Form Card & Surcharge Card side-by-side */}
-          <div className={styles.topRow}>
-            {/* Master Transfer Form */}
-            <div className={styles.transferFormCard}>
+                    <div className={styles.topRow}>
+                        <div className={styles.transferFormCard}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
                 <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800' }}>
                   <FaUniversity color="#e11d48" /> Payout Service
@@ -297,8 +292,7 @@ const Payout = () => {
               </div>
             </div>
 
-            {/* Surcharge Structure Card */}
-            <div className={styles.surchargeCard}>
+                        <div className={styles.surchargeCard}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
                 <h3 className={styles.surchargeTitle}>
                   <FaShieldAlt color="#1756AA" /> Surcharge Structure
@@ -396,8 +390,7 @@ const Payout = () => {
             </div>
           )}
 
-          {/* Premium Datatable for Recent Payout History */}
-          <div className={styles.tableCard}>
+                    <div className={styles.tableCard}>
             <div className={styles.tableHeader}>
               <h3 className={styles.cardTitle}><FaHistory /> Recent Payout History</h3>
             </div>
@@ -610,8 +603,7 @@ const Payout = () => {
               </div>
 
               <div className={styles.modalBodyGrid}>
-                {/* Left side: Premium Receipt Ticket */}
-                <div className={styles.modalGridLeft}>
+                                <div className={styles.modalGridLeft}>
                   <div className={styles.receiptTicket}>
                     <div className={styles.receiptHeader}>
                       <div className={styles.receiptLogo}>
@@ -654,10 +646,8 @@ const Payout = () => {
                   </div>
                 </div>
 
-                {/* Right side: Security PIN, remarks & Actions */}
-                <div className={styles.modalGridRight}>
-                  {/* Secure PIN Entry Panel */}
-                  <div className={styles.securePinPanel}>
+                                <div className={styles.modalGridRight}>
+                                    <div className={styles.securePinPanel}>
                     <div className={styles.panelTitleRow}>
                       <FaLock className={styles.lockIcon} />
                       <span>Enter Secure M-PIN</span>
@@ -681,8 +671,7 @@ const Payout = () => {
                     <span className={styles.secureBadge}>🛡️ End-to-End Encrypted Settlement</span>
                   </div>
 
-                  {/* Remarks Box */}
-                  <div className={styles.remarkBox}>
+                                    <div className={styles.remarkBox}>
                     <label className={styles.remarkLabel}>Remark (Optional)</label>
                     <input 
                       type="text" 
@@ -693,8 +682,7 @@ const Payout = () => {
                     />
                   </div>
 
-                  {/* Action row */}
-                  <div className={styles.confirmActions}>
+                                    <div className={styles.confirmActions}>
                     <button className={styles.modalCancelBtn} onClick={() => setShowModal(null)}>Cancel</button>
                     <button 
                       className={`${styles.modalConfirmBtn} ${mpinDigits.join('').length === 4 ? styles.payoutReadyBtn : ''}`}

@@ -1,6 +1,5 @@
 .pageContainer {
-  padding-top: 80px; /* Account for navbar */
-  min-height: 100vh;
+  padding-top: 80px;   min-height: 100vh;
   background: #f8fafc;
 }
 
@@ -20,7 +19,6 @@
   overflow: hidden;
 }
 
-/* Premium Orbs for Header */
 .pageHeader::before,
 .pageHeader::after {
   content: '';
@@ -63,7 +61,6 @@
   line-height: 1.6;
 }
 
-/* ---- SPLIT LAYOUT ---- */
 .contactSplit {
   display: flex;
   gap: 40px;
@@ -75,7 +72,6 @@
   z-index: 10;
 }
 
-/* LEFT SIDE */
 .leftSide {
   flex: 1;
   display: flex;
@@ -160,7 +156,6 @@
   transform: scale(1.05);
 }
 
-/* RIGHT SIDE (FORM) */
 .rightSide {
   flex: 1.2;
 }
@@ -269,7 +264,6 @@
   box-shadow: 0 15px 30px rgba(23, 86, 170, 0.4);
 }
 
-/* ---- MAP SECTION ---- */
 .mapCard {
   background: #fff;
   padding: 40px;
@@ -307,7 +301,6 @@
   filter: invert(0.9) hue-rotate(180deg) contrast(1.1);
 }
 
-/* RESPONSIVE */
 @media (max-width: 1024px) {
   .contactSplit {
     flex-direction: column;

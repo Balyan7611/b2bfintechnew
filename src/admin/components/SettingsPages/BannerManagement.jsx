@@ -27,12 +27,10 @@ const BannerManagement = () => {
   
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
 
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // Fetch banner types
-  const fetchBannerTypes = async () => {
+    const fetchBannerTypes = async () => {
     try {
       const response = await API.bannerType.getAll();
       if (response && response.status === true) {
@@ -44,8 +42,7 @@ const BannerManagement = () => {
     }
   };
 
-  // Fetch banner images
-  const fetchBanners = async () => {
+    const fetchBanners = async () => {
     setIsLoading(true);
     setErrorMsg('');
     try {
@@ -73,8 +70,7 @@ const BannerManagement = () => {
     const id = showConfirmModal.id;
     setShowConfirmModal({ isOpen: false, id: null });
     
-    // Optimistic UI update
-    setLocalBanners(prev => prev.filter(b => b.id !== id));
+        setLocalBanners(prev => prev.filter(b => b.id !== id));
     
     try {
       const res = await API.bannerImage.delete(id);
@@ -82,15 +78,13 @@ const BannerManagement = () => {
         setSuccessMsg('Banner deleted successfully!');
         setTimeout(() => setSuccessMsg(''), 3000);
       } else {
-        // Fallback: if server succeeded but envelope format differed, keep state
-        setSuccessMsg('Banner removed.');
+                setSuccessMsg('Banner removed.');
         setTimeout(() => setSuccessMsg(''), 2000);
         fetchBanners();
       }
     } catch (err) {
       console.error(err);
-      fetchBanners(); // revert state on fail
-      setErrorMsg('Failed to delete banner on server.');
+      fetchBanners();       setErrorMsg('Failed to delete banner on server.');
     }
   };
 
@@ -170,8 +164,7 @@ const BannerManagement = () => {
         setIsModalOpen(false);
         fetchBanners();
       } else {
-        // Check if message says success
-        if (res && (res.code === 'TXN' || res.mess?.toLowerCase().includes('success'))) {
+                if (res && (res.code === 'TXN' || res.mess?.toLowerCase().includes('success'))) {
           setSuccessMsg(formData.id ? 'Banner updated successfully!' : 'Banner uploaded successfully!');
           setTimeout(() => setSuccessMsg(''), 3000);
           setIsModalOpen(false);
@@ -188,8 +181,7 @@ const BannerManagement = () => {
     }
   };
 
-  // Filter and pagination logic
-  const filtered = localBanners.filter(b => {
+    const filtered = localBanners.filter(b => {
     const query = searchQuery.toLowerCase();
     const typeName = bannerTypes.find(t => String(t.id) === String(b.bannerTypeId))?.name || '';
     return typeName.toLowerCase().includes(query);
@@ -208,8 +200,7 @@ const BannerManagement = () => {
 
   return (
     <div className={styles.container} style={{ padding: '5px 2px 60px 2px', maxWidth: '100%' }}>
-      {/* Global toast */}
-      {successMsg && (
+            {successMsg && (
         <div style={{
           position: 'fixed', top: '20px', right: '20px', zIndex: 9999,
           background: '#10B981', color: '#fff', padding: '12px 20px',
@@ -221,25 +212,21 @@ const BannerManagement = () => {
         </div>
       )}
 
-      {/* ── MAIN REPOSITORY CARD ── */}
-      <div className={styles.cardFullMobile} style={{ margin: '8px 8px 60px 8px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', background: '#fff', borderRadius: '16px' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
+            <div className={styles.cardFullMobile} style={{ margin: '8px 8px 60px 8px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', background: '#fff', borderRadius: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0F172A' }}>Banner Management</h3>
           <PrimaryButton onClick={handleAddClick}>
             <FiUpload size={16} /> <span>Upload New Banner</span>
           </PrimaryButton>
         </div>
 
-        {/* Error message alert */}
-        {errorMsg && (
+                {errorMsg && (
           <div style={{ margin: '12px 20px 0', padding: '10px 16px', background: '#FFF5F5', color: '#E53E3E', borderRadius: '8px', border: '1px solid #FEB2B2', fontSize: '0.85rem', fontWeight: 600, display: 'flex', gap: '8px', alignItems: 'center' }}>
             <FiAlertTriangle /> {errorMsg}
           </div>
         )}
 
-        {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '10px 15px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '10px 15px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.selectEntries} value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}>
@@ -270,8 +257,7 @@ const BannerManagement = () => {
           </div>
         </div>
 
-        {/* ── TABLE ── */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ width: '100%', minWidth: '950px', tableLayout: 'auto' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -345,8 +331,7 @@ const BannerManagement = () => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div className="global-pagination" style={{ padding: '25px', borderTop: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="global-pagination" style={{ padding: '25px', borderTop: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
             Showing {filtered.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, filtered.length)} of {filtered.length} records
           </div>
@@ -358,8 +343,7 @@ const BannerManagement = () => {
         </div>
       </div>
 
-      {/* ── UPLOAD/EDIT MODAL (DRAWER STYLE) ── */}
-      {isModalOpen && (
+            {isModalOpen && (
         <div className={styles.drawerOverlay} onClick={() => setIsModalOpen(false)}>
           <div className={styles.drawer} onClick={(e) => e.stopPropagation()} style={{ width: '450px', maxWidth: '95%', background: '#fff' }}>
             <div className={styles.drawerHeader} style={{ padding: '12px 24px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC' }}>
@@ -433,8 +417,7 @@ const BannerManagement = () => {
         </div>
       )}
 
-      {/* ── DELETE CONFIRMATION MODAL ── */}
-      {showConfirmModal.isOpen && (
+            {showConfirmModal.isOpen && (
         <div className={styles.drawerOverlay} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowConfirmModal({ isOpen: false, id: null })}>
           <div className={styles.drawer} onClick={(e) => e.stopPropagation()} style={{ width: '360px', padding: '30px 25px', textAlign: 'center', borderRadius: '16px', background: '#fff', transform: 'none', position: 'relative', height: 'auto', minHeight: 'auto' }}>
             <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#FFF5F5', color: '#E53E3E', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto' }}>

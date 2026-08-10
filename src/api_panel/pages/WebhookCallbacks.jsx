@@ -10,11 +10,7 @@ import { API } from '../../api/endpoints';
 import { getSession } from '../../utils/authUtils';
 
 const WebhookCallbacks = () => {
-  // One row per service assigned to this API user. If a MemberWebhook record
-  // already exists for that service (from GET /MemberWebhook/MyWebhooks),
-  // the row is pre-filled with the saved URLs + secret key; otherwise it's
-  // blank and "Update" acts as a first-time Configure.
-  const [webhooks, setWebhooks] = useState([]);
+          const [webhooks, setWebhooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [savingId, setSavingId] = useState(null);
 
@@ -68,7 +64,7 @@ const WebhookCallbacks = () => {
 
           return {
             serviceId,
-            serviceName: svc?.name || existing?.serviceName || `Service #${serviceId}`,
+            serviceName: it.serviceName || it.ServiceName || svc?.name || existing?.serviceName || `Service #${serviceId}`,
             firstUrl: existing?.webhookUrl1 || '',
             secondUrl: existing?.webhookUrl2 || '',
             secretKey: existing?.secretKey || '',
@@ -96,11 +92,9 @@ const WebhookCallbacks = () => {
     ));
   };
 
-  // OTP-protected save flow: { show, row, token, otp, sending, verifying }
-  const [otpModal, setOtpModal] = useState({ show: false, row: null, token: '', otp: '', sending: false, verifying: false });
+    const [otpModal, setOtpModal] = useState({ show: false, row: null, token: '', otp: '', sending: false, verifying: false });
 
-  // Step 1: request an OTP for this webhook change and open the verification modal.
-  const handleSave = async (row) => {
+    const handleSave = async (row) => {
     setOtpModal({ show: true, row, token: '', otp: '', sending: true, verifying: false });
     try {
       const res = await API.memberWebhook.sendOtp();
@@ -120,8 +114,7 @@ const WebhookCallbacks = () => {
     }
   };
 
-  // Step 2: verify the OTP the user typed in and actually save the webhook.
-  const handleVerifyAndSave = async () => {
+    const handleVerifyAndSave = async () => {
     const { row, token, otp } = otpModal;
     if (!row || !otp) return;
 
@@ -209,8 +202,7 @@ const WebhookCallbacks = () => {
 
   return (
     <div style={{ width: '100%', padding: '0' }}>
-      {/* Toast */}
-      {toast && (
+            {toast && (
         <div style={{
           position: 'fixed',
           top: '20px',

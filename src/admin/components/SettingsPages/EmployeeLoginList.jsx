@@ -16,26 +16,16 @@ const EmployeeLoginList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Server-side paging + filters (GetUserLoginHistory: PageNumber, PageSize, FromDate, ToDate, Status, MemberID)
-  const [pageNumber, setPageNumber] = useState(1);
+    const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
-  // Client-side text search over the currently loaded page
-  const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
   const [deletingId, setDeletingId] = useState(null);
 
-  // We fetch a large batch matching the date/status filters (server-side)
-  // and then sort + paginate on the client. This is deliberate: the backend
-  // doesn't document a sort order for GetUserLoginHistory, so asking it for
-  // just PageSize=10/PageNumber=1 risked showing only the OLDEST 10 records
-  // (insertion order) - meaning any recent login (admin or member) could be
-  // buried past page 1 and never show up at all. Sorting newest-first on the
-  // client guarantees the most recent activity - including admin logins -
-  // is always visible.
-  const SERVER_FETCH_SIZE = 5000;
+                  const SERVER_FETCH_SIZE = 5000;
 
   const fetchData = async () => {
     setLoading(true);
@@ -49,8 +39,7 @@ const EmployeeLoginList = () => {
         status: statusFilter || undefined
       });
 
-      // Robust array extraction – handles various response shapes
-      let dataArray = [];
+            let dataArray = [];
       if (response) {
         if (Array.isArray(response.data)) {
           dataArray = response.data;
@@ -61,8 +50,7 @@ const EmployeeLoginList = () => {
         }
       }
 
-      // Newest first, regardless of whatever order the backend returned.
-      dataArray = [...dataArray].sort((a, b) => {
+            dataArray = [...dataArray].sort((a, b) => {
         const aTime = a.loginTime ? new Date(a.loginTime).getTime() : 0;
         const bTime = b.loginTime ? new Date(b.loginTime).getTime() : 0;
         if (bTime !== aTime) return bTime - aTime;
@@ -82,8 +70,7 @@ const EmployeeLoginList = () => {
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fromDate, toDate, statusFilter]);
+      }, [fromDate, toDate, statusFilter]);
 
   const handlePageSizeChange = (value) => {
     setPageSize(Number(value));
@@ -123,15 +110,12 @@ const EmployeeLoginList = () => {
 
   return (
     <div className={styles.container} style={{ padding: '5px 16px 0px 16px', maxWidth: '100%' }}>
-      {/* ── MAIN REPOSITORY CARD ── */}
-      <div className={styles.cardFullMobile}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '22px 25px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
+            <div className={styles.cardFullMobile}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '22px 25px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0D1B3E' }}>Employee Login Activity</h3>
         </div>
 
-        {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '20px 25px', flexWrap: 'wrap', gap: '20px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select
@@ -194,8 +178,7 @@ const EmployeeLoginList = () => {
           </div>
         </div>
 
-        {/* ── TABLE ── */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ minWidth: '1200px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -297,8 +280,7 @@ const EmployeeLoginList = () => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div className="global-pagination" style={{ padding: '15px 25px', borderTop: '1px solid #F1F5F9' }}>
+                <div className="global-pagination" style={{ padding: '15px 25px', borderTop: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
             Showing {filteredList.length > 0 ? (pageNumber - 1) * pageSize + 1 : 0} to {Math.min(pageNumber * pageSize, filteredList.length)} of {filteredList.length} records
           </div>

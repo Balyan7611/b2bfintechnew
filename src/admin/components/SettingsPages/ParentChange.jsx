@@ -16,15 +16,12 @@ const ParentChange = () => {
   const [selectedRoleId, setSelectedRoleId] = useState("");
   const [roles, setRoles] = useState([]);
 
-  // Saving & Status
-  const [isSaving, setIsSaving] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
 
-  // List of Parent Changes
-  const [changesList, setChangesList] = useState([]);
+    const [changesList, setChangesList] = useState([]);
 
-  // Load Roles on Mount (for name mapping in handleSave)
-  const fetchData = async () => {
+    const fetchData = async () => {
     try {
       const rolesRes = await API.getRoles();
       if (rolesRes && Array.isArray(rolesRes)) setRoles(rolesRes);
@@ -53,8 +50,7 @@ const ParentChange = () => {
     }
     setFetchedMember(m);
     
-    // Auto-detect role
-    if (m.roleId) {
+        if (m.roleId) {
       setSelectedRoleId(m.roleId.toString());
     } else {
       const matchedRole = roles.find(r => r.name.toLowerCase() === (m.role || "").toLowerCase());
@@ -88,12 +84,10 @@ const ParentChange = () => {
       await API.parentChangeInformation.create(payload);
       
       setSuccessMsg("Parent change updated successfully!");
-      fetchData(); // Refresh list from backend
-      
+      fetchData();       
       setTimeout(() => setSuccessMsg(""), 3000);
       
-      // Reset form
-      setFetchedMember(null);
+            setFetchedMember(null);
       setFetchedParent(null);
       setSelectedRoleId("");
     } catch (error) {
@@ -107,18 +101,15 @@ const ParentChange = () => {
   return (
     <div className={styles.container} style={{ padding: '15px 10px', maxWidth: '100%', background: '#F4F7FE', minHeight: '100vh' }}>
       
-      {/* ── FORM CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 25px rgba(0,0,0,0.03)', borderRadius: '16px', marginBottom: '20px', background: '#fff' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 25px rgba(0,0,0,0.03)', borderRadius: '16px', marginBottom: '20px', background: '#fff' }}>
         <div style={{ padding: '12px 20px', borderBottom: '1px solid #F1F5F9' }}>
           <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#1E293B' }}>Parent Change</h3>
         </div>
 
         <div style={{ padding: '15px 20px' }}>
-           {/* 4 Fields Grid - Single Row on Large Screen */}
-           <div className={styles.formGrid4} style={{ gap: '20px', marginBottom: '20px', alignItems: 'end' }}>
+                      <div className={styles.formGrid4} style={{ gap: '20px', marginBottom: '20px', alignItems: 'end' }}>
               
-              {/* Member ID searchable dropdown */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                  <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155' }}>MemberID</label>
                  <MemberSearchSelect 
                    value={fetchedMember ? (fetchedMember.memberId || fetchedMember.id) : ""}
@@ -128,8 +119,7 @@ const ParentChange = () => {
                  />
               </div>
 
-              {/* Current Parent ID */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                  <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155' }}>Current ParentID</label>
                  <div style={{ 
                    padding: '0 16px', background: '#F8FAFC', border: '1px solid #E2E8F0', 
@@ -140,8 +130,7 @@ const ParentChange = () => {
                  </div>
               </div>
 
-              {/* Role */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                  <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155' }}>Role</label>
                  <RoleSelect 
                    value={selectedRoleId}
@@ -151,8 +140,7 @@ const ParentChange = () => {
                  />
               </div>
 
-              {/* Parent ID searchable dropdown */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                  <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155' }}>New ParentID</label>
                  <MemberSearchSelect 
                    value={fetchedParent ? (fetchedParent.memberId || fetchedParent.id) : ""}
@@ -208,14 +196,12 @@ const ParentChange = () => {
         </div>
       </div>
 
-      {/* ── LIST CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 25px rgba(0,0,0,0.03)', borderRadius: '16px', background: '#fff' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 25px rgba(0,0,0,0.03)', borderRadius: '16px', background: '#fff' }}>
         <div style={{ padding: '12px 20px', borderBottom: '1px solid #F1F5F9' }}>
           <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#1E293B' }}>Parent Change List</h3>
         </div>
 
-        {/* TOOLBAR */}
-        <div className="global-table-toolbar" style={{ padding: '10px 20px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '10px 20px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.selectEntries} style={{ borderRadius: '8px', border: '1px solid #E2E8F0', padding: '6px 10px' }}>
@@ -239,8 +225,7 @@ const ParentChange = () => {
           </div>
         </div>
 
-        {/* TABLE */}
-        <div className={styles.tableWrapper}>
+                <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ width: '100%', minWidth: '1100px', tableLayout: 'auto' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -279,8 +264,7 @@ const ParentChange = () => {
           </table>
         </div>
 
-        {/* PAGINATION */}
-        <div className="global-pagination" style={{ padding: '12px 20px', borderTop: '1px solid #F1F5F9' }}>
+                <div className="global-pagination" style={{ padding: '12px 20px', borderTop: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
             Showing {changesList.length > 0 ? `1 to ${changesList.length}` : '0 to 0'} of {changesList.length} entries
           </div>

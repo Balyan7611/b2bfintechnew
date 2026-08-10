@@ -6,10 +6,7 @@ import {
 } from '../models/fundRequestModel';
 
 export const FundRequestService = {
-    // Member submits a top-up request after transferring to a company bank.
-    // If data.slipFile (File object) is provided, sends multipart/form-data so
-    // the backend can store the receipt image and return a cashslip filename.
-    create: async (data) => {
+                create: async (data) => {
         const { slipFile, ...rest } = data;
         const payload = FundRequestRequestModel({
             ...rest,
@@ -20,8 +17,7 @@ export const FundRequestService = {
 
         if (slipFile) {
             const form = new FormData();
-            // Append all scalar fields
-            Object.entries(payload).forEach(([key, val]) => {
+                        Object.entries(payload).forEach(([key, val]) => {
                 if (val !== undefined && val !== null) form.append(key, val);
             });
             form.append('slipFile', slipFile);
@@ -52,10 +48,7 @@ export const FundRequestService = {
         return await apiService.delete(`/FundRequest/Delete/${id}`);
     },
 
-    // Returns a normalised array. The server-side filters are applied when
-    // supplied, but callers that care about a single member should still verify
-    // msrno themselves via getMine() below.
-    getAll: async ({ pageNumber = 1, pageSize = 100, fromDate = '', toDate = '', status = '', memberId = '', silent = false } = {}) => {
+                getAll: async ({ pageNumber = 1, pageSize = 100, fromDate = '', toDate = '', status = '', memberId = '', silent = false } = {}) => {
         let url = `/FundRequest/GetFundRequest?PageNumber=${pageNumber}&PageSize=${pageSize}`;
         if (fromDate) url += `&FromDate=${encodeURIComponent(fromDate)}`;
         if (toDate) url += `&ToDate=${encodeURIComponent(toDate)}`;
@@ -67,9 +60,7 @@ export const FundRequestService = {
         return FundRequestResponseModel(res);
     },
 
-    // One member's own requests, verified client-side so a server that ignores
-    // the MemberID filter can't leak another member's rows into the panel.
-    getMine: async (memberId, params = {}) => {
+            getMine: async (memberId, params = {}) => {
         if (!memberId) return [];
         const rows = await FundRequestService.getAll({ pageSize: 500, memberId, ...params });
         const mine = rows.filter(r => Number(r.msrno) === Number(memberId));
@@ -80,11 +71,8 @@ export const FundRequestService = {
         return mine;
     },
 
-    // Admin: mark a request approved. Crediting the wallet is a separate call
-    // (UserWalletBalance/Transfer) — see approveAndCredit in the admin page.
-    approve: async (request, { remark = '' } = {}) => {
-        const tzoffset = (new Date()).getTimezoneOffset() * 60000; // offset in milliseconds
-        const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 19);
+            approve: async (request, { remark = '' } = {}) => {
+        const tzoffset = (new Date()).getTimezoneOffset() * 60000;         const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 19);
         return await FundRequestService.update({
             ...request,
             status: FUND_REQUEST_STATUS.APPROVE,
@@ -94,9 +82,7 @@ export const FundRequestService = {
         });
     },
 
-    // Backend expects status "Rejected" (not "Reject") and carries the
-    // rejection cause in its own `reason` field alongside `remark`.
-    reject: async (request, reason = '') => {
+            reject: async (request, reason = '') => {
         const tzoffset = (new Date()).getTimezoneOffset() * 60000;
         const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 19);
         return await FundRequestService.update({

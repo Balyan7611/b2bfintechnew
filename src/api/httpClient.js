@@ -1,4 +1,3 @@
-// src/api/httpClient.js
 import axios from 'axios';
 import { store } from '../store';
 import { showLoader, hideLoader, setNotification } from '../store/slices/uiSlice';
@@ -56,8 +55,7 @@ const scanObjectForMaliciousData = (obj) => {
 httpClient.interceptors.request.use((config) => {
     const isAuthRequest = config.url && (config.url.includes('/login') || config.url.includes('/register') || config.url.includes('/forgot') || config.url.includes('/otp'));
 
-    // 1. Scan request body for potential SQLi/XSS/Malicious payloads ONLY on Auth requests
-    if (isAuthRequest && config.data && !(config.data instanceof FormData)) {
+        if (isAuthRequest && config.data && !(config.data instanceof FormData)) {
         const securityAlert = scanObjectForMaliciousData(config.data);
         if (securityAlert) {
             const error = new Error(`Security Exception: ${securityAlert}`);
@@ -65,14 +63,12 @@ httpClient.interceptors.request.use((config) => {
         }
     }
 
-    // Check if system is frozen
-    const isFrozen = localStorage.getItem('bss_system_frozen') === 'true';
+        const isFrozen = localStorage.getItem('bss_system_frozen') === 'true';
     const method = (config.method || 'get').toLowerCase();
     const isWrite = ['post', 'put', 'delete', 'patch'].includes(method);
 
     if (isFrozen && isWrite && !isAuthRequest) {
-        // If they are not logged in as Admin, block the transaction
-        const isAdmin = sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token');
+                const isAdmin = sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token');
         if (!isAdmin) {
             const error = new Error("System Freeze: All transactions are temporarily suspended by the Administrator for system security.");
             return Promise.reject(error);
@@ -82,8 +78,7 @@ httpClient.interceptors.request.use((config) => {
     let token = null;
     const isAdminPath = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
     
-    // Check if the URL is a public endpoint (does not require authentication)
-    const isPublicEndpoint = config.url && (
+        const isPublicEndpoint = config.url && (
         config.url.includes('/UserAuth/LoginUser') || 
         config.url.includes('/Company/get-by-url') ||
         config.url.includes('/Company/get-all') ||
@@ -101,8 +96,7 @@ httpClient.interceptors.request.use((config) => {
         }
     }
 
-    // GPS Location Headers (for velocity/fraud check by backend)
-    const lat = localStorage.getItem('user_latitude');
+        const lat = localStorage.getItem('user_latitude');
     const lng = localStorage.getItem('user_longitude');
     if (lat && lng) {
         config.headers = config.headers || {};
@@ -131,8 +125,7 @@ httpClient.interceptors.request.use((config) => {
         config.headers['content-type'] = undefined;
     }
     
-    // Start global loader if not hidden
-    if (!config.hideLoader) {
+        if (!config.hideLoader) {
         startLoading();
     }
     
@@ -178,8 +171,7 @@ httpClient.interceptors.response.use((response) => {
         stopLoading();
     }
     
-    // 403 — Suspicious location / velocity fraud detected by backend
-    if (error.response && error.response.status === 403) {
+        if (error.response && error.response.status === 403) {
         const msg = error.response.data?.mess || error.response.data?.message || 'Access blocked due to unexpected location change. Please contact support.';
         store.dispatch(setNotification({ type: 'error', message: `🚨 Security Alert: ${msg}` }));
         return Promise.reject(error);
@@ -199,8 +191,7 @@ httpClient.interceptors.response.use((response) => {
             const hasAccessToken = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
             const isAdmin = window.location.pathname.startsWith('/admin');
             
-            // If this is a mock token (used for testing without a backend), ignore the 401 to prevent a logout loop
-            const isMockToken = hasAccessToken && (
+                        const isMockToken = hasAccessToken && (
                 !String(hasAccessToken).includes('.') || 
                 String(hasAccessToken).includes('mock_signature')
             );
@@ -228,8 +219,7 @@ httpClient.interceptors.response.use((response) => {
         const data = error.response.data;
         errorMsg = data.mess || data.message || data.title || (typeof data === 'string' ? data : '');
         
-        // Handle ASP.NET Core Validation Errors object
-        if (data.errors && typeof data.errors === 'object') {
+                if (data.errors && typeof data.errors === 'object') {
             const validationMsg = Object.entries(data.errors)
                 .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
                 .join(' | ');
@@ -281,8 +271,7 @@ const getSecurityData = async (presetLocation) => {
                 }
             }
         } catch (e) {
-            // try next endpoint
-        }
+                    }
     }
     const ipData = { ip: clientIp };
 
@@ -333,18 +322,11 @@ const getSecurityData = async (presetLocation) => {
         });
     };
 
-    // If the page already grabbed a real position (e.g. the login form asked
-    // for location permission up front and showed it on screen), reuse that
-    // instead of firing a second geolocation request here. Two separate
-    // getCurrentPosition() calls back-to-back is what made lat/long flaky -
-    // the second call would sometimes silently time out even though the
-    // first one already had the real coordinates in hand.
-    const loc = (presetLocation && presetLocation.allowed && typeof presetLocation.latitude === 'number' && typeof presetLocation.longitude === 'number')
+                            const loc = (presetLocation && presetLocation.allowed && typeof presetLocation.latitude === 'number' && typeof presetLocation.longitude === 'number')
         ? presetLocation
         : await getLocation();
 
-    // Safely parse short browser name and limit string lengths to match DB constraints
-    let browserName = 'Unknown';
+        let browserName = 'Unknown';
     const ua = navigator.userAgent;
     if (ua.includes("Firefox")) browserName = "Firefox";
     else if (ua.includes("SamsungBrowser")) browserName = "SamsungBrowser";
@@ -366,7 +348,6 @@ const getSecurityData = async (presetLocation) => {
     };
 };
 
-
 export const apiService = {
     post: async (url, data, config = {}) => {
         const response = await httpClient.post(url, data, config);
@@ -374,9 +355,7 @@ export const apiService = {
     },
 
     postWithSecurity: async (url, data, Mapper, config = {}) => {
-        // Optional pre-fetched location (see LoginPage.jsx / AdminLoginPage.jsx)
-        // so we don't ask the browser for geolocation twice in a row.
-        const presetLocation = data && data.__presetLocation;
+                        const presetLocation = data && data.__presetLocation;
         const cleanData = presetLocation ? { ...data } : data;
         if (presetLocation) delete cleanData.__presetLocation;
 
@@ -406,8 +385,7 @@ export const apiService = {
         return response.data;
     },
 
-    // multipart/form-data POST
-    postForm: async (url, formData, config = {}) => {
+        postForm: async (url, formData, config = {}) => {
         const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token') || localStorage.getItem('member_token');
         const headers = { ...(config.headers || {}) };
         delete headers['Content-Type'];
@@ -426,8 +404,7 @@ export const apiService = {
         return response.data;
     },
 
-    // multipart/form-data PUT
-    putForm: async (url, formData, config = {}) => {
+        putForm: async (url, formData, config = {}) => {
         const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token') || localStorage.getItem('member_token');
         const headers = { ...(config.headers || {}) };
         delete headers['Content-Type'];

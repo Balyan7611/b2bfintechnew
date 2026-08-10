@@ -35,7 +35,6 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-// 1. ServiceRow Component
 const ServiceRow = ({ card, index }) => {
   const navigate = useNavigate();
   const isSurcharge = card.stat1Label?.toLowerCase().includes('surcharge');
@@ -103,8 +102,7 @@ const MemberHome = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('7 Days');
   
-  // Live Member Dashboard State
-  const [overviewData, setOverviewData] = useState(null);
+    const [overviewData, setOverviewData] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [loadingDashboard, setLoadingDashboard] = useState(false);
@@ -139,8 +137,7 @@ const MemberHome = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showMemberTour, setShowMemberTour] = useState(false);
 
-  // New states for Analytics Filters & Animation
-  const [weeklyRatioFilter, setWeeklyRatioFilter] = useState('This Week');
+    const [weeklyRatioFilter, setWeeklyRatioFilter] = useState('This Week');
   const [topServicesFilter, setTopServicesFilter] = useState('This Month');
   const [analyticsVisible, setAnalyticsVisible] = useState(false);
   const analyticsRef = useRef(null);
@@ -171,7 +168,6 @@ const MemberHome = () => {
       description: 'Click this button at the end of the sidebar to explore more services like Gas, Electricity Bill, and Landline payments.',
     },
   ];
-
 
   const filterOptions = ['Today', '7 Days', '1 Month', '3 Months', '6 Months', '1 Year', 'All Time'];
 
@@ -358,11 +354,7 @@ const MemberHome = () => {
     return { topServicesData, totalVolume };
   }, [analyticsData, topServicesData, totalVolume]);
 
-  // Replace the initial dummy service tiles with the real, active-only
-  // service list from the backend (Service master table). If this ever
-  // fails/returns empty, the initial hardcoded list stays as a safe fallback
-  // instead of leaving the section blank.
-  useEffect(() => {
+          useEffect(() => {
     const fetchServices = async () => {
       try {
         const res = await API.memberDashboard.getServices();
@@ -376,8 +368,7 @@ const MemberHome = () => {
           }));
           dispatch(setServiceCards(mapped));
         } else {
-          // Fallback to active services if memberDashboard/Services fails
-          const activeServices = await API.service.getActiveServices();
+                    const activeServices = await API.service.getActiveServices();
           if (Array.isArray(activeServices) && activeServices.length > 0) {
             const mapped = activeServices.map(s => ({
               id: s.id,
@@ -399,8 +390,7 @@ const MemberHome = () => {
   useEffect(() => {
     setIsLoaded(true);
 
-    // Setup Intersection Observer for Scroll Animation
-    const observer = new IntersectionObserver((entries) => {
+        const observer = new IntersectionObserver((entries) => {
       const [entry] = entries;
       if (entry.isIntersecting) {
         setAnalyticsVisible(true);
@@ -415,8 +405,7 @@ const MemberHome = () => {
     return () => observer.disconnect();
   }, []);
 
-  // FILTERED SERVICES
-  const filteredServices = useMemo(() => {
+    const filteredServices = useMemo(() => {
     if (!searchTerm) return serviceCards;
     return serviceCards.filter(card => 
       card.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -426,8 +415,7 @@ const MemberHome = () => {
   return (
     <div className={`${styles.container} ${isDarkMode ? styles.dark : ''}`}>
 
-      {/* GUIDED TOUR */}
-      {showMemberTour && (
+            {showMemberTour && (
         <GuidedTour
           steps={MEMBER_TOUR_STEPS}
           onFinish={() => setShowMemberTour(false)}
@@ -443,8 +431,7 @@ const MemberHome = () => {
           alignItems: 'stretch' 
         }}
       >
-        {/* Left column: Services Overview */}
-        <div className={styles.leftCol} style={{ flex: 1, display: 'flex' }}>
+                <div className={styles.leftCol} style={{ flex: 1, display: 'flex' }}>
           <div 
             className={`${styles.servicesCard} member-services-card`} 
             ref={servicesRef}
@@ -492,8 +479,7 @@ const MemberHome = () => {
           </div>
         </div>
 
-        {/* Right column: Today's Performance */}
-        <div className={styles.rightCol} style={{ flex: 1, display: 'flex' }}>
+                <div className={styles.rightCol} style={{ flex: 1, display: 'flex' }}>
           <div 
             className={`${styles.performanceCard} member-chart-section`}
             style={{ flex: 1, display: 'flex', flexDirection: 'column' }}

@@ -56,8 +56,6 @@
   }
 }
 
-
-/* Form Layout */
 .formGridTwo {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -136,7 +134,6 @@
   gap: 4px;
 }
 
-/* Slabs Scroll Container */
 .slabsScrollContainer {
   overflow-x: auto;
   padding-bottom: 16px;
@@ -146,10 +143,8 @@
 .slabsWrapper {
   display: flex;
   gap: 16px;
-  min-width: 1000px; /* Forces scroll on small screens */
-}
+  min-width: 1000px; }
 
-/* Individual Slab Column */
 .slabCol {
   flex: 1;
   background: #fff;
@@ -181,7 +176,6 @@
   color: #4E6080;
 }
 
-/* Toggle Pills */
 .pillGroupWrapper {
   display: flex;
   flex-direction: column;
@@ -222,7 +216,6 @@
   box-shadow: 0 2px 8px rgba(23, 86, 170, 0.2);
 }
 
-/* Buttons */
 .saveBtn {
   background: linear-gradient(135deg, #27AE60 0%, #219653 100%);
   color: #fff;
@@ -244,7 +237,6 @@
   box-shadow: 0 6px 16px rgba(39, 174, 96, 0.3);
 }
 
-/* Full Width Detail Row */
 .detailRow {
   margin-top: 30px;
   display: flex;
@@ -268,8 +260,6 @@
   }
 }
 
-
-/* Table Wrapper */
 .tableContainer {
   overflow-x: auto;
   border-radius: 12px;
@@ -370,7 +360,6 @@
   font-weight: 500;
 }
 
-/* ── MODERN UI COMPONENTS ── */
 .directoryHeader {
   display: flex;
   justify-content: space-between;
@@ -488,7 +477,6 @@
   margin-top: 2px;
 }
 
-/* ── OVERWRITE saveBtn for Commission UI ── */
 .saveBtn {
   background: #1756AA;
   color: #fff;
@@ -511,7 +499,6 @@
   box-shadow: 0 8px 20px rgba(23, 86, 170, 0.25);
 }
 
-/* Confirm Modal */
 .modalOverlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -602,7 +589,6 @@
   background: #E2E8F0;
 }
 
-/* ---- Dynamic Commission Matrix CSS Module Extensions ---- */
 .dmCard {
   background: #fff;
   border: 1px solid #e7e8f2;

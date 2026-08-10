@@ -31,7 +31,6 @@
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* ── Header ── */
 .header {
   background: #ffffff;
   padding: 20px 24px;
@@ -74,7 +73,6 @@
 }
 .closeBtn:hover { background: #fee2e2; color: #ef4444; transform: rotate(90deg); }
 
-/* ── Progress Bar ── */
 .progressBar {
   display: flex;
   height: 4px;
@@ -99,7 +97,6 @@
 }
 @keyframes shimmer { to { left: 200%; } }
 
-/* ── Step Labels ── */
 .stepLabels {
   display: flex;
   padding: 0;
@@ -119,7 +116,6 @@
 .labelActive { color: #1756AA; font-weight: 700; }
 .labelDone   { color: #27AE60; font-weight: 600; }
 
-/* ── Body ── */
 .body {
   padding: 22px 22px 20px;
   min-height: 260px;

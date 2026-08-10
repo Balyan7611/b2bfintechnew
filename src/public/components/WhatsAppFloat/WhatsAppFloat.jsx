@@ -7,8 +7,7 @@ const WhatsAppFloat = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      // When scrolled down more than 300px (same as ScrollToTop usually)
-      if (window.scrollY > 300) {
+            if (window.scrollY > 300) {
         setIsScrolled(true);
       } else {
         setIsScrolled(false);
@@ -21,8 +20,7 @@ const WhatsAppFloat = () => {
 
   return (
     <a
-      href="https://wa.me/910000000000" // Replace with actual number
-      target="_blank"
+      href="https://wa.me/910000000000"       target="_blank"
       rel="noopener noreferrer"
       className={`${styles.whatsappFloat} ${isScrolled ? styles.scrolled : ''}`}
       aria-label="Chat with us on WhatsApp"

@@ -1,4 +1,3 @@
-// src/models/stateModel.js
 export const StateResponseModel = (res) => {
     if (!res || !res.status) return [];
     const data = res.data;

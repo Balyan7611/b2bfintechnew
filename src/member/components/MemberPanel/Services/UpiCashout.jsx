@@ -14,31 +14,25 @@ const INITIAL_TRANSACTIONS = [
 ];
 
 const UpiCashout = () => {
-  // Form states
-  const [mobileNumber, setMobileNumber] = useState('');
+    const [mobileNumber, setMobileNumber] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [amount, setAmount] = useState('');
   
-  // App flow states: 'form', 'otp', 'qrcode', 'receipt'
-  const [step, setStep] = useState('form');
+    const [step, setStep] = useState('form');
   const [otpCode, setOtpCode] = useState(['', '', '', '']);
-  const [timeLeft, setTimeLeft] = useState(180); // 3 minutes QR timer
-  const [loading, setLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(180);   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   
-  // Data lists
-  const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+    const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
   const [searchQuery, setSearchQuery] = useState('');
   const [receiptData, setReceiptData] = useState(null);
 
-  // Toast notifier helper
-  const showToast = (message, type = 'success') => {
+    const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  // QR Code Timer effect
-  useEffect(() => {
+    useEffect(() => {
     if (step !== 'qrcode') return;
     if (timeLeft <= 0) {
       setStep('form');
@@ -92,8 +86,7 @@ const UpiCashout = () => {
     newOtp[index] = value;
     setOtpCode(newOtp);
 
-    // Auto-focus next field
-    if (value !== '' && index < 3) {
+        if (value !== '' && index < 3) {
       const nextInput = document.getElementById(`otp-${index + 1}`);
       if (nextInput) nextInput.focus();
     }
@@ -112,8 +105,7 @@ const UpiCashout = () => {
     setTimeout(() => {
       setLoading(false);
       setStep('qrcode');
-      setTimeLeft(180); // Reset timer
-      showToast('OTP verified! UPI QR generated.', 'success');
+      setTimeLeft(180);       showToast('OTP verified! UPI QR generated.', 'success');
     }, 1200);
   };
 
@@ -147,8 +139,7 @@ const UpiCashout = () => {
         showToast('UPI cashout transaction failed by customer bank.', 'error');
       }
       
-      // Reset form states
-      setMobileNumber('');
+            setMobileNumber('');
       setCustomerName('');
       setAmount('');
       setOtpCode(['', '', '', '']);
@@ -178,13 +169,9 @@ const UpiCashout = () => {
         </div>
       )}
 
-
-
-      {/* Two Column Grid */}
-      <div className={styles.mainLayout}>
+            <div className={styles.mainLayout}>
         
-        {/* Left Column: Flow Controller Form */}
-        <div className={styles.formCard}>
+                <div className={styles.formCard}>
           
           {step === 'form' && (
             <form onSubmit={handleSendOtp} className={styles.formFlow}>
@@ -237,8 +224,7 @@ const UpiCashout = () => {
                 </div>
               </div>
 
-              {/* Quick Select Presets */}
-              <div className={styles.presetContainer}>
+                            <div className={styles.presetContainer}>
                 <span className={styles.presetLabel}>Quick Select Amount</span>
                 <div className={styles.presetGrid}>
                   {QUICK_AMOUNTS.map(val => (
@@ -302,17 +288,14 @@ const UpiCashout = () => {
               </h3>
               
               <div className={styles.qrLayout}>
-                {/* Stunning CSS QR Code Vector */}
-                <div className={styles.qrFrame}>
+                                <div className={styles.qrFrame}>
                   <div className={styles.scanOutlineLine}></div>
                   <div className={styles.qrCodeVector}>
-                    {/* CSS grid blocks representing dynamic QR codes */}
-                    <div className={styles.qrCornerSquare} style={{ top: 12, left: 12 }}></div>
+                                        <div className={styles.qrCornerSquare} style={{ top: 12, left: 12 }}></div>
                     <div className={styles.qrCornerSquare} style={{ top: 12, right: 12 }}></div>
                     <div className={styles.qrCornerSquare} style={{ bottom: 12, left: 12 }}></div>
                     
-                    {/* Simulated dot blocks */}
-                    <div className={styles.qrCenterDot} style={{ top: 50, left: 50 }}></div>
+                                        <div className={styles.qrCenterDot} style={{ top: 50, left: 50 }}></div>
                     <div className={styles.qrCenterDot} style={{ top: 70, left: 30 }}></div>
                     <div className={styles.qrCenterDot} style={{ top: 90, left: 80 }}></div>
                     <div className={styles.qrCenterDot} style={{ top: 40, left: 110 }}></div>
@@ -320,8 +303,7 @@ const UpiCashout = () => {
                     <div className={styles.qrCenterDot} style={{ top: 100, left: 120 }}></div>
                     <div className={styles.qrCenterDot} style={{ top: 70, left: 90 }}></div>
 
-                    {/* BHIM / UPI Central Logo Badge */}
-                    <div className={styles.qrCentralUpiBadge}>UPI</div>
+                                        <div className={styles.qrCentralUpiBadge}>UPI</div>
                   </div>
                 </div>
 
@@ -337,8 +319,7 @@ const UpiCashout = () => {
                 </div>
               </div>
 
-              {/* Interactive UPI app icons list */}
-              <div className={styles.upiAppsRow}>
+                            <div className={styles.upiAppsRow}>
                 <span className={styles.upiIconPill} style={{ background: '#EBF4FF', color: '#1A73E8' }}>GPay</span>
                 <span className={styles.upiIconPill} style={{ background: '#F3E8FF', color: '#6F2DA8' }}>PhonePe</span>
                 <span className={styles.upiIconPill} style={{ background: '#E0F2FE', color: '#00BAF2' }}>Paytm</span>
@@ -363,11 +344,9 @@ const UpiCashout = () => {
 
         </div>
 
-        {/* Right Column: Custom CSS Payment Vector Graphics (Static and cleanly styled) */}
-        <div className={styles.illustrationCard}>
+                <div className={styles.illustrationCard}>
           <div className={styles.posVectorContainer}>
-            {/* Styled pure CSS illustration */}
-            <div className={styles.vectorPOSDevice}>
+                        <div className={styles.vectorPOSDevice}>
               <div className={styles.vectorPOSScreen}>
                 <div className={styles.vectorQRMini}>
                   <div className={styles.miniCornerSquare}></div>
@@ -383,8 +362,7 @@ const UpiCashout = () => {
               </div>
             </div>
 
-            {/* Glowing Payment waves */}
-            <div className={styles.vectorWaveRing} style={{ animationDelay: '0s' }}></div>
+                        <div className={styles.vectorWaveRing} style={{ animationDelay: '0s' }}></div>
             <div className={styles.vectorWaveRing} style={{ animationDelay: '0.8s' }}></div>
 
             <div className={styles.vectorPhone}>

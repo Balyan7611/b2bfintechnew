@@ -3,7 +3,6 @@
   animation: fadeIn 0.4s ease;
 }
 
-/* Form Card */
 .formCard {
   background: #fff;
   border-radius: 16px;
@@ -78,7 +77,6 @@
   background: #fff;
 }
 
-/* Custom File Input Styling */
 .inputFile {
   padding: 6px;
   background: #fff;
@@ -140,7 +138,6 @@
   box-shadow: 0 6px 16px rgba(23,86,170,0.3);
 }
 
-/* Tabs */
 .tabsWrapper {
   display: flex;
   gap: 20px;
@@ -198,7 +195,6 @@
   align-items: center;
 }
 
-/* Toggle Switch */
 .switch {
   position: relative;
   display: inline-block;
@@ -242,7 +238,6 @@ input:checked + .slider:before {
   transform: translateX(20px);
 }
 
-/* Table Card */
 .tableCard {
   background: #fff;
   border-radius: 16px;
@@ -252,7 +247,6 @@ input:checked + .slider:before {
   overflow: hidden;
 }
 
-/* Table Top Controls */
 .topControls {
   display: flex;
   align-items: center;
@@ -312,7 +306,6 @@ input:checked + .slider:before {
 .searchIcon { color: #A0AEC0; }
 .searchInput { border: none; outline: none; font-size: 0.85rem; color: #0D1B3E; width: 180px; }
 
-/* Table Wrapper */
 .tableWrapper {
   width: 100%;
   overflow-x: auto;
@@ -370,7 +363,6 @@ input:checked + .slider:before {
   background: #1756AA; color: #fff;
 }
 
-/* Pill Buttons */
 .actionPillsRow {
   display: flex; gap: 8px; flex-wrap: nowrap; align-items: center;
 }
@@ -400,7 +392,6 @@ input:checked + .slider:before {
 .userMobile { color: #718096; font-weight: 500; font-size: 0.75rem; }
 .centerAlign { text-align: center; }
 
-/* Modal */
 .modalOverlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(13,27,62,0.4);
@@ -447,7 +438,6 @@ input:checked + .slider:before {
   border-radius: 8px; font-size: 0.7rem; font-weight: 600;
 }
 
-/* Pagination */
 .paginationRow {
   display: flex; justify-content: space-between; align-items: center;
   margin-top: 20px; flex-wrap: wrap; gap: 16px;

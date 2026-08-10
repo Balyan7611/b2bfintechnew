@@ -16,8 +16,7 @@ const Step2 = () => {
 
   useEffect(() => {
     if (isOtpSent && refs[0].current) refs[0].current.focus();
-  }, [isOtpSent]); // eslint-disable-line
-
+  }, [isOtpSent]); 
   useEffect(() => {
     if (success) {
       dispatch(setOtpVerified());
@@ -68,8 +67,7 @@ const Step2 = () => {
   return (
     <div className={styles.container}>
 
-      {/* Mobile Input */}
-      <div className={styles.group}>
+            <div className={styles.group}>
         <label className={styles.label}>Mobile Number</label>
         <div className={styles.inputRow}>
           <span className={styles.iconBox}><FaMobileAlt /></span>
@@ -94,8 +92,7 @@ const Step2 = () => {
         )}
       </div>
 
-      {/* Compact OTP info box */}
-      {isOtpSent && !success && (
+            {isOtpSent && !success && (
         <div className={styles.otpAlert}>
           <div className={styles.otpAlertLeft}>
             <span className={styles.otpAlertLabel}>Your OTP</span>
@@ -107,8 +104,7 @@ const Step2 = () => {
         </div>
       )}
 
-      {/* OTP Boxes */}
-      {isOtpSent && !success && (
+            {isOtpSent && !success && (
         <div className={styles.group}>
           <label className={styles.label}>Enter OTP</label>
           <div className={`${styles.otpBoxes} ${error ? styles.shake : ''}`} onPaste={handlePaste}>
@@ -137,8 +133,7 @@ const Step2 = () => {
         </div>
       )}
 
-      {/* Success */}
-      {success && (
+            {success && (
         <div className={styles.successBox}>
           <FaCheckCircle className={styles.successIcon} />
           <div>

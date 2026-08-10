@@ -20,10 +20,8 @@ import { API } from '../../../api/endpoints';
 import styles from './Attendance.module.css';
 
 const Attendance = () => {
-    // ─── State ──────────────────────────────────────────────
-    const [employees, setEmployees] = useState([]);
-    const [attendance, setAttendance] = useState({}); // { 'YYYY-MM-DD': { employeeId: 'present'|'absent'|'halfday' } }
-    const [selectedDate, setSelectedDate] = useState(new Date());
+        const [employees, setEmployees] = useState([]);
+    const [attendance, setAttendance] = useState({});     const [selectedDate, setSelectedDate] = useState(new Date());
     const [showAddEmployee, setShowAddEmployee] = useState(false);
     const [editingEmployee, setEditingEmployee] = useState(null);
     const [employeeForm, setEmployeeForm] = useState({
@@ -37,11 +35,9 @@ const Attendance = () => {
     const [filterDepartment, setFilterDepartment] = useState('all');
     const [showHistory, setShowHistory] = useState(false);
     const [historyDate, setHistoryDate] = useState(new Date());
-    const [historyEmployeeFilter, setHistoryEmployeeFilter] = useState(null); // null = all employees
-    const [historyDepartmentFilter, setHistoryDepartmentFilter] = useState('all');
+    const [historyEmployeeFilter, setHistoryEmployeeFilter] = useState(null);     const [historyDepartmentFilter, setHistoryDepartmentFilter] = useState('all');
 
-    // ─── Fetch Members (Dynamic) ──────────────────────────
-    useEffect(() => {
+        useEffect(() => {
         const fetchMembers = async () => {
             try {
                 const res = await API.member.getAll({ pageSize: 5000 });
@@ -78,8 +74,7 @@ const Attendance = () => {
                 
                 setEmployees(mappedMembers);
 
-                // Setup default attendance state for today
-                const todayStr = new Date().toISOString().split('T')[0];
+                                const todayStr = new Date().toISOString().split('T')[0];
                 const initialAttendance = {};
                 mappedMembers.forEach(emp => {
                     if (emp.id) {
@@ -93,8 +88,6 @@ const Attendance = () => {
         };
         fetchMembers();
     }, []);
-
-    // ─── Handlers ────────────────────────────────────────────
 
     const formatDate = (date) => date.toISOString().split('T')[0];
     const dateStr = formatDate(selectedDate);
@@ -117,15 +110,11 @@ const Attendance = () => {
         alert(`Attendance for ${dateStr} saved successfully!`);
     };
 
-    // Employee CRUD
-    // Edit / Delete (Optional now that it's synced)
-    const editEmployee = (employee) => {
-        // Normally we'd redirect to a member edit page
-        alert(`Cannot edit member ${employee.name} here. Use the main Member Management section.`);
+            const editEmployee = (employee) => {
+                alert(`Cannot edit member ${employee.name} here. Use the main Member Management section.`);
     };
 
-    // Filter employees for main table
-    const filteredEmployees = employees.filter(emp => {
+        const filteredEmployees = employees.filter(emp => {
         if (!emp || !emp.id) return false;
         
         const empName = (emp.name || '').toLowerCase();
@@ -143,15 +132,13 @@ const Attendance = () => {
 
     const departments = ['all', ...new Set(employees.map(e => e.department))];
 
-    // History data for a given month with filters
-    const getMonthHistory = () => {
+        const getMonthHistory = () => {
         const year = historyDate.getFullYear();
         const month = historyDate.getMonth();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const historyData = [];
 
-        // Get list of employees to show (filtered)
-        let targetEmployees = employees;
+                let targetEmployees = employees;
         if (historyEmployeeFilter !== null) {
             targetEmployees = employees.filter(e => e.id === historyEmployeeFilter);
         } else if (historyDepartmentFilter !== 'all') {
@@ -178,8 +165,6 @@ const Attendance = () => {
 
     const historyData = getMonthHistory();
 
-    // ─── Render Helpers ──────────────────────────────────────
-
     const StatusBadge = ({ status }) => {
         const statusMap = {
             present: { label: 'Present', icon: <FaCheckCircle />, className: styles.present },
@@ -195,15 +180,11 @@ const Attendance = () => {
         );
     };
 
-    // Clear history employee filter
-    const clearHistoryEmployeeFilter = () => setHistoryEmployeeFilter(null);
-
-    // ─── Main Render ──────────────────────────────────────────
+        const clearHistoryEmployeeFilter = () => setHistoryEmployeeFilter(null);
 
     return (
         <div className={styles.attendanceContainer}>
-            {/* ─── Banner ────────────────────────────────────── */}
-            <div className={styles.banner}>
+                        <div className={styles.banner}>
                 <div className={styles.bannerContent}>
                     <div className={styles.bannerLeft}>
                         <div className={styles.bannerIcon}>
@@ -235,8 +216,7 @@ const Attendance = () => {
                 </div>
             </div>
 
-            {/* ─── Main Table ────────────────────────────────── */}
-            <div className={styles.attendanceTableWrapper}>
+                        <div className={styles.attendanceTableWrapper}>
                 <div className={styles.tableHeader}>
                     <h3>Employees · Mark Attendance</h3>
                     <div className={styles.tableFilters}>
@@ -324,8 +304,7 @@ const Attendance = () => {
                     </table>
                 </div>
 
-                {/* Summary Row */}
-                <div className={styles.summaryRow}>
+                                <div className={styles.summaryRow}>
                     <span>Total: {employees.length}</span>
                     <span>Present: {Object.values(currentDayAttendance).filter(s => s === 'present').length}</span>
                     <span>Absent: {Object.values(currentDayAttendance).filter(s => s === 'absent').length}</span>
@@ -334,8 +313,7 @@ const Attendance = () => {
                 </div>
             </div>
 
-            {/* ─── History Section ──────────────────────────── */}
-            {showHistory && (
+                        {showHistory && (
                 <div className={styles.historySection}>
                     <div className={styles.historyHeader}>
                         <h3>

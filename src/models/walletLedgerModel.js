@@ -1,22 +1,16 @@
-// GET /api/WalletLedger/GetWalletLedger
-// Query: MemberID, WalletTypeId (1 = Main, 2 = AEPS), PageNumber, PageSize,
-//        FromDate, ToDate (YYYY-MM-DD)
 
 export const WALLET_TYPE_ID = {
     MAIN: 1,
     AEPS: 2
 };
 
-// Backend uses "Cr" / "Dr" for the factor.
 export const isCreditFactor = (factor) =>
     String(factor || '').trim().toLowerCase().startsWith('cr');
 
 export const WalletLedgerResponseModel = (res) => {
     let items = [];
     try {
-        // httpClient returns response.data already, so res = the JSON body
-        // Try every known shape the backend might send:
-        if (Array.isArray(res))                           items = res;
+                        if (Array.isArray(res))                           items = res;
         else if (Array.isArray(res?.data?.items))         items = res.data.items;
         else if (Array.isArray(res?.data?.data?.items))   items = res.data.data.items;
         else if (Array.isArray(res?.data?.data))          items = res.data.data;
@@ -40,8 +34,7 @@ export const WalletLedgerResponseModel = (res) => {
         loginId: item.loginId || item.loginID || '',
         openingBalance: parseFloat(item.openingBalance) || 0,
         amount: parseFloat(item.amount) || 0,
-        // Net amount after commission/surcharge/GST/TDS.
-        finalAmount: parseFloat(item.finalAmount) || 0,
+                finalAmount: parseFloat(item.finalAmount) || 0,
         balance: parseFloat(item.balance) || 0,
         factor: item.factor || '',
         isCredit: isCreditFactor(item.factor),
@@ -58,11 +51,9 @@ export const WalletLedgerResponseModel = (res) => {
     }));
 };
 
-// Total row count for pagination, whatever shape it arrives in.
 export const WalletLedgerTotalCount = (res) =>
     res?.data?.totalItems ?? res?.totalItems ?? res?.data?.totalCount ?? 0;
 
-// "2026-07-31T18:15:08" -> "31/07/2026, 06:15 pm"
 export const formatLedgerDate = (value) => {
     if (!value) return '-';
     const d = new Date(value);

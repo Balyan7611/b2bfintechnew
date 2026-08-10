@@ -21,8 +21,7 @@ const getAuthConfig = (extra = {}) => {
 };
 
 export const UserLoginHistoryService = {
-    // Matches GET /UserLoginHistory/GetUserLoginHistory?PageNumber=&PageSize=&FromDate=&ToDate=&Status=&MemberID=
-    getAll: async (params = {}) => {
+        getAll: async (params = {}) => {
         const {
             pageNumber = 1,
             pageSize = 10000,
@@ -62,14 +61,7 @@ export const UserLoginHistoryService = {
         return await apiService.delete(`/UserLoginHistory/Delete/${id}`, getAuthConfig({ ignoreError: true }));
     },
 
-    // Best-effort: calls the backend LogoutUser endpoint which marks the
-    // session record as logged-out (isActiveSession:false, logoutTime:now)
-    // using the sessionId stored in bss_current_session.
-    // NOTE: We no longer store bss_login_history_id because App.jsx stopped
-    // creating a duplicate UserLoginHistory record. The backend's own
-    // RecordLoginHistoryAsync already saved the record with the correct IP -
-    // so we use the sessionId-based logout endpoint instead.
-    closeActiveSession: async () => {
+                                closeActiveSession: async () => {
         try {
             const raw = sessionStorage.getItem('bss_current_session') || localStorage.getItem('bss_current_session');
             if (!raw) return;

@@ -5,7 +5,6 @@
   color: #1e293b;
 }
 
-/* ── HEADER ── */
 .header {
   margin-bottom: 24px;
 }
@@ -59,7 +58,6 @@
   border-radius: 4px;
 }
 
-/* ── FILTER SECTION ── */
 .filterSection {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -152,7 +150,6 @@
   margin-top: 2px;
 }
 
-/* Scope Toggle */
 .scopeToggle {
   display: flex;
   background: #f1f5f9;
@@ -181,7 +178,6 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
-/* Actions */
 .filterActions {
   display: flex;
   justify-content: flex-end;
@@ -248,7 +244,6 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── RESULTS AREA ── */
 .resultsArea {
   margin-top: 32px;
   animation: fadeIn 0.4s ease-out;
@@ -305,7 +300,6 @@
 .redText { color: #ef4444; }
 .orangeText { color: #f59e0b; }
 
-/* Table Section */
 .tableWrapper {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -351,7 +345,6 @@
 .centerAlign { text-align: center; }
 .rightAlign { text-align: right; }
 
-/* Badges */
 .badgeSuccess {
   display: inline-flex;
   align-items: center;
@@ -395,7 +388,6 @@
   font-weight: 500;
 }
 
-/* ── LEGEND NOTE ── */
 .legendBlock {
   background: #f0f7ff;
   border: 1px solid #d0e7ff;

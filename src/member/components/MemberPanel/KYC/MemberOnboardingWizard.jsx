@@ -96,8 +96,7 @@ const MemberOnboardingWizard = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  // STEP 1: eKYC State (Aadhaar & OTP and Webcam)
-  const [aadhaarNumber, setAadhaarNumber] = useState('');
+    const [aadhaarNumber, setAadhaarNumber] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [aadhaarOtp, setAadhaarOtp] = useState('');
   const [aadhaarVerified, setAadhaarVerified] = useState(false);
@@ -108,14 +107,12 @@ const MemberOnboardingWizard = () => {
   const [capturingPhoto, setCapturingPhoto] = useState(false);
   const [capturedPhotoUrl, setCapturedPhotoUrl] = useState(null);
 
-  // STEP 2: PAN State
-  const [panNumber, setPanNumber] = useState('');
+    const [panNumber, setPanNumber] = useState('');
   const [panVerified, setPanVerified] = useState(false);
   const [panLoading, setPanLoading] = useState(false);
   const [panName, setPanName] = useState('');
 
-  // STEP 3: Profile State
-  const [profileData, setProfileData] = useState({
+    const [profileData, setProfileData] = useState({
     fullName: '',
     shopName: '',
     email: '',
@@ -126,11 +123,9 @@ const MemberOnboardingWizard = () => {
     purpose: ''
   });
 
-  // STEP 4: Company State
-  const [selectedCompanyType, setSelectedCompanyType] = useState('');
+    const [selectedCompanyType, setSelectedCompanyType] = useState('');
 
-  // STEP 5: Business Information State
-  const [businessData, setBusinessData] = useState({
+    const [businessData, setBusinessData] = useState({
     legalName: '',
     tradeName: '',
     category: 'Retail',
@@ -142,8 +137,7 @@ const MemberOnboardingWizard = () => {
     turnover: 'Below 10 Lakh'
   });
 
-  // STEP 6: GST / CIN / LLP Information State
-  const [gstData, setGstData] = useState({
+    const [gstData, setGstData] = useState({
     gstNumber: '',
     gstVerified: false,
     gstRegDate: '',
@@ -157,8 +151,7 @@ const MemberOnboardingWizard = () => {
   const [gstLoading, setGstLoading] = useState(false);
   const [cinLoading, setCinLoading] = useState(false);
 
-  // STEP 7: Office Address State
-  const [officeAddress, setOfficeAddress] = useState({
+    const [officeAddress, setOfficeAddress] = useState({
     line1: '',
     line2: '',
     state: '',
@@ -171,8 +164,7 @@ const MemberOnboardingWizard = () => {
     addressProof: ''
   });
 
-  // STEP 8: Director / Partner Details State (Dynamic Array)
-  const [directors, setDirectors] = useState([
+    const [directors, setDirectors] = useState([
     {
       name: '',
       designation: '',
@@ -188,10 +180,8 @@ const MemberOnboardingWizard = () => {
       photograph: ''
     }
   ]);
-  const [dirVerificationLoading, setDirVerificationLoading] = useState({}); // tracking index-field loading states
-
-  // STEP 9: Authorized Contact Person State
-  const [authorizedPerson, setAuthorizedPerson] = useState({
+  const [dirVerificationLoading, setDirVerificationLoading] = useState({}); 
+    const [authorizedPerson, setAuthorizedPerson] = useState({
     name: '',
     designation: '',
     mobile: '',
@@ -202,11 +192,9 @@ const MemberOnboardingWizard = () => {
     addressProof: ''
   });
 
-  // STEP 10: Dynamic Document Uploads State
-  const [uploadedFiles, setUploadedFiles] = useState({});
+    const [uploadedFiles, setUploadedFiles] = useState({});
 
-  // ── Verification & OTP Handlers ───────────────────────────────────────────
-  const handleSendAadhaarOtp = () => {
+    const handleSendAadhaarOtp = () => {
     if (aadhaarNumber.length !== 12 || isNaN(aadhaarNumber)) {
       setErrorMessage('Please enter a valid 12-digit Aadhaar Number.');
       return;
@@ -342,8 +330,7 @@ const MemberOnboardingWizard = () => {
     }, 1200);
   };
 
-  // ── Dynamic Array Functions ───────────────────────────────────────────────
-  const handleAddDirector = () => {
+    const handleAddDirector = () => {
     setDirectors([
       ...directors,
       {
@@ -376,8 +363,7 @@ const MemberOnboardingWizard = () => {
     setDirectors(newDirs);
   };
 
-  // ── File Upload Controls ──────────────────────────────────────────────────
-  const handleFileUpload = (key, e) => {
+    const handleFileUpload = (key, e) => {
     const file = e.target.files[0];
     if (file) {
       setUploadedFiles(prev => ({
@@ -418,8 +404,7 @@ const MemberOnboardingWizard = () => {
     }
   };
 
-  // ── Step Navigation ───────────────────────────────────────────────────────
-  const checkDocsComplete = () => {
+    const checkDocsComplete = () => {
     const neededDocs = DOCUMENT_CHECKLISTS[selectedCompanyType] || [];
     return neededDocs.every(doc => !doc.required || uploadedFiles[doc.key]);
   };
@@ -441,8 +426,7 @@ const MemberOnboardingWizard = () => {
   return (
     <div className={styles.container}>
       <div className={styles.wizardCard}>
-        {/* Onboarding Header */}
-        {currentStep < 11 && (
+                {currentStep < 11 && (
           <div className={styles.wizardHeader}>
             <div className={styles.headerTitleWrap}>
               <FiShield className={styles.headerLockIcon} />
@@ -451,8 +435,7 @@ const MemberOnboardingWizard = () => {
           </div>
         )}
 
-        {/* Stepper Progress */}
-        {currentStep < 11 && (
+                {currentStep < 11 && (
           <div className={styles.stepperContainer}>
             {steps.map((s, idx) => {
               const Icon = s.icon;
@@ -482,8 +465,7 @@ const MemberOnboardingWizard = () => {
           </div>
         )}
 
-        {/* Messaging Area */}
-        {errorMessage && (
+                {errorMessage && (
           <div className={styles.errorAlert}>
             <FiAlertCircle />
             <span>{errorMessage}</span>
@@ -496,17 +478,14 @@ const MemberOnboardingWizard = () => {
           </div>
         )}
 
-        {/* Step Forms */}
-        <div className={styles.formContainer}>
+                <div className={styles.formContainer}>
           
-          {/* STEP 1: eKYC Form */}
-          {currentStep === 1 && (
+                    {currentStep === 1 && (
             <div className={styles.stepFade}>
               <h2 className={styles.stepTitle}>1. eKYC Aadhaar Authentication</h2>
               
               <div className={styles.ekycGrid}>
-                {/* Inputs & Capture Side */}
-                <div className={styles.ekycInputsSide}>
+                                <div className={styles.ekycInputsSide}>
                   <div className={styles.inputGroup}>
                     <label className={styles.inputLabel}>Aadhaar Card Number</label>
                     <div className={styles.actionInputWrap}>
@@ -566,8 +545,7 @@ const MemberOnboardingWizard = () => {
                     </div>
                   </div>
 
-                  {/* Selfie Capture Box moved below OTP */}
-                  {aadhaarVerified && (
+                                    {aadhaarVerified && (
                     <div className={styles.cameraBoxWrap} style={{ marginTop: '20px', width: '100%' }}>
                       <h3 className={styles.cameraTitle}>Live Selfie / Photo</h3>
                       
@@ -603,8 +581,7 @@ const MemberOnboardingWizard = () => {
                   )}
                 </div>
 
-                {/* Aadhaar User Details Card (Right Side) */}
-                <div className={styles.aadhaarDetailsCardWrap}>
+                                <div className={styles.aadhaarDetailsCardWrap}>
                   {aadhaarVerified ? (
                     <div className={styles.aadhaarVerifiedCard}>
                       <div className={styles.verifiedBadgeRow}>
@@ -666,8 +643,7 @@ const MemberOnboardingWizard = () => {
             </div>
           )}
 
-          {/* STEP 2: PAN Form */}
-          {currentStep === 2 && (
+                    {currentStep === 2 && (
             <div className={styles.stepFade}>
               <h2 className={styles.stepTitle}>2. PAN Card Verification</h2>
 
@@ -715,8 +691,7 @@ const MemberOnboardingWizard = () => {
             </div>
           )}
 
-          {/* STEP 3: Basic Profile Form */}
-          {currentStep === 3 && (
+                    {currentStep === 3 && (
             <div className={styles.stepFade}>
               <h2 className={styles.stepTitle}>3. Basic Profile Details</h2>
 
@@ -819,8 +794,7 @@ const MemberOnboardingWizard = () => {
             </div>
           )}
 
-          {/* STEP 4: Company Selection */}
-          {currentStep === 4 && (
+                    {currentStep === 4 && (
             <div className={styles.stepFade}>
               <h2 className={styles.stepTitle}>4. Select Business Legal Entity Type</h2>
 
@@ -846,8 +820,7 @@ const MemberOnboardingWizard = () => {
             </div>
           )}
 
-          {/* STEP 5: Business Information */}
-          {currentStep === 5 && (
+                    {currentStep === 5 && (
             <div className={styles.stepFade}>
               <h2 className={styles.stepTitle}>5. Business Information</h2>
 
@@ -964,15 +937,13 @@ const MemberOnboardingWizard = () => {
             </div>
           )}
 
-          {/* STEP 6: GST / CIN / LLP Information */}
-          {currentStep === 6 && (
+                    {currentStep === 6 && (
             <div className={styles.stepFade}>
               <h2 className={styles.stepTitle}>6. GST / CIN / LLP Information</h2>
 
               <div className={styles.formGrid}>
                 
-                {/* GST Number verification */}
-                <div className={styles.inputGroup}>
+                                <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>GST Number (Demo: 22AAAAA0000A1Z5)</label>
                   <div className={styles.actionInputWrap}>
                     <input 
@@ -1010,8 +981,7 @@ const MemberOnboardingWizard = () => {
                   />
                 </div>
 
-                {/* CIN Number verification */}
-                <div className={styles.inputGroup}>
+                                <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>CIN Number (Company - 21 Chars)</label>
                   <div className={styles.actionInputWrap}>
                     <input 
@@ -1086,8 +1056,7 @@ const MemberOnboardingWizard = () => {
             </div>
           )}
 
-          {/* STEP 7: Registered Office Address */}
-          {currentStep === 7 && (
+                    {currentStep === 7 && (
             <div className={styles.stepFade}>
               <h2 className={styles.stepTitle}>7. Registered Office Address</h2>
 
@@ -1181,8 +1150,7 @@ const MemberOnboardingWizard = () => {
                   />
                 </div>
 
-                {/* File Uploads for Office */}
-                <div className={styles.inputGroup}>
+                                <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Office Photo</label>
                   <div className={styles.fileUploaderBox}>
                     {officeAddress.officePhoto ? (
@@ -1220,8 +1188,7 @@ const MemberOnboardingWizard = () => {
             </div>
           )}
 
-          {/* STEP 8: Director / Partner Details (Dynamic Form) */}
-          {currentStep === 8 && (
+                    {currentStep === 8 && (
             <div className={styles.stepFade}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                 <h2 className={styles.stepTitle}>8. Director / Partner Details</h2>
@@ -1307,8 +1274,7 @@ const MemberOnboardingWizard = () => {
                       />
                     </div>
 
-                    {/* Director PAN Verification */}
-                    <div className={styles.inputGroup}>
+                                        <div className={styles.inputGroup}>
                       <label className={styles.inputLabel}>PAN Number</label>
                       <div className={styles.actionInputWrap}>
                         <input 
@@ -1336,8 +1302,7 @@ const MemberOnboardingWizard = () => {
                       </div>
                     </div>
 
-                    {/* Director Aadhaar Verification */}
-                    <div className={styles.inputGroup}>
+                                        <div className={styles.inputGroup}>
                       <label className={styles.inputLabel}>Aadhaar Number</label>
                       <div className={styles.actionInputWrap}>
                         <input 
@@ -1398,8 +1363,7 @@ const MemberOnboardingWizard = () => {
             </div>
           )}
 
-          {/* STEP 9: Authorized Contact Person */}
-          {currentStep === 9 && (
+                    {currentStep === 9 && (
             <div className={styles.stepFade}>
               <h2 className={styles.stepTitle}>9. Authorized Contact Person</h2>
 
@@ -1470,8 +1434,7 @@ const MemberOnboardingWizard = () => {
                   />
                 </div>
 
-                {/* Files uploads for Authorized Person */}
-                <div className={styles.inputGroup}>
+                                <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Identity Proof</label>
                   <div className={styles.fileUploaderBox}>
                     {authorizedPerson.idProof ? (
@@ -1508,8 +1471,7 @@ const MemberOnboardingWizard = () => {
             </div>
           )}
 
-          {/* STEP 10: Dynamic Document Uploads */}
-          {currentStep === 10 && (
+                    {currentStep === 10 && (
             <div className={styles.stepFade}>
               <h2 className={styles.stepTitle}>
                 10. Onboarding Document Upload (
@@ -1555,8 +1517,7 @@ const MemberOnboardingWizard = () => {
             </div>
           )}
 
-          {/* STEP 11: Review & Final Onboarding Status */}
-          {currentStep === 11 && (
+                    {currentStep === 11 && (
             <div className={styles.stepFade}>
               <div className={styles.successScreenCard}>
                 <div className={styles.successPulseWrap}>
@@ -1619,8 +1580,7 @@ const MemberOnboardingWizard = () => {
           )}
         </div>
 
-        {/* Wizard Controls */}
-        {currentStep < 11 && (
+                {currentStep < 11 && (
           <div className={styles.wizardControls}>
             {currentStep > 1 && currentStep < 11 && (
               <button 
@@ -1667,8 +1627,7 @@ const MemberOnboardingWizard = () => {
           </div>
         )}
 
-        {/* Footer Reference */}
-        {currentStep < 11 && (
+                {currentStep < 11 && (
           <div className={styles.complianceFooter}>
             <FiInfo />
             <span>Onboarding is compliant with RBI KYC Master Directions and anti-money laundering (AML) protocols.</span>

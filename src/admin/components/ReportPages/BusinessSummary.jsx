@@ -24,20 +24,17 @@ const BusinessSummary = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Date filters
-  const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(today);
   const [toDate, setToDate] = useState(today);
 
-  // Filter logic
-  const filteredData = useMemo(() => {
+    const filteredData = useMemo(() => {
     return dataList.filter(item => 
       item.service.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [dataList, searchQuery]);
 
-  // Aggregate totals for KPI cards
-  const totals = useMemo(() => {
+    const totals = useMemo(() => {
     return filteredData.reduce((acc, item) => ({
       business: acc.business + item.totalBusiness,
       profit: acc.profit + item.totalProfit,
@@ -54,16 +51,14 @@ const BusinessSummary = () => {
     }), { business: 0, profit: 0, commission: 0, surcharge: 0, txns: 0, tds: 0, cr: 0, dr: 0, success: 0, pending: 0, failed: 0, refund: 0 });
   }, [filteredData]);
 
-  // Pagination calculations
-  const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
   const startIndex = (currentPage - 1) * rowsPerPage;
   const currentEntries = filteredData.slice(startIndex, startIndex + rowsPerPage);
 
   const handleNext = () => setCurrentPage(p => Math.min(totalPages, p + 1));
   const handlePrev = () => setCurrentPage(p => Math.max(1, p - 1));
 
-  // CSV/Excel exports header definition
-  const tableHeaders = [
+    const tableHeaders = [
     'S.NO', 'SERVICE', 'TOTAL BUSINESS', 'TOTAL COMMISSION', 'TOTAL SURCHARGE', 'TOTAL TDS', 
     'TOTAL CR', 'TOTAL DR', 'SUCCESS', 'PENDING', 'FAILED', 'REFUND', 'TOTAL TXN', 'TOTAL PROFIT'
   ];
@@ -149,11 +144,9 @@ const BusinessSummary = () => {
         }
       `}</style>
       
-      {/* ── KPI METRICS PANEL (5 premium transparent cards) ── */}
-      <div className="kpi-grid">
+            <div className="kpi-grid">
         
-        {/* Card 1: Total Business Volume */}
-        <div className="kpi-card">
+                <div className="kpi-card">
           <div>
             <span className="kpi-title">Total Business</span>
             <h3 className="kpi-value">₹{totals.business.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
@@ -163,8 +156,7 @@ const BusinessSummary = () => {
           </div>
         </div>
 
-        {/* Card 2: Total Net Profit */}
-        <div className="kpi-card">
+                <div className="kpi-card">
           <div>
             <span className="kpi-title">Total Profit</span>
             <h3 className="kpi-value">₹{totals.profit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
@@ -174,8 +166,7 @@ const BusinessSummary = () => {
           </div>
         </div>
 
-        {/* Card 3: Total Commission */}
-        <div className="kpi-card">
+                <div className="kpi-card">
           <div>
             <span className="kpi-title">Total Commission</span>
             <h3 className="kpi-value">₹{totals.commission.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
@@ -185,8 +176,7 @@ const BusinessSummary = () => {
           </div>
         </div>
 
-        {/* Card 4: Total Surcharge */}
-        <div className="kpi-card">
+                <div className="kpi-card">
           <div>
             <span className="kpi-title">Total Surcharge</span>
             <h3 className="kpi-value">₹{totals.surcharge.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
@@ -196,8 +186,7 @@ const BusinessSummary = () => {
           </div>
         </div>
 
-        {/* Card 5: Total Transactions */}
-        <div className="kpi-card">
+                <div className="kpi-card">
           <div>
             <span className="kpi-title">Total Txns</span>
             <h3 className="kpi-value">{totals.txns.toLocaleString('en-IN')}</h3>
@@ -209,11 +198,9 @@ const BusinessSummary = () => {
 
       </div>
 
-      {/* ── MAIN BUSINESS DATA TABLE CARD ── */}
-      <div className={styles.cardFullMobile} style={{ margin: '8px 8px 60px 8px', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', borderRadius: '16px', background: '#fff' }}>
+            <div className={styles.cardFullMobile} style={{ margin: '8px 8px 60px 8px', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', borderRadius: '16px', background: '#fff' }}>
         
-        {/* TOOLBAR */}
-        <div className="global-table-toolbar" style={{ padding: '15px 20px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '15px 20px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.selectEntries} value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}>
@@ -245,8 +232,7 @@ const BusinessSummary = () => {
           </div>
         </div>
 
-        {/* DATA TABLE */}
-        <div className={styles.tableWrapper} style={{ marginTop: '0px' }}>
+                <div className={styles.tableWrapper} style={{ marginTop: '0px' }}>
           <table className={styles.table} style={{ width: '100%', minWidth: '1350px', tableLayout: 'auto' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -290,8 +276,7 @@ const BusinessSummary = () => {
                     <td style={{ fontWeight: 700, fontSize: '0.82rem', color: '#2563EB', padding: '10px 14px', textAlign: 'right' }}>₹{item.totalCr.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     <td style={{ fontWeight: 700, fontSize: '0.82rem', color: '#475569', padding: '10px 14px', textAlign: 'right' }}>₹{item.totalDr.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     
-                    {/* Status counts styled beautifully as premium pill badges with borders */}
-                    <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                        <td style={{ padding: '10px 14px', textAlign: 'center' }}>
                       <span style={{ background: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0', padding: '3px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 700 }}>
                         {item.success}
                       </span>
@@ -318,8 +303,7 @@ const BusinessSummary = () => {
               )}
             </tbody>
             
-            {/* Table Footer with aggregated sums */}
-            {filteredData.length > 0 && (
+                        {filteredData.length > 0 && (
               <tfoot>
                 <tr style={{ background: '#F8FAFC', borderTop: '2px solid #E2E8F0', borderBottom: '1px solid #E2E8F0' }}>
                   <td colSpan="2" style={{ fontWeight: 900, color: '#0F172A', fontSize: '0.82rem', padding: '14px', textAlign: 'left' }}>TOTAL SUMMARY</td>
@@ -330,8 +314,7 @@ const BusinessSummary = () => {
                   <td style={{ fontWeight: 900, color: '#2563EB', fontSize: '0.82rem', padding: '14px', textAlign: 'right' }}>₹{totals.cr.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   <td style={{ fontWeight: 900, color: '#475569', fontSize: '0.82rem', padding: '14px', textAlign: 'right' }}>₹{totals.dr.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   
-                  {/* Totals of status counters */}
-                  <td style={{ fontWeight: 900, color: '#059669', fontSize: '0.82rem', padding: '14px', textAlign: 'center' }}>
+                                    <td style={{ fontWeight: 900, color: '#059669', fontSize: '0.82rem', padding: '14px', textAlign: 'center' }}>
                     <span style={{ background: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0', padding: '3px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 900 }}>
                       {totals.success}
                     </span>
@@ -359,8 +342,7 @@ const BusinessSummary = () => {
           </table>
         </div>
 
-        {/* PAGINATION */}
-        <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9' }}>
+                <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9' }}>
           <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
             Showing {filteredData.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, filteredData.length)} of {filteredData.length} entries
           </span>

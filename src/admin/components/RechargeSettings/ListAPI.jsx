@@ -17,22 +17,19 @@ const ListAPI = ({ isEmbedded = false, onEditAPI }) => {
   const [loading, setLoading] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState(''); // 'api', 'operator', 'comm', 'add'
-  const [selectedApi, setSelectedApi] = useState(null);
+  const [modalType, setModalType] = useState('');   const [selectedApi, setSelectedApi] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, api: null });
   const [showStatusConfirmModal, setShowStatusConfirmModal] = useState({ isOpen: false, api: null });
   const [activeActionMenuId, setActiveActionMenuId] = useState(null);
 
-  // Form states
-  const [apiid, setApiid] = useState('');
+    const [apiid, setApiid] = useState('');
   const [apiname, setApiname] = useState('');
   const [apiUrl, setApiUrl] = useState('');
   const [merchantKey, setMerchantKey] = useState('');
   const [callbackUrl, setCallbackUrl] = useState('');
   const [isActive, setIsActive] = useState(true);
 
-  // Close action menu on click outside
-  useEffect(() => {
+    useEffect(() => {
     const handleOutsideClick = () => setActiveActionMenuId(null);
     window.addEventListener('click', handleOutsideClick);
     return () => window.removeEventListener('click', handleOutsideClick);
@@ -138,10 +135,8 @@ const ListAPI = ({ isEmbedded = false, onEditAPI }) => {
 
   return (
     <div className={!isEmbedded ? styles.container : ''} style={!isEmbedded ? { padding: '15px 15px 0px 15px', maxWidth: '100%' } : { marginTop: '20px' }}>
-      {/* ── MAIN REPOSITORY CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-        {/* CARD INTERNAL HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
+            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap' }}>API Master List</h2>
           {!isEmbedded && (
             <button style={{ 
@@ -155,8 +150,7 @@ const ListAPI = ({ isEmbedded = false, onEditAPI }) => {
           )}
         </div>
 
-        {/* ── TOOLBAR ── */}
-        <div className="global-table-toolbar" style={{ padding: '15px 20px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
+                <div className="global-table-toolbar" style={{ padding: '15px 20px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
             <select className={styles.selectEntries} style={{ borderRadius: '8px', border: '1px solid #E2E8F0' }}>
@@ -185,8 +179,7 @@ const ListAPI = ({ isEmbedded = false, onEditAPI }) => {
           </div>
         </div>
 
-        {/* ── TABLE ── */}
-        <div className={styles.tableWrapper} style={{ overflow: 'visible', paddingBottom: '60px' }}>
+                <div className={styles.tableWrapper} style={{ overflow: 'visible', paddingBottom: '60px' }}>
           <table className={styles.table} style={{ minWidth: '800px' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
@@ -381,8 +374,7 @@ const ListAPI = ({ isEmbedded = false, onEditAPI }) => {
           </table>
         </div>
 
-        {/* ── PAGINATION ── */}
-        <div className="global-pagination" style={{ padding: '15px 20px', borderTop: '1px solid #F1F5F9' }}>
+                <div className="global-pagination" style={{ padding: '15px 20px', borderTop: '1px solid #F1F5F9' }}>
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
             Showing {apis.length > 0 ? 1 : 0} to {apis.length} of {apis.length} records
           </div>
@@ -394,8 +386,7 @@ const ListAPI = ({ isEmbedded = false, onEditAPI }) => {
         </div>
       </div>
 
-      {/* ── CONFIG MODAL (DRAWER STYLE) ── */}
-      {isModalOpen && (
+            {isModalOpen && (
         <div className={styles.drawerOverlay} onClick={() => setIsModalOpen(false)}>
           <div className={styles.drawer} onClick={(e) => e.stopPropagation()} style={{ width: '450px', maxWidth: '95%', background: '#fff' }}>
             <div className={styles.drawerHeader} style={{ padding: '15px 25px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContext: 'space-between', alignItems: 'center' }}>
@@ -484,8 +475,7 @@ const ListAPI = ({ isEmbedded = false, onEditAPI }) => {
         </div>
       )}
 
-      {/* CONFIRM DELETE MODAL */}
-      {showConfirmModal.isOpen && (
+            {showConfirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3600 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
@@ -515,8 +505,7 @@ const ListAPI = ({ isEmbedded = false, onEditAPI }) => {
         </div>
       )}
 
-      {/* CONFIRM STATUS TOGGLE MODAL */}
-      {showStatusConfirmModal.isOpen && (
+            {showStatusConfirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3600 }}>
           <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>

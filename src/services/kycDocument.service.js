@@ -1,4 +1,3 @@
-// src/services/kycDocument.service.js
 import { apiService } from '../api/httpClient';
 import { 
   KycdocumentsMasterResponseModel, 

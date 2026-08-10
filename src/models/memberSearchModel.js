@@ -1,4 +1,3 @@
-// src/models/memberSearchModel.js
 
 export const MemberSearchResponseModel = (res) => {
     console.log("MemberSearchResponseModel raw response:", res);
@@ -32,24 +31,21 @@ export const MemberSearchResponseModel = (res) => {
         videoKyc: item.videoKyc === true,
         isHold: item.isHold === true || item.isOnHold === true,
         
-        // Mapped values for UI & Redux compat
-        shopName: item.shopName || '',
+                shopName: item.shopName || '',
         shop: item.shopName || '',
         cityName: item.cityName || '',
         city: item.cityName || '',
         pan: item.pan || '',
         aadhar: item.aadhar || '',
         
-        // Wallet balances
-        mainWallet: parseFloat(item.mainWallet) || 0,
+                mainWallet: parseFloat(item.mainWallet) || 0,
         mainBal: parseFloat(item.mainWallet) || 0,
         aepsWallet: parseFloat(item.aepsWallet) || 0,
         aepsBal: parseFloat(item.aepsWallet) || 0,
         holdAmount: parseFloat(item.holdAmount) || 0,
         holdAmt: parseFloat(item.holdAmount) || 0,
         
-        // Status keys
-        isKycApproved: item.isKycApproved === true,
+                isKycApproved: item.isKycApproved === true,
         aepsStatus: item.isKycApproved === true ? 'Registered' : 'Not Registered',
         
         isEmailVerify: item.isEmailVerify === true,
