@@ -301,3 +301,13 @@
   transform: translateY(-2px);
   box-shadow: 0 15px 25px -5px rgba(231, 111, 81, 0.5);
 }
+
+@media (max-width: 768px) {
+  .container { padding: 12px; }
+  .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .card { padding: 14px 10px; }
+  .modalHeader { padding: 20px 20px 0; }
+}
+@media (max-width: 360px) {
+  .grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+}

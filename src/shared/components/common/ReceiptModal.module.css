@@ -542,3 +542,32 @@
     display: none !important;
   }
 }
+
+@media (max-width: 640px) {
+  .receiptViewport {
+    padding: 12px;
+  }
+  .standardReceipt {
+    padding: 16px;
+  }
+  .standardBody {
+    grid-template-columns: 1fr;
+  }
+  .detailsGrid {
+    grid-template-columns: 1fr;
+  }
+  .cardInfoGrid {
+    grid-template-columns: 1fr;
+  }
+  .toolbarRow {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+  .sizeSelector {
+    flex-wrap: wrap;
+  }
+  .toolbarActions {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}

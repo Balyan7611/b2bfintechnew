@@ -133,13 +133,11 @@ const EmployeeLoginList = () => {
   const visibleList = filteredList.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
   return (
-    <div className={styles.container} style={{ padding: '5px 16px 0px 16px', maxWidth: '100%' }}>
+    <div className={styles.container} style={{ padding: '20px 16px 0px 16px', maxWidth: '100%' }}>
             <div className={styles.cardFullMobile}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '22px 25px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
-          <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0D1B3E' }}>Employee Login Activity</h3>
-        </div>
-
-                <div style={{ padding: '20px 25px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', alignItems: 'end', borderBottom: '1px solid #F1F5F9', background: '#F8FAFF' }}>
+                <div style={{ padding: '20px 25px', display: 'flex', flexDirection: 'column', gap: '15px', borderBottom: '1px solid #F1F5F9', background: '#F8FAFF' }}>
+                   <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0D1B3E' }}>Employee Login Activity</h3>
+                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', alignItems: 'end' }}>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4E6080' }}>From Date</label>
               <input 
@@ -188,6 +186,7 @@ const EmployeeLoginList = () => {
                 })}
               </select>
            </div>
+        </div>
         </div>
 
                 <div className="global-table-toolbar" style={{ padding: '10px 15px', flexWrap: 'wrap', gap: '15px', borderBottom: 'none' }}>

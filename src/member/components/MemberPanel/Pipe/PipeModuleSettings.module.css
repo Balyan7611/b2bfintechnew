@@ -260,3 +260,12 @@ input:checked + .slider:before {
   color: #94a3b8;
   font-style: italic;
 }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .container { padding: 12px 8px; }
+  .card { border-radius: 12px; }
+  .cardHeader { padding: 14px 16px; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .tableWrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table { min-width: 600px; }
+}

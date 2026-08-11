@@ -92,3 +92,9 @@
 .inprogress { background: #E8F0FE; color: #1967D2; border: 1px solid rgba(25,103,210,0.1); }
 .resolved { background: #E6F4EA; color: #1E7E34; border: 1px solid rgba(30,126,52,0.1); }
 .closed { background: #F1F3F4; color: #5F6368; border: 1px solid rgba(95,99,104,0.1); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .tableWrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table { min-width: 650px; }
+}

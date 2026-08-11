@@ -778,7 +778,7 @@
 .fabMyService {
   position: fixed;
   bottom: 28px;
-  right: 20px;
+  right: 88px; /* shifted left so it doesn't overlap FloatingTxnSearch (56px + 12px gap + 20px) */
   z-index: 999;
   display: flex;
   align-items: center;

@@ -219,3 +219,7 @@
   .bbpsIconBox { width: 32px; height: 32px; font-size: 1rem; }
   .bbpsName { font-size: 0.55rem; }
 }
+
+@media (max-width: 480px) {
+  .bbpsGrid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px; }
+}

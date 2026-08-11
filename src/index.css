@@ -354,23 +354,16 @@ button {
    GLOBAL RESPONSIVE — All Panels (Admin / Member / API)
    ============================================================ */
 
-/* Tables: always scrollable on mobile */
+/* Tables: scrollable wrapper only — do NOT touch display or table-layout */
 @media (max-width: 768px) {
-  .global-table-wrapper,
-  table {
-    display: block;
-    width: 100%;
+  .global-table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-  }
-  table thead, table tbody, table tr {
-    display: table;
     width: 100%;
-    table-layout: fixed;
   }
-  /* shrink table font */
+  /* shrink table font slightly */
   table th, table td {
-    font-size: 0.75rem !important;
+    font-size: 0.78rem !important;
     padding: 8px 6px !important;
     white-space: nowrap;
   }

@@ -66,6 +66,7 @@ const ChatPopup = ({ isMember }) => {
   }, [isChatOpen]);
 
     useEffect(() => {
+    setMessages([]); // clear old ticket messages immediately on ticket change
     if (isChatOpen && activeChatTicket) {
       fetchMessages();
       const interval = setInterval(fetchMessages, 3000);

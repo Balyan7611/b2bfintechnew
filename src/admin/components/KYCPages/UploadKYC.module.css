@@ -248,3 +248,14 @@
   border-color: #1756AA;
   transform: translateY(-2px);
 }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .container { padding: 10px 8px; }
+  .card { padding: 16px 12px; }
+  .uploadTable { min-width: 600px; }
+  .uploadTableWrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+@media (max-width: 480px) {
+  .cardTitle { font-size: 1.1rem; }
+}

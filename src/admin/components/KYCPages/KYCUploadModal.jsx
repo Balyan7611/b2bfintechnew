@@ -41,7 +41,7 @@ const KYCUploadModal = ({ isOpen, onClose }) => {
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalContainer} style={{ width: '900px' }} onClick={e => e.stopPropagation()}>
+      <div className={styles.modalContainer} style={{ width: '900px', maxWidth: '98vw' }} onClick={e => e.stopPropagation()}>
         <div className={styles.modalHeader} style={{ background: 'linear-gradient(135deg, #1756AA 0%, #0D1B3E 100%)', color: '#fff', padding: '12px 24px' }}>
           <div className={styles.modalHeaderTitleGroup}>
             <h2 className={styles.modalTitle} style={{ color: '#fff', fontSize: '1.1rem', margin: 0 }}>UPLOAD KYC DOCUMENTS</h2>

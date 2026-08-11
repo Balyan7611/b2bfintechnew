@@ -267,7 +267,7 @@ const SMSCategory = () => {
 
             {showModal && (
         <div className={styles.modalOverlay} style={{ zIndex: 3500 }}>
-          <div className={styles.modalContainer} style={{ width: '540px', borderRadius: '24px', boxShadow: '0 20px 50px rgba(0,0,0,0.15)' }}>
+          <div className={styles.modalContainer} style={{ width: '540px', maxWidth: '98vw', borderRadius: '24px', boxShadow: '0 20px 50px rgba(0,0,0,0.15)' }}>
             <div className={styles.modalHeader} style={{ padding: '24px 30px 18px', borderBottom: '1px solid #F1F5F9' }}>
                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ width: '42px', height: '42px', background: 'rgba(23, 86, 170, 0.08)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA' }}>

@@ -1062,3 +1062,13 @@
 .btnModalConfirm:hover {
   background: #0f3f80;
 }
+
+
+@media (max-width: 480px) {
+  .tagsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .vectorPOSButtons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

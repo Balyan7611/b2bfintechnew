@@ -19,7 +19,7 @@ export const MemberSearchResponseModel = (res) => {
 
     console.log("MemberSearchResponseModel: parsing data array of length", arr.length);
     return arr.map(item => ({
-        id: item.uniqueID || '',
+        id: item.uniqueID || item.UniqueID || item.loginID || item.loginId || item.mobile || item.MemberID || '',
         name: item.name || '',
         mobile: item.mobile || '',
         email: item.email || '',

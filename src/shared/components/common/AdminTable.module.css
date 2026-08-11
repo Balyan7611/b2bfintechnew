@@ -198,6 +198,7 @@
 .tableWrapper {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-radius: 16px;
   border: 1px solid var(--color-border);
   background: #fff;
@@ -205,6 +206,7 @@
 
 .table {
   width: 100%;
+  min-width: 700px; /* force horizontal scroll instead of squeezing */
   border-collapse: collapse;
 }
 

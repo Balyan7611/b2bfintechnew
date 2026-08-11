@@ -8,8 +8,20 @@
 
 .dashboardGrid {
   display: grid;
-  grid-template-columns: 2fr 3fr;   gap: 16px; 
+  grid-template-columns: 2fr 3fr;
+  gap: 16px;
   width: 100%;
+  align-items: stretch;
+}
+
+.leftCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.rightCol {
+  display: flex;
+  flex-direction: column;
 }
 
 .servicesCard {
@@ -761,9 +773,10 @@
 @media (max-width: 768px) {
   .container { padding: 8px 6px 16px 6px; gap: 14px; }
 
+  /* Keep 2x2 grid on mobile — do NOT collapse to 1 col */
   .performanceGrid {
-    grid-template-columns: 1fr;
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
 
   .servicesCard,
@@ -772,7 +785,6 @@
     border-radius: 16px;
   }
 
-  /* Recent transactions table */
   .tableWrapper,
   [class*="tableWrapper"] {
     overflow-x: auto;
@@ -782,6 +794,6 @@
 
 @media (max-width: 480px) {
   .dashboardGrid { gap: 10px; }
-  .insightCard { padding: 12px; gap: 10px; }
-  .insightIconWrap { width: 36px; height: 36px; font-size: 1rem; }
+  .insightCard { padding: 10px 8px; gap: 8px; }
+  .insightIconWrap { width: 34px; height: 34px; font-size: 0.9rem; }
 }

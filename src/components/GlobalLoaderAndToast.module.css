@@ -118,3 +118,15 @@
         opacity: 1;
     }
 }
+
+@media (max-width: 480px) {
+    .toast {
+        top: auto;
+        bottom: 16px;
+        right: 12px;
+        left: 12px;
+        min-width: unset;
+        max-width: unset;
+        width: calc(100% - 24px);
+    }
+}

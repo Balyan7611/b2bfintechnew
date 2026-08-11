@@ -343,7 +343,7 @@ const SMSIntegration = () => {
 
             {showModal && (
         <div className={styles.modalOverlay} style={{ zIndex: 3500 }}>
-          <div className={styles.modalContainer} style={{ width: '700px', borderRadius: '16px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div className={styles.modalContainer} style={{ width: '700px', maxWidth: '98vw', borderRadius: '16px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ 
               padding: '12px 24px', 
               borderBottom: '1px solid #E2E8F0', 

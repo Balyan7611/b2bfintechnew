@@ -423,19 +423,12 @@ const MemberHome = () => {
       )}
 
       {/* ========== MAIN GRID WITH HEIGHT FIX ========== */}
-      <div 
-        className={styles.dashboardGrid} 
-        style={{ 
-          display: 'flex', 
-          gap: '20px', 
-          alignItems: 'stretch' 
-        }}
-      >
-                <div className={styles.leftCol} style={{ flex: 1, display: 'flex' }}>
+      <div className={styles.dashboardGrid}>
+                <div className={styles.leftCol}>
           <div 
             className={`${styles.servicesCard} member-services-card`} 
             ref={servicesRef}
-            style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+            style={{ height: '630px', display: 'flex', flexDirection: 'column' }}
           >
             <div className={styles.cardHeaderArea}>
               <h3 className={styles.cardTitle}>Services Overview</h3>
@@ -461,7 +454,7 @@ const MemberHome = () => {
                 </button>
               </div>
             </div>
-            <div className={styles.servicesList} style={{ flex: 1 }}>
+            <div className={styles.servicesList} style={{ flex: 1, overflowY: 'auto' }}>
               {filteredServices.length > 0 ? (
                 filteredServices.map((card, index) => (
                   <ServiceRow 
@@ -479,10 +472,10 @@ const MemberHome = () => {
           </div>
         </div>
 
-                <div className={styles.rightCol} style={{ flex: 1, display: 'flex' }}>
+                <div className={styles.rightCol}>
           <div 
             className={`${styles.performanceCard} member-chart-section`}
-            style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+            style={{ height: '630px', display: 'flex', flexDirection: 'column' }}
           >
             <div className={styles.performanceHeader}>
               <div className={styles.performanceTitleRow}>

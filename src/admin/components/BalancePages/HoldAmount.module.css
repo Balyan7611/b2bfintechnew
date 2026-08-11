@@ -681,3 +681,22 @@
   opacity: 0.6;
   pointer-events: none;
 }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .container { padding: 10px 8px; }
+  .formRow { flex-direction: column; align-items: stretch; gap: 10px; }
+  .formGroup { min-width: 0; }
+  .submitBtn { width: 100%; justify-content: center; }
+  .topControls { flex-direction: column; align-items: stretch; gap: 10px; text-align: center; }
+  .exportRow, .rowsSelector { justify-content: center; }
+  .searchBox { width: 100%; }
+  .searchInput { width: 100%; }
+  .paginationRow { flex-direction: column; align-items: center; }
+  .table { min-width: 700px; }
+  .dropdownMenu { min-width: unset; }
+}
+@media (max-width: 480px) {
+  .card { padding: 14px 12px; }
+  .deleteActionBtns { flex-direction: column; }
+}

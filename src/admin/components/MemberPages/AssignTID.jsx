@@ -226,7 +226,7 @@ const AssignTID = () => {
 
             {showAssignModal && (
         <div className={styles.modalOverlay} style={{ zIndex: 4000 }}>
-          <div className={styles.modalContainer} style={{ width: '600px', borderRadius: '24px' }}>
+          <div className={styles.modalContainer} style={{ width: '600px', maxWidth: '98vw', borderRadius: '24px' }}>
             <div className={styles.modalHeader} style={{ padding: '20px 30px', borderBottom: '1px solid #F1F5F9' }}>
                <div>
                   <h3 className={styles.modalTitle} style={{ fontSize: '1.2rem', margin: 0 }}>Assign Terminal ID</h3>
@@ -329,7 +329,7 @@ const AssignTID = () => {
 
             {isDrawerOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 5000 }}>
-          <div className={styles.modalContainer} style={{ width: '500px', borderRadius: '24px' }}>
+          <div className={styles.modalContainer} style={{ width: '500px', maxWidth: '98vw', borderRadius: '24px' }}>
             <div className={styles.modalHeader} style={{ padding: '18px 25px', borderBottom: '1px solid #F1F5F9' }}>
                <div>
                   <h3 className={styles.modalTitle} style={{ margin: 0, fontSize: '1.15rem' }}>Update TID Details</h3>

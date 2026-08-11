@@ -279,6 +279,16 @@ const ManageMember = () => {
           itemCount = items.length;
         }
 
+        // Deduplicate by unique key to prevent duplicate rows
+        const seen = new Set();
+        items = items.filter(it => {
+          const key = it.uniqueID || it.UniqueID || it.loginID || it.loginId || it.mobile || it.id;
+          if (!key) return true; // keep items with no key (shouldn't happen)
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+
         setMembers(items);
         setTotalItems(itemCount);
         setPageNumber(d.pageNumber || pg);
@@ -576,8 +586,10 @@ const ManageMember = () => {
                   </td>
                 </tr>
               ) : (
-                members.map((m, i) => (
-                  <tr key={m.id}>
+                members.map((m, i) => {
+                  const mKey = m.uniqueID || m.UniqueID || m.id || m.loginID || m.loginId || m.mobile || i;
+                  return (
+                  <tr key={mKey}>
                     <td>{(pageNumber - 1) * rowsPerPage + i + 1}</td>
                     <td style={{ position: 'relative', zIndex: activeDropdown === m.id ? 1001 : 1 }}>
                       <div style={{ position: 'relative' }}>
@@ -805,11 +817,11 @@ const ManageMember = () => {
                             fontWeight: '600',
                             background: 'transparent'
                           }} 
-                          value={holdInputs[m.id] !== undefined ? holdInputs[m.id] : (m.holdAmt || m.holdAmount || 0)} 
-                          onChange={(e) => setHoldInputs({ ...holdInputs, [m.id]: e.target.value })} 
+                          value={holdInputs[mKey] !== undefined ? holdInputs[mKey] : (m.holdAmt || m.holdAmount || 0)} 
+                          onChange={(e) => setHoldInputs({ ...holdInputs, [mKey]: e.target.value })}
                         />
                         <button 
-                          onClick={() => setConfirmHold({ member: m, amount: holdInputs[m.id] !== undefined ? holdInputs[m.id] : (m.holdAmt || m.holdAmount || 0) })}
+                          onClick={() => setConfirmHold({ member: m, amount: holdInputs[mKey] !== undefined ? holdInputs[mKey] : (m.holdAmt || m.holdAmount || 0) })}
                           style={{ 
                             background: Number(m.holdAmt || m.holdAmount || 0) > 0 ? '#C53030' : '#1756AA', 
                             color: '#fff',
@@ -820,9 +832,9 @@ const ManageMember = () => {
                             fontWeight: '700',
                             cursor: 'pointer',
                             transition: 'all 0.2s',
-                            opacity: (holdInputs[m.id] !== undefined ? holdInputs[m.id] : (m.holdAmt || m.holdAmount || 0)) === '' ? 0.5 : 1
+                            opacity: (holdInputs[mKey] !== undefined ? holdInputs[mKey] : (m.holdAmt || m.holdAmount || 0)) === '' ? 0.5 : 1
                           }}
-                          disabled={(holdInputs[m.id] !== undefined ? holdInputs[m.id] : (m.holdAmt || m.holdAmount || 0)) === ''}
+                          disabled={(holdInputs[mKey] !== undefined ? holdInputs[mKey] : (m.holdAmt || m.holdAmount || 0)) === ''}
                         >
                           {Number(m.holdAmt || m.holdAmount || 0) > 0 ? 'Update' : 'Hold'}
                         </button>
@@ -845,7 +857,8 @@ const ManageMember = () => {
                     <td className={styles.fwBold}>{m.pin || 'N/A'}</td>
                     <td><span className={styles.badge} style={{ background: '#F1F5F9', color: '#4E6080' }}>{m.source || 'Web'}</span></td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -927,7 +940,8 @@ const ManageMember = () => {
             <div style={{ display: 'flex', gap: '12px' }}>
               <button onClick={() => {
                 dispatch(updateMemberDirect({ id: confirmHold.member.id, updates: { holdAmt: confirmHold.amount || '0' } }));
-                setHoldInputs({ ...holdInputs, [confirmHold.member.id]: undefined });
+                const cKey = confirmHold.member.uniqueID || confirmHold.member.UniqueID || confirmHold.member.id || confirmHold.member.loginID || confirmHold.member.loginId || confirmHold.member.mobile;
+                setHoldInputs({ ...holdInputs, [cKey]: undefined });
                 setConfirmHold(null);
                 fetchMembers(pageNumber, rowsPerPage, searchQuery, filterRoleId, memberType, kycStatus, fromDate, toDate);
               }} style={{ padding: '12px', background: 'linear-gradient(135deg, #E53E3E 0%, #C53030 100%)', color: '#fff', border: 'none', borderRadius: '10px', flex: 1, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(229, 62, 62, 0.25)' }}>Confirm</button>

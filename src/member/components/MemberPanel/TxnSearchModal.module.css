@@ -295,3 +295,23 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+@media (max-width: 480px) {
+  .modalContainer {
+    width: 96%;
+    max-height: 92vh;
+    border-radius: 12px;
+  }
+  .modalHeader {
+    padding: 14px 16px;
+  }
+  .modalBody {
+    padding: 14px;
+  }
+  .searchForm {
+    flex-direction: column;
+  }
+  .searchBtn {
+    width: 100%;
+  }
+}

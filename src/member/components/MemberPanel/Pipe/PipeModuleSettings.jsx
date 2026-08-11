@@ -577,7 +577,7 @@ const PipeModuleSettings = () => {
 
             {showConfirmSubmit && (
         <div className={styles.modalOverlay} style={{ zIndex: 3700 }}>
-          <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px', background: '#fff', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+          <div className={styles.modalContainer} style={{ width: '380px', maxWidth: '95vw', borderRadius: '16px', padding: '24px', background: '#fff', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
               <div style={{ width: '50px', height: '50px', background: '#E0F2FE', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0ea5e9', marginBottom: '16px' }}>
                 <FaCheck style={{ fontSize: '1.2rem' }} />
@@ -607,7 +607,7 @@ const PipeModuleSettings = () => {
 
             {showConfirmModal.isOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3600 }}>
-          <div className={styles.modalContainer} style={{ width: '380px', borderRadius: '16px', padding: '24px', background: '#fff', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+          <div className={styles.modalContainer} style={{ width: '380px', maxWidth: '95vw', borderRadius: '16px', padding: '24px', background: '#fff', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
               <div style={{ width: '50px', height: '50px', background: '#FFF5F5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E53E3E', marginBottom: '16px' }}>
                 <FaTrash style={{ fontSize: '1.2rem' }} />

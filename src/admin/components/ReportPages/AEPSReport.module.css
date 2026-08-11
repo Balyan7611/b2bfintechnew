@@ -107,3 +107,25 @@
   .container { padding: 10px 8px; }
   .tableWrapper, [class*="tableWrap"] { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
+
+@media (max-width: 768px) {
+  .filterSection { padding: 14px; margin-bottom: 14px; }
+  .filterRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: end;
+  }
+  /* 3rd child (status/type dropdown) → full width */
+  .filterRow .formGroup:nth-child(3),
+  .filterRow .formGroup:nth-child(4) {
+    grid-column: 1 / -1;
+  }
+  /* Submit button → full width */
+  .filterRow button,
+  .filterRow .submitBtn {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .formGroup { min-width: 0; }
+}

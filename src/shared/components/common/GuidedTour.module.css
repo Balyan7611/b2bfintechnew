@@ -190,3 +190,9 @@
 .nextBtn:active {
   transform: translateY(0);
 }
+
+@media (max-width: 360px) {
+  .tooltip {
+    width: calc(100vw - 24px);
+  }
+}

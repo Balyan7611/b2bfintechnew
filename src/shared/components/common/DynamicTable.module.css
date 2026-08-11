@@ -204,3 +204,10 @@
   padding: 6px 14px;
   border-radius: 6px;
 }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .tableCard { border-radius: 12px; }
+  .cardHeader { padding: 14px 16px; flex-wrap: wrap; gap: 10px; }
+  .toolbar { padding: 12px 16px; }
+}

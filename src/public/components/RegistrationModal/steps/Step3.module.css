@@ -111,3 +111,7 @@
 }
 .nextBtn:hover { background: #1e9450; transform: translateY(-2px); box-shadow: 0 8px 22px rgba(39,174,96,0.4); }
 .btnArrow { font-size: 0.8rem; }
+
+@media (max-width: 480px) {
+  .panRow { flex-direction: column; }
+}

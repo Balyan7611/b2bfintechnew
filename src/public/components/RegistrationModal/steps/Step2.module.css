@@ -134,6 +134,26 @@
   80%     { transform: translateX(-3px); }
 }
 
+@media (max-width: 400px) {
+  .otpBox {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+  .otpBoxes {
+    gap: 6px;
+  }
+  .otpAlert {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .otpCode {
+    letter-spacing: 4px;
+    font-size: 1rem;
+  }
+}
+
 .errorMsg { font-size: 0.75rem; color: #e53e3e; text-align: center; }
 
 .successBox {

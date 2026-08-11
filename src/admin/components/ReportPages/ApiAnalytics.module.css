@@ -306,3 +306,11 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 768px) {
+  .tableWrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .statsGrid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 480px) {
+  .statsGrid { grid-template-columns: 1fr !important; }
+}

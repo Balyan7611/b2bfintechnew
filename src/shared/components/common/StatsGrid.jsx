@@ -19,11 +19,22 @@ const StatsGrid = ({ stats, showStats }) => {
     netPayable = 0
   } = stats;
 
+  const gridCols = typeof window !== 'undefined' && window.innerWidth <= 480
+    ? 'repeat(2, 1fr)'
+    : typeof window !== 'undefined' && window.innerWidth <= 768
+    ? 'repeat(3, 1fr)'
+    : 'repeat(6, 1fr)';
+
   return (
     <div style={{ marginBottom: '20px' }}>
       {showStats && (
         <div style={{ animation: 'fadeIn 0.3s ease' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', marginBottom: '10px' }}>
+          <style>{`
+            .stats-grid-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+            @media (max-width: 768px) { .stats-grid-row { grid-template-columns: repeat(3, 1fr) !important; } }
+            @media (max-width: 480px) { .stats-grid-row { grid-template-columns: repeat(2, 1fr) !important; } }
+          `}</style>
+                    <div className="stats-grid-row" style={{ marginBottom: '10px' }}>
             {[
               { label: 'Total Txn', val: totalTxns, grad: 'linear-gradient(135deg,#3B82F6,#1D4ED8)', light: '#EFF6FF' },
               { label: 'Total Amount', val: '₹' + parseFloat(totalAmount).toFixed(2), grad: 'linear-gradient(135deg,#0EA5E9,#0284C7)', light: '#F0F9FF' },
@@ -61,7 +72,7 @@ const StatsGrid = ({ stats, showStats }) => {
             ))}
           </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px' }}>
+                    <div className="stats-grid-row">
             {[
               { label: 'Upline Commission', val: '₹' + parseFloat(uplineCommission).toFixed(2), grad: 'linear-gradient(135deg,#A78BFA,#7C3AED)', light: '#F5F3FF' },
               { label: 'Admin Commission', val: '₹' + parseFloat(adminCommission).toFixed(2), grad: 'linear-gradient(135deg,#EC4899,#DB2777)', light: '#FDF2F8' },

@@ -727,3 +727,11 @@
   flex-direction: column;
   gap: 12px;
 }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .container { padding: 12px 8px; }
+  .card { padding: 14px 12px; }
+  .filterRow { flex-direction: column; gap: 10px; }
+  .searchBox { max-width: 100%; }
+}

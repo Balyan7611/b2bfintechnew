@@ -634,3 +634,7 @@
         justify-content: center;
     }
 }
+
+@media (max-width: 768px) {
+  .tableWrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}

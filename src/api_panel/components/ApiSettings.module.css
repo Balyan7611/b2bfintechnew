@@ -298,3 +298,26 @@ textarea.inputField {
 .dark .hideBtn:hover {
   background: #475569;
 }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .settingsContainer { padding: 10px 8px; }
+  .settingsCard { flex-direction: column; min-height: unset; }
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 12px;
+    gap: 6px;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .tabBtn { width: auto; flex: 1; min-width: 120px; font-size: 0.8rem; padding: 8px 10px; }
+  .contentArea { padding: 16px; }
+  .pageCard { padding: 16px; }
+  .inputWrapper { flex-direction: column; }
+  .actionBtn { width: 100%; justify-content: center; margin-top: 6px; }
+}
+@media (max-width: 480px) {
+  .tabBtn { min-width: 90px; font-size: 0.75rem; }
+}
