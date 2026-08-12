@@ -261,22 +261,25 @@ const AdminLoginPage = () => {
         throw new Error(response.mess || "Admin Authentication Failed");
       }
     } catch (err) {
-      const newAttempts = failedAttempts + 1;
-      setFailedAttempts(newAttempts);
-      localStorage.setItem('admin_login_attempts', newAttempts);
+      const isLocationError = err.message && err.message.toLowerCase().includes('location');
+      let errorMsg = isLocationError ? err.message : "Invalid Login Credentials.";
 
-            let errorMsg = "Invalid Login Credentials.";
+      // Location failures are not credential failures — don't penalize the lockout counter
+      if (!isLocationError) {
+        const newAttempts = failedAttempts + 1;
+        setFailedAttempts(newAttempts);
+        localStorage.setItem('admin_login_attempts', newAttempts);
 
-      if (err.message && (err.message.toLowerCase().includes('location') || err.message.toLowerCase().includes('unauthorized'))) {
-        errorMsg = err.message;
-      }
+        if (err.message && err.message.toLowerCase().includes('unauthorized')) {
+          errorMsg = err.message;
+        }
 
-      if (newAttempts >= 5) {
-        const lockoutTime = Date.now() + 5 * 60 * 1000;         setLockoutUntil(lockoutTime);
-        localStorage.setItem('admin_lockout_until', lockoutTime);
-        errorMsg = "Too many failed attempts. Account locked out for 5 minutes.";
-      } else {
-                if (!errorMsg.toLowerCase().includes('location')) {
+        if (newAttempts >= 5) {
+          const lockoutTime = Date.now() + 5 * 60 * 1000;
+          setLockoutUntil(lockoutTime);
+          localStorage.setItem('admin_lockout_until', lockoutTime);
+          errorMsg = "Too many failed attempts. Account locked out for 5 minutes.";
+        } else {
           errorMsg = `${errorMsg} (Attempt ${newAttempts}/5)`;
         }
       }

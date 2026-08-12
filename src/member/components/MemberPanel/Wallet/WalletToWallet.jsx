@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   FaUser, FaWallet, FaPaperPlane,
@@ -27,6 +27,11 @@ const WalletToWallet = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
+  const toastTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, []);
 
   // Sender info
   const [senderBalance, setSenderBalance] = useState(0);
@@ -123,7 +128,8 @@ const WalletToWallet = () => {
 
   const showToastMsg = (msg, type) => {
     setToast({ show: true, message: msg, type });
-    setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
   };
 
   const handleSubmitClick = (e) => {

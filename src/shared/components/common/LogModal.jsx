@@ -1,9 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FiX, FiCopy, FiCheck } from 'react-icons/fi';
 
 const LogModal = ({ show, txn, onClose }) => {
   const [copiedReq, setCopiedReq] = useState(false);
   const [copiedRes, setCopiedRes] = useState(false);
+  const copiedReqTimerRef = useRef(null);
+  const copiedResTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (copiedReqTimerRef.current) clearTimeout(copiedReqTimerRef.current);
+      if (copiedResTimerRef.current) clearTimeout(copiedResTimerRef.current);
+    };
+  }, []);
 
   if (!show) return null;
 
@@ -40,10 +49,11 @@ const LogModal = ({ show, txn, onClose }) => {
     }
   };
 
-  const copyToClipboard = (text, setCopied) => {
+  const copyToClipboard = (text, setCopied, timerRef) => {
     navigator.clipboard.writeText(JSON.stringify(text, null, 2));
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -109,7 +119,7 @@ const LogModal = ({ show, txn, onClose }) => {
                 Request API payload
               </span>
               <button
-                onClick={() => copyToClipboard(dummyRequest, setCopiedReq)}
+                onClick={() => copyToClipboard(dummyRequest, setCopiedReq, copiedReqTimerRef)}
                 style={{
                   background: '#F1F5F9', border: 'none', borderRadius: '6px',
                   padding: '4px 8px', fontSize: '0.75rem', fontWeight: 700, color: '#475569',
@@ -138,7 +148,7 @@ const LogModal = ({ show, txn, onClose }) => {
                 Response API response
               </span>
               <button
-                onClick={() => copyToClipboard(dummyResponse, setCopiedRes)}
+                onClick={() => copyToClipboard(dummyResponse, setCopiedRes, copiedResTimerRef)}
                 style={{
                   background: '#F1F5F9', border: 'none', borderRadius: '6px',
                   padding: '4px 8px', fontSize: '0.75rem', fontWeight: 700, color: '#475569',

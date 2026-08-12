@@ -134,6 +134,15 @@
   grid-template-columns: 2fr 1fr;
   gap: 16px;
   width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.portalFormRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
 }
 
 .formCard {
@@ -672,6 +681,11 @@
   .container {
     padding: 8px 6px;
     gap: 10px;
+    overflow-x: hidden;
+  }
+
+  .portalFormRow {
+    grid-template-columns: 1fr !important;
   }
 
   .heroSection {

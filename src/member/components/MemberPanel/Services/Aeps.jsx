@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   FaFingerprint, FaMobileAlt, FaRupeeSign, FaUniversity,
   FaSearch, FaPrint, FaShieldAlt, FaHistory, FaSpinner,
-  FaMoneyBillWave, FaWallet, FaFileInvoice
+  FaMoneyBillWave, FaWallet, FaFileInvoice, FaInfoCircle, FaExclamationTriangle
 } from 'react-icons/fa';
 import styles from './Aeps.module.css';
 import ReceiptModal from '../../../../shared/components/common/ReceiptModal';
@@ -139,11 +139,19 @@ const Aeps = () => {
   const [activeRdServiceUrl, setActiveRdServiceUrl] = useState(null);
 
   const flashIntervalRef = useRef(null);
+  const toastTimerRef = useRef(null);
 
   const showToast = (msg, type = 'success') => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3000);
   };
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   const startLightFlash = () => {
     if (flashIntervalRef.current) clearInterval(flashIntervalRef.current);
@@ -187,8 +195,6 @@ const Aeps = () => {
 
     const { base, text, attempts } = await resolveRdServiceUrl();
 
-    console.log('RD Service auto-detect attempts:', attempts);
-    if (text) console.log('RD Service /rd/info RAW RESPONSE:', text);
 
     if (!base) {
       setDeviceStatus('Disconnected');
@@ -512,10 +518,7 @@ const Aeps = () => {
 
   return (
     <div className={styles.container}>
-      {/* DEBUG - remove after testing */}
-      <div style={{ background: isMobile ? '#22C55E' : '#EF4444', color: '#fff', fontSize: '0.7rem', fontWeight: '800', padding: '2px 8px', borderRadius: '4px', width: 'fit-content', marginBottom: '4px' }}>
-        {isMobile ? `✓ MOBILE (${window.innerWidth}px)` : `✗ DESKTOP (${window.innerWidth}px)`}
-      </div>
+
       <style>{`
         .aeps-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .aeps-capture-btn { width: 220px; align-self: flex-start; }
@@ -706,7 +709,7 @@ const Aeps = () => {
                   </h2>
                 </div>
               </div>
-              <div className="aeps-portal-tabbar" style={{ display: 'flex', background: '#F1F5F9', padding: '6px', borderRadius: '16px', gap: '6px', width: '100%', marginBottom: '16px' }}>
+              <div className="aeps-portal-tabbar" style={{ display: 'flex', background: '#F1F5F9', padding: '6px', borderRadius: '16px', gap: '6px', width: '100%', marginBottom: '16px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
                 {[
                   { id: 'CASH WITHDRAWAL', label: 'Cash Withdrawal', short: 'Withdraw', icon: <FaMoneyBillWave /> },
                   { id: 'BALANCE ENQUIRY', label: 'Balance Enquiry', short: 'Balance', icon: <FaWallet /> },
@@ -750,7 +753,7 @@ const Aeps = () => {
               <form onSubmit={handleTransactionSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '10px 0' }}>
                 
                 {/* Row 1: Mobile & Aadhaar */}
-                <div className="aeps-2col">
+                <div className={styles.portalFormRow}>
                   <div className={styles.formGroup}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', fontSize: '0.85rem', color: '#334155' }}>
                       📱 Customer Mobile Number
@@ -819,7 +822,7 @@ const Aeps = () => {
                       ))}
                     </div>
 
-                    <div className="aeps-2col" style={{ alignItems: 'center', marginTop: '5px' }}>
+                    <div className={styles.portalFormRow} style={{ alignItems: 'center', marginTop: '5px' }}>
                       <div className={styles.inputWrapper}>
                         <FaRupeeSign className={styles.inputIcon} />
                         <input
@@ -1065,12 +1068,14 @@ const Aeps = () => {
           {/* TAB CONTENT: Device & Tester */}
           {rightTab === 'device' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800', color: '#0D1B5E', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                🖨️ Device & RD Service
-              </h3>
-              <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748B' }}>
-                Apna device chune — RD Service download / renew ka page khulega.
-              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800', color: '#0D1B5E', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <FaFingerprint /> Device & RD Service
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748B' }}>
+                  Apna device chune — RD Service download / renew ka page khulega.
+                </p>
+              </div>
 
               <div style={{ background: '#F8FAFF', border: '1px solid #CBD5E1', borderRadius: '16px', padding: '15px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#fff', border: deviceStatus === 'Ready' ? '2.5px solid #22C55E' : '2.5px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1089,26 +1094,59 @@ const Aeps = () => {
                 </span>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '250px', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '320px', overflowY: 'auto', paddingRight: '5px' }}>
                 {[
-                  { name: 'Mantra', desc: 'MFS100 / MFS110 L1 / MIS100' },
-                  { name: 'Morpho / IDEMIA', desc: 'MSO 1300 E2 / E3 L1' },
-                  { name: 'Startek', desc: 'FM220U / FM220U-L1' },
-                  { name: 'SecuGen', desc: 'Hamster Pro 20 / HU20' },
-                  { name: 'Precision', desc: 'PB510 / PB1000' },
-                  { name: 'Evolute', desc: 'Fingerprint L1 RD' },
-                  { name: 'Aratek', desc: 'A600 L1' },
-                  { name: 'Next Biometrics', desc: 'L1 RD Service' }
+                  { name: 'Mantra', desc: 'MFS100 / MFS110 L1 / MIS100', link: 'https://www.rdservice.in' },
+                  { name: 'Morpho / IDEMIA', desc: 'MSO 1300 E2 / E3 L1', link: 'https://rdservicesonline.com' },
+                  { name: 'Startek', desc: 'FM220U / FM220U-L1', link: 'https://www.startek.com' },
+                  { name: 'SecuGen', desc: 'Hamster Pro 20 / HU20', link: 'https://secugenindia.com' },
+                  { name: 'Precision', desc: 'PB510 / PB1000', link: 'https://www.precisionbiometric.co.in' },
+                  { name: 'Evolute', desc: 'Fingerprint L1 RD', link: 'https://www.evolute.in' },
+                  { name: 'Aratek', desc: 'A600 L1', link: 'https://www.aratek.co' },
+                  { name: 'Next Biometrics', desc: 'NB-3023-U / L1', link: 'https://www.nextbiometrics.com' },
+                  { name: 'Iris (Mantra MIS100V2)', desc: 'Iris scanner RD', link: 'https://www.rdservice.in' },
+                  { name: 'UIDAI - certified device list', desc: 'Registered device ki official jaankari', link: 'https://uidai.gov.in' }
                 ].map((d, idx) => (
-                  <div key={idx} style={{ border: '1px solid #E2E8F0', borderRadius: '10px', padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div>
-                      <h5 style={{ margin: 0, fontSize: '0.8rem', fontWeight: '800', color: '#0D1B5E' }}>{d.name}</h5>
-                      <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748B' }}>{d.desc}</p>
+                  <div 
+                    key={idx} 
+                    onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(d.name + ' RD Service official download ' + d.desc)}`, '_blank')}
+                    style={{ border: '1px solid #E2E8F0', borderRadius: '10px', padding: '12px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: '#fff', transition: 'all 0.2s', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' }}
+                    onMouseOver={(e) => { e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.boxShadow = '0 2px 5px rgba(0,0,0,0.02)'; }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#F0F5FF', color: '#1756AA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
+                        <FaFingerprint />
+                      </div>
+                      <div>
+                        <h5 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '800', color: '#0D1B5E' }}>{d.name}</h5>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748B' }}>{d.desc}</p>
+                      </div>
                     </div>
-                    <span style={{ fontSize: '1rem', cursor: 'pointer' }}>📥</span>
+                    <span style={{ fontSize: '1.2rem', color: '#94A3B8' }}>📥</span>
                   </div>
                 ))}
               </div>
+
+              <div style={{ background: '#F0F5FF', border: '1px solid #CBD5E1', borderRadius: '12px', padding: '15px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <h4 style={{ margin: 0, fontSize: '0.85rem', fontWeight: '800', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <FaInfoCircle color="#475569" /> RD Service ke rules:
+                </h4>
+                <ol style={{ margin: 0, paddingLeft: '15px', fontSize: '0.8rem', color: '#475569', lineHeight: '1.6' }}>
+                  <li>RD Service sirf <strong>device banane wali company</strong> ki official site se hi le — third party / cracked RD se transaction fail aur account block ho sakta hai.</li>
+                  <li>RD license aam taur par <strong>1 saal</strong> chalta hai, uske baad renew karna padta hai.</li>
+                  <li>Windows par RD Service <strong>background me chalu</strong> rehna chahiye, warna "Device not found" aata hai.</li>
+                  <li>Ek PC par <strong>ek hi company</strong> ka RD Service rakhe — do alag RD aapas me takrate hai.</li>
+                </ol>
+              </div>
+
+              <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '12px', padding: '12px', display: 'flex', gap: '10px' }}>
+                <FaExclamationTriangle color="#D97706" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <p style={{ margin: 0, fontSize: '0.8rem', color: '#92400E', lineHeight: '1.5' }}>
+                  Device kaam na kare to: RD Service app kholein → device USB nikaal kar dobara lagaye → browser refresh kare → phir bhi na ho to RD license expiry check kare.
+                </p>
+              </div>
+
             </div>
           )}
 

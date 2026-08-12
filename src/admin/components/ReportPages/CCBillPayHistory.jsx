@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { API } from '../../../api/endpoints';
 import { 
@@ -26,6 +26,12 @@ const CCBillPayHistory = () => {
   const failedCount = transactions.filter(t => t.status?.toLowerCase() === 'failed').length;
   const [activeReceipt, setActiveReceipt] = useState(null);
   const [confirmData, setConfirmData] = useState({ show: false, action: null, txn: null });
+  const confirmTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (confirmTimerRef.current) clearTimeout(confirmTimerRef.current); };
+  }, []);
+
   const [logModalData, setLogModalData] = useState({ show: false, txn: null });
   const { popup, showPopup, closePopup } = usePopup();
   const [focusedField, setFocusedField] = useState(null);
@@ -43,7 +49,8 @@ const CCBillPayHistory = () => {
     const { action, txn } = confirmData;
     setConfirmData({ show: false, action: null, txn: null });
     
-    setTimeout(() => {
+    if (confirmTimerRef.current) clearTimeout(confirmTimerRef.current);
+    confirmTimerRef.current = setTimeout(() => {
       if (action === 'Check Status') {
         const status = txn && txn.status ? txn.status.toLowerCase() : 'pending';
         if (status === 'success') {

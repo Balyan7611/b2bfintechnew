@@ -37,7 +37,6 @@ const CommonCommissionSetup = () => {
           : [];
         const mapped = raw.map(s => ({ id: s.id || s.Id, name: s.name || s.Name || s.serviceName || s.ServiceName || '' }))
           .filter(s => s.name);
-        console.log('[CommissionSetup] services loaded:', mapped);
         setServices(mapped);
       } catch (err) {
         console.error('CommonCommissionSetup: failed to load services', err);

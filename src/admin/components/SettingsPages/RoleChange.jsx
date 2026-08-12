@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { API } from '../../../api/endpoints';
 import { 
   FiChevronLeft, FiChevronRight, FiCheck, FiUser, FiRefreshCw, FiSearch
@@ -14,6 +14,16 @@ const RoleChange = () => {
   const [roles, setRoles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  const outerTimerRef = useRef(null);
+  const msgTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (outerTimerRef.current) clearTimeout(outerTimerRef.current);
+      if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+    };
+  }, []);
   
   const [formData, setFormData] = useState({
     roleId: '',
@@ -93,7 +103,9 @@ const RoleChange = () => {
     if (!fetchedMember || !formData.roleId) return;
     
     setIsLoading(true);
-    setTimeout(() => {
+    if (outerTimerRef.current) clearTimeout(outerTimerRef.current);
+    if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+    outerTimerRef.current = setTimeout(() => {
       const newRoleName = roles.find(r => r.id.toString() === formData.roleId.toString())?.name || 'Updated Role';
       setFetchedMember(prev => ({
         ...prev,
@@ -102,8 +114,8 @@ const RoleChange = () => {
       }));
       setIsLoading(false);
       setSuccessMessage('Role changed successfully!');
-      
-      setTimeout(() => {
+      if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+      msgTimerRef.current = setTimeout(() => {
         setSuccessMessage('');
       }, 3000);
     }, 1000);

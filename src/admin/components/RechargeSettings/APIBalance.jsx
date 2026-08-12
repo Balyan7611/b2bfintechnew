@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { FiDollarSign, FiSearch, FiDatabase, FiRefreshCw, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import styles from '../MemberPages/MemberPages.module.css';
@@ -7,9 +7,16 @@ const APIBalance = () => {
   const { apiBalances = [] } = useSelector(state => state.recharge);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
+  const refreshTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current); };
+  }, []);
+
   const handleRefresh = () => {
     setIsRefreshing(true);
-    setTimeout(() => {
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+    refreshTimerRef.current = setTimeout(() => {
       setIsRefreshing(false);
     }, 2000);
   };

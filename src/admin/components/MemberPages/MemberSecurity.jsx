@@ -37,8 +37,6 @@ const MemberSecurity = () => {
         console.error("Failed to fetch security list:", err);
       }
       
-      console.log("Member List Res (Search):", membersRes);
-      console.log("Security List Res:", securityRes);
 
       let rawMembers = [];
       if (membersRes) {
@@ -83,7 +81,6 @@ const MemberSecurity = () => {
         };
       });
 
-      console.log("Merged Member Security List:", merged);
       setMembers(merged);
     } catch (error) {
       console.error("Failed to merge member security settings:", error);

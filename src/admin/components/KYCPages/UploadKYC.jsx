@@ -78,9 +78,7 @@ const UploadKYC = () => {
 
   const fetchDropdownData = async () => {
     try {
-      console.log("UploadKYC: Fetching members via search...");
       const membersRes = await MemberService.search("");
-      console.log("UploadKYC: Member Search Response:", membersRes);
       
       if (Array.isArray(membersRes)) {
         setMemberList(membersRes);
@@ -90,9 +88,7 @@ const UploadKYC = () => {
         setMemberList([]);
       }
 
-      console.log("UploadKYC: Fetching master documents...");
       const masterRes = await KycDocumentService.getKycdocumentsMaster({ PageNumber: 1, PageSize: 100 });
-      console.log("UploadKYC: Master Doc API Response:", masterRes);
       
       if (masterRes) {
         const dataPayload = masterRes.data;
@@ -126,13 +122,9 @@ const UploadKYC = () => {
       });
       if (res.data && res.data.status) {
         const rawItems = res.data.data.items || [];
-        console.log("UploadKYC: RAW ITEMS FROM API:", rawItems);
         const mappedItems = rawItems.map(item => {
           const docs = (item.documents || []).filter(d => !d.isDelete);
           if (docs.length > 0) {
-            console.log("UploadKYC: DOC 0 DETAILS:", docs[0]);
-            console.log("UploadKYC: DOC 0 KEYS:", Object.keys(docs[0]));
-            console.log("UploadKYC: DOC 0 STRINGIFIED:", JSON.stringify(docs[0]));
           }
           return {
             msrno: item.msrno,

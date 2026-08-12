@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FaFingerprint, FaMobileAlt, FaRupeeSign, FaUniversity, 
   FaSearch, FaPrint, FaShieldAlt, FaHistory, FaCheckCircle, 
   FaTimes, FaSpinner, FaQrcode,
-  FaMoneyBillWave, FaWallet, FaFileInvoice
+  FaMoneyBillWave, FaWallet, FaFileInvoice, FaIdCard, FaInfoCircle, FaExclamationTriangle
 } from 'react-icons/fa';
 import styles from './AadharPay.module.css';
 import ReceiptModal from '../../../../shared/components/common/ReceiptModal';
@@ -35,7 +35,21 @@ const POPULAR_BANKS = [
 
 const PRESETS = [500, 1000, 2000, 3000, 5000, 10000];
 
+
+const useIsMobile = () => {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 600px)');
+    const update = () => setTick(n => n + 1);
+    mq.addEventListener('change', update);
+    window.addEventListener('resize', update);
+    return () => { mq.removeEventListener('change', update); window.removeEventListener('resize', update); };
+  }, []);
+  return window.matchMedia('(max-width: 600px)').matches || window.innerWidth <= 600;
+};
+
 const AadharPay = () => {
+  const isMobile = useIsMobile();
   const [step, setStep] = useState('provider'); // 'provider' | 'onboarding' | 'portal'
   const [authScanning, setAuthScanning] = useState(false);
   const [authSuccess, setAuthSuccess] = useState(false);
@@ -52,16 +66,25 @@ const AadharPay = () => {
   const [amount, setAmount] = useState('');
   const [aadharNumber, setAadharNumber] = useState('');
   const [selectedBank, setSelectedBank] = useState('');
-  const [deviceStatus, setDeviceStatus] = useState('Disconnected');   const [isScanning, setIsScanning] = useState(false);
+  const [deviceStatus, setDeviceStatus] = useState('Disconnected');
+  const [showBiometricModal, setShowBiometricModal] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [transactions, setTransactions] = useState([]);   const [receiptData, setReceiptData] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [receiptData, setReceiptData] = useState(null);
+  const toastTimerRef = useRef(null);
 
   const showToast = (msg, type = 'success') => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3000);
   };
+
+  useEffect(() => {
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, []);
 
   const handlePresetClick = (val) => {
     setAmount(val.toString());
@@ -80,10 +103,10 @@ const AadharPay = () => {
   const handleTransactionSubmit = (e) => {
     if (e) e.preventDefault();
     
-    if (deviceStatus !== 'Ready') {
-      showToast('Please check and connect biometric device first!', 'error');
-      return;
-    }
+    // if (deviceStatus !== 'Ready') {
+    //   showToast('Please check and connect biometric device first!', 'error');
+    //   return;
+    // }
     if (!mobileNumber || mobileNumber.length !== 10) {
       showToast('Please enter a valid 10-digit mobile number', 'error');
       return;
@@ -101,7 +124,7 @@ const AadharPay = () => {
       return;
     }
 
-    if (parseFloat(amount) > 5000 && !otpVerified) {
+    if (activeTab === 'AADHARPAY' && parseFloat(amount) > 5000 && !otpVerified) {
       setShowOtpModal(true);
       showToast('🔑 OTP Sent to customer mobile number', 'success');
       return;
@@ -130,11 +153,13 @@ const AadharPay = () => {
   };
 
   const executeBiometricTransaction = () => {
+    setShowBiometricModal(true);
     setIsScanning(true);
     showToast('Biometric scanner activated. Please place thumb...', 'info');
 
     setTimeout(() => {
       setIsScanning(false);
+      setShowBiometricModal(false);
       setLoading(true);
       
       setTimeout(() => {
@@ -243,6 +268,12 @@ const AadharPay = () => {
         </div>
       )}
 
+      {/* 2-Column Main Layout wrapping all steps */}
+      <div className={styles.mainLayout} style={{ alignItems: 'flex-start' }}>
+        
+        {/* LEFT COLUMN: Active Step Content */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
       {/* STEP 1: Select AEPS Provider */}
       {step === 'provider' && (
         <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
@@ -329,6 +360,7 @@ const AadharPay = () => {
               ))}
             </div>
           </div>
+
         </div>
       )}
 
@@ -424,10 +456,8 @@ const AadharPay = () => {
 
       {/* STEP 3: Actual AadharPay Portal */}
       {step === 'portal' && (
-        <>
-        <div className={styles.mainLayout}>
-          <div className={styles.formCard}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
+          <div className={styles.formCard} style={{ width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', paddingBottom: '15px', borderBottom: '1px solid #f1f5f9', marginBottom: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <button 
                   onClick={() => setStep('onboarding')}
@@ -439,17 +469,8 @@ const AadharPay = () => {
                   <FaShieldAlt color="#1756AA" /> AadharPay Gateway Portal
                 </h2>
               </div>
-            </div>
-            <div style={{
-              display: 'flex',
-              background: '#F1F5F9',
-              padding: '6px',
-              borderRadius: '16px',
-              gap: '10px',
-              width: '100%',
-              marginBottom: '20px'
-            }}>
-              {[
+              <div style={{ display: 'flex', background: '#F1F5F9', padding: '4px', borderRadius: '12px', gap: '4px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
+                {[
                 { id: 'AADHARPAY', label: 'Cash Withdrawal', icon: <FaMoneyBillWave /> },
                 { id: 'BALANCE ENQUIRY', label: 'Balance Enquiry', icon: <FaWallet /> },
                 { id: 'MINISTATEMENT', label: 'Mini Statement', icon: <FaFileInvoice /> }
@@ -464,7 +485,7 @@ const AadharPay = () => {
                       showToast(`Switched to ${tab.label}`, 'info');
                     }}
                     style={{
-                      flex: 1,
+                      flex: 1, minWidth: 'fit-content',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -499,6 +520,7 @@ const AadharPay = () => {
                   </button>
                 );
               })}
+              </div>
             </div>
           
           <form onSubmit={handleTransactionSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '10px 0' }}>
@@ -702,15 +724,19 @@ const AadharPay = () => {
 
           </form>
         </div>
+      )}
+        </div>
+        {/* END LEFT COLUMN */}
 
           {/* RIGHT COLUMN: Premium Guidelines Tabs Card */}
           <div style={{
-            background: '#ffffff', borderRadius: '24px', padding: '24px',
+            background: '#ffffff', borderRadius: isMobile ? '16px' : '24px', padding: isMobile ? '16px' : '24px',
             boxShadow: '0 10px 30px rgba(13, 27, 62, 0.05)', border: '1px solid #E2E8F0',
-            display: 'flex', flexDirection: 'column', gap: '20px', minWidth: '320px', flex: '1 1 350px'
+            display: 'flex', flexDirection: 'column', gap: '20px', minWidth: isMobile ? '100%' : '320px', flex: '1 1 350px',
+            overflow: 'hidden'
           }}>
             {/* Tabs Header */}
-            <div style={{ display: 'flex', background: '#F1F5F9', padding: '4px', borderRadius: '12px', gap: '4px' }}>
+            <div style={{ display: 'flex', background: '#F1F5F9', padding: '4px', borderRadius: '12px', gap: '4px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
               {[
                 { id: 'rules', label: 'Rules', icon: '🛡️' },
                 { id: 'seeding', label: 'Seeding', icon: '🔗' },
@@ -795,11 +821,17 @@ const AadharPay = () => {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
                   {[
-                    { title: 'UIDAI — Bank Seeding Status', desc: 'Aadhaar kis bank se link hai, online check kare', icon: '🏦' },
-                    { title: '*99*99*1#', desc: 'Bina internet ke phone se seeding status', icon: '📞' },
-                    { title: 'NPCI — APB FAQs', desc: 'Aadhaar mapper / seeding ki puri jaankari', icon: 'ℹ️' }
+                    { title: 'UIDAI — Bank Seeding Status', desc: 'Aadhaar kis bank se link hai, online check kare', icon: '🏦', link: 'https://myaadhaar.uidai.gov.in/bank-seeding-status' },
+                    { title: '*99*99*1#', desc: 'Bina internet ke phone se seeding status', icon: '📞', link: '' },
+                    { title: 'NPCI — APB FAQs', desc: 'Aadhaar mapper / seeding ki puri jaankari', icon: 'ℹ️', link: 'https://www.npci.org.in/what-we-do/nach/aadhaar-payment-bridge/faqs' }
                   ].map((item, idx) => (
-                    <div key={idx} style={{ border: '1px solid #E2E8F0', borderRadius: '12px', padding: '12px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: '#fff' }}>
+                    <div 
+                      key={idx} 
+                      onClick={() => { if (item.link) window.open(item.link, '_blank'); }}
+                      style={{ border: '1px solid #E2E8F0', borderRadius: '12px', padding: '12px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: item.link ? 'pointer' : 'default', background: '#fff', transition: 'all 0.2s' }}
+                      onMouseOver={(e) => { if(item.link) { e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; } }}
+                      onMouseOut={(e) => { if(item.link) { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.boxShadow = 'none'; } }}
+                    >
                       <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                         <span style={{ fontSize: '1.5rem' }}>{item.icon}</span>
                         <div>
@@ -807,7 +839,7 @@ const AadharPay = () => {
                           <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748B' }}>{item.desc}</p>
                         </div>
                       </div>
-                      <span style={{ color: '#94A3B8' }}>→</span>
+                      {item.link ? <span style={{ color: '#94A3B8', fontSize: '1.2rem' }}>🌐</span> : <span style={{ color: '#94A3B8', fontSize: '1rem' }}>→</span>}
                     </div>
                   ))}
                 </div>
@@ -822,56 +854,90 @@ const AadharPay = () => {
 
             {/* TAB CONTENT: Device & Tester */}
             {rightTab === 'device' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800', color: '#0D1B5E', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  🖨️ Device & RD Service
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800', color: '#0D1B5E', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <FaFingerprint /> Device & RD Service
                 </h3>
                 <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748B' }}>
                   Apna device chune — RD Service download / renew ka page khulega.
                 </p>
-
-                {/* Tester Section */}
-                <div style={{ background: '#F8FAFF', border: '1px solid #CBD5E1', borderRadius: '16px', padding: '15px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#fff', border: deviceStatus === 'Ready' ? '2.5px solid #22C55E' : '2.5px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <FaFingerprint style={{ fontSize: '1.8rem', color: deviceStatus === 'Ready' ? '#22C55E' : '#94A3B8' }} />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleCheckDevice}
-                    disabled={loading || isScanning}
-                    style={{ background: '#1756AA', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', width: '100%' }}
-                  >
-                    {deviceStatus === 'Connecting' ? 'Testing...' : 'Test / Capture Biometric Device'}
-                  </button>
-                  <span style={{ fontSize: '0.75rem', fontWeight: '700', color: deviceStatus === 'Ready' ? '#22C55E' : '#EF4444' }}>
-                    Status: {deviceStatus === 'Ready' ? `Ready (Mantra MFS100)` : 'Disconnected'}
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '250px', overflowY: 'auto' }}>
-                  {[
-                    { name: 'Mantra', desc: 'MFS100 / MFS110 L1 / MIS100' },
-                    { name: 'Morpho / IDEMIA', desc: 'MSO 1300 E2 / E3 L1' },
-                    { name: 'Startek', desc: 'FM220U / FM220U-L1' },
-                    { name: 'SecuGen', desc: 'Hamster Pro 20 / HU20' },
-                    { name: 'Precision', desc: 'PB510 / PB1000' },
-                    { name: 'Evolute', desc: 'Fingerprint L1 RD' },
-                    { name: 'Aratek', desc: 'A600 L1' },
-                    { name: 'Next Biometrics', desc: 'L1 RD Service' }
-                  ].map((d, idx) => (
-                    <div key={idx} style={{ border: '1px solid #E2E8F0', borderRadius: '10px', padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div>
-                        <h5 style={{ margin: 0, fontSize: '0.8rem', fontWeight: '800', color: '#0D1B5E' }}>{d.name}</h5>
-                        <p style={{ margin: 0, fontSize: '0.7rem', color: '#64748B' }}>{d.desc}</p>
-                      </div>
-                      <span style={{ fontSize: '1rem', cursor: 'pointer' }}>📥</span>
-                    </div>
-                  ))}
-                </div>
               </div>
-            )}
 
-            {/* TAB CONTENT: Help (7 Q&As) */}
+              <div style={{ background: '#F8FAFF', border: '1px solid #CBD5E1', borderRadius: '16px', padding: '15px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#fff', border: deviceStatus === 'Ready' ? '2.5px solid #22C55E' : '2.5px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FaFingerprint style={{ fontSize: '1.8rem', color: deviceStatus === 'Ready' ? '#22C55E' : '#94A3B8' }} />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCheckDevice}
+                  disabled={loading || isScanning}
+                  style={{ background: '#1756AA', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', width: '100%' }}
+                >
+                  {deviceStatus === 'Connecting' ? 'Testing...' : 'Test / Capture Biometric Device'}
+                </button>
+                <span style={{ fontSize: '0.75rem', fontWeight: '700', color: deviceStatus === 'Ready' ? '#22C55E' : '#EF4444' }}>
+                  Status: {deviceStatus === 'Ready' ? `Ready (Mantra MFS100)` : 'Disconnected'}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '320px', overflowY: 'auto', paddingRight: '5px' }}>
+                {[
+                  { name: 'Mantra', desc: 'MFS100 / MFS110 L1 / MIS100', link: 'https://www.rdservice.in' },
+                  { name: 'Morpho / IDEMIA', desc: 'MSO 1300 E2 / E3 L1', link: 'https://rdservicesonline.com' },
+                  { name: 'Startek', desc: 'FM220U / FM220U-L1', link: 'https://www.startek.com' },
+                  { name: 'SecuGen', desc: 'Hamster Pro 20 / HU20', link: 'https://secugenindia.com' },
+                  { name: 'Precision', desc: 'PB510 / PB1000', link: 'https://www.precisionbiometric.co.in' },
+                  { name: 'Evolute', desc: 'Fingerprint L1 RD', link: 'https://www.evolute.in' },
+                  { name: 'Aratek', desc: 'A600 L1', link: 'https://www.aratek.co' },
+                  { name: 'Next Biometrics', desc: 'NB-3023-U / L1', link: 'https://www.nextbiometrics.com' },
+                  { name: 'Iris (Mantra MIS100V2)', desc: 'Iris scanner RD', link: 'https://www.rdservice.in' },
+                  { name: 'UIDAI - certified device list', desc: 'Registered device ki official jaankari', link: 'https://uidai.gov.in' }
+                ].map((d, idx) => (
+                  <div 
+                    key={idx} 
+                    onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(d.name + ' RD Service official download ' + d.desc)}`, '_blank')}
+                    style={{ border: '1px solid #E2E8F0', borderRadius: '10px', padding: '12px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: '#fff', transition: 'all 0.2s', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' }}
+                    onMouseOver={(e) => { e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.boxShadow = '0 2px 5px rgba(0,0,0,0.02)'; }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#F0F5FF', color: '#1756AA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
+                        <FaFingerprint />
+                      </div>
+                      <div>
+                        <h5 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '800', color: '#0D1B5E' }}>{d.name}</h5>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748B' }}>{d.desc}</p>
+                      </div>
+                    </div>
+                    <span style={{ fontSize: '1.2rem', color: '#94A3B8' }}>📥</span>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ background: '#F0F5FF', border: '1px solid #CBD5E1', borderRadius: '12px', padding: '15px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <h4 style={{ margin: 0, fontSize: '0.85rem', fontWeight: '800', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <FaInfoCircle color="#475569" /> RD Service ke rules:
+                </h4>
+                <ol style={{ margin: 0, paddingLeft: '15px', fontSize: '0.8rem', color: '#475569', lineHeight: '1.6' }}>
+                  <li>RD Service sirf <strong>device banane wali company</strong> ki official site se hi le — third party / cracked RD se transaction fail aur account block ho sakta hai.</li>
+                  <li>RD license aam taur par <strong>1 saal</strong> chalta hai, uske baad renew karna padta hai.</li>
+                  <li>Windows par RD Service <strong>background me chalu</strong> rehna chahiye, warna "Device not found" aata hai.</li>
+                  <li>Ek PC par <strong>ek hi company</strong> ka RD Service rakhe — do alag RD aapas me takrate hai.</li>
+                </ol>
+              </div>
+
+              <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '12px', padding: '12px', display: 'flex', gap: '10px' }}>
+                <FaExclamationTriangle color="#D97706" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <p style={{ margin: 0, fontSize: '0.8rem', color: '#92400E', lineHeight: '1.5' }}>
+                  Device kaam na kare to: RD Service app kholein → device USB nikaal kar dobara lagaye → browser refresh kare → phir bhi na ho to RD license expiry check kare.
+                </p>
+              </div>
+
+            </div>
+          )}
+
+          {/* TAB CONTENT: Help (7 Q&As) */}
             {rightTab === 'help' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800', color: '#0D1B5E' }}>Common Problems</h3>
@@ -943,8 +1009,12 @@ const AadharPay = () => {
             )}
 
           </div>
-        </div>
+          {/* END RIGHT COLUMN */}
 
+      </div>
+      {/* END 2-COLUMN MAIN LAYOUT */}
+
+      {step === 'portal' && (
             <div className={styles.tableCard}>
         <div className={styles.tableHeader}>
           <h3 className={styles.cardTitle}><FaHistory /> Today's AePS & AadharPay Log</h3>
@@ -1008,7 +1078,6 @@ const AadharPay = () => {
           </table>
         </div>
       </div>
-      </>
       )}
 
       {step === 'portal' && (
@@ -1053,6 +1122,31 @@ const AadharPay = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showBiometricModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)' }}>
+          <div style={{ background: '#fff', padding: '40px', borderRadius: '24px', maxWidth: '400px', width: '90%', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', textAlign: 'center' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#F0F5FF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', boxShadow: '0 0 20px rgba(23, 86, 170, 0.2)' }}>
+              <FaFingerprint size={40} color="#1756AA" />
+            </div>
+            <h3 style={{ margin: '0 0 10px 0', color: '#0D1B5E', fontWeight: '800', fontSize: '1.4rem' }}>Scanning Biometric...</h3>
+            <p style={{ color: '#64748B', fontSize: '0.9rem', margin: '0 0 20px 0', lineHeight: '1.5' }}>
+              Please ask the customer to place their thumb on the biometric scanner.
+            </p>
+            <div style={{ width: '100%', height: '6px', background: '#E2E8F0', borderRadius: '3px', overflow: 'hidden', position: 'relative' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, height: '100%', width: '100%', background: 'linear-gradient(90deg, transparent, #1756AA, transparent)', animation: 'biometricScan 1.5s infinite linear' }} />
+            </div>
+            <style>
+              {`
+                @keyframes biometricScan {
+                  0% { transform: translateX(-100%); }
+                  100% { transform: translateX(100%); }
+                }
+              `}
+            </style>
           </div>
         </div>
       )}

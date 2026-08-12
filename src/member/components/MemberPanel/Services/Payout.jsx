@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FaMoneyBillWave, FaSpinner, FaCheckCircle, FaExclamationTriangle, 
   FaArrowLeft, FaDownload, FaSearch, FaPlusCircle, FaShieldAlt, 
@@ -76,9 +76,16 @@ const Payout = () => {
     } catch (e) {}
   }
 
+  const toastTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, []);
+
   const showToast = (msg, type = 'success') => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3000);
   };
 
   const handleVerifyAccount = () => {

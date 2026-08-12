@@ -67,9 +67,7 @@ const KYCDetails = () => {
 
   const fetchMembers = async () => {
     try {
-      console.log("KYCDetails: Fetching members via search...");
       const res = await MemberService.search("");
-      console.log("KYCDetails: Member Search Response:", res);
       if (Array.isArray(res)) {
         setMemberList(res);
       } else {
@@ -92,13 +90,9 @@ const KYCDetails = () => {
       });
       if (res.data && res.data.status && res.data.data) {
         const rawItems = res.data.data.items || [];
-        console.log("KYCDetails: RAW ITEMS FROM API:", rawItems);
         const mappedItems = rawItems.map(item => {
           const docs = (item.documents || []).filter(d => !d.isDelete);
           if (docs.length > 0) {
-            console.log("KYCDetails: DOC 0 DETAILS:", docs[0]);
-            console.log("KYCDetails: DOC 0 KEYS:", Object.keys(docs[0]));
-            console.log("KYCDetails: DOC 0 STRINGIFIED:", JSON.stringify(docs[0]));
           }
           return {
             msrno: item.msrno,

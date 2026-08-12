@@ -54,15 +54,15 @@ const AEPSReport = () => {
         setMasterServices(Array.isArray(svcRes?.data) ? svcRes.data : Array.isArray(svcRes) ? svcRes : []);
         const allSvcs = Array.isArray(svcRes?.data) ? svcRes.data : Array.isArray(svcRes) ? svcRes : [];
         setAepsServiceIds(allSvcs.filter(s => String(s.sectionType) === '10').map(s => String(s.id)));
-      } catch (e) {}
+      } catch (e) { console.error('AEPSReport: services fetch failed', e); }
       try {
         const opRes = await API.operator.getAll({ pageSize: 1000 });
         setMasterOperators(Array.isArray(opRes?.data?.items) ? opRes.data.items : Array.isArray(opRes?.data) ? opRes.data : Array.isArray(opRes) ? opRes : []);
-      } catch (e) {}
+      } catch (e) { console.error('AEPSReport: operators fetch failed', e); }
       try {
         const apiRes = await API.masterApi.getAll({ pageSize: 500 });
         setMasterApis(Array.isArray(apiRes?.data?.items) ? apiRes.data.items : Array.isArray(apiRes?.data) ? apiRes.data : Array.isArray(apiRes) ? apiRes : []);
-      } catch (e) {}
+      } catch (e) { console.error('AEPSReport: APIs fetch failed', e); }
       try {
         const mRes = await API.member.getAll({ pageNumber: 1, pageSize: 5000 });
         const mList = mRes?.data?.items || mRes?.data || (Array.isArray(mRes) ? mRes : []);
@@ -74,7 +74,7 @@ const AEPSReport = () => {
             return { value: String(m.id || m.msrno), label: name ? `${name} (${loginId})` : loginId };
           })
         ]);
-      } catch (e) {}
+      } catch (e) { console.error('AEPSReport: members fetch failed', e); }
     };
     fetchMasters();
   }, []);
@@ -174,7 +174,6 @@ const AEPSReport = () => {
         status: filters.status || ''
       });
       const { items: rawData } = normalizeTxnResponse(res);
-      console.log('[AEPSReport.jsx] rows:', rawData.length);
       dispatch(setAEPSList(rawData));
     } catch (e) {
       console.error('[AEPSReport.jsx] fetch error:', e);

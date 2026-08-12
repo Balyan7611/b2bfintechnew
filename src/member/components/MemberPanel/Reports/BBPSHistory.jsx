@@ -67,7 +67,6 @@ const BBPSHistory = () => {
         status: filters.status || ''
       });
       const { items: rawData } = normalizeTxnResponse(res);
-      console.log('[BBPSHistory.jsx] rows:', rawData.length);
       dispatch(setBBPSList(rawData));
     } catch (e) {
       console.error('[BBPSHistory.jsx] fetch error:', e);

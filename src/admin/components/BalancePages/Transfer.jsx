@@ -42,9 +42,7 @@ const Transfer = () => {
     setLoading(true);
     try {
       const res = await API.userWalletBalance.getAll({ pageNumber: 1, pageSize: 500 });
-      console.log('Transfer.jsx API response:', res);
       if (res && res.data) {
-          console.log('Transfer.jsx setting transferList to:', res.data);
           setTransferList(res.data);
       }
     } catch (e) {

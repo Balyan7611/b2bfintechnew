@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { API } from '../../../api/endpoints';
 import { FiChevronDown, FiRefreshCw, FiShield, FiCheck } from 'react-icons/fi';
 import { FaTrash } from 'react-icons/fa';
@@ -15,6 +15,16 @@ const AssignRole = () => {
   const [assignedList, setAssignedList] = useState([]);
   const [isAssigning, setIsAssigning] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+
+  const outerTimerRef = useRef(null);
+  const msgTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (outerTimerRef.current) clearTimeout(outerTimerRef.current);
+      if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+    };
+  }, []);
 
     useEffect(() => {
     const fetchRoles = async () => {
@@ -59,10 +69,13 @@ const AssignRole = () => {
   const handleAssign = () => {
     if (!selectRole || !downRole) return;
     setIsAssigning(true);
-        setTimeout(() => {
+        if (outerTimerRef.current) clearTimeout(outerTimerRef.current);
+    if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+    outerTimerRef.current = setTimeout(() => {
       setIsAssigning(false);
       setSuccessMsg('Role assigned successfully!');
-      setTimeout(() => setSuccessMsg(''), 3000);
+      if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+      msgTimerRef.current = setTimeout(() => setSuccessMsg(''), 3000);
     }, 1200);
   };
 

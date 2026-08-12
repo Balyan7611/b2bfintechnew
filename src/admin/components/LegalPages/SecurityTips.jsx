@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FiFileText, FiSearch, FiChevronRight, FiTrash2, FiPlus, FiX, FiChevronLeft
@@ -22,12 +22,19 @@ const SecurityTips = () => {
     dispatch(updateSecurityForm({ name, value }));
   };
 
+  const submitTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (submitTimerRef.current) clearTimeout(submitTimerRef.current); };
+  }, []);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!securityForm.newsName || !securityForm.description) return;
     
     dispatch(setIsSubmitting(true));
-    setTimeout(() => {
+    if (submitTimerRef.current) clearTimeout(submitTimerRef.current);
+    submitTimerRef.current = setTimeout(() => {
       dispatch(addSecurity());
       dispatch(setIsSubmitting(false));
       setShowAddModal(false);

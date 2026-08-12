@@ -64,6 +64,7 @@ import { API } from './api/endpoints';
 import { setNavScrolled, setNotification } from './store/slices/uiSlice';
 import GlobalLoaderAndToast from './components/GlobalLoaderAndToast';
 import ActivityTracker from './components/ActivityTracker';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function captureUserCoordinates() {
   if (!navigator.geolocation) return;
@@ -101,7 +102,7 @@ function App() {
       
       const adminStr = localStorage.getItem('admin_token');
       const accessStr = localStorage.getItem('access_token');
-      
+
       const isValidTokenStr = (token) => {
         if (!token) return false;
         const t = token.replace(/^"(.*)"$/, '$1');
@@ -110,8 +111,9 @@ function App() {
 
       const hasAdmin = isValidTokenStr(adminStr);
       const hasAccess = isValidTokenStr(accessStr);
-      const session = localStorage.getItem('bss_current_session');
-      const isValidSession = isValidTokenStr(session);
+      // Use getSession() so admin (bss_admin_session) and api (bss_api_session) sessions are checked correctly
+      const currentSession = getSession();
+      const isValidSession = currentSession !== null;
       
       if ((hasAdmin || hasAccess) && isValidSession) {
         timeoutId = setTimeout(handleAutoLogout, INACTIVITY_LIMIT);
@@ -221,16 +223,14 @@ function App() {
       const isValidMemberToken = isValidTokenStr(memberToken);
 
       if (isValidAdminToken || isValidMemberToken) {
-        const session = localStorage.getItem('bss_current_session');
-        if (session) {
+        const parsedSession = getSession();
+        if (parsedSession) {
           try {
-            const parsedSession = JSON.parse(session);
-            
-                        registerSessionOnBackend(parsedSession);
+            registerSessionOnBackend(parsedSession);
 
-                        checkConcurrentSession(parsedSession);
+            checkConcurrentSession(parsedSession);
 
-                        if (parsedSession.loggedInAt) {
+            if (parsedSession.loggedInAt) {
               const loginTime = new Date(parsedSession.loggedInAt).getTime();
               if (!isNaN(loginTime)) {
                 const elapsedMs = Date.now() - loginTime;
@@ -548,6 +548,7 @@ function App() {
   }, [dispatch]);
 
   return (
+    <ErrorBoundary>
     <div className="App">
       <ActivityTracker />
       <Routes>
@@ -696,6 +697,7 @@ function App() {
           </div>
         )}
       </div>
+    </ErrorBoundary>
   );
 }
 

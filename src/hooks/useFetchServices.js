@@ -21,14 +21,12 @@ export const useFetchServices = (sectionType) => {
               ? response.data 
               : [];
           
-          console.log(`[useFetchServices Debug] Fetched all ${list.length} services.`);
           
                     const filteredList = list.filter(s => {
             const serviceSection = String(s.sectionType || s.SectionType || '');
             return serviceSection === String(sectionType);
           });
           
-          console.log(`[useFetchServices Debug] Filtered down to ${filteredList.length} services for sectionType = ${sectionType}`);
           
           setServices(filteredList);
           setError(null);

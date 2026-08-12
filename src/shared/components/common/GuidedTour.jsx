@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './GuidedTour.module.css';
 
 const TOOLTIP_W = 310;
@@ -10,6 +10,8 @@ const GuidedTour = ({ steps = [], onFinish }) => {
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
   const [highlightRect, setHighlightRect] = useState(null);
   const [visible, setVisible] = useState(false);
+  const positionTimerRef = useRef(null);
+  const finishTimerRef = useRef(null);
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 300);
@@ -17,8 +19,15 @@ const GuidedTour = ({ steps = [], onFinish }) => {
   }, []);
 
   useEffect(() => {
+    return () => {
+      if (positionTimerRef.current) clearTimeout(positionTimerRef.current);
+      if (finishTimerRef.current) clearTimeout(finishTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
     positionTooltip();
-    }, [currentStep]);
+  }, [currentStep]);
 
   const positionTooltip = () => {
     const step = steps[currentStep];
@@ -34,7 +43,8 @@ const GuidedTour = ({ steps = [], onFinish }) => {
 
         el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-        setTimeout(() => {
+    if (positionTimerRef.current) clearTimeout(positionTimerRef.current);
+    positionTimerRef.current = setTimeout(() => {
       const rect = el.getBoundingClientRect();
       setHighlightRect({
         top: rect.top,
@@ -71,7 +81,8 @@ const GuidedTour = ({ steps = [], onFinish }) => {
 
   const handleFinish = () => {
     setVisible(false);
-    setTimeout(() => onFinish && onFinish(), 350);
+    if (finishTimerRef.current) clearTimeout(finishTimerRef.current);
+    finishTimerRef.current = setTimeout(() => onFinish && onFinish(), 350);
   };
 
   if (!visible || !steps.length) return null;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { FiSearch, FiCalendar, FiUser, FiFilter, FiActivity, FiDatabase, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint } from 'react-icons/fa';
@@ -80,6 +80,12 @@ const AEPSWalletReport = () => {
   };
 
   const [isLoading, setIsLoading] = useState(false);
+  const loadingTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current); };
+  }, []);
+
   const [membersList, setMembersList] = useState([]);
   const [selectedMember, setSelectedMember] = useState('');
   const [fromDate, setFromDate] = useState(getCurrentDateString());
@@ -101,7 +107,8 @@ const AEPSWalletReport = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 800);
+    if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+    loadingTimerRef.current = setTimeout(() => setIsLoading(false), 800);
   };
 
   return (

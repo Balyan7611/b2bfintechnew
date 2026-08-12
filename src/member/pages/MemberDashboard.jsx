@@ -32,6 +32,7 @@ const CountUp = ({ end, duration = 1000 }) => {
   
   useEffect(() => {
     let startTimestamp = null;
+    let rafId = null;
     const endValue = parseFloat(end.replace(/,/g, ''));
     if (isNaN(endValue)) { setCount(end); return; }
 
@@ -44,10 +45,11 @@ const CountUp = ({ end, duration = 1000 }) => {
         maximumFractionDigits: 2
       }));
       if (progress < 1) {
-        window.requestAnimationFrame(step);
+        rafId = window.requestAnimationFrame(step);
       }
     };
-    window.requestAnimationFrame(step);
+    rafId = window.requestAnimationFrame(step);
+    return () => { if (rafId) window.cancelAnimationFrame(rafId); };
   }, [end, duration]);
 
   return <span>{count}</span>;
@@ -90,17 +92,23 @@ const MemberDashboard = () => {
     const [currentToast, setCurrentToast] = useState(null);
   const [isToastClosing, setIsToastClosing] = useState(false);
   const prevNotifCountRef = useRef(notifList ? notifList.length : 0);
+  const toastCloseTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (toastCloseTimerRef.current) clearTimeout(toastCloseTimerRef.current); };
+  }, []);
 
   useEffect(() => {
     if (notifList && notifList.length > prevNotifCountRef.current) {
       setCurrentToast(notifList[0]);
       setIsToastClosing(false);
-      
+
       const timer = setTimeout(() => {
         setIsToastClosing(true);
-        setTimeout(() => setCurrentToast(null), 300);
+        if (toastCloseTimerRef.current) clearTimeout(toastCloseTimerRef.current);
+        toastCloseTimerRef.current = setTimeout(() => setCurrentToast(null), 300);
       }, 5000);
-      
+
       prevNotifCountRef.current = notifList.length;
       return () => clearTimeout(timer);
     } else if (notifList) {
@@ -110,7 +118,8 @@ const MemberDashboard = () => {
 
   const handleCloseToast = () => {
     setIsToastClosing(true);
-    setTimeout(() => setCurrentToast(null), 300);
+    if (toastCloseTimerRef.current) clearTimeout(toastCloseTimerRef.current);
+    toastCloseTimerRef.current = setTimeout(() => setCurrentToast(null), 300);
   };
 
   useEffect(() => {
@@ -135,7 +144,7 @@ const MemberDashboard = () => {
     document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
     const session = getSession();
     if (!session) {
-      setUser({ name: 'Sachin Balyan', role: 'Retailer (RT1236)' });
+      setUser({ name: 'Member', role: 'Retailer' });
     } else {
       setUser(session);
     }

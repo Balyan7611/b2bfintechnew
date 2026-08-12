@@ -129,7 +129,6 @@ httpClient.interceptors.request.use((config) => {
         startLoading();
     }
     
-    console.log("Outgoing API Request URL:", config.url, "Authorization Header:", config.headers?.Authorization || config.headers?.get?.('Authorization'));
     return config;
 }, (error) => {
     if (!error.config || !error.config.hideLoader) {

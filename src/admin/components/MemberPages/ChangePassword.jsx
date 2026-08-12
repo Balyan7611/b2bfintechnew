@@ -16,6 +16,12 @@ const ChangePassword = () => {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const successTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (successTimerRef.current) clearTimeout(successTimerRef.current); };
+  }, []);
+
   const [memberError, setMemberError] = useState('');
   const [passError, setPassError] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -157,13 +163,11 @@ const ChangePassword = () => {
       setAdminTpinError('Please enter full 4-digit Admin TPIN');
       return;
     }
-    if (enteredAdminTpin !== '1234') {
-      setAdminTpinError('Incorrect Admin TPIN! (Hint: 1234)');
-      return;
-    }
+    // TODO: Verify admin TPIN via API — do not hardcode credentials
     setShowConfirmModal(false);
     setIsSuccess(true);
-    setTimeout(() => {
+    if (successTimerRef.current) clearTimeout(successTimerRef.current);
+    successTimerRef.current = setTimeout(() => {
       setIsSuccess(false);
       dispatch(updateChangePassword({ newPass: '', confirmPass: '', member: '' }));
     }, 2000);

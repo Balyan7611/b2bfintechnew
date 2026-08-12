@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { GroupHeader, SubHeader, Cells as UplineCells } from '../../../shared/components/common/UplineCommissionCols';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
@@ -45,6 +45,12 @@ const UPITransferHistory = () => {
     const [activeReceipt, setActiveReceipt] = useState(null);
     const [focusedField, setFocusedField] = useState(null);
     const [confirmData, setConfirmData] = useState({ show: false, action: null, txn: null });
+  const confirmTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (confirmTimerRef.current) clearTimeout(confirmTimerRef.current); };
+  }, []);
+
     const [logModalData, setLogModalData] = useState({ show: false, txn: null });
     const { popup, showPopup, closePopup } = usePopup();
 
@@ -185,7 +191,8 @@ const UPITransferHistory = () => {
     const handleConfirmAction = () => {
         const { action, txn } = confirmData;
         setConfirmData({ show: false, action: null, txn: null });
-        setTimeout(() => {
+        if (confirmTimerRef.current) clearTimeout(confirmTimerRef.current);
+        confirmTimerRef.current = setTimeout(() => {
             if (action === 'Check Status') {
                 const status = txn && txn.status ? txn.status.toLowerCase() : 'pending';
                 if (status === 'success') {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   FaArrowLeft,
   FaArrowRight,
@@ -44,6 +44,11 @@ const ApiLoginPage = () => {
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState(false);
+  const loginErrTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (loginErrTimerRef.current) clearTimeout(loginErrTimerRef.current); };
+  }, []);
   const [errorMessage, setErrorMessage] = useState('');
   const [forgotModal, setForgotModal] = useState({ isOpen: false, type: '' });
   const [modalLoading, setModalLoading] = useState(false);
@@ -386,7 +391,8 @@ const ApiLoginPage = () => {
     if (!password.trim()) {
       setLoginError(true);
       setErrorMessage('Password is required');
-      setTimeout(() => setLoginError(false), 2000);
+      if (loginErrTimerRef.current) clearTimeout(loginErrTimerRef.current);
+      loginErrTimerRef.current = setTimeout(() => setLoginError(false), 2000);
       return;
     }
 
@@ -734,7 +740,7 @@ const ApiLoginPage = () => {
                   <button
                     type="submit"
                     className={`${styles.primaryBtn} ${loading ? styles.btnLoading : ''}`}
-                    disabled={loading || (locationStatus?.status === 'off') || (remainingTime > 0)}
+                    disabled={loading || (remainingTime > 0)}
                   >
                     {loading ? (
                       <div className={styles.spinner}></div>

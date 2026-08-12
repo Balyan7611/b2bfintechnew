@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { 
   FiChevronLeft, FiChevronRight, FiRefreshCw, FiCheck, FiUser, FiSearch
 } from 'react-icons/fi';
@@ -18,6 +18,12 @@ const ParentChange = () => {
 
     const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+
+  const msgTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (msgTimerRef.current) clearTimeout(msgTimerRef.current); };
+  }, []);
 
     const [changesList, setChangesList] = useState([]);
 
@@ -85,7 +91,9 @@ const ParentChange = () => {
       
       setSuccessMsg("Parent change updated successfully!");
       fetchData();       
-      setTimeout(() => setSuccessMsg(""), 3000);
+      if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+       
+      msgTimerRef.current = setTimeout(() => setSuccessMsg(""), 3000);
       
             setFetchedMember(null);
       setFetchedParent(null);

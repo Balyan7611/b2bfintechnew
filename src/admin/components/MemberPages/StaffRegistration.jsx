@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { FiDatabase } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { useDispatch, useSelector } from 'react-redux';
@@ -19,6 +19,11 @@ const StaffRegistration = () => {
   const [showPass, setShowPass] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const actionTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (actionTimerRef.current) clearTimeout(actionTimerRef.current); };
+  }, []);
   const [successData, setSuccessData] = useState(null);
   const [errors, setErrors] = useState({});
 
@@ -74,7 +79,8 @@ const StaffRegistration = () => {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
+    if (actionTimerRef.current) clearTimeout(actionTimerRef.current);
+    actionTimerRef.current = setTimeout(() => {
       const newStaff = {
         ...staffForm,
         memberId: staffForm.loginId || 'EMP' + Math.floor(1000 + Math.random() * 9000),

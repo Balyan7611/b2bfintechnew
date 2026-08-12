@@ -127,10 +127,8 @@ const ChangeTPIN = () => {
       setAdminTpinError('Please enter full 4-digit Admin TPIN');
       return;
     }
-    if (enteredAdminTpin !== '1234') {
-      setAdminTpinError('Incorrect Admin TPIN! (Hint: 1234)');
-      return;
-    }
+    // TODO: Verify admin TPIN via API — do not hardcode credentials
+    // Placeholder: UI flow only, actual TPIN change requires real API integration
     setShowConfirm(false);
     setIsSuccess(true);
   };

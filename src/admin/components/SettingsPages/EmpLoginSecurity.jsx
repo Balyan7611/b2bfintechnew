@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FiSearch, FiEdit, FiTrash2, FiPlus, FiChevronLeft, FiChevronRight, FiDatabase, FiX, FiCheck, FiShield, FiLock, FiMonitor, FiMapPin, FiRefreshCw
@@ -12,6 +12,16 @@ import styles from '../MemberPages/MemberPages.module.css';
 const EmpLoginSecurity = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const searchTimerRef = useRef(null);
+  const removeTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+      if (removeTimerRef.current) clearTimeout(removeTimerRef.current);
+    };
+  }, []);
+
   const [isRemoving, setIsRemoving] = useState(false);
   const [membersList, setMembersList] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState('');
@@ -31,12 +41,14 @@ const EmpLoginSecurity = () => {
 
   const handleSearch = () => {
     setIsSearching(true);
-    setTimeout(() => setIsSearching(false), 1500);
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => setIsSearching(false), 1500);
   };
 
   const handleRemoveConfirm = () => {
     setIsRemoving(true);
-    setTimeout(() => {
+    if (removeTimerRef.current) clearTimeout(removeTimerRef.current);
+    removeTimerRef.current = setTimeout(() => {
       setIsRemoving(false);
       setShowDeleteModal(false);
     }, 1500);

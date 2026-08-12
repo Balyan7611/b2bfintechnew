@@ -67,7 +67,6 @@ const RechargeHistory = () => {
         status: filters.status || ''
       });
       const { items: rawData } = normalizeTxnResponse(res);
-      console.log('[RechargeHistory.jsx] rows:', rawData.length);
       dispatch(setRechargeList(rawData));
     } catch (e) {
       console.error('[RechargeHistory.jsx] fetch error:', e);

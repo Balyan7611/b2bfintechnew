@@ -236,7 +236,6 @@ const ApiHeader = () => {
         setWalletTypes(typesRes);
       }
 
-      console.log('[ApiHeader] memberId:', memberId, 'balances:', balances);
       setWalletBalances(balances);
     } catch (err) {
       console.error('ApiHeader: Failed to fetch wallet header data:', err);

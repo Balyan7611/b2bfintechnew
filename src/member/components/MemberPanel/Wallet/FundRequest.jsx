@@ -139,11 +139,21 @@ const FundRequest = () => {
   const [loading, setLoading] = useState(false);
   const [copiedText, setCopiedText] = useState('');
 
-      const slipMapRef = useRef({});
+  const slipMapRef = useRef({});
+  const toastTimerRef = useRef(null);
+  const copiedTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    };
+  }, []);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3000);
   };
 
       const resolveSlipUrl = useCallback((raw) => {
@@ -184,7 +194,6 @@ const FundRequest = () => {
     setIsLoadingList(true);
     try {
       const rows = await API.fundRequest.getMine(id);
-      console.log('[FundRequest] msrno:', id, '| my requests:', rows.length, rows);
       setRequests(rows.map(r => toRow(r, banks)));
     } catch (err) {
       console.error('FundRequest: failed to load list', err);
@@ -228,7 +237,8 @@ const FundRequest = () => {
     navigator.clipboard.writeText(text);
     setCopiedText(text);
     showToast(`Copied ${label}: ${text}`, 'success');
-    setTimeout(() => setCopiedText(''), 2000);
+    if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    copiedTimerRef.current = setTimeout(() => setCopiedText(''), 2000);
   };
 
   const handleFileChange = (e) => {

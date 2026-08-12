@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   FiRefreshCw, FiSave, FiGlobe, FiLink, FiCopy, FiTrash2, FiShield, FiX
 } from 'react-icons/fi';
@@ -16,12 +16,18 @@ const WebhookCallbacks = () => {
 
   const [search, setSearch] = useState('');
   const [toast, setToast] = useState(null);
+  const toastTimerRef = useRef(null);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
+  useEffect(() => {
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, []);
+
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3000);
   };
 
   const loadData = useCallback(async () => {

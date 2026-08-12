@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   FaMoneyBillWave, FaSpinner, FaCheckCircle, FaExclamationTriangle,
   FaIdCard, FaFingerprint, FaArrowLeft, FaDownload, FaSearch, FaUserPlus,
@@ -106,15 +106,11 @@ const DMT = () => {
     setBeneficiaries(saved ? JSON.parse(saved) : DEFAULT_BENEFICIARIES);
   }, []);
 
+  const toastTimerRef = useRef(null);
+
   useEffect(() => {
-    const timeouts = [];
-    const addTimeout = (fn, delay) => {
-      const id = setTimeout(fn, delay);
-      timeouts.push(id);
-      return id;
-    };
     return () => {
-      timeouts.forEach(clearTimeout);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, []);
 
@@ -124,8 +120,9 @@ const DMT = () => {
   }, []);
 
   const showToast = useCallback((msg, type = 'success') => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({ msg, type });
-    const id = setTimeout(() => setToast(null), 3000);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3000);
   }, []);
 
   const closeModal = useCallback(() => {

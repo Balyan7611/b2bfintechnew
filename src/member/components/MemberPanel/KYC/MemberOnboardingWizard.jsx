@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FiUser, FiFileText, FiBriefcase, FiLayers, 
   FiUploadCloud, FiCheckCircle, FiChevronRight, FiChevronLeft,
@@ -194,14 +194,25 @@ const MemberOnboardingWizard = () => {
 
     const [uploadedFiles, setUploadedFiles] = useState({});
 
-    const handleSendAadhaarOtp = () => {
+  // Collect all timer IDs so we can clear them on unmount
+  const timersRef = useRef([]);
+  const safeTimeout = (fn, delay) => {
+    const id = setTimeout(fn, delay);
+    timersRef.current.push(id);
+    return id;
+  };
+  useEffect(() => {
+    return () => { timersRef.current.forEach(clearTimeout); };
+  }, []);
+
+  const handleSendAadhaarOtp = () => {
     if (aadhaarNumber.length !== 12 || isNaN(aadhaarNumber)) {
       setErrorMessage('Please enter a valid 12-digit Aadhaar Number.');
       return;
     }
     setErrorMessage('');
     setIsSendingOtp(true);
-    setTimeout(() => {
+    safeTimeout(() => {
       setIsSendingOtp(false);
       setOtpSent(true);
       setResendTimer(30);
@@ -223,7 +234,7 @@ const MemberOnboardingWizard = () => {
 
   const handleVerifyAadhaarOtp = () => {
     setIsVerifyingOtp(true);
-    setTimeout(() => {
+    safeTimeout(() => {
       setIsVerifyingOtp(false);
       if (aadhaarOtp === '123456') {
         setAadhaarVerified(true);
@@ -237,7 +248,7 @@ const MemberOnboardingWizard = () => {
 
   const handleCapturePhoto = () => {
     setCapturingPhoto(true);
-    setTimeout(() => {
+    safeTimeout(() => {
       setCapturingPhoto(false);
       setIsPhotoCaptured(true);
       setCapturedPhotoUrl('https://placehold.co/150x150?text=Selfie+Captured');
@@ -253,7 +264,7 @@ const MemberOnboardingWizard = () => {
     }
     setErrorMessage('');
     setPanLoading(true);
-    setTimeout(() => {
+    safeTimeout(() => {
       setPanLoading(false);
       setPanVerified(true);
       setPanName(profileData.fullName || 'DEMO COMPLIANT MEMBER');
@@ -270,7 +281,7 @@ const MemberOnboardingWizard = () => {
     }
     setErrorMessage('');
     setGstLoading(true);
-    setTimeout(() => {
+    safeTimeout(() => {
       setGstLoading(false);
       setGstData(prev => ({ ...prev, gstVerified: true, gstRegDate: '2020-04-01' }));
       setBusinessData(prev => ({
@@ -289,7 +300,7 @@ const MemberOnboardingWizard = () => {
     }
     setErrorMessage('');
     setCinLoading(true);
-    setTimeout(() => {
+    safeTimeout(() => {
       setCinLoading(false);
       setGstData(prev => ({ ...prev, cinVerified: true, authority: 'ROC Mumbai' }));
       setSuccessMessage('CIN verified successfully with MCA records!');
@@ -304,7 +315,7 @@ const MemberOnboardingWizard = () => {
     }
     setErrorMessage('');
     setDirVerificationLoading(prev => ({ ...prev, [`pan_${index}`]: true }));
-    setTimeout(() => {
+    safeTimeout(() => {
       setDirVerificationLoading(prev => ({ ...prev, [`pan_${index}`]: false }));
       const newDirs = [...directors];
       newDirs[index].panVerified = true;
@@ -321,7 +332,7 @@ const MemberOnboardingWizard = () => {
     }
     setErrorMessage('');
     setDirVerificationLoading(prev => ({ ...prev, [`aadhaar_${index}`]: true }));
-    setTimeout(() => {
+    safeTimeout(() => {
       setDirVerificationLoading(prev => ({ ...prev, [`aadhaar_${index}`]: false }));
       const newDirs = [...directors];
       newDirs[index].aadhaarVerified = true;

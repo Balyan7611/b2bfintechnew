@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FaQrcode, FaArrowRight, FaCheckCircle, FaExclamationCircle, 
   FaMobileAlt, FaUser, FaInfoCircle, FaSearch, FaArrowLeft, FaPrint, FaFileInvoiceDollar
@@ -23,7 +23,13 @@ const UpiTransfer = () => {
   const [lastTxn, setLastTxn] = useState(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [transactions, setTransactions] = useState([]);   const [toast, setToast] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [toast, setToast] = useState(null);
+  const toastTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
   
   const [selectedTxnForReceipt, setSelectedTxnForReceipt] = useState(null);
@@ -56,7 +62,8 @@ const UpiTransfer = () => {
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3000);
   };
 
   const handleTagClick = (tag) => {
@@ -83,14 +90,10 @@ const UpiTransfer = () => {
 
     setTimeout(() => {
       setIsVerifying(false);
-      const cleanedUpi = upiId.trim().toLowerCase();
-      if (cleanedUpi === '6377749427@ybl' || cleanedUpi === '6377749427@ibl') {
-        setName('Vishnu Prajapat');
-      } else {
-        const prefix = upiId.split('@')[0];
-        const simulatedName = prefix.charAt(0).toUpperCase() + prefix.slice(1) + ' Kumar';
-        setName(simulatedName);
-      }
+      // TODO: Replace with real UPI ID lookup API
+      const prefix = upiId.split('@')[0];
+      const simulatedName = prefix.charAt(0).toUpperCase() + prefix.slice(1) + ' Kumar';
+      setName(simulatedName);
       showToast('UPI ID Verified Successfully!', 'success');
     }, 1000);
   };

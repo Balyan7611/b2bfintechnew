@@ -67,7 +67,6 @@ const MATMHistory = () => {
         status: filters.status || ''
       });
       const { items: rawData } = normalizeTxnResponse(res);
-      console.log('[MATMHistory.jsx] rows:', rawData.length);
       dispatch(setMATMList(rawData));
     } catch (e) {
       console.error('[MATMHistory.jsx] fetch error:', e);

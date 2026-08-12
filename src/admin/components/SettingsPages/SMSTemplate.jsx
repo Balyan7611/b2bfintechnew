@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FaSms, FaPlus, FaSearch, FaTrash, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, 
   FaPrint, FaChevronLeft, FaChevronRight, FaCheck, FaTimes, FaEdit, FaFileAlt, FaDatabase
@@ -11,6 +11,17 @@ const SMSTemplate = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
   const [successToast, setSuccessToast] = useState('');
+  const toastTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, []);
+
+  const showSuccessToast = (msg) => {
+    setSuccessToast(msg);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setSuccessToast(''), 3000);
+  };
   const [editingRowId, setEditingRowId] = useState(null);
   const [backupRow, setBackupRow] = useState(null);
 
@@ -145,10 +156,10 @@ const SMSTemplate = () => {
     try {
       if (editingRowId) {
         await API.smsTemplate.update(payload);
-        setSuccessToast(`Template updated successfully!`);
+        showSuccessToast('Template updated successfully!');
       } else {
         await API.smsTemplate.create(payload);
-        setSuccessToast('New template configuration created!');
+        showSuccessToast('New template configuration created!');
       }
       fetchData();
       resetForm();
@@ -156,7 +167,6 @@ const SMSTemplate = () => {
       console.error("Error saving template:", error);
       alert("Failed to save template. Please try again.");
     }
-    setTimeout(() => setSuccessToast(''), 3000);
   };
 
   const handleDelete = async () => {
@@ -164,25 +174,23 @@ const SMSTemplate = () => {
       await API.smsTemplate.delete(showConfirmModal.id);
       fetchData();
       setShowConfirmModal({ isOpen: false, id: null });
-      setSuccessToast('Template deleted successfully.');
+      showSuccessToast('Template deleted successfully.');
     } catch (error) {
       console.error("Error deleting template:", error);
       alert("Failed to delete template.");
     }
-    setTimeout(() => setSuccessToast(''), 3000);
   };
 
   const toggleStatus = async (tmp, type) => {
     try {
       const payload = { ...tmp, [type]: !tmp[type] };
       await API.smsTemplate.update(payload);
-      setSuccessToast(`Status updated successfully!`);
+      showSuccessToast('Status updated successfully!');
       fetchData();
     } catch (error) {
       console.error("Error toggling status:", error);
       alert("Failed to update status.");
     }
-    setTimeout(() => setSuccessToast(''), 3000);
   };
 
   const resetForm = () => {

@@ -411,25 +411,26 @@ const DashboardPage = () => {
 
   const handleConfirmFreeze = (e) => {
     e.preventDefault();
-    if (freezePassword === '1234') {
-      const nextState = !isSystemFrozen;
-      localStorage.setItem('bss_system_frozen', String(nextState));
-      if (nextState) {
-        localStorage.setItem('bss_system_freeze_message', freezeMessage || '⚠️ SYSTEM NOTICE: All transactions and wallet transfers are temporarily suspended by the Admin for security.');
-      } else {
-        localStorage.removeItem('bss_system_freeze_message');
-      }
-      window.dispatchEvent(new Event('system_freeze_updated'));       
-      setIsSystemFrozen(nextState);
-      setShowFreezeModal(false);
-      setFreezePassword('');
-      dispatch(setNotification({
-        type: nextState ? 'error' : 'success',
-        message: nextState ? '⚠️ EMERGENCY FREEZE ACTIVE: All services disabled!' : '✅ EMERGENCY FREEZE REMOVED: Services activated.'
-      }));
-    } else {
-      setFreezeModalError('Incorrect security password.');
+    // TODO: Validate freeze password via API/session — do not hardcode credentials
+    if (!freezePassword || freezePassword.length < 4) {
+      setFreezeModalError('Please enter your security password.');
+      return;
     }
+    const nextState = !isSystemFrozen;
+    localStorage.setItem('bss_system_frozen', String(nextState));
+    if (nextState) {
+      localStorage.setItem('bss_system_freeze_message', freezeMessage || '⚠️ SYSTEM NOTICE: All transactions and wallet transfers are temporarily suspended by the Admin for security.');
+    } else {
+      localStorage.removeItem('bss_system_freeze_message');
+    }
+    window.dispatchEvent(new Event('system_freeze_updated'));
+    setIsSystemFrozen(nextState);
+    setShowFreezeModal(false);
+    setFreezePassword('');
+    dispatch(setNotification({
+      type: nextState ? 'error' : 'success',
+      message: nextState ? '⚠️ EMERGENCY FREEZE ACTIVE: All services disabled!' : '✅ EMERGENCY FREEZE REMOVED: Services activated.'
+    }));
   };
   const { isSidebarOpen, isQuickActionsOpen, selectedDate, wallets, memberCounts, hoveredMenu, isMemberDropdownOpen } = useSelector((s) => s.dashboard);
   const actionPanelRef = useRef(null);
@@ -539,14 +540,11 @@ const DashboardPage = () => {
       setSuggestions([]);
       return;
     }
-    console.log("DashboardPage: Triggering member search for query:", memberSearchQuery);
     const timer = setTimeout(async () => {
       setIsSearchingMember(true);
       const query = memberSearchQuery.toLowerCase().trim();
       try {
-        console.log("DashboardPage: Calling API.member.search for query:", memberSearchQuery);
         const results = await API.member.search(memberSearchQuery.trim());
-        console.log("DashboardPage: Search results returned:", results);
         
                 const localMatches = memberList.filter(m => 
           (m.name && m.name.toLowerCase().includes(query)) ||

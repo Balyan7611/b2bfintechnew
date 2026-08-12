@@ -68,7 +68,6 @@ const DMTHistory = () => {
         status: filters.status || ''
       });
       const { items: rawData } = normalizeTxnResponse(res);
-      console.log('[DMTHistory.jsx] rows:', rawData.length);
       dispatch(setDMTList(rawData));
     } catch (e) {
       console.error('[DMTHistory.jsx] fetch error:', e);

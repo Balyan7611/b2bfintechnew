@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { 
   FiCheck, FiGrid, FiArrowRight, FiRefreshCw, FiInfo, FiShield
 } from 'react-icons/fi';
@@ -14,6 +14,16 @@ const AssignServiceRole = () => {
     const [selectedRoleId, setSelectedRoleId] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+
+  const outerTimerRef = useRef(null);
+  const msgTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (outerTimerRef.current) clearTimeout(outerTimerRef.current);
+      if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+    };
+  }, []);
 
     const [categoryFilter, setCategoryFilter] = useState("all");
   const [modal, setModal] = useState({
@@ -100,10 +110,13 @@ const AssignServiceRole = () => {
       return;
     }
     setIsUpdating(true);
-    setTimeout(() => {
+    if (outerTimerRef.current) clearTimeout(outerTimerRef.current);
+    if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+    outerTimerRef.current = setTimeout(() => {
       setIsUpdating(false);
       setSuccessMsg("Role services assigned successfully!");
-      setTimeout(() => {
+      if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+      msgTimerRef.current = setTimeout(() => {
         setSuccessMsg("");
       }, 3000);
     }, 1500);

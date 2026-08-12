@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   FaIdCard, FaUser, FaCalendarAlt, FaPaperPlane, FaCheckCircle,
   FaEdit, FaFileAlt, FaSpinner, FaRupeeSign, FaArrowLeft, FaInfoCircle, FaUsers, FaMapMarkerAlt,
@@ -374,12 +374,18 @@ const PanCard = () => {
   const [currentView, setCurrentView] = useState('dashboard');
   const [activeServiceId, setActiveServiceId] = useState(null);
   const [toast, setToast] = useState(null);
+  const toastTimerRef = useRef(null);
   const [isAgentRegistered, setIsAgentRegistered] = useState(false);
   const [showAgentAlert, setShowAgentAlert] = useState(false);
 
+  useEffect(() => {
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, []);
+
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3500);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3500);
   };
 
   const activeService = PAN_SERVICES.find(s => s.id === activeServiceId);

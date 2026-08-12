@@ -28,7 +28,6 @@ export const MemberServiceService = {
             try {
                 const res = await MemberServiceService.getAll({ MemberID: memberId });
                 const rows = toArray(res);
-                console.log('[getMine] MemberID=' + memberId + ' returned', rows.length, 'rows');
                 if (rows.length > 0) return rows;
             } catch (err) {
                 console.error('[getMine] filtered GetMemberService failed:', err);
@@ -45,8 +44,6 @@ export const MemberServiceService = {
                 const rowLogin = String(r.loginId || r.LoginId || r.memberLoginId || '').trim().toLowerCase();
                 return !!wantedLogin && rowLogin === wantedLogin;
             });
-            console.log('[getMine] fallback scanned', all.length, 'rows, matched', rows.length,
-                '(memberId=' + memberId + ', loginId=' + loginId + ')');
             return rows;
         } catch (err) {
             console.error('[getMine] fallback GetMemberService failed:', err);

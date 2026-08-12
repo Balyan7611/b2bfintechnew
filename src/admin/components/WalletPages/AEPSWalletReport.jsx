@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FiSearch, FiCalendar, FiUser, FiChevronLeft, FiChevronRight, FiSliders
@@ -25,6 +25,12 @@ const AEPSWalletReport = () => {
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
+
+  const loadingTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current); };
+  }, []);
 
   const [filters, setFilters] = useState({
     fromDate: getCurrentDateString(),
@@ -59,7 +65,8 @@ const AEPSWalletReport = () => {
   const handleSearch = (e) => {
     if (e) e.preventDefault();
     dispatch(setLoading(true));
-    setTimeout(() => dispatch(setLoading(false)), 800);
+    if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+    loadingTimerRef.current = setTimeout(() => dispatch(setLoading(false)), 800);
   };
 
   return (

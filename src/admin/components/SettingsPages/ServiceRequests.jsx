@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { FiCheck, FiX, FiClock, FiRefreshCw } from 'react-icons/fi';
 import { FaCheckCircle } from 'react-icons/fa';
 import AdminTable from '../../../shared/components/common/AdminTable';
@@ -10,6 +10,7 @@ const ServiceRequests = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
   const [toast, setToast] = useState(null);
+  const toastTimerRef = useRef(null);
   const [loadError, setLoadError] = useState('');
 
   const [search, setSearch] = useState('');
@@ -18,9 +19,14 @@ const ServiceRequests = () => {
 
   const [rejectModal, setRejectModal] = useState({ show: false, request: null, reason: '' });
 
+  useEffect(() => {
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, []);
+
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3000);
   };
 
   const fetchServices = useCallback(async () => {
@@ -52,7 +58,6 @@ const ServiceRequests = () => {
         try {
       const res = await API.memberService.getPendingRequests({ pageNumber: 1, pageSize: 500 });
       items = toArray(res);
-      console.log('ServiceRequests: /PendingRequests raw response =', res);
     } catch (err) {
       primaryFailed = true;
       console.error('ServiceRequests: /PendingRequests failed:', err);
@@ -62,7 +67,6 @@ const ServiceRequests = () => {
       try {
         const res2 = await API.memberService.getAll({ PageNumber: 1, PageSize: 2000 });
         const all = toArray(res2);
-        console.log('ServiceRequests: fallback GetMemberService rows =', all.length, all);
         items = all.filter(it =>
           Number(it.assignTypeId ?? it.AssignTypeId) === 2 &&
           (it.isActive ?? it.IsActive) !== true

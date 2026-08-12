@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { 
   FiSearch, FiCheck, FiPower, FiRefreshCw, FiInfo, FiActivity
 } from 'react-icons/fi';
@@ -14,6 +14,12 @@ const OnOffServices = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingAll, setIsLoadingAll] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+
+  const msgTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (msgTimerRef.current) clearTimeout(msgTimerRef.current); };
+  }, []);
 
     const [modal, setModal] = useState({
     show: false,
@@ -90,7 +96,9 @@ const OnOffServices = () => {
       () => {
         setServices(prev => prev.map(srv => ({ ...srv, onoff: false })));
         setSuccessMsg("All services have been toggled to OFFLINE.");
-        setTimeout(() => setSuccessMsg(""), 3000);
+        if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+
+        msgTimerRef.current = setTimeout(() => setSuccessMsg(""), 3000);
       }
     );
   };
@@ -102,7 +110,9 @@ const OnOffServices = () => {
       () => {
         setServices(prev => prev.map(srv => ({ ...srv, onoff: true })));
         setSuccessMsg("All services have been toggled to ONLINE.");
-        setTimeout(() => setSuccessMsg(""), 3000);
+        if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+
+        msgTimerRef.current = setTimeout(() => setSuccessMsg(""), 3000);
       }
     );
   };

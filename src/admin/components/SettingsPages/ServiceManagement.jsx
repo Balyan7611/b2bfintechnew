@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { API } from '../../../api/endpoints';
 import {
   FiSearch, FiEdit, FiTrash2, FiPlus, FiChevronLeft, FiChevronRight,
@@ -31,6 +31,12 @@ const ServiceManagement = () => {
   const [sectionTypes, setSectionTypes]     = useState([]);    const [isLoading, setIsLoading]           = useState(true);
   const [errorMsg, setErrorMsg]             = useState('');
   const [successMsg, setSuccessMsg]         = useState('');
+
+  const msgTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (msgTimerRef.current) clearTimeout(msgTimerRef.current); };
+  }, []);
   const [searchQuery, setSearchQuery]       = useState('');
   const [isModalOpen, setIsModalOpen]       = useState(false);
   const [formData, setFormData]             = useState(INIT_FORM);
@@ -61,14 +67,16 @@ const ServiceManagement = () => {
 
     const toast = (msg, isError = false) => {
     setSuccessMsg(msg);
-    setTimeout(() => setSuccessMsg(''), 3000);
+    if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+
+    msgTimerRef.current = setTimeout(() => setSuccessMsg(''), 3000);
     if (isError) setErrorMsg(msg); else setErrorMsg('');
   };
 
     const fetchSectionTypes = async () => {
     try {
       const res = await API.sectionType.getAll(true);
-      console.log('SectionType API response:', res);       if (res && res.status === true && Array.isArray(res.data)) {
+      if (res && res.status === true && Array.isArray(res.data)) {
         setSectionTypes(res.data);
       } else {
         console.warn('SectionType empty or error:', res);

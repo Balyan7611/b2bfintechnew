@@ -38,7 +38,6 @@ const memberIdFromToken = () => {
     const decoded = decodeToken(readToken());
     if (!decoded) return null;
 
-    console.log('[memberIdentity] JWT claims:', decoded);
 
     const preferred = ['MemberId', 'memberId', 'MemberID', 'memberID', 'member_id',
         'UserId', 'userId', 'UserID', 'Id', 'id', 'nameid', 'uid', 'sub'];

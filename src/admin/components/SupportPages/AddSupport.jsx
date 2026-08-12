@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FiDatabase } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { useSelector, useDispatch } from 'react-redux';
@@ -32,10 +32,20 @@ const AddSupport = () => {
   const [statusModal, setStatusModal] = useState({ open: false, row: null });
   const [savedSelection, setSavedSelection] = useState(null);
   const editorRef = useRef(null);
+  const toastTimerRef = useRef(null);
+  const actionTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      if (actionTimerRef.current) clearTimeout(actionTimerRef.current);
+    };
+  }, []);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3000);
   };
 
   const saveSelection = () => {
@@ -96,7 +106,8 @@ const AddSupport = () => {
     if (!name.trim()) { showToast('Please enter Support Name.', 'error'); return; }
     if (!desc || desc === '<br>') { showToast('Please enter Description.', 'error'); return; }
     setLoading(true);
-    setTimeout(() => {
+    if (actionTimerRef.current) clearTimeout(actionTimerRef.current);
+    actionTimerRef.current = setTimeout(() => {
       if (editingId) {
         dispatch(updateSupportEntry({ id: editingId, name: name.trim(), description: desc }));
         showToast('Support updated successfully!');

@@ -189,10 +189,16 @@ const SupportTickets = () => {
   const [chatInput, setChatInput] = useState('');
   const chatFileRef = useRef(null);
   const formFileRef = useRef(null);
+  const toastTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, []);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3000);
   };
 
   const handleFileChange = (e, setPreview) => {

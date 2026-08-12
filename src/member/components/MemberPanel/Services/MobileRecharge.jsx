@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './MobileRecharge.module.css';
 import { 
   MdPhoneIphone, 
@@ -29,9 +29,16 @@ const MobileRecharge = () => {
 
   const { services, loading: servicesLoading } = useFetchServices(1);
 
+  const toastTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, []);
+
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3500);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3500);
   };
 
   const operators = ["Airtel", "Jio", "Vodafone Idea (Vi)", "BSNL", "MTNL"];

@@ -198,6 +198,12 @@ const AddAPI = () => {
     status: false,
   });
 
+  const toastTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, []);
+
   const generalRef = useRef(null);
   const rechargeRef = useRef(null);
   const balanceRef = useRef(null);
@@ -250,13 +256,15 @@ const AddAPI = () => {
         await API.masterApi.create(payload);
         setShowToast({ show: true, message: '✅ API Integration Submitted!' });
       }
-      
-      setTimeout(() => setShowToast({ show: false, message: '' }), 3000);
+
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = setTimeout(() => setShowToast({ show: false, message: '' }), 3000);
       setForm(initialFormState);
     } catch (e) {
       console.error('API Error:', e);
       setShowToast({ show: true, message: '❌ Error: ' + (e.message || 'Submission failed') });
-      setTimeout(() => setShowToast({ show: false, message: '' }), 3000);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = setTimeout(() => setShowToast({ show: false, message: '' }), 3000);
     } finally {
       setIsSubmitting(false);
     }

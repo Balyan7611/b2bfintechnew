@@ -124,11 +124,15 @@ const RoleManagement = () => {
     }
   };
 
-  useEffect(() => { 
-    fetchRoles(); 
+  useEffect(() => {
+    fetchRoles();
     fetchMasterRoles();
     fetchServices();
   }, []);
+
+  useEffect(() => {
+    return () => { if (hideTimeout) clearTimeout(hideTimeout); };
+  }, [hideTimeout]);
 
   const filterRoles = useCallback(() => {
     let filtered = [...roles];

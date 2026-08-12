@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FiSearch, FiEdit, FiTrash2, FiPlus, FiChevronLeft, FiChevronRight, FiX, FiCheck, FiBell, FiFileText, FiCalendar, FiGlobe, FiRefreshCw, FiBold, FiItalic, FiUnderline, FiLink, FiList
@@ -17,6 +17,15 @@ const ManageNews = () => {
   const [successMsg, setSuccessMsg] = useState("");
   const [content, setContent] = useState("");
   const editorRef = useRef(null);
+  const msgTimerRef = useRef(null);
+  const publishTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+      if (publishTimerRef.current) clearTimeout(publishTimerRef.current);
+    };
+  }, []);
 
     const [title, setTitle] = useState("");
   const [targetType, setTargetType] = useState("Global");
@@ -94,7 +103,9 @@ const ManageNews = () => {
       return;
     }
     setIsPublishing(true);
-    setTimeout(() => {
+    if (publishTimerRef.current) clearTimeout(publishTimerRef.current);
+    if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+    publishTimerRef.current = setTimeout(() => {
       setIsPublishing(false);
       
       if (editingId) {
@@ -118,7 +129,8 @@ const ManageNews = () => {
         setSuccessMsg("News published successfully!");
       }
 
-      setTimeout(() => {
+      if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+      msgTimerRef.current = setTimeout(() => {
         setSuccessMsg("");
         setIsModalOpen(false);
         setEditingId(null);

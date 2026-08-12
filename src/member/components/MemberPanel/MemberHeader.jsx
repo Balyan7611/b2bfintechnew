@@ -159,11 +159,8 @@ const MemberHeader = () => {
     const session = getSession();
     const myMsrno = String(session?.msrno || session?.userId || '').trim();
     const myLoginId = String(session?.loginId || session?.username || '').trim().toLowerCase();
-    console.log('[MemberHeader] Session loaded → msrno:', myMsrno, '| loginId:', myLoginId);
-
     const isForMe = (n) => {
       const hasIdentity = (myMsrno && myMsrno !== '0' && myMsrno !== 'undefined') || myLoginId;
-      console.log('[MemberHeader] isForMe check → myMsrno:', myMsrno, '| myLoginId:', myLoginId, '| targetAll:', n.targetAll, '| targetMsrnos:', n.targetMsrnos, '| targetLoginIds:', n.targetLoginIds);
       if (!n.isAdminBroadcast) return true;
       if (n.targetAll || !hasIdentity) return true;
       if (myMsrno && myMsrno !== '0' && (n.targetMsrnos || []).includes(myMsrno)) return true;
@@ -173,7 +170,6 @@ const MemberHeader = () => {
     };
 
     const pushNotif = (n) => {
-      console.log('[MemberHeader] pushNotif called →', n.title, n.text);
       dispatch(addNotification({
         title: n.title || 'Admin',
         text: n.text || 'New message',
@@ -190,11 +186,9 @@ const MemberHeader = () => {
       const keysToCheck = ['notif_for_all'];
       if (myLoginId) keysToCheck.push(`notif_for_${myLoginId}`);
       if (myMsrno && myMsrno !== '0' && myMsrno !== 'undefined') keysToCheck.push(`notif_for_msrno_${myMsrno}`);
-      console.log('[MemberHeader] checkPerUserKeys → checking keys:', keysToCheck);
       keysToCheck.forEach(key => {
         const stored = localStorage.getItem(key);
         if (stored) {
-          console.log('[MemberHeader] Found notif at key:', key);
           try { pushNotif(JSON.parse(stored)); } catch {}
           localStorage.removeItem(key);
         }
@@ -209,10 +203,8 @@ const MemberHeader = () => {
     try {
       bc = new BroadcastChannel('admin_notifications');
       bc.onmessage = (e) => {
-        console.log('[MemberHeader] BroadcastChannel received:', e.data);
         if (e.data && isForMe(e.data)) pushNotif(e.data);
       };
-      console.log('[MemberHeader] BroadcastChannel listening on admin_notifications');
     } catch (err) {
       console.warn('[MemberHeader] BroadcastChannel not supported:', err);
     }
@@ -220,7 +212,6 @@ const MemberHeader = () => {
     // Storage event — fires in other tabs when localStorage changes
     const handleStorageChange = (e) => {
       if (!e.key) return;
-      console.log('[MemberHeader] storage event → key:', e.key);
       if (e.key === 'local_notifications') {
         try {
           const notifs = JSON.parse(e.newValue || '[]');
@@ -300,7 +291,6 @@ const MemberHeader = () => {
         setWalletTypes(typesRes);
       }
 
-      console.log('[MemberHeader] memberId:', memberId, 'balances:', balances);
       setWalletBalances(balances);
     } catch (err) {
       console.error('MemberHeader: Failed to fetch wallet header data:', err);

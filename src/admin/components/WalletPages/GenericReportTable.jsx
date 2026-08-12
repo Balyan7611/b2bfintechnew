@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FiSearch, FiCalendar, FiUser, FiArrowRight, FiActivity, FiFilter, FiX, FiCheck, FiChevronLeft, FiChevronRight, FiDatabase, FiSettings
@@ -25,7 +25,8 @@ const GenericReportTable = ({ title, columns = [], data = [] }) => {
     if (e) e.preventDefault();
     dispatch(setLoading(true));
     setIsFilterModalOpen(false);
-    setTimeout(() => dispatch(setLoading(false)), 800);
+    if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+    loadingTimerRef.current = setTimeout(() => dispatch(setLoading(false)), 800);
   };
 
   return (

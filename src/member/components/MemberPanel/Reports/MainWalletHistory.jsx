@@ -47,7 +47,6 @@ const MainWalletHistory = () => {
     try {
       const defaultMemberId = await resolveMemberId();
       const queryMemberId = f.memberId || defaultMemberId || undefined;
-      console.log('[MainWalletHistory] memberId:', queryMemberId, 'filters:', f);
 
       const { items } = await API.walletLedger.getMainLedger({
         memberId: queryMemberId,
@@ -57,7 +56,6 @@ const MainWalletHistory = () => {
         toDate:   f.toDate   || ''
       });
 
-      console.log('[MainWalletHistory] rows received:', items.length);
 
       const session = getSession();
       let myName    = session?.name || session?.fullName || '';

@@ -44,7 +44,6 @@ const AEPSReport = () => {
   };
 
   const handleApplyFilters = () => {
-        console.log('Filters applied');
   };
 
   return (

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FiSmartphone, FiPhone, FiRadio, FiZap, FiDroplet, FiPackage, FiShield,
@@ -18,6 +18,11 @@ const MyServicesModal = ({ onClose }) => {
   const [requestedServiceIds, setRequestedServiceIds] = useState(new Set());
   const [requestingId, setRequestingId] = useState(null);
   const [toast, setToast] = useState('');
+  const toastTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, []);
 
   useEffect(() => {
     const loadAccess = async () => {
@@ -37,7 +42,6 @@ const MyServicesModal = ({ onClose }) => {
         setServiceCatalog(services);
 
         const rows = Array.isArray(assignedItems) ? assignedItems : [];
-        console.log('[MyServicesModal] memberId:', memberId, 'loginId:', loginId, '| my rows:', rows.length, rows);
 
         const activeIds = new Set(
           rows
@@ -88,7 +92,8 @@ const MyServicesModal = ({ onClose }) => {
       setToast(err.message || 'Could not send request. Try again.');
     } finally {
       setRequestingId(null);
-      setTimeout(() => setToast(''), 3000);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = setTimeout(() => setToast(''), 3000);
     }
   };
 

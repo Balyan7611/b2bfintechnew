@@ -51,7 +51,6 @@ const CommissionLedger = () => {
     useEffect(() => {
     API.member.search('').then(res => {
       const list = Array.isArray(res) ? res : (res?.data?.items || res?.data || []);
-      console.log('[CommissionLedger] members loaded:', list.length);
       setMemberOptions([
         { value: '', label: 'All Members' },
         ...(Array.isArray(list) ? list : []).map(m => {

@@ -130,8 +130,9 @@ const RegisterDetailsPage = () => {
     }
     setSubmitting(true);
     setTimeout(() => {
-      const adminId = form.mobile; 
-      const password = '1234';
+      const adminId = form.mobile;
+      // TODO: Replace with real API registration. Local fallback generates a temp password.
+      const password = Math.random().toString(36).slice(-8) + Math.floor(Math.random() * 100);
       saveUser({
         adminId, password, mobile: adminId, pan,
         fullName: form.fullName, shopName: form.shopName,

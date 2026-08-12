@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FiSearch, FiEdit, FiTrash2, FiPlus, FiChevronLeft, FiChevronRight, FiDatabase, FiX, FiCheck, FiImage, FiUpload, FiEye, FiLoader, FiAlertTriangle
@@ -19,6 +19,12 @@ const BannerManagement = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  const msgTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (msgTimerRef.current) clearTimeout(msgTimerRef.current); };
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
 
   const [formData, setFormData] = useState({
@@ -76,10 +82,14 @@ const BannerManagement = () => {
       const res = await API.bannerImage.delete(id);
       if (res && (res.status === true || res.status === 'true' || res.data === true || res.code === 'TXN')) {
         setSuccessMsg('Banner deleted successfully!');
-        setTimeout(() => setSuccessMsg(''), 3000);
+        if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+
+        msgTimerRef.current = setTimeout(() => setSuccessMsg(''), 3000);
       } else {
                 setSuccessMsg('Banner removed.');
-        setTimeout(() => setSuccessMsg(''), 2000);
+        if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+
+        msgTimerRef.current = setTimeout(() => setSuccessMsg(''), 2000);
         fetchBanners();
       }
     } catch (err) {
@@ -160,13 +170,17 @@ const BannerManagement = () => {
 
       if (res && (res.status === true || res.status === 'true' || res.data === true || res.code === 'TXN')) {
         setSuccessMsg(formData.id ? 'Banner updated successfully!' : 'Banner uploaded successfully!');
-        setTimeout(() => setSuccessMsg(''), 3000);
+        if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+
+        msgTimerRef.current = setTimeout(() => setSuccessMsg(''), 3000);
         setIsModalOpen(false);
         fetchBanners();
       } else {
                 if (res && (res.code === 'TXN' || res.mess?.toLowerCase().includes('success'))) {
           setSuccessMsg(formData.id ? 'Banner updated successfully!' : 'Banner uploaded successfully!');
-          setTimeout(() => setSuccessMsg(''), 3000);
+          if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+
+          msgTimerRef.current = setTimeout(() => setSuccessMsg(''), 3000);
           setIsModalOpen(false);
           fetchBanners();
         } else {

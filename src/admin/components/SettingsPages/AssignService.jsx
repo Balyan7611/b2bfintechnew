@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { 
   FiCheck, FiSettings, FiGrid, FiArrowRight, FiRefreshCw, FiInfo
 } from 'react-icons/fi';
@@ -13,6 +13,16 @@ const AssignService = () => {
   
     const [isUpdating, setIsUpdating] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+
+  const outerTimerRef = useRef(null);
+  const msgTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (outerTimerRef.current) clearTimeout(outerTimerRef.current);
+      if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+    };
+  }, []);
   const [fetchedMember, setFetchedMember] = useState(null);
 
     const [categoryFilter, setCategoryFilter] = useState("all");
@@ -102,10 +112,13 @@ const AssignService = () => {
       return;
     }
     setIsUpdating(true);
-    setTimeout(() => {
+    if (outerTimerRef.current) clearTimeout(outerTimerRef.current);
+    if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+    outerTimerRef.current = setTimeout(() => {
       setIsUpdating(false);
       setSuccessMsg("Services assigned successfully!");
-      setTimeout(() => {
+      if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+      msgTimerRef.current = setTimeout(() => {
         setSuccessMsg("");
       }, 3000);
     }, 1500);

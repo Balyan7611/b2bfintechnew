@@ -101,16 +101,18 @@ const ApiHome = () => {
     const fetchDashboardData = async () => {
       try {
                 const overviewRes = await API.apiPartnerDashboard.getOverview();
-        if (overviewRes?.data) {
+        // Check double-nested first, otherwise single-nested
+        if (overviewRes?.data?.data) {
+          setOverviewMetrics(overviewRes.data.data);
+        } else if (overviewRes?.data) {
           setOverviewMetrics(overviewRes.data);
-        } else if (overviewRes?.data?.data) {           setOverviewMetrics(overviewRes.data.data);
         }
 
-                const txnsRes = await API.apiPartnerDashboard.getRecentTransactions(10);
-        if (txnsRes?.data) {
-          setRecentTxns(Array.isArray(txnsRes.data) ? txnsRes.data : []);
-        } else if (txnsRes?.data?.data) {
-          setRecentTxns(Array.isArray(txnsRes.data.data) ? txnsRes.data.data : []);
+        const txnsRes = await API.apiPartnerDashboard.getRecentTransactions(10);
+        if (Array.isArray(txnsRes?.data?.data)) {
+          setRecentTxns(txnsRes.data.data);
+        } else if (Array.isArray(txnsRes?.data)) {
+          setRecentTxns(txnsRes.data);
         }
 
                 const servicesRes = await API.apiPartnerDashboard.getAssignedServices();

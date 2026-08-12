@@ -49,7 +49,6 @@ const AEPSWalletHistory = () => {
     try {
       const defaultMemberId = await resolveMemberId();
       const queryMemberId = f.memberId || defaultMemberId || undefined;
-      console.log('[AEPSWalletHistory] memberId:', queryMemberId, 'filters:', f);
 
       const { items } = await API.walletLedger.getAepsLedger({
         memberId: queryMemberId,
@@ -59,7 +58,6 @@ const AEPSWalletHistory = () => {
         toDate:   f.toDate   || ''
       });
 
-      console.log('[AEPSWalletHistory] rows received:', items.length);
 
       const session = getSession();
       let myName    = session?.name || session?.fullName || '';

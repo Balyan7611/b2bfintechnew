@@ -1,5 +1,4 @@
 export const RoleResponseModel = (res) => {
-    console.log("RoleResponseModel raw response:", res);
     if (!res) {
         return [];
     }

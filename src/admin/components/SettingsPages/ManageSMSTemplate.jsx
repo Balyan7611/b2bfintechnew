@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FaPlus, FaSearch, FaTrash, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, 
   FaPrint, FaChevronLeft, FaChevronRight, FaCheckCircle, FaTimesCircle, FaCheck, FaTimes, FaEdit, FaChartBar, FaFileAlt, FaDatabase
@@ -11,6 +11,17 @@ const ManageSMSTemplate = () => {
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
   const [editingItem, setEditingItem] = useState(null);
   const [successToast, setSuccessToast] = useState('');
+  const toastTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, []);
+
+  const showSuccessToast = (msg) => {
+    setSuccessToast(msg);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setSuccessToast(''), 3000);
+  };
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -105,7 +116,7 @@ const ManageSMSTemplate = () => {
           template: formData.name
         };
         await API.smsTemplate.update(payload);
-        setSuccessToast('Template updated successfully!');
+        showSuccessToast('Template updated successfully!');
       } else {
         const payload = {
           categoryId: categories[0]?.id || 1,
@@ -115,15 +126,14 @@ const ManageSMSTemplate = () => {
           isSms: true
         };
         await API.smsTemplate.create(payload);
-        setSuccessToast('New template added successfully!');
+        showSuccessToast('New template added successfully!');
       }
       fetchData();
       resetForm();
     } catch (err) {
       console.error("Error saving template:", err);
-      setSuccessToast('Operation failed!');
+      showSuccessToast('Operation failed!');
     }
-    setTimeout(() => setSuccessToast(''), 3000);
   };
 
   const resetForm = () => {
@@ -145,14 +155,13 @@ const ManageSMSTemplate = () => {
   const handleDelete = async () => {
     try {
       await API.smsTemplate.delete(showConfirmModal.id);
-      setSuccessToast('Template deleted successfully.');
+      showSuccessToast('Template deleted successfully.');
       fetchData();
     } catch (err) {
       console.error("Error deleting template:", err);
-      setSuccessToast('Delete failed.');
+      showSuccessToast('Delete failed.');
     }
     setShowConfirmModal({ isOpen: false, id: null });
-    setTimeout(() => setSuccessToast(''), 3000);
   };
 
   return (

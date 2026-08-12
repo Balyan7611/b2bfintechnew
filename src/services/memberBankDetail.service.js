@@ -18,8 +18,6 @@ export const MemberBankDetailService = {
         if (!memberId) return [];
         const rows = await MemberBankDetailService.getAll({ MemberID: memberId });
         const mine = rows.filter(r => Number(r.msrno) === Number(memberId) && !r.isDelete);
-        console.log('[memberBankDetail] msrno', memberId, '-> server sent', rows.length,
-            'row(s), matched', mine.length);
         return mine;
     },
 

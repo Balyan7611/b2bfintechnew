@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { FaShieldAlt, FaServer, FaCheckCircle, FaExclamationTriangle, FaPaperPlane, FaGlobe, FaNetworkWired, FaHistory, FaTrash, FaToggleOn, FaToggleOff, FaTimes } from 'react-icons/fa';
 import AdminTable from '../../shared/components/common/AdminTable';
 import { API } from '../../api/endpoints';
@@ -22,6 +22,11 @@ const ApiWhitelisting = () => {
 
   const [ipList, setIpList] = useState([]);
   const [loadingList, setLoadingList] = useState(false);
+  const closeTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (closeTimerRef.current) clearTimeout(closeTimerRef.current); };
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -119,8 +124,9 @@ const ApiWhitelisting = () => {
       if (res?.status === true || res?.data === true) {
         setVerifySuccess(true);
         await fetchIpList();
-        
-        setTimeout(() => {
+
+        if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = setTimeout(() => {
           setShowOtpModal(false);
           setVerifySuccess(false);
           setInputValue('');

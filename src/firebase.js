@@ -18,13 +18,11 @@ const messagingReady = isSupported()
   .then((supported) => {
     if (supported) {
       messaging = getMessaging(app);
-    } else {
-      console.log('Firebase Messaging is not supported in this browser/context.');
     }
     return messaging;
   })
   .catch((err) => {
-    console.log('Error checking Firebase Messaging support: ', err);
+    console.error('Firebase: Messaging initialization failed.', err);
     return null;
   });
 
@@ -39,14 +37,12 @@ export const requestForToken = async () => {
     }
     const currentToken = await getToken(activeMessaging, { vapidKey });
     if (currentToken) {
-      console.log('FCM Device Token:', currentToken);
-                  return currentToken;
+      return currentToken;
     } else {
-      console.log('No registration token available. Request permission to generate one.');
       return null;
     }
   } catch (err) {
-    console.log('An error occurred while retrieving token. ', err);
+    console.error('FCM: Error retrieving device token.', err);
     return null;
   }
 };
@@ -56,7 +52,6 @@ export const setupForegroundListener = (callback) => {
   messagingReady.then((activeMessaging) => {
     if (activeMessaging) {
       unsubscribe = onMessage(activeMessaging, (payload) => {
-        console.log('Foreground Message Received:', payload);
         callback(payload);
       });
     }

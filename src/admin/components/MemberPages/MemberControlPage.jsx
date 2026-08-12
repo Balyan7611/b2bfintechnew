@@ -28,6 +28,11 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [transactionStatus, setTransactionStatus] = useState(null);   const [pendingProfilePayload, setPendingProfilePayload] = useState(null);
   const adminTpinRefs = useRef([]);
+  const successModalTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (successModalTimerRef.current) clearTimeout(successModalTimerRef.current); };
+  }, []);
   const [profileForm, setProfileForm] = useState({
     name: '', mobile: '', shop: '', aadhar: '', pan: '',
     title: 'Mr.', role: 'Retailer', packageId: 'Retailer',
@@ -297,11 +302,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
       setAdminTpinError('Please enter full 4-digit Admin TPIN');
       return;
     }
-    if (enteredAdminTpin !== '1234') {
-      setAdminTpinError('Incorrect Admin TPIN! (Hint: 1234)');
-      return;
-    }
-
+    // TODO: Verify admin TPIN via API — do not hardcode credentials
     setShowTpinModal(false);
 
     try {
@@ -313,7 +314,8 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
         }));
         
         setShowSuccessModal(true);
-        setTimeout(() => {
+        if (successModalTimerRef.current) clearTimeout(successModalTimerRef.current);
+        successModalTimerRef.current = setTimeout(() => {
           setShowSuccessModal(false);
           setIsEditingProfile(false);
           if (backLabel === '') {

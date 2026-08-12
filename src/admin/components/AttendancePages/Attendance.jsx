@@ -106,7 +106,6 @@ const Attendance = () => {
     };
 
     const saveAttendance = () => {
-        console.log('Saving attendance for', dateStr, currentDayAttendance);
         alert(`Attendance for ${dateStr} saved successfully!`);
     };
 

@@ -66,7 +66,6 @@ const PayoutHistory = () => {
         status: filters.status || ''
       });
       const { items: rawData } = normalizeTxnResponse(res);
-      console.log('[PayoutHistory.jsx] rows:', rawData.length);
       dispatch(setPayoutList(rawData));
     } catch (e) {
       console.error('[PayoutHistory.jsx] fetch error:', e);

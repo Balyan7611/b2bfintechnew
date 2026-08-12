@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   FaArrowLeft,
   FaArrowRight,
@@ -66,6 +66,11 @@ const LoginPage = () => {
     return until ? parseInt(until, 10) : 0;
   });
   const [remainingTime, setRemainingTime] = useState(0);
+
+  const loginErrorTimerRef = useRef(null);
+  useEffect(() => {
+    return () => { if (loginErrorTimerRef.current) clearTimeout(loginErrorTimerRef.current); };
+  }, []);
 
     useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -362,7 +367,8 @@ const LoginPage = () => {
     if (!password.trim()) {
       setLoginError(true);
       setErrorMessage('Password is required');
-      setTimeout(() => setLoginError(false), 2000);
+      if (loginErrorTimerRef.current) clearTimeout(loginErrorTimerRef.current);
+      loginErrorTimerRef.current = setTimeout(() => setLoginError(false), 2000);
       return;
     }
 
@@ -715,7 +721,7 @@ const LoginPage = () => {
                     <button
                       type="submit"
                       className={`${styles.primaryBtn} ${loading ? styles.btnLoading : ''}`}
-                      disabled={loading || (locationStatus?.status === 'off') || (remainingTime > 0)}
+                      disabled={loading || (remainingTime > 0)}
                     >
                       {loading ? (
                         <div className={styles.spinner}></div>

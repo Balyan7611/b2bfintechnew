@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { FiSearch, FiCalendar, FiUser, FiFilter, FiActivity, FiDatabase, FiChevronLeft, FiChevronRight, FiSliders } from 'react-icons/fi';
 import { FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint } from 'react-icons/fa';
@@ -67,6 +67,12 @@ const servicesList = [
 
 const AEPSReport = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const loadingTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current); };
+  }, []);
+
   const [filters, setFilters] = useState({
     fromDate: '',
     toDate: '',
@@ -91,7 +97,8 @@ const AEPSReport = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 800);
+    if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+    loadingTimerRef.current = setTimeout(() => setIsLoading(false), 800);
   };
 
   return (

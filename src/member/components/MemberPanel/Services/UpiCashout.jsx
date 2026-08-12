@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FaQrcode, FaMobileAlt, FaUser, FaDollarSign, FaPaperPlane, 
   FaCheckCircle, FaPrint, FaClock, FaSync, FaShieldAlt, FaInfoCircle
@@ -22,14 +22,20 @@ const UpiCashout = () => {
   const [otpCode, setOtpCode] = useState(['', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(180);   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
-  
-    const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+  const toastTimerRef = useRef(null);
+
+  const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
   const [searchQuery, setSearchQuery] = useState('');
   const [receiptData, setReceiptData] = useState(null);
 
-    const showToast = (message, type = 'success') => {
+  useEffect(() => {
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, []);
+
+  const showToast = (message, type = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3000);
   };
 
     useEffect(() => {

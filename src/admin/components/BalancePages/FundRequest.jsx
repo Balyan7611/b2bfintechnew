@@ -94,7 +94,6 @@ const FundRequest = () => {
     setIsLoading(true);
     try {
       const rows = await API.fundRequest.getAll({ pageNumber: 1, pageSize: 500 });
-      console.log('[Admin FundRequest] loaded', rows.length, 'request(s)', rows);
 
             const uniqueMsrnos = [...new Set(rows.map(r => r.msrno || r.memberId).filter(Boolean))];
       const mMap = { ...existingMap };
@@ -108,7 +107,6 @@ const FundRequest = () => {
                             const m = res?.data?.data || res?.data || res || {};
               const name    = m.name || m.fullName || m.memberName || m.ownerName || m.firstName || m.firmName || '';
               const loginId = m.memberID || m.memberid || m.loginID   || m.loginId || m.username || String(msrno);
-              console.log(`[FundRequest] member ${msrno} →`, name, loginId, m);
               mMap[String(msrno)] = { name, loginId };
             } catch (e) {
               console.warn(`FundRequest: could not fetch member ${msrno}`, e);

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   FiShield, FiLock, FiCheckCircle, FiInfo, FiSmartphone, FiCreditCard, FiUserPlus, FiUsers, FiDollarSign, FiActivity
 } from 'react-icons/fi';
@@ -68,6 +68,15 @@ const PermissionSetting = () => {
   });
 
   const lastActiveAuth = useRef('tpinLoginAdmin');
+  const toastTimerRef = useRef(null);
+  const savingTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      if (savingTimerRef.current) clearTimeout(savingTimerRef.current);
+    };
+  }, []);
 
   const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -114,10 +123,13 @@ const PermissionSetting = () => {
 
   const handleSave = () => {
     setIsSaving(true);
-        setTimeout(() => {
+    if (savingTimerRef.current) clearTimeout(savingTimerRef.current);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    savingTimerRef.current = setTimeout(() => {
       setIsSaving(false);
       setShowToast(true);
-      setTimeout(() => setShowToast(false), 2500);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = setTimeout(() => setShowToast(false), 2500);
     }, 1500);
   };
 

@@ -207,7 +207,6 @@ const MyProfile = () => {
 
       const activeBanks = (Array.isArray(banks) ? banks : []).filter(b => b.isActive !== false);
       setBankMasterList(activeBanks);
-      console.log('[MyProfile] bank master loaded:', activeBanks.length);
     } catch (err) {
       console.error('Error fetching bank accounts:', err);
     } finally {
@@ -242,9 +241,6 @@ const MyProfile = () => {
       ]);
 
       const masters = masterRes?.data?.items || masterRes?.data || (Array.isArray(masterRes) ? masterRes : []);
-
-      console.log('[MyProfile] services tab -> memberId:', resolvedId, 'loginId:', loginId,
-        '| master services:', masters.length, '| my rows:', assigned.length, assigned);
 
       setMasterServices(masters);
       setAssignedServices(Array.isArray(assigned) ? assigned : []);

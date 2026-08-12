@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getImageUrl } from '../../../config/siteConfig';
 import { useSelector, useDispatch } from 'react-redux';
 import { openChat } from '../../../store/slices/supportSlice';
@@ -25,7 +25,13 @@ const SupportList = () => {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   
   const [detailTicket, setDetailTicket] = useState(null);
-  const [copiedField, setCopiedField] = useState(null); 
+  const [copiedField, setCopiedField] = useState(null);
+  const copiedTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current); };
+  }, []);
+
   const normalizeTicket = (t) => {
     if (!t) return null;
     const service = t.service || t.Category || t.category || '';
@@ -86,7 +92,6 @@ const SupportList = () => {
         pageSize: 500
       });
 
-      console.log('[SupportList] API raw response:', res);
 
       let rawData = [];
             if (res?.data?.items && Array.isArray(res.data.items)) {
@@ -101,7 +106,6 @@ const SupportList = () => {
         rawData = res.data.data;
       }
 
-      console.log('[SupportList] Parsed rawData length:', rawData.length);
       setTickets(rawData.map(normalizeTicket).filter(Boolean));
     } catch (err) {
       console.error('[SupportList] Failed to fetch support tickets:', err);
@@ -119,7 +123,8 @@ const SupportList = () => {
     if (!text) return;
     navigator.clipboard.writeText(text);
     setCopiedField(field);
-    setTimeout(() => {
+    if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    copiedTimerRef.current = setTimeout(() => {
       setCopiedField(null);
     }, 1500);
   };
@@ -367,7 +372,6 @@ const SupportList = () => {
                       const imgSrc = resolveAttachmentUrl(detailTicket.attachmentPath);
                       const pathLower = (detailTicket.attachmentPath || '').toLowerCase().split('?')[0];
                       const isImage = /\.(png|jpg|jpeg|gif|webp|bmp|svg)$/.test(pathLower) || pathLower.startsWith('data:image');
-                      console.log('[SupportList] Attachment path:', detailTicket.attachmentPath, '→ resolved URL:', imgSrc, '| isImage:', isImage);
                       return isImage ? (
                         <img
                           src={imgSrc}

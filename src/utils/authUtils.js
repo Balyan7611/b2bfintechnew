@@ -42,10 +42,8 @@ export const getAllUsers = () => {
 };
 
 export const findUserByCredentials = (adminId, password) => {
-    if (adminId.toLowerCase().trim() === 'admin@gmail.com' && password === 'surender@001') {
-    return { adminId: 'admin@gmail.com', fullName: 'Super Admin', mobile: '9999999999' };
-  }
-
+  // NOTE: This is a local-only fallback. Real auth goes through the backend API.
+  // Hardcoded credentials removed for security.
   const users = getAllUsers();
   return users.find(
     (u) =>
@@ -146,5 +144,5 @@ export const isTokenExpired = (token) => {
   if (!decoded.exp) return false;
   
       const expirationTime = decoded.exp * 1000;
-  return Date.now() - (24 * 60 * 60 * 1000) >= expirationTime;
+  return Date.now() >= expirationTime;
 };

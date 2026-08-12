@@ -38,6 +38,11 @@ const ApiDashboardLayout = () => {
     const [currentToast, setCurrentToast] = useState(null);
   const [isToastClosing, setIsToastClosing] = useState(false);
   const prevNotifCountRef = useRef(notifList ? notifList.length : 0);
+  const closeAnimTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (closeAnimTimerRef.current) clearTimeout(closeAnimTimerRef.current); };
+  }, []);
 
   useEffect(() => {
     if (notifList && notifList.length > prevNotifCountRef.current) {
@@ -46,7 +51,8 @@ const ApiDashboardLayout = () => {
       
       const timer = setTimeout(() => {
         setIsToastClosing(true);
-        setTimeout(() => setCurrentToast(null), 300);
+        if (closeAnimTimerRef.current) clearTimeout(closeAnimTimerRef.current);
+        closeAnimTimerRef.current = setTimeout(() => setCurrentToast(null), 300);
       }, 5000);
       
       prevNotifCountRef.current = notifList.length;
@@ -58,7 +64,8 @@ const ApiDashboardLayout = () => {
 
   const handleCloseToast = () => {
     setIsToastClosing(true);
-    setTimeout(() => setCurrentToast(null), 300);
+    if (closeAnimTimerRef.current) clearTimeout(closeAnimTimerRef.current);
+    closeAnimTimerRef.current = setTimeout(() => setCurrentToast(null), 300);
   };
 
   useEffect(() => {
@@ -83,7 +90,7 @@ const ApiDashboardLayout = () => {
     document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
     const session = getSession();
     if (!session) {
-      setUser({ name: 'Sachin Balyan', role: 'Retailer (RT1236)' });
+      setUser({ name: 'Member', role: 'Retailer' });
     } else {
       setUser(session);
     }

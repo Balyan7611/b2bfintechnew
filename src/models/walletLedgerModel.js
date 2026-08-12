@@ -21,7 +21,6 @@ export const WalletLedgerResponseModel = (res) => {
             const arr = inner.find(v => Array.isArray(v) && v.length > 0);
             if (arr) items = arr;
         }
-        console.log('[WalletLedger] raw res:', JSON.stringify(res)?.slice(0, 300), '→ items:', items.length);
     } catch (err) {
         console.error('WalletLedgerResponseModel: parse failed', err, res);
     }

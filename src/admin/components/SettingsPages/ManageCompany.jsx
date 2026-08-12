@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { API } from '../../../api/endpoints';
 import {
   FiSearch, FiEdit, FiTrash2, FiPlus, FiChevronLeft, FiChevronRight,
@@ -36,6 +36,12 @@ const ManageCompany = () => {
   const [formData, setFormData]       = useState(INIT_FORM);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null, name: '' });
   const [successMsg, setSuccessMsg]   = useState('');
+
+  const msgTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (msgTimerRef.current) clearTimeout(msgTimerRef.current); };
+  }, []);
 
     const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -196,7 +202,9 @@ const ManageCompany = () => {
 
       if (res && res.status === true) {
         setSuccessMsg(formData.id ? 'Company updated successfully!' : 'Company added successfully!');
-        setTimeout(() => setSuccessMsg(''), 3000);
+        if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+
+        msgTimerRef.current = setTimeout(() => setSuccessMsg(''), 3000);
         await fetchCompanies();
         setViewState('table');
         setFormData(INIT_FORM);
@@ -230,12 +238,16 @@ const ManageCompany = () => {
       const res = await API.company.delete(id);
       if (res && res.status === true) {
         setSuccessMsg('Company deleted successfully!');
-        setTimeout(() => setSuccessMsg(''), 3000);
+        if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+
+        msgTimerRef.current = setTimeout(() => setSuccessMsg(''), 3000);
         await fetchCompanies();
       } else {
                 setLocalCompanies(prev => prev.filter(c => c.id !== id));
         setSuccessMsg('Company removed.');
-        setTimeout(() => setSuccessMsg(''), 2000);
+        if (msgTimerRef.current) clearTimeout(msgTimerRef.current);
+
+        msgTimerRef.current = setTimeout(() => setSuccessMsg(''), 2000);
       }
     } catch (err) {
       setLocalCompanies(prev => prev.filter(c => c.id !== id));

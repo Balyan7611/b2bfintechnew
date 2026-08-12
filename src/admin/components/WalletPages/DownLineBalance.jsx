@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FiSearch, FiChevronLeft, FiChevronRight
@@ -18,6 +18,12 @@ const DownLineBalance = () => {
   const sampleData = [];
   const [roles, setRoles] = useState([]);
   
+  const loadingTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current); };
+  }, []);
+
   const [filters, setFilters] = useState({
     role: ''
   });
@@ -43,7 +49,8 @@ const DownLineBalance = () => {
   const handleSearch = (e) => {
     if (e) e.preventDefault();
     dispatch(setLoading(true));
-    setTimeout(() => dispatch(setLoading(false)), 800);
+    if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+    loadingTimerRef.current = setTimeout(() => dispatch(setLoading(false)), 800);
   };
 
   return (
