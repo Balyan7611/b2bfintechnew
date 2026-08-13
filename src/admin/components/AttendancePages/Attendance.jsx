@@ -18,8 +18,10 @@ import {
 } from 'react-icons/fa';
 import { API } from '../../../api/endpoints';
 import styles from './Attendance.module.css';
+import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
 
 const Attendance = () => {
+    const { popup, showPopup, closePopup } = usePopup();
         const [employees, setEmployees] = useState([]);
     const [attendance, setAttendance] = useState({});     const [selectedDate, setSelectedDate] = useState(new Date());
     const [showAddEmployee, setShowAddEmployee] = useState(false);
@@ -106,11 +108,11 @@ const Attendance = () => {
     };
 
     const saveAttendance = () => {
-        alert(`Attendance for ${dateStr} saved successfully!`);
+        showPopup('success', 'Saved', `Attendance for ${dateStr} saved successfully!`);
     };
 
             const editEmployee = (employee) => {
-                alert(`Cannot edit member ${employee.name} here. Use the main Member Management section.`);
+                showPopup('warning', 'Not Allowed', `Cannot edit member ${employee.name} here. Use the main Member Management section.`);
     };
 
         const filteredEmployees = employees.filter(emp => {
@@ -375,7 +377,9 @@ const Attendance = () => {
                 </div>
             )}
 
-        </div>
+        
+      <PopupModal show={popup.show} type={popup.type} title={popup.title} message={popup.message} onClose={closePopup} />
+</div>
     );
 };
 

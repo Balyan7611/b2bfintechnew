@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   FaKey, FaShieldAlt, FaLink, FaNetworkWired, FaSave,
-  FaCopy, FaEye, FaEyeSlash, FaRedoAlt, FaTimes, FaExclamationTriangle
+  FaCopy, FaEye, FaEyeSlash, FaRedoAlt, FaTimes, FaExclamationTriangle,
+  FaCheckCircle, FaUser
 } from 'react-icons/fa';
+import { getSession } from '../../utils/authUtils';
 import { API } from '../../api/endpoints';
 import ApiWhitelisting from '../pages/ApiWhitelisting';
 import WebhookCallbacks from '../pages/WebhookCallbacks';
@@ -114,8 +116,46 @@ const ApiSettings = () => {
     { id: 'Security', label: 'Security', icon: <FaShieldAlt /> }
   ];
 
+  const session = getSession();
+  const userName   = session?.name || session?.fullName || 'API User';
+  const loginId    = session?.loginId || session?.username || 'API100';
+  const role       = session?.role || 'API USER';
+  const avatarSeed = userName.replace(/\s+/g, '');
+
   return (
     <div className={`${styles.settingsContainer} ${isDarkMode ? styles.dark : ''}`}>
+
+      {/* ── Animated profile header (same as member panel) ── */}
+      <div className={styles.profileHeader}>
+        <div className={styles.headerCover} />
+        <div className={styles.headerContent}>
+          <div className={styles.avatarSection}>
+            <div className={styles.avatarWrap}>
+              <img
+                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`}
+                alt={userName}
+                className={styles.avatarImg}
+              />
+            </div>
+            <div className={styles.userInfo}>
+              <h2 className={styles.userName}>{userName}</h2>
+              <p className={styles.userRole}>{role} ({loginId})</p>
+              <span className={styles.verifiedBadge}><FaCheckCircle /> Verified Merchant</span>
+            </div>
+          </div>
+          <div className={styles.statsRow}>
+            <div className={styles.statBox}>
+              <span className={styles.statLabel}>Registration Status</span>
+              <span className={styles.statValue} style={{ color: '#22C55E' }}>Verified</span>
+            </div>
+            <div className={styles.statBox}>
+              <span className={styles.statLabel}>Account Type</span>
+              <span className={styles.statValue}>{role}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className={styles.settingsCard}>
                 <div className={styles.sidebar}>
           {tabs.map(tab => (

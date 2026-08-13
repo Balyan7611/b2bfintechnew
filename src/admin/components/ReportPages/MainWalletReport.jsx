@@ -150,6 +150,23 @@ const MainWalletReport = () => {
         }
         columns={columns}
         data={filteredList}
+        fileNamePrefix="admin_main_wallet_report"
+        exportData={filteredList.map((item, index) => [
+          (currentPage - 1) * rowsPerPage + index + 1,
+          `${item.memberName || 'N/A'} (${item.member || ''})`,
+          item.serviceName && item.serviceName !== '-' ? item.serviceName : '—',
+          item.operatorName && item.operatorName !== '-' ? item.operatorName : '—',
+          item.opening || '0.00',
+          item.amount || '0.00',
+          item.factor || 'N/A',
+          item.surcharge || '0.00',
+          item.gst || '0.00',
+          item.tds || '0.00',
+          item.commission || '0.00',
+          item.closing || '0.00',
+          item.narration || 'N/A',
+          item.date || 'N/A',
+        ])}
         renderRow={(item, index) => {
           const isCr = item.factor === 'CR';
           return (

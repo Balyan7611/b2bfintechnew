@@ -8,8 +8,10 @@ import { FiDatabase } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { API } from '../../../api/endpoints';
 import styles from './Transfer.module.css';
+import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
 
 const Transfer = () => {
+  const { popup, showPopup, closePopup } = usePopup();
   const [transferList, setTransferList] = useState([]);
   const [memberList, setMemberList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,8 +30,13 @@ const Transfer = () => {
     const fetchMembers = async () => {
       try {
         const res = await API.member.search('');
-        if (res && Array.isArray(res.data)) setMemberList(res.data);
-        else if (Array.isArray(res)) setMemberList(res);
+        const raw = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        const members = raw.filter(m => {
+          const role = (m.roleName || m.role || '').toLowerCase();
+          const mid = (m.memberId || m.loginId || '').toUpperCase();
+          return !role.includes('admin') && !mid.startsWith('AD');
+        });
+        setMemberList(members);
       } catch (e) {
         console.error(e);
       }
@@ -87,7 +94,7 @@ const Transfer = () => {
   };
 
   const handleTransfer = async () => {
-    if (!amount || amount <= 0) return alert('Enter valid amount');
+    if (!amount || amount <= 0) { showPopup('warning', 'Invalid Amount', 'Please enter a valid amount.'); return; }
     setProcessing(true);
     try {
       const payload = {
@@ -98,11 +105,11 @@ const Transfer = () => {
         description: description
       };
       await API.userWalletBalance.transfer(payload);
-      alert('Transfer successful');
+      showPopup('success', 'Transfer Successful', 'The wallet transfer was completed successfully.');
       closeModal();
       fetchData();     } catch (e) {
       console.error(e);
-      alert('Transfer failed');
+      showPopup('error', 'Transfer Failed', 'The transfer could not be completed. Please try again.');
     } finally {
       setProcessing(false);
     }
@@ -280,7 +287,9 @@ const Transfer = () => {
           </div>
         </div>
       )}
-    </div>
+    
+      <PopupModal show={popup.show} type={popup.type} title={popup.title} message={popup.message} onClose={closePopup} />
+</div>
   );
 };
 

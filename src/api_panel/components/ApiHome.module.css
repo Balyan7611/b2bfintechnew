@@ -3,7 +3,7 @@
 .container {
   padding: 12px 6px;
   background-color: var(--color-background, #f4f7fa);
-  min-height: 100vh;
+  min-height: auto;
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
 }
@@ -257,14 +257,24 @@
   width: 150px;
   height: 150px;
   margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.radialChartWrapper svg {
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .healthCenterText {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: relative;
+  z-index: 1;
   text-align: center;
+  line-height: 1.2;
+  pointer-events: none;
 }
 
 .healthScore {
@@ -866,28 +876,62 @@
 @media (max-width: 768px) {
   .container { padding: 10px 8px; }
 
+  /* Panels */
+  .panel { padding: 16px; }
+  .laneActivePanel { padding: 14px; }
+  .servicesSection { padding: 16px; border-radius: 14px; }
+
+  /* Engine health col — full width when stacked */
+  .engineHealthCol {
+    flex: none;
+    width: 100%;
+    align-items: center;
+  }
+
+  /* Deck footer — stack items vertically */
+  .deckFooter {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .footerDivider { display: none; }
+  .footerStat {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+
+  /* Grids */
   .laneStatsGrid {
     grid-template-columns: 1fr;
     gap: 10px;
   }
-
   .servicesOverviewGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
-
   .radarGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
-
   .statusGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
+
+  /* Card text */
+  .cardAmount { font-size: 1.2rem; }
+  .panelTitle { font-size: 0.95rem; }
+  .laneToggles { gap: 8px; }
+  .laneBtn { font-size: 0.75rem; padding: 5px 12px; }
 }
 
 @media (max-width: 480px) {
+  .container { padding: 8px 6px; }
+  .panel { padding: 12px; }
+  .servicesSection { padding: 12px; }
+
   .servicesOverviewGrid {
     grid-template-columns: 1fr;
   }
@@ -897,4 +941,13 @@
   .statusGrid {
     grid-template-columns: 1fr;
   }
+  .statusCard { min-height: 90px; padding: 14px 16px; }
+  .cardAmount { font-size: 1.1rem; }
+
+  .radialChartWrapper { width: 130px; height: 130px; }
+  .radialChartWrapper svg { width: 130px !important; height: 130px !important; }
+  .healthScore { font-size: 1.8rem; }
+  .deckHeaderRight { flex-wrap: wrap; gap: 6px; }
+  .laneStatsGrid { grid-template-columns: repeat(3, 1fr); }
+  .statBoxValue { font-size: 0.9rem; }
 }

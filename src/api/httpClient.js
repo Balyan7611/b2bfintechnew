@@ -79,9 +79,8 @@ httpClient.interceptors.request.use((config) => {
     const isAdminPath = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
     
         const isPublicEndpoint = config.url && (
-        config.url.includes('/UserAuth/LoginUser') || 
+        config.url.includes('/UserAuth/LoginUser') ||
         config.url.includes('/Company/get-by-url') ||
-        config.url.includes('/Company/get-all') ||
         config.url.includes('/login')
     );
 

@@ -81,7 +81,13 @@ const MemberBankDetails = () => {
   const handleSearchMembers = async (query) => {
     try {
       const res = await API.member.search(query || '');
-      setMemberList(res || []);
+      const raw = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+      const members = raw.filter(m => {
+        const role = (m.roleName || m.role || '').toLowerCase();
+        const mid = (m.memberId || m.loginId || '').toUpperCase();
+        return !role.includes('admin') && !mid.startsWith('AD');
+      });
+      setMemberList(members);
     } catch (err) {
       console.error(err);
     }

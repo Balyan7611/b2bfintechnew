@@ -283,7 +283,13 @@ const MoneyWalletLoadHistory = () => {
                                 currentRows.map((txn, idx) => {
                                     const rowIndex = (pageNumber - 1) * pageSize + idx + 1;
                                     return (
-                                        <tr key={txn.id || idx}>
+                                        <tr key={txn.id || idx} style={(() => {
+                      const s = (txn.status || '').toLowerCase();
+                      if (s === 'success') return { background: '#F0FDF4' };
+                      if (s === 'pending') return { background: '#FFFBEB' };
+                      if (s === 'processing') return { background: '#EFF6FF' };
+                      return { background: '#FFF5F5' };
+                    })()}>
                                             <td style={{ fontWeight: 700, color: '#94A3B8', fontSize: '0.78rem' }}>{rowIndex}</td>
                                             <td style={{ textAlign: 'center' }}>
                                                 <button

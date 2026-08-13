@@ -160,6 +160,17 @@ const PayoutHistory = () => {
           }
           columns={displayColumns}
           data={filteredList}
+          fileNamePrefix="payout_history"
+          exportData={filteredList.map((item, index) => [
+            (currentPage - 1) * rowsPerPage + index + 1,
+            ...dynamicColumns.map(colKey => {
+              const v = item[colKey];
+              if (v === null || v === undefined) return 'N/A';
+              if (typeof v === 'object') return JSON.stringify(v);
+              if (String(v).includes('T') && String(v).length > 10) return String(v).split('T')[0];
+              return String(v);
+            }),
+          ])}
           renderRow={(item, index) => {
             return (
               <tr key={item.id || index}>

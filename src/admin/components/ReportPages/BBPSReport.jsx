@@ -118,6 +118,20 @@ const BBPSReport = () => {
         }
         columns={columns}
         data={list}
+        fileNamePrefix="admin_bbps_report"
+        exportData={list.map((item, index) => [
+          (currentPage - 1) * rowsPerPage + index + 1,
+          item.date || 'N/A',
+          item.status || 'PENDING',
+          item.rechargeBy || 'N/A',
+          item.txid || 'N/A',
+          item.operator || 'N/A',
+          item.number || 'N/A',
+          typeof item.amount === 'number' ? item.amount.toFixed(2) : item.amount || '0.00',
+          typeof item.commission === 'number' ? item.commission.toFixed(2) : item.commission || '0.00',
+          item.operatorName || item.operatorId || 'N/A',
+          item.receipt || 'N/A',
+        ])}
         renderRow={(item, index) => {
           let statusStyle = styles.statusPending;
           if (item.status === 'SUCCESS') statusStyle = styles.statusSuccess;

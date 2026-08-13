@@ -82,6 +82,15 @@ const BusinessSummary = () => {
         }
         columns={columns}
         data={filteredList}
+        fileNamePrefix="business_summary"
+        exportData={filteredList.map((item) => [
+          item.service || 'N/A',
+          typeof item.amount === 'number' ? item.amount.toFixed(2) : item.amount || '0.00',
+          typeof item.surcharge === 'number' ? item.surcharge.toFixed(2) : item.surcharge || '0.00',
+          typeof item.gst === 'number' ? item.gst.toFixed(2) : item.gst || '0.00',
+          typeof item.tds === 'number' ? item.tds.toFixed(2) : item.tds || '0.00',
+          typeof item.commission === 'number' ? item.commission.toFixed(2) : item.commission || '0.00',
+        ])}
         renderRow={(item) => (
           <tr key={item.id}>
             <td style={{fontWeight: '700', color: '#1756AA'}}>{item.service}</td>

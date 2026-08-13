@@ -158,6 +158,23 @@ const MainWalletHistory = () => {
         }
         columns={displayColumns}
         data={filteredList}
+        fileNamePrefix="main_wallet_history"
+        exportData={filteredList.map((item, index) => [
+          (currentPage - 1) * rowsPerPage + index + 1,
+          `${item.memberName || 'N/A'} ${item.memberMobile ? '(' + item.memberMobile + ')' : ''}`.trim(),
+          item.serviceName && item.serviceName !== '-' ? item.serviceName : '—',
+          item.operatorName && item.operatorName !== '-' ? item.operatorName : '—',
+          item.opening || '0.00',
+          item.amount || '0.00',
+          item.factor || 'N/A',
+          item.surcharge || '0.00',
+          item.gst || '0.00',
+          item.tds || '0.00',
+          item.commission || '0.00',
+          item.closing || '0.00',
+          item.narration || 'N/A',
+          item.date || 'N/A',
+        ])}
         renderRow={(item, index) => (
           <tr key={item.id || index}>
                         <td style={{ width: 40, color: '#94A3B8', fontWeight: 700, fontSize: '0.78rem', textAlign: 'center' }}>

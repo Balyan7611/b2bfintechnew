@@ -317,6 +317,40 @@ const AEPSReport = () => {
             }
             columns={displayColumns}
             data={filteredList}
+            fileNamePrefix="aeps_report"
+            exportData={filteredList.map((item, index) => {
+              const breakdown = item.uplineBreakdown || [];
+              const commission = parseFloat(item.commission) || 0;
+              const tds = parseFloat(item.tds) || 0;
+              const uplineTotal = item.uplineCommission != null
+                ? parseFloat(item.uplineCommission)
+                : breakdown.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+              const adminComm = Math.max(0, commission - uplineTotal);
+              const uplineCells = Array.from({ length: uplineCols }, (_, i) => {
+                const r = breakdown[i];
+                return r ? `₹${Number(r.amount || 0).toFixed(2)} (${r.memberName || '—'})` : '—';
+              });
+              return [
+                (currentPage - 1) * rowsPerPage + index + 1,
+                item.createdDate || item.date || 'N/A',
+                item.memberId || item.loginId || 'N/A',
+                item.memberName || 'N/A',
+                item.bankName || 'N/A',
+                item.aadhar || item.aadharNo || 'N/A',
+                item.mobile || item.mobileNumber || item.customerMobile || item.number || 'N/A',
+                item.amount || '0.00',
+                item.bankTransId || item.orderId || item.transId || 'N/A',
+                item.rrn || item.vendorId || 'N/A',
+                item.transactionType || item.mode || item.serviceName || 'N/A',
+                item.status || 'PENDING',
+                'VIEW',
+                item.remark || item.message || 'N/A',
+                `₹${adminComm.toFixed(2)}`,
+                `₹${tds.toFixed(2)}`,
+                `₹${uplineTotal.toFixed(2)}`,
+                ...uplineCells,
+              ];
+            })}
             searchQuery={searchQuery}
             onSearchChange={(val) => dispatch(setAEPSSearchQuery(val))}
             rowsPerPage={rowsPerPage}

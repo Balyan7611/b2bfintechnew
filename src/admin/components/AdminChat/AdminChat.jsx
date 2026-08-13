@@ -7,6 +7,7 @@ import { SITE_CONFIG } from '../../../config/siteConfig';
 import { addNotification } from '../../../store/slices/memberPanelSlice';
 import styles from './AdminChat.module.css';
 import memberStyles from '../MemberPages/MemberPages.module.css';
+import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
 
 const QUICK_TEMPLATES = [
   { label: 'Select Template...', value: '' },
@@ -20,6 +21,7 @@ const BROADCAST_STORAGE_KEY = 'admin_broadcast_logs';
 
 const AdminChat = () => {
   const dispatch = useDispatch();
+  const { popup, showPopup, closePopup } = usePopup();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
@@ -97,14 +99,14 @@ const AdminChat = () => {
           });
           setTxnModalOpen(true);
         } else {
-          alert('No transaction found with this ID.');
+          showPopup('warning', 'Not Found', 'No transaction found with this ID.');
         }
       } else {
-        alert('No transaction found with this ID.');
+        showPopup('warning', 'Not Found', 'No transaction found with this ID.');
       }
     } catch (err) {
       console.error('Floating Transaction Search error:', err);
-      alert('Error performing transaction search.');
+      showPopup('error', 'Search Error', 'Error performing transaction search.');
     } finally {
       setIsSearchExpanded(false);
       setSearchTxnId('');
@@ -908,6 +910,7 @@ const AdminChat = () => {
           </div>
         </div>
       )}
+      <PopupModal show={popup.show} type={popup.type} title={popup.title} message={popup.message} onClose={closePopup} />
     </>
   );
 };

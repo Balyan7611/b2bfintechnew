@@ -15,6 +15,7 @@ import {
 import { FiDatabase } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import styles from './AddBank.module.css';
+import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
 
 const AddBank = () => {
   const dispatch = useDispatch();
@@ -27,6 +28,7 @@ const AddBank = () => {
   } = useSelector((s) => s.balance);
   
     const [localBankList, setLocalBankList] = useState([]);
+  const { popup, showPopup, closePopup } = usePopup();
   const [errorMsg, setErrorMsg] = useState('');
   
   const fetchBanks = async () => {
@@ -136,7 +138,7 @@ const AddBank = () => {
 
   const handleRegisterBank = async () => {
     if (!manualBankName || !manualIfsc) {
-      alert("Please fill in both Bank Name and IFSC Code.");
+      showPopup('warning', 'Missing Fields', 'Please fill in both Bank Name and IFSC Code.');
       return;
     }
 
@@ -558,7 +560,9 @@ const AddBank = () => {
         </div>
       </div>
 
-    </div>
+    
+      <PopupModal show={popup.show} type={popup.type} title={popup.title} message={popup.message} onClose={closePopup} />
+</div>
   );
 };
 

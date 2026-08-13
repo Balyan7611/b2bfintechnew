@@ -5,6 +5,7 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { SITE_CONFIG } from '../../config/siteConfig';
 import { getServiceVisual, getServicePaletteColor } from '../../shared/utils/serviceVisuals';
 import { resolveMemberId } from '../../utils/memberIdentity';
+import { decodeToken } from '../../utils/authUtils';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import {
   toggleSidebar,
@@ -644,7 +645,19 @@ const DashboardPage = () => {
                       useEffect(() => {
     const fetchWalletHeaderData = async () => {
       try {
-        const memberId = await resolveMemberId();
+        let memberId = await resolveMemberId();
+
+        // Fallback: decode admin token directly if resolveMemberId returns null
+        if (!memberId) {
+          const raw = sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token')
+            || sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+          const decoded = decodeToken(raw);
+          const candidates = ['MemberId','memberId','UserId','userId','Id','id','nameid','sub'];
+          const found = candidates.map(k => String(decoded?.[k] ?? '').trim())
+            .find(v => v && v !== '0' && /^\d+$/.test(v));
+          memberId = found ? parseInt(found, 10) : null;
+        }
+
         if (!memberId) {
           console.warn('DashboardPage: no member id resolved, showing zero balances');
           dispatch(setWallets({ aeps: 0, main: 0, profit: 0 }));

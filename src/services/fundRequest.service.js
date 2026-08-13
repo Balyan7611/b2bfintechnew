@@ -15,13 +15,27 @@ export const FundRequestService = {
             isDelete: false
         });
 
+        // Server only accepts JSON — convert file to base64 if provided
         if (slipFile) {
-            const form = new FormData();
-                        Object.entries(payload).forEach(([key, val]) => {
-                if (val !== undefined && val !== null) form.append(key, val);
-            });
-            form.append('slipFile', slipFile);
-            return await apiService.postForm('/FundRequest/Create', form);
+            try {
+                const base64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        // Strip the "data:image/jpeg;base64," prefix, send raw base64
+                        const result = reader.result;
+                        const base64Data = result.includes(',') ? result.split(',')[1] : result;
+                        resolve(base64Data);
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(slipFile);
+                });
+                payload.cashslip = base64;
+                payload.slipFile = base64;
+                payload.slipFileName = slipFile.name;
+                payload.slipFileType = slipFile.type;
+            } catch (err) {
+                console.warn('FundRequest: could not encode slip file, submitting without it', err);
+            }
         }
 
         return await apiService.post('/FundRequest/Create', payload);

@@ -91,6 +91,29 @@ const DMTReport = () => {
         }
         columns={columns}
         data={list}
+        fileNamePrefix="admin_dmt_report"
+        exportData={list.map((item, index) => [
+          (currentPage - 1) * rowsPerPage + index + 1,
+          item.date || 'N/A',
+          item.status || 'PENDING',
+          item.receipt || 'N/A',
+          '',
+          item.sender || 'N/A',
+          item.beni || 'N/A',
+          item.bank || 'N/A',
+          item.account || 'N/A',
+          item.ifsc || 'N/A',
+          item.amount || '0.00',
+          item.charge || '0.00',
+          '0.00',
+          item.mode || 'N/A',
+          item.txnId || item.orderId || 'N/A',
+          item.rrn || 'N/A',
+          item.commission || '0.00',
+          item.tds || '0.00',
+          item.memberId || 'N/A',
+          item.memberName || 'N/A',
+        ])}
         renderRow={(item, index) => {
           let statusStyle = styles.statusPending;
           if (item.status === 'SUCCESS') statusStyle = styles.statusSuccess;

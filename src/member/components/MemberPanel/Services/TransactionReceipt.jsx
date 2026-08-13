@@ -157,7 +157,7 @@ function ReceiptBody({ data, cfg }) {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={lbl}>STATUS</span>
-                  <span style={{ ...val, background: data.status?.toLowerCase() === 'success' ? '#DCFCE7' : '#FEE2E2', color: data.status?.toLowerCase() === 'success' ? '#15803D' : '#B91C1C', padding: '1px 6px', borderRadius: 4, fontSize: Math.max(fs - 2, 8) }}>{data.status || 'N/A'}</span>
+                  <span style={{ ...val, background: (()=>{ const s=(data?.status||'').toLowerCase(); return s==='success'?'#DCFCE7':s==='pending'?'#FEF3C7':s==='processing'?'#DBEAFE':'#FEE2E2'; })(), color: (()=>{ const s=(data?.status||'').toLowerCase(); return s==='success'?'#15803D':s==='pending'?'#B45309':s==='processing'?'#1E40AF':'#B91C1C'; })(), padding: '1px 6px', borderRadius: 4, fontSize: Math.max(fs - 2, 8) }}>{data.status || 'N/A'}</span>
                 </div>
               </>
             )}
@@ -214,31 +214,28 @@ function ReceiptBody({ data, cfg }) {
     <div style={{ fontFamily: '"DM Sans",sans-serif', color: '#0F172A', padding: '10px 0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block', margin: 0 }} />
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          background: '#ECFDF5',
-          border: '1px solid #A7F3D0',
-          borderRadius: 50,
-          padding: '5px 14px',
-          boxShadow: '0 2px 8px rgba(16, 185, 129, 0.05)',
-        }}>
-          <div style={{
-            width: 14,
-            height: 14,
-            borderRadius: '50%',
-            background: '#10B981',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-          <span style={{ fontSize: fs - 3, fontWeight: 800, color: '#065F46', letterSpacing: '0.6px' }}>SUCCESS</span>
-        </div>
+        {(() => {
+          const s = (data?.status || '').toLowerCase();
+          const bg  = s==='success'?'#DCFCE7':s==='pending'?'#FEF3C7':s==='processing'?'#DBEAFE':'#FEE2E2';
+          const bdr = s==='success'?'#BBF7D0':s==='pending'?'#FDE68A':s==='processing'?'#BFDBFE':'#FECACA';
+          const dot = s==='success'?'#10B981':s==='pending'?'#F59E0B':s==='processing'?'#3B82F6':'#EF4444';
+          const clr = s==='success'?'#065F46':s==='pending'?'#92400E':s==='processing'?'#1E3A8A':'#991B1B';
+          const icon = s==='success'
+            ? <polyline points="20 6 9 17 4 12" />
+            : s==='pending'
+            ? <circle cx="12" cy="12" r="4" />
+            : <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>;
+          return (
+            <div style={{ display:'flex', alignItems:'center', gap:6, background:bg, border:`1px solid ${bdr}`, borderRadius:50, padding:'5px 14px', boxShadow:'0 2px 8px rgba(0,0,0,0.05)' }}>
+              <div style={{ width:14, height:14, borderRadius:'50%', background:dot, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round">
+                  {icon}
+                </svg>
+              </div>
+              <span style={{ fontSize: fs - 3, fontWeight: 800, color: clr, letterSpacing: '0.6px' }}>{(data?.status || 'N/A').toUpperCase()}</span>
+            </div>
+          );
+        })()}
       </div>
 
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 25, fontSize: fs }}>
@@ -283,7 +280,7 @@ function ReceiptBody({ data, cfg }) {
               </tr>
               <tr>
                 <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Status:</td>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: data.status?.toLowerCase() === 'success' ? '#15803D' : '#B91C1C' }}>{data.status || 'N/A'}</td>
+                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: (()=>{ const s=(data?.status||'').toLowerCase(); return s==='success'?'#15803D':s==='pending'?'#B45309':s==='processing'?'#1E40AF':'#B91C1C'; })() }}>{data.status || 'N/A'}</td>
                 <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Remark:</td>
                 <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data.remark || 'N/A'}</td>
               </tr>
@@ -316,15 +313,13 @@ function ReceiptBody({ data, cfg }) {
               <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#0F172A', fontWeight: '700' }}>₹{Number(c.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
               <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600', wordBreak: 'break-all' }}>{c.txnId || 'N/A'}</td>
               <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', textAlign: 'center' }}>
-                <span style={{
-                  background: '#ECFDF5',
-                  border: '1px solid #A7F3D0',
-                  color: '#065F46',
-                  padding: '2px 8px',
-                  borderRadius: 50,
-                  fontSize: 9.5,
-                  fontWeight: '800'
-                }}>Success</span>
+                {(() => {
+                  const s = (data?.status || '').toLowerCase();
+                  const bg  = s==='success'?'#DCFCE7':s==='pending'?'#FEF3C7':s==='processing'?'#DBEAFE':'#FEE2E2';
+                  const clr = s==='success'?'#065F46':s==='pending'?'#92400E':s==='processing'?'#1E3A8A':'#991B1B';
+                  const bdr = s==='success'?'#BBF7D0':s==='pending'?'#FDE68A':s==='processing'?'#BFDBFE':'#FECACA';
+                  return <span style={{ background:bg, border:`1px solid ${bdr}`, color:clr, padding:'2px 8px', borderRadius:50, fontSize:9.5, fontWeight:'800' }}>{(data?.status||'N/A').toUpperCase()}</span>;
+                })()}
               </td>
             </tr>
           ))}
@@ -335,6 +330,27 @@ function ReceiptBody({ data, cfg }) {
           </tr>
         </tbody>
       </table>
+
+            {/* Force Action Details Box — shown only if force action was taken */}
+            {(data?.forceAction || data?.forceReason || data?.forceUtr) && (
+              <div style={{ margin: '18px 0 8px', borderRadius: 8, border: `1.5px solid ${data.forceAction === 'Force Success' ? '#BBF7D0' : '#FECACA'}`, background: data.forceAction === 'Force Success' ? '#F0FDF4' : '#FFF5F5', padding: '12px 16px' }}>
+                <div style={{ fontSize: fs - 1, fontWeight: 800, color: data.forceAction === 'Force Success' ? '#15803D' : '#B91C1C', marginBottom: 8, letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                  {data.forceAction === 'Force Success' ? '✓ Force Success Details' : '✕ Force Fail Details'}
+                </div>
+                {data.forceUtr && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: fs - 2, marginBottom: 4 }}>
+                    <span style={{ fontWeight: 700, color: '#64748B' }}>UTR Number:</span>
+                    <span style={{ fontWeight: 800, color: '#0F172A' }}>{data.forceUtr}</span>
+                  </div>
+                )}
+                {data.forceReason && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: fs - 2 }}>
+                    <span style={{ fontWeight: 700, color: '#64748B' }}>Reason:</span>
+                    <span style={{ fontWeight: 700, color: '#0F172A', maxWidth: '65%', textAlign: 'right' }}>{data.forceReason}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div style={{ textAlign: 'center', marginTop: 25 }}>
         <p style={{ color: '#64748B', fontSize: fs - 2, fontWeight: '500', margin: 0, letterSpacing: '0.2px' }}>
@@ -414,7 +430,7 @@ export default function TransactionReceipt({ data, onClose }) {
         <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">${mappedData.date ? mappedData.date.split(' ')[0] : ''}</td>
         <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#0F172A;font-weight:700;">₹${Number(c.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
         <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">${c.txnId || 'N/A'}</td>
-        <td style="padding:10px 12px;border:1.5px solid #E2E8F0;text-align:center;"><span style="background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46;padding:2px 8px;border-radius:50px;font-size:9.5px;font-weight:800;display:inline-block;">Success</span></td>
+        <td style="padding:10px 12px;border:1.5px solid #E2E8F0;text-align:center;"><span style="background:$(mappedData.status?.toLowerCase()==='success'?'#DCFCE7':mappedData.status?.toLowerCase()==='pending'?'#FEF3C7':mappedData.status?.toLowerCase()==='processing'?'#DBEAFE':'#FEE2E2');border:1px solid $(mappedData.status?.toLowerCase()==='success'?'#BBF7D0':mappedData.status?.toLowerCase()==='pending'?'#FDE68A':mappedData.status?.toLowerCase()==='processing'?'#BFDBFE':'#FECACA');color:$(mappedData.status?.toLowerCase()==='success'?'#065F46':mappedData.status?.toLowerCase()==='pending'?'#92400E':'#991B1B');padding:2px 8px;border-radius:50px;font-size:9.5px;font-weight:800;display:inline-block;">${(mappedData.status||'N/A').toUpperCase()}</span></td>
       </tr>
     `).join('');
 
@@ -422,13 +438,13 @@ export default function TransactionReceipt({ data, onClose }) {
       <!-- Top Banner Row for Printing -->
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
         <img src="${SITE_CONFIG.logo}" style="height:${cfg.logoH}px;display:block;margin:0;"/>
-        <div style="display:flex;align-items:center;gap:6px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:50px;padding:5px 14px;box-shadow:0 2px 8px rgba(16,185,129,0.05);">
-          <div style="width:14px;height:14px;border-radius:50%;background:#10B981;display:flex;align-items:center;justify-content:center;">
+        <div style="display:flex;align-items:center;gap:6px;background:$(mappedData.status?.toLowerCase()==='success'?'#DCFCE7':mappedData.status?.toLowerCase()==='pending'?'#FEF3C7':mappedData.status?.toLowerCase()==='processing'?'#DBEAFE':'#FEE2E2');border:1px solid $(mappedData.status?.toLowerCase()==='success'?'#BBF7D0':mappedData.status?.toLowerCase()==='pending'?'#FDE68A':mappedData.status?.toLowerCase()==='processing'?'#BFDBFE':'#FECACA');border-radius:50px;padding:5px 14px;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+          <div style="width:14px;height:14px;border-radius:50%;background:$(mappedData.status?.toLowerCase()==='success'?'#10B981':mappedData.status?.toLowerCase()==='pending'?'#F59E0B':'#EF4444');display:flex;align-items:center;justify-content:center;">
             <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12" />
+              $(mappedData.status?.toLowerCase()==='success'?'<polyline points="20 6 9 17 4 12" />':mappedData.status?.toLowerCase()==='pending'?'<circle cx="12" cy="12" r="4"/>':'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>')
             </svg>
           </div>
-          <span style="font-size:${fs - 3}px;font-weight:800;color:#065F46;letter-spacing:0.6px;">SUCCESS</span>
+          <span style="font-size:${fs - 3}px;font-weight:800;color:$(mappedData.status?.toLowerCase()==='success'?'#065F46':mappedData.status?.toLowerCase()==='pending'?'#92400E':'#991B1B');letter-spacing:0.6px;">${(mappedData.status||'N/A').toUpperCase()}</span>
         </div>
       </div>
 
@@ -476,7 +492,7 @@ export default function TransactionReceipt({ data, onClose }) {
             </tr>
             <tr>
               <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Status:</td>
-              <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:${mappedData.status?.toLowerCase() === 'success' ? '#15803D' : '#B91C1C'};">${mappedData.status || 'N/A'}</td>
+              <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:$(mappedData.status?.toLowerCase()==='success'?'#15803D':mappedData.status?.toLowerCase()==='pending'?'#B45309':mappedData.status?.toLowerCase()==='processing'?'#1E40AF':'#B91C1C');">${mappedData.status || 'N/A'}</td>
               <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Remark:</td>
               <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.remark || 'N/A'}</td>
             </tr>
@@ -505,7 +521,7 @@ export default function TransactionReceipt({ data, onClose }) {
               <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">${mappedData.date ? mappedData.date.split(' ')[0] : ''}</td>
               <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#0F172A;font-weight:700;">₹${Number(mappedData.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
               <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">N/A</td>
-              <td style="padding:10px 12px;border:1.5px solid #E2E8F0;"><span style="background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46;padding:2px 8px;border-radius:50px;font-size:9.5px;font-weight:800;">Success</span></td>
+              <td style="padding:10px 12px;border:1.5px solid #E2E8F0;"><span style="background:$(mappedData.status?.toLowerCase()==='success'?'#DCFCE7':mappedData.status?.toLowerCase()==='pending'?'#FEF3C7':mappedData.status?.toLowerCase()==='processing'?'#DBEAFE':'#FEE2E2');border:1px solid $(mappedData.status?.toLowerCase()==='success'?'#BBF7D0':mappedData.status?.toLowerCase()==='pending'?'#FDE68A':mappedData.status?.toLowerCase()==='processing'?'#BFDBFE':'#FECACA');color:$(mappedData.status?.toLowerCase()==='success'?'#065F46':mappedData.status?.toLowerCase()==='pending'?'#92400E':'#991B1B');padding:2px 8px;border-radius:50px;font-size:9.5px;font-weight:800;">${(mappedData.status||'N/A').toUpperCase()}</span></td>
             </tr>
           `}
           <tr style="background:#FFFFFF;">
@@ -586,7 +602,7 @@ export default function TransactionReceipt({ data, onClose }) {
             </div>
             <div style="display:flex;justify-content:space-between;">
               <span style="font-size:${Math.max(fs - 3, 8)}px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">STATUS</span>
-              <span style="font-size:${Math.max(fs - 2, 8)}px;color:${mappedData.status?.toLowerCase() === 'success' ? '#15803D' : '#B91C1C'};font-weight:700;">${mappedData.status || 'N/A'}</span>
+              <span style="font-size:${Math.max(fs - 2, 8)}px;color:$(mappedData.status?.toLowerCase()==='success'?'#15803D':mappedData.status?.toLowerCase()==='pending'?'#B45309':mappedData.status?.toLowerCase()==='processing'?'#1E40AF':'#B91C1C');font-weight:700;">${mappedData.status || 'N/A'}</span>
             </div>
             <div style="display:flex;justify-content:space-between;">
               <span style="font-size:${Math.max(fs - 3, 8)}px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">REMARK</span>

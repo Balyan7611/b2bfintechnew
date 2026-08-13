@@ -117,6 +117,12 @@ const EmployeeLoginList = () => {
   };
 
   const filteredList = loginList.filter((item) => {
+    // Client-side date filter (backend may not filter reliably)
+    const rawTime = item.loginTime || item.createdAt || item.createdOn || '';
+    const itemDateStr = rawTime ? rawTime.substring(0, 10) : '';
+    if (fromDate && itemDateStr && itemDateStr < fromDate) return false;
+    if (toDate && itemDateStr && itemDateStr > toDate) return false;
+
     if (selectedMember && String(item.msrno) !== String(selectedMember)) return false;
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -131,6 +137,19 @@ const EmployeeLoginList = () => {
 
   const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
   const visibleList = filteredList.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+
+  const getPaginationPages = () => {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const pages = [];
+    if (pageNumber <= 4) {
+      pages.push(1, 2, 3, 4, 5, '...', totalPages);
+    } else if (pageNumber >= totalPages - 3) {
+      pages.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+    } else {
+      pages.push(1, '...', pageNumber - 1, pageNumber, pageNumber + 1, '...', totalPages);
+    }
+    return pages;
+  };
 
   return (
     <div className={styles.container} style={{ padding: '20px 16px 0px 16px', maxWidth: '100%' }}>
@@ -331,7 +350,7 @@ const EmployeeLoginList = () => {
           <div style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>
             Showing {filteredList.length > 0 ? (pageNumber - 1) * pageSize + 1 : 0} to {Math.min(pageNumber * pageSize, filteredList.length)} of {filteredList.length} records
           </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <button
               className="global-page-btn"
               disabled={pageNumber <= 1 || loading}
@@ -340,7 +359,21 @@ const EmployeeLoginList = () => {
             >
               <FiChevronLeft />
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '35px', height: '35px', background: '#1756AA', color: 'white', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem' }}>{pageNumber}</div>
+            {getPaginationPages().map((p, i) =>
+              p === '...'
+                ? <span key={`ellipsis-${i}`} style={{ padding: '0 4px', color: '#718096', fontWeight: 700 }}>...</span>
+                : <button
+                    key={p}
+                    onClick={() => setPageNumber(p)}
+                    disabled={loading}
+                    style={{
+                      width: '35px', height: '35px', borderRadius: '8px', border: 'none',
+                      background: pageNumber === p ? '#1756AA' : '#F1F5F9',
+                      color: pageNumber === p ? '#fff' : '#4E6080',
+                      fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer'
+                    }}
+                  >{p}</button>
+            )}
             <button
               className="global-page-btn"
               disabled={pageNumber >= totalPages || loading}

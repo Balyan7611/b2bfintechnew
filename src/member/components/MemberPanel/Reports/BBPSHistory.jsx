@@ -133,6 +133,39 @@ const BBPSHistory = () => {
         }
         columns={displayColumns}
         data={filteredList}
+        fileNamePrefix="bbps_history"
+        exportData={filteredList.map((item, index) => {
+          const breakdown = item.uplineBreakdown || [];
+          const commission = parseFloat(item.commission) || 0;
+          const tds = parseFloat(item.tds) || 0;
+          const uplineTotal = item.uplineCommission != null
+            ? parseFloat(item.uplineCommission)
+            : breakdown.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+          const adminComm = Math.max(0, commission - uplineTotal);
+          const uplineCells = Array.from({ length: uplineCols }, (_, i) => {
+            const r = breakdown[i];
+            return r ? `₹${Number(r.amount || 0).toFixed(2)} (${r.memberName || '—'})` : '—';
+          });
+          return [
+            'VIEW',
+            (currentPage - 1) * rowsPerPage + index + 1,
+            item.createdDate || item.date || 'N/A',
+            `${item.memberName || 'N/A'} (${item.memberId || 'N/A'})`,
+            item.operatorName || item.operatorId || 'N/A',
+            item.consumer || item.number || item.accountNo || 'N/A',
+            item.status || 'PENDING',
+            item.openingBalance || '0.00',
+            item.amount || '0.00',
+            item.closingBalance || '0.00',
+            item.orderId || item.txnId || item.transId || 'N/A',
+            item.operatorId || 'N/A',
+            item.remark || item.message || 'N/A',
+            `₹${adminComm.toFixed(2)}`,
+            `₹${tds.toFixed(2)}`,
+            `₹${uplineTotal.toFixed(2)}`,
+            ...uplineCells,
+          ];
+        })}
         renderRow={(item, index) => {
             let statusStyle = styles.statusPending;
             if (String(item.status).toUpperCase() === 'SUCCESS') statusStyle = styles.statusSuccess;

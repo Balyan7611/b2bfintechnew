@@ -63,8 +63,15 @@ const MemberSecurity = () => {
 
             const securityMap = new Map(rawSecurities.map(s => [String(s.msrno), s]));
 
-      const merged = rawMembers.map(m => {
-                const msrnoVal = m.msrno || m.id;
+      // Exclude admin accounts
+      const nonAdminMembers = rawMembers.filter(m => {
+        const role = (m.roleName || m.role || '').toLowerCase();
+        const mid = (m.memberId || m.loginId || '').toUpperCase();
+        return !role.includes('admin') && !mid.startsWith('AD');
+      });
+
+      const merged = nonAdminMembers.map(m => {
+        const msrnoVal = m.msrno || m.id;
         const sec = securityMap.get(String(msrnoVal)) || {};
         return {
           id: sec.id || 0,
@@ -80,6 +87,9 @@ const MemberSecurity = () => {
           isSeparateProfitWallet: sec.isSeparateProfitWallet ?? false
         };
       });
+
+      // Sort newest first (highest msrno/id = most recently registered)
+      merged.sort((a, b) => Number(b.msrno) - Number(a.msrno));
 
       setMembers(merged);
     } catch (error) {
@@ -235,10 +245,28 @@ const MemberSecurity = () => {
     }
   };
 
+  // Reset to page 1 whenever search changes
+  useEffect(() => { setCurrentPage(1); }, [searchQuery]);
+
   const filteredMembers = members.filter(m =>
     m.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     m.memberId?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const totalPages = Math.max(1, Math.ceil(filteredMembers.length / rowsPerPage));
+
+  const getPaginationPages = () => {
+    const pages = [];
+    const delta = 2;
+    const left = Math.max(2, currentPage - delta);
+    const right = Math.min(totalPages - 1, currentPage + delta);
+    pages.push(1);
+    if (left > 2) pages.push('...');
+    for (let i = left; i <= right; i++) pages.push(i);
+    if (right < totalPages - 1) pages.push('...');
+    if (totalPages > 1) pages.push(totalPages);
+    return pages;
+  };
 
   const GlobalToggleCard = ({ label, field, active, disabled }) => (
     <div className={styles.premiumToggleCard} style={{ ...(disabled ? { opacity: 0.5, cursor: 'not-allowed', pointerEvents: 'none' } : {}), padding: '8px 12px', minWidth: 'auto', display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', borderRadius: '50px', border: '1px solid #E2E8F0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
@@ -273,10 +301,10 @@ const MemberSecurity = () => {
                 <div className={styles.directoryHeader} style={{ background: '#F8FAFF', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
           <div className={styles.pillRow} style={{ alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: '#4E6080', fontWeight: 600 }}>Show</span>
-            <select 
-              className={styles.selectEntries} 
+            <select
+              className={styles.selectEntries}
               value={rowsPerPage}
-              onChange={(e) => setRowsPerPage(Number(e.target.value))}
+              onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
             >
               <option value="10">10</option>
               <option value="25">25</option>
@@ -371,26 +399,44 @@ const MemberSecurity = () => {
           </table>
         </div>
 
-                <div className={styles.paginationRow}>
-          <span className={styles.paginationInfo}>
+                <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #F1F5F9' }}>
+          <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 500 }}>
             Showing {filteredMembers.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1} to {Math.min(currentPage * rowsPerPage, filteredMembers.length)} of {filteredMembers.length} entries
           </span>
-          
-          <div className={styles.paginationControls}>
-            <button 
-              className={styles.pageBtn} 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              className={styles.pageBtn}
+              style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
               disabled={currentPage === 1}
             >
               <FaChevronLeft />
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '35px', height: '35px', background: '#1756AA', color: 'white', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem' }}>
-              {currentPage}
-            </div>
-            <button 
-              className={styles.pageBtn} 
-              onClick={() => setCurrentPage(p => Math.min(p + 1, Math.ceil(filteredMembers.length / rowsPerPage) || 1))}
-              disabled={currentPage === (Math.ceil(filteredMembers.length / rowsPerPage) || 1)}
+
+            {getPaginationPages().map((p, idx) =>
+              p === '...' ? (
+                <span key={`ell-${idx}`} style={{ width: '36px', textAlign: 'center', color: '#A0AEC0' }}>...</span>
+              ) : (
+                <button
+                  key={p}
+                  className={p === currentPage ? styles.pageActive : styles.pageBtn}
+                  style={{
+                    width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: '8px', background: p === currentPage ? '#1756AA' : '#fff',
+                    color: p === currentPage ? '#fff' : '#1756AA', fontSize: '0.9rem', fontWeight: 600
+                  }}
+                  onClick={() => setCurrentPage(p)}
+                >
+                  {p}
+                </button>
+              )
+            )}
+
+            <button
+              className={styles.pageBtn}
+              style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
             >
               <FaChevronRight />
             </button>

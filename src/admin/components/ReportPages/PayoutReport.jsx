@@ -104,6 +104,22 @@ const PayoutReport = () => {
         }
         columns={columns}
         data={list}
+        fileNamePrefix="admin_payout_report"
+        exportData={list.map((item, index) => [
+          (currentPage - 1) * rowsPerPage + index + 1,
+          item.date || 'N/A',
+          item.type || 'N/A',
+          item.orderId || 'N/A',
+          item.bank || 'N/A',
+          item.status || 'PENDING',
+          item.rrn || 'N/A',
+          item.memberId || 'N/A',
+          item.name || 'N/A',
+          item.amount || '0.00',
+          item.charge || '0.00',
+          item.mode || 'N/A',
+          item.appAmount || '0.00',
+        ])}
         renderRow={(item, index) => {
           let statusStyle = styles.statusPending;
           if (item.status === 'SUCCESS') statusStyle = styles.statusSuccess;

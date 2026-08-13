@@ -200,9 +200,21 @@ const ApiAnalytics = () => {
           <div style={{ marginBottom: 24 }}>
             <AdminTable
               title="PROVIDER BY PROVIDER"
+              fileNamePrefix="api_analytics_providers"
               rightAction={<span style={{ fontSize: '0.72rem', color: '#94A3B8', fontWeight: 600 }}>Ranked by transactions</span>}
               columns={['#', 'PROVIDER', 'TXNS', 'SUCCESS', 'FAILED', 'PENDING', 'BUSINESS', 'SUCCESS RATE', 'SERVICES']}
               data={providerRows}
+              exportData={providerRows.map((row, i) => [
+                i + 1,
+                row.providerName || row.apiName || row.name || `Provider ${row.apiId || i + 1}`,
+                Number(row.txns).toLocaleString(),
+                Number(row.success).toLocaleString(),
+                Number(row.failed).toLocaleString(),
+                Number(row.pending).toLocaleString(),
+                `₹${Number(row.businessAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+                `${Number(row.successRate).toFixed(1)}%`,
+                Array.isArray(row.servicesCarried) ? row.servicesCarried.join(', ') : row.servicesCarried || '—',
+              ])}
               renderRow={(row, i) => (
                 <tr key={row.apiId || row.providerName}>
                   <td style={{ color: '#94A3B8', fontWeight: 700 }}>{i + 1}</td>
@@ -233,9 +245,25 @@ const ApiAnalytics = () => {
           <div style={{ marginBottom: 24 }}>
             <AdminTable
               title="SERVICE × PROVIDER"
+              fileNamePrefix="api_analytics_service_provider"
               rightAction={<span style={{ fontSize: '0.72rem', color: '#94A3B8', fontWeight: 600 }}>{showAs === 'Rates' ? 'Showing success rates' : showAs === 'Business' ? 'Showing business value (₹)' : 'Showing transaction counts'}</span>}
               columns={['#', 'SERVICE', ...providerNames, 'TOTAL']}
               data={[...serviceGrid, '__total__']}
+              exportData={serviceGrid.map((row, i) => [
+                i + 1,
+                row.serviceName,
+                ...providerNames.map(p => {
+                  const cell = row.providerCells?.[p];
+                  if (showAs === 'Business') return cell?.businessValue > 0 ? `₹${Number(cell.businessValue).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '—';
+                  if (showAs === 'Rates') return cell?.txns > 0 ? `${Number(cell.successRate).toFixed(1)}%` : '—';
+                  return cell?.txns > 0 ? String(cell.txns) : '—';
+                }),
+                showAs === 'Business'
+                  ? (row.totalBusiness > 0 ? `₹${Number(row.totalBusiness).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '—')
+                  : showAs === 'Rates'
+                    ? (row.totalTxns > 0 ? `${Number(row.overallSuccessRate).toFixed(1)}%` : '—')
+                    : (row.totalTxns > 0 ? String(row.totalTxns) : '—'),
+              ])}
               renderRow={(row, i) => {
                 if (row === '__total__') {
                   return (

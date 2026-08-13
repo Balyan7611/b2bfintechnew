@@ -13,6 +13,7 @@ export const FundRequestRequestModel = (data = {}) => {
         bankRefId: data.bankRefId || '',
         transactionId: data.transactionId || '',
         paymentMode: data.paymentMode || '',
+        paymentDate: data.paymentDate || new Date().toISOString().split('T')[0],
         status: data.status || FUND_REQUEST_STATUS.PENDING,
         isApprove: data.isApprove === true,
         remark: data.remark || '',
@@ -21,7 +22,11 @@ export const FundRequestRequestModel = (data = {}) => {
 
         if (data.id) payload.id = parseInt(data.id);
     if (data.approveDate) payload.approveDate = data.approveDate;
-        if (data.reason) payload.reason = data.reason;
+    if (data.reason) payload.reason = data.reason;
+    if (data.cashslip) payload.cashslip = data.cashslip;
+    if (data.slipFile) payload.slipFile = data.slipFile;
+    if (data.slipFileName) payload.slipFileName = data.slipFileName;
+    if (data.slipFileType) payload.slipFileType = data.slipFileType;
 
     return payload;
 };

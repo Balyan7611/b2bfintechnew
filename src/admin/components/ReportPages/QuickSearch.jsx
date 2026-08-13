@@ -221,7 +221,13 @@ const QuickSearch = () => {
                 </tr>
               ) : results.length > 0 ? (
                 results.map((r, idx) => (
-                  <tr key={r.id || idx}>
+                  <tr key={r.id || idx} style={(() => {
+                      const s = (r.status || '').toLowerCase();
+                      if (s === 'success') return { background: '#F0FDF4' };
+                      if (s === 'pending') return { background: '#FFFBEB' };
+                      if (s === 'processing') return { background: '#EFF6FF' };
+                      return { background: '#FFF5F5' };
+                    })()}>
                     <td>{(page - 1) * pageSize + idx + 1}</td>
                     <td>{r.createdDate ? new Date(r.createdDate).toLocaleString('en-IN') : '-'}</td>
                     <td style={{ fontWeight: 700, color: '#0D1B5E' }}>{r.orderId || '-'}</td>

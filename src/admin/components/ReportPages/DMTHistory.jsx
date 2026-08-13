@@ -30,6 +30,7 @@ const DMTHistory = () => {
   const initialStatus = searchParams.get('Status') || '';
   const [selectedStatus, setSelectedStatus] = useState(initialStatus);
   const [activeReceipt, setActiveReceipt] = useState(null);
+  const [forceDataMap, setForceDataMap] = useState({});   // txnId -> {action,utr,reason}
   const [confirmData, setConfirmData] = useState({ show: false, action: null, txn: null });
   const confirmTimerRef = useRef(null);
 
@@ -40,8 +41,17 @@ const DMTHistory = () => {
   const [logModalData, setLogModalData] = useState({ show: false, txn: null });
   const { popup, showPopup, closePopup } = usePopup();
 
-  const handleMenuAction = (actionName, txn) => {
-    if (actionName === 'Force Fail' || actionName === 'Force Success' || actionName === 'Check Status') {
+  const handleMenuAction = (actionName, txn, extra = {}) => {
+    if (actionName === 'Force Success') {
+      // Already confirmed via ActionMenu modal — act directly
+      showPopup('success', 'Force Success Applied',
+        `Transaction marked as Success.\nUTR: ${extra.utr || 'N/A'}\nReason: ${extra.reason || 'N/A'}`);
+    } else if (actionName === 'Force Fail') {
+      const txnKey = txn.id || txn.orderId || '';
+      if (txnKey) setForceDataMap(prev => ({ ...prev, [txnKey]: { action: 'Force Fail', utr: '', reason: extra.reason||'' } }));
+      showPopup('error', 'Force Fail Applied',
+        `Transaction marked as Failed.\nReason: ${extra.reason || 'N/A'}`);
+    } else if (actionName === 'Check Status') {
       setConfirmData({ show: true, action: actionName, txn });
     } else if (actionName === 'Get Logs') {
       setLogModalData({ show: true, txn });
@@ -625,25 +635,40 @@ const DMTHistory = () => {
                 </tr>
               ) : transactions.length > 0 ? (
                 transactions.map((txn, index) => (
-                  <tr key={txn.id || index}>
+                  <tr key={txn.id || index} style={(() => {
+                      const s = (txn.status || '').toLowerCase();
+                      if (s === 'success') return { background: '#F0FDF4' };
+                      if (s === 'pending') return { background: '#FFFBEB' };
+                      if (s === 'processing') return { background: '#EFF6FF' };
+                      return { background: '#FFF5F5' };
+                    })()}>
                     <td>{((pageNumber - 1) * pageSize) + index + 1}</td>
                     <td style={{ textAlign: 'center', overflow: 'visible' }}>
-                      <ActionMenu txn={txn} onViewReceipt={txn => setActiveReceipt({ ...txn, _type: 'dmt' })} onAction={handleMenuAction} />
+                      <ActionMenu txn={txn} onViewReceipt={txn => {
+                            const fd = forceDataMap[txn.id || txn.orderId];
+                            setActiveReceipt({ ...txn, _type: 'dmt', forceAction: fd?.action, forceUtr: fd?.utr, forceReason: fd?.reason });
+                          }} onAction={handleMenuAction} />
                     </td>
                     <td>{txn.createdDate ? new Date(txn.createdDate).toLocaleString('en-IN') : 'N/A'}</td>
                     <td style={{ textAlign: 'center' }}>
-                      <span style={{
-                        padding: '4px 12px',
-                        borderRadius: '6px',
-                        fontSize: '0.75rem',
-                        fontWeight: '800',
-                        textTransform: 'uppercase',
-                        background: txn.status?.toLowerCase() === 'success' ? '#DCFCE7' : txn.status?.toLowerCase() === 'pending' ? '#FEF3C7' : '#FEE2E2',
-                        color: txn.status?.toLowerCase() === 'success' ? '#15803D' : txn.status?.toLowerCase() === 'pending' ? '#B45309' : '#B91C1C',
-                        border: `1px solid ${txn.status?.toLowerCase() === 'success' ? '#BBF7D0' : txn.status?.toLowerCase() === 'pending' ? '#FDE68A' : '#FECACA'}`
-                      }}>
-                        {txn.status || 'N/A'}
-                      </span>
+                      {(() => {
+                        const s = (txn.status || '').toLowerCase();
+                        const isSuccess    = s === 'success';
+                        const isPending    = s === 'pending';
+                        const isProcessing = s === 'processing';
+                        const bg    = isSuccess ? '#DCFCE7' : isPending ? '#FEF3C7' : isProcessing ? '#DBEAFE' : '#FEE2E2';
+                        const color = isSuccess ? '#15803D' : isPending ? '#B45309' : isProcessing ? '#1E40AF' : '#B91C1C';
+                        const bdr   = isSuccess ? '#BBF7D0' : isPending ? '#FDE68A' : isProcessing ? '#BFDBFE' : '#FECACA';
+                        return (
+                          <span style={{
+                            padding: '4px 12px', borderRadius: '6px', fontSize: '0.75rem',
+                            fontWeight: '800', textTransform: 'uppercase', display: 'inline-block',
+                            background: bg, color, border: `1px solid ${bdr}`
+                          }}>
+                            {(txn.status || 'N/A').toUpperCase()}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td>
                       <span style={{ fontWeight: '800', color: '#0369A1', background: '#E0F2FE', padding: '4px 8px', borderRadius: '6px' }}>

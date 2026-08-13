@@ -412,7 +412,14 @@ const QueuedRecharge = () => {
                                     const rowId = txn.id || txn.txid || idx;
                                     const isChecked = selectedIds.includes(rowId);
                                     return (
-                                        <tr key={rowId} style={{ background: isChecked ? '#EFF6FF' : undefined }}>
+                                        <tr key={rowId} style={(() => {
+                      if (isChecked) return { background: '#EFF6FF' };
+                      const s = (txn.status || '').toLowerCase();
+                      if (s === 'success') return { background: '#F0FDF4' };
+                      if (s === 'pending') return { background: '#FFFBEB' };
+                      if (s === 'processing') return { background: '#EFF6FF' };
+                      return { background: '#FFF5F5' };
+                    })()}>
                                             <td style={{ textAlign: 'center' }}>
                                                 <input
                                                     type="checkbox"

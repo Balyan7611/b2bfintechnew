@@ -279,7 +279,9 @@
   position: absolute;
   top: 100%;
   right: -10px;
-  width: 380px;   background: var(--color-surface);
+  width: 380px;
+  max-width: calc(100vw - 24px);
+  background: var(--color-surface);
   border-radius: 12px;
   box-shadow: var(--shadow-card);
   margin-top: 15px;
@@ -976,6 +978,21 @@
 
 @media (max-width: 480px) {
   .header { padding: 0 8px; }
-  .right { gap: 6px; }
-  .iconBtn { width: 32px; height: 32px; font-size: 1rem; }
+  .right { gap: 4px; }
+  .iconBtn { width: 30px; height: 30px; font-size: 0.95rem; }
+  .avatarWrapper { width: 32px; height: 32px; }
+  .upgradeBtnNavy { display: none; }
+
+  /* Dropdown stays on screen on small phones */
+  .msgDropdown { right: -8px; border-radius: 10px; }
+  .dropdown { right: 0; width: min(260px, calc(100vw - 16px)); }
+  .mobileWalletDropdown { width: min(200px, calc(100vw - 24px)); }
+
+  /* Notification item compact */
+  .notifItem { padding: 10px 12px; gap: 8px; }
+  .notifIconBox { width: 30px; height: 30px; font-size: 0.9rem; }
+  .notifTitle { font-size: 0.75rem; }
+  .notifText { font-size: 0.75rem; }
+  .msgItem { padding: 10px 12px; gap: 8px; }
+  .msgAvatar { width: 34px; height: 34px; font-size: 0.78rem; }
 }

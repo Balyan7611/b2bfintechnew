@@ -236,6 +236,13 @@ const WebhookCallbacks = () => {
         rightAction={refreshAction}
         columns={tableColumns}
         data={paginated}
+        fileNamePrefix="webhook_callbacks"
+        exportData={paginated.map((w, idx) => [
+          (page - 1) * rowsPerPage + idx + 1,
+          w.serviceName || 'N/A',
+          w.callbackUrl || w.firstUrl || '—',
+          w.webhookUrl || w.secondUrl || '—',
+        ])}
         searchQuery={search}
         onSearchChange={(val) => { setSearch(val); setPage(1); }}
         rowsPerPage={rowsPerPage}

@@ -366,7 +366,13 @@ const DisputeRecharge = () => {
                                     const isAccepted = row.status?.toLowerCase() === 'accepted';
                                     const isCancelled = row.status?.toLowerCase() === 'cancelled';
                                     return (
-                                        <tr key={row.txid || idx}>
+                                        <tr key={row.txid || idx} style={(() => {
+                      const s = (row.status || '').toLowerCase();
+                      if (s === 'accepted' || s === 'success') return { background: '#F0FDF4' };
+                      if (s === 'pending') return { background: '#FFFBEB' };
+                      if (s === 'cancelled' || s === 'rejected') return { background: '#FFF5F5' };
+                      return {};
+                    })()}>
                                             <td>{rowIndex}</td>
                                             <td style={{ textAlign: 'center' }}>
                                                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>

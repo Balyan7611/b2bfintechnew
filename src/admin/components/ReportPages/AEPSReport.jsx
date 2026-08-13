@@ -107,6 +107,24 @@ const AEPSReport = () => {
         }
         columns={['S.No', 'Actions', 'Date', 'Status', 'Amount', 'Member', 'Aadhaar', 'Mobile', 'Bank', 'Type', 'Op. bal', 'Cl. bal', 'Commission', 'TDS', 'UTR']}
         data={filteredList}
+        fileNamePrefix="admin_aeps_report"
+        exportData={filteredList.map((item, index) => [
+          (currentPage - 1) * rowsPerPage + index + 1,
+          'VIEW',
+          item.date?.split('T')[0] || item.createdDate?.split('T')[0] || 'N/A',
+          item.status || 'PENDING',
+          item.amount || '0.00',
+          `${item.memberName || 'N/A'} (${item.memberId || 'N/A'})`,
+          item.aadhar || item.aadharNo || 'N/A',
+          item.customerMobile || item.mobile || 'N/A',
+          item.bankName || item.bank || 'N/A',
+          item.type || item.transactionType || item.serviceName || 'N/A',
+          item.openingBalance || '0.00',
+          item.closingBalance || '0.00',
+          item.commission || item.totalCommission || '0.00',
+          item.tds || item.totalTds || '0.00',
+          item.bankTransId || item.rrn || item.vendorId || item.txnId || 'N/A',
+        ])}
         renderRow={(item, index) => {
           let statusStyle = styles.statusPending;
           if (item.status === 'SUCCESS') statusStyle = styles.statusSuccess;

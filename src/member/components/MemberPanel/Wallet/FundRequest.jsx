@@ -158,17 +158,26 @@ const FundRequest = () => {
 
       const resolveSlipUrl = useCallback((raw) => {
     if (!raw) return null;
-        if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
-        if (raw.includes('UploadedFiles/')) {
-      return `https://api.sahayatamoney.in/${raw.replace(/^\/+/, '')}`;
+    const s = String(raw).trim();
+    if (s.startsWith('http://') || s.startsWith('https://')) return s;
+    // If path already has UploadedFiles, prepend just the base domain
+    if (s.includes('UploadedFiles/')) {
+      return `https://api.sahayatamoney.in/${s.replace(/^\/+/, '')}`;
     }
-        return getImageUrl(raw, 'FundRequest');
+    // If path already has FundRequest/ folder prefix, don't double it
+    if (s.startsWith('FundRequest/') || s.startsWith('/FundRequest/')) {
+      return `https://api.sahayatamoney.in/UploadedFiles/${s.replace(/^\/+/, '')}`;
+    }
+    return getImageUrl(s, 'FundRequest');
   }, []);
 
   const toRow = useCallback((r, banks) => {
     const bank = (banks || []).find(b => Number(b.id) === Number(r.companyBankId));
     const rawSlip = r.cashslip || r.slipFile || r.SlipFile || r.slipUrl || null;
-    const slip = resolveSlipUrl(rawSlip) || slipMapRef.current[r.bankRefId] || null;
+    const slip = resolveSlipUrl(rawSlip)
+      || slipMapRef.current[r.bankRefId]
+      || slipMapRef.current[rawSlip]
+      || null;
     return {
       id: r.id,
       requestId: `FR${String(r.id).padStart(6, '0')}`,
@@ -241,10 +250,86 @@ const FundRequest = () => {
     copiedTimerRef.current = setTimeout(() => setCopiedText(''), 2000);
   };
 
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
-      showToast(`Slip attached: ${e.target.files[0].name}`, 'success');
+  // Server JSON body limit is very small — target ≤150 KB after compression
+  // Base64 adds ~33% overhead, so the actual file must be ≤~110 KB
+  const TARGET_BYTES = 110 * 1024;
+  const MAX_RAW_MB = 20;
+  const MAX_DIM = 1024;
+
+  const compressImage = (file) => new Promise((resolve) => {
+    if (file.type === 'application/pdf') { resolve(file); return; }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          const ratio = Math.min(MAX_DIM / width, MAX_DIM / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+
+        // Binary-search quality to hit TARGET_BYTES
+        const tryQuality = (lo, hi, attempt) => {
+          const q = (lo + hi) / 2;
+          canvas.toBlob((blob) => {
+            if (!blob) { resolve(file); return; }
+            if (attempt >= 6 || Math.abs(blob.size - TARGET_BYTES) < 5 * 1024) {
+              resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() }));
+            } else if (blob.size > TARGET_BYTES) {
+              tryQuality(lo, q, attempt + 1);
+            } else {
+              tryQuality(q, hi, attempt + 1);
+            }
+          }, 'image/jpeg', q);
+        };
+        tryQuality(0.1, 0.85, 0);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const rawMB = (file.size / 1024 / 1024).toFixed(1);
+
+    if (file.type === 'application/pdf') {
+      if (file.size > 150 * 1024) {
+        showToast(`PDF too large (${rawMB} MB). Please upload a PDF under 150 KB or use an image instead.`, 'error');
+        e.target.value = '';
+        return;
+      }
+      setSelectedFile(file);
+      showToast(`Slip attached: ${file.name}`, 'success');
+      return;
+    }
+
+    if (file.size > MAX_RAW_MB * 1024 * 1024) {
+      showToast(`File too large (${rawMB} MB). Max 20 MB allowed.`, 'error');
+      e.target.value = '';
+      return;
+    }
+
+    const isImage = file.type.startsWith('image/');
+    if (isImage) {
+      if (file.size > TARGET_BYTES) {
+        showToast(`Compressing image (${rawMB} MB)…`, 'success');
+      }
+      const compressed = await compressImage(file);
+      const compKB = (compressed.size / 1024).toFixed(0);
+      setSelectedFile(compressed);
+      showToast(`Slip ready: ${compressed.name} (${compKB} KB)`, 'success');
+    } else {
+      setSelectedFile(file);
+      showToast(`Slip attached: ${file.name} (${rawMB} MB)`, 'success');
     }
   };
 
@@ -263,6 +348,7 @@ const FundRequest = () => {
     if (refNo.length !== 12) return showToast('UTR / Reference ID must be exactly 12 characters', 'error');
     if (!payMode) return showToast('Please select payment mode', 'error');
     if (!payDate) return showToast('Please select payment date', 'error');
+    if (!selectedFile) return showToast('Please attach the payment receipt slip (required)', 'error');
 
     const msrno = memberId || (await resolveMemberId());
     if (!msrno) return showToast('Could not identify your member account. Please re-login.', 'error');
@@ -276,14 +362,20 @@ const FundRequest = () => {
         bankRefId: refNo,
         transactionId: `TXN_${refNo}`,
         paymentMode: payMode,
+        paymentDate: payDate,
         remark: remark || 'Wallet loading',
                 slipFile: selectedFile || undefined
       });
 
       if (res && (res.status === true || res.code === 'TXN')) {
         showToast('Fund request submitted successfully!', 'success');
-                if (selectedFile && !res?.data?.cashslip) {
-          slipMapRef.current[refNo] = URL.createObjectURL(selectedFile);
+        // Always store blob URL so view slip works immediately
+        if (selectedFile) {
+          const blobUrl = URL.createObjectURL(selectedFile);
+          slipMapRef.current[refNo] = blobUrl;
+          // Also key by the returned cashslip path if available
+          const returnedSlip = res?.data?.cashslip || res?.data?.CashSlip || res?.data?.slipFile;
+          if (returnedSlip) slipMapRef.current[returnedSlip] = blobUrl;
         }
         setSelectedBank('');
         setAmount('');
@@ -451,7 +543,7 @@ const FundRequest = () => {
               <label htmlFor="deposit-slip-receipt" className={styles.compactUploadLabel}>
                 <FaUpload className={styles.compactUploadIcon} />
                 <span className={styles.compactUploadText}>
-                  {selectedFile ? `📎 ${selectedFile.name}` : "Attach Payment Receipt Slip"}
+                  {selectedFile ? `📎 ${selectedFile.name}` : "Attach Payment Receipt Slip (Required)"}
                 </span>
               </label>
             </div>

@@ -371,7 +371,13 @@ const EarningCommission = () => {
                                 currentRows.map((t, idx) => {
                                     const rowIndex = (pageNumber - 1) * pageSize + idx + 1;
                                     return (
-                                        <tr key={t.id || idx} className={styles.hoverRow}>
+                                        <tr key={t.id || idx} className={styles.hoverRow} style={(() => {
+                      const s = (t.status || t.txnStatus || '').toLowerCase();
+                      if (s === 'success') return { background: '#F0FDF4' };
+                      if (s === 'pending') return { background: '#FFFBEB' };
+                      if (s === 'processing') return { background: '#EFF6FF' };
+                      return { background: '#FFF5F5' };
+                    })()}>
                                             <td style={{ fontWeight: 700, color: '#94A3B8', fontSize: '0.78rem' }}>{rowIndex}</td>
                                             <td style={{ textAlign: 'center' }}>
                                                 <button

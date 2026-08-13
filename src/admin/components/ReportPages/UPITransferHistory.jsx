@@ -43,6 +43,7 @@ const UPITransferHistory = () => {
 
         const [showStats, setShowStats] = useState(false);
     const [activeReceipt, setActiveReceipt] = useState(null);
+  const [forceDataMap, setForceDataMap] = useState({});   // txnId -> {action,utr,reason}
     const [focusedField, setFocusedField] = useState(null);
     const [confirmData, setConfirmData] = useState({ show: false, action: null, txn: null });
   const confirmTimerRef = useRef(null);
@@ -178,8 +179,18 @@ const UPITransferHistory = () => {
         fetchTransactions();
     };
 
-    const handleMenuAction = (actionName, txn) => {
-        if (actionName === 'Force Fail' || actionName === 'Force Success' || actionName === 'Check Status') {
+    const handleMenuAction = (actionName, txn, extra = {}) => {
+        if (actionName === 'Force Success') {
+            const txnKey = txn.id || txn.orderId || '';
+            if (txnKey) setForceDataMap(prev => ({ ...prev, [txnKey]: { action: 'Force Success', utr: extra.utr||'', reason: extra.reason||'' } }));
+            showPopup('success', 'Force Success Applied',
+                `Transaction marked as Success.\nUTR: ${extra.utr || 'N/A'}\nReason: ${extra.reason || 'N/A'}`);
+        } else if (actionName === 'Force Fail') {
+            const txnKey = txn.id || txn.orderId || '';
+            if (txnKey) setForceDataMap(prev => ({ ...prev, [txnKey]: { action: 'Force Fail', utr: '', reason: extra.reason||'' } }));
+            showPopup('error', 'Force Fail Applied',
+                `Transaction marked as Failed.\nReason: ${extra.reason || 'N/A'}`);
+        } else if (actionName === 'Check Status') {
             setConfirmData({ show: true, action: actionName, txn });
         } else if (actionName === 'Get Logs') {
             setLogModalData({ show: true, txn });
@@ -415,12 +426,21 @@ const UPITransferHistory = () => {
                                 </td></tr>
                             ) : (
                                 transactions.map((txn, idx) => (
-                                    <tr key={txn.id || idx}>
+                                    <tr key={txn.id || idx} style={(() => {
+                      const s = (txn.status || '').toLowerCase();
+                      if (s === 'success') return { background: '#F0FDF4' };
+                      if (s === 'pending') return { background: '#FFFBEB' };
+                      if (s === 'processing') return { background: '#EFF6FF' };
+                      return { background: '#FFF5F5' };
+                    })()}>
                                         <td style={{ fontWeight: 700, color: '#94A3B8', fontSize: '0.78rem' }}>{((pageNumber - 1) * pageSize) + idx + 1}</td>
                                         <td>
                                             <ActionMenu
                                                 txn={txn}
-                                                onViewReceipt={txn => setActiveReceipt({ ...txn, _type: 'upi' })}
+                                                onViewReceipt={txn => {
+                            const fd = forceDataMap[txn.id || txn.orderId];
+                            setActiveReceipt({ ...txn, _type: 'upi', forceAction: fd?.action, forceUtr: fd?.utr, forceReason: fd?.reason });
+                          }}
                                                 onAction={handleMenuAction}
                                                 alignUp={idx >= transactions.length - 2}
                                             />
@@ -430,18 +450,24 @@ const UPITransferHistory = () => {
                                             <div style={{ color: '#718096', fontSize: '0.75rem', fontWeight: '600', marginTop: '2px' }}>{txn.createdDate?.split('T')[1]?.split('.')[0] || ''}</div>
                                         </td>
                                         <td style={{ textAlign: 'center' }}>
-                                            <span style={{
-                                                padding: '4px 12px',
-                                                borderRadius: '6px',
-                                                fontSize: '0.75rem',
-                                                fontWeight: 800,
-                                                textTransform: 'uppercase',
-                                                background: txn.status?.toLowerCase() === 'success' ? '#DCFCE7' : txn.status?.toLowerCase() === 'pending' ? '#FEF3C7' : '#FEE2E2',
-                                                color: txn.status?.toLowerCase() === 'success' ? '#15803D' : txn.status?.toLowerCase() === 'pending' ? '#B45309' : '#B91C1C',
-                                                border: `1px solid ${txn.status?.toLowerCase() === 'success' ? '#BBF7D0' : txn.status?.toLowerCase() === 'pending' ? '#FDE68A' : '#FECACA'}`
-                                            }}>
-                                                {txn.status || 'N/A'}
-                                            </span>
+                                            {(() => {
+                        const s = (txn.status || '').toLowerCase();
+                        const isSuccess    = s === 'success';
+                        const isPending    = s === 'pending';
+                        const isProcessing = s === 'processing';
+                        const bg    = isSuccess ? '#DCFCE7' : isPending ? '#FEF3C7' : isProcessing ? '#DBEAFE' : '#FEE2E2';
+                        const color = isSuccess ? '#15803D' : isPending ? '#B45309' : isProcessing ? '#1E40AF' : '#B91C1C';
+                        const bdr   = isSuccess ? '#BBF7D0' : isPending ? '#FDE68A' : isProcessing ? '#BFDBFE' : '#FECACA';
+                        return (
+                          <span style={{
+                            padding: '4px 12px', borderRadius: '6px', fontSize: '0.75rem',
+                            fontWeight: '800', textTransform: 'uppercase', display: 'inline-block',
+                            background: bg, color, border: `1px solid ${bdr}`
+                          }}>
+                            {(txn.status || 'N/A').toUpperCase()}
+                          </span>
+                        );
+                      })()}
                                         </td>
                                         <td>
                                             <span style={{ fontWeight: '800', color: '#0369A1', background: '#E0F2FE', padding: '4px 8px', borderRadius: '6px' }}>

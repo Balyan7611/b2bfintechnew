@@ -289,6 +289,13 @@ const ManageMember = () => {
           return true;
         });
 
+        // Exclude admin accounts — only real members should appear in Manage Member
+        items = items.filter(it => {
+          const role = (it.roleName || it.role || '').toLowerCase();
+          const mid = (it.memberId || it.loginId || '').toUpperCase();
+          return !role.includes('admin') && !mid.startsWith('AD');
+        });
+
         setMembers(items);
         setTotalItems(itemCount);
         setPageNumber(d.pageNumber || pg);

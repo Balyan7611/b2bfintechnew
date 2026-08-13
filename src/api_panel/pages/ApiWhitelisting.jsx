@@ -276,6 +276,17 @@ const ApiWhitelisting = () => {
           icon={<FaHistory />}
           columns={tableColumns}
           data={paginatedData}
+          fileNamePrefix="whitelisted_ips"
+          exportData={paginatedData.map((item) => {
+            const isAct = item.isActive ?? item.IsActive;
+            const itemIp = item.ip || item.IP;
+            const itemDate = item.addDate || item.AddDate || '—';
+            return [
+              itemIp || 'N/A',
+              isAct ? 'ACTIVE' : 'INACTIVE',
+              typeof itemDate === 'string' && itemDate.includes('T') ? itemDate.replace('T', ' ').split('.')[0] : itemDate,
+            ];
+          })}
           renderRow={(item) => {
             const isAct = item.isActive ?? item.IsActive;
             const itemIp = item.ip || item.IP;

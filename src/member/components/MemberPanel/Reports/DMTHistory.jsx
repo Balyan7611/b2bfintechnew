@@ -160,6 +160,47 @@ const DMTHistory = () => {
         }
         columns={displayColumns}
         data={filteredList}
+        fileNamePrefix="dmt_history"
+        exportData={filteredList.map((item, index) => {
+          const breakdown = item.uplineBreakdown || [];
+          const commission = parseFloat(item.commission) || 0;
+          const uplineTotal = item.uplineCommission != null
+            ? parseFloat(item.uplineCommission)
+            : breakdown.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+          const adminComm = Math.max(0, commission - uplineTotal);
+          const uplineCells = Array.from({ length: uplineCols }, (_, i) => {
+            const r = breakdown[i];
+            return r ? `₹${Number(r.amount || 0).toFixed(2)} (${r.memberName || '—'})` : '—';
+          });
+          return [
+            (currentPage - 1) * rowsPerPage + index + 1,
+            item.createdDate || item.date || 'N/A',
+            `${item.memberName || 'N/A'} (${item.memberId || 'N/A'})`,
+            item.customerMobile || item.senderMobile || 'N/A',
+            item.beniName || item.beneficiaryName || 'N/A',
+            item.bankName || 'N/A',
+            item.accountNo || 'N/A',
+            item.ifsc || 'N/A',
+            item.openingBalance || '0.00',
+            item.amount || '0.00',
+            item.serviceCharge || item.charge || '0.00',
+            item.cashback || '0.00',
+            item.tds || item.totalTds || '0.00',
+            item.closingBalance || '0.00',
+            item.orderId || item.txnId || item.transId || 'N/A',
+            item.gst || '0.00',
+            item.refid || item.rrn || item.reference || 'N/A',
+            item.vendorId || 'N/A',
+            item.mode || 'N/A',
+            item.ip || item.source || item.fromChannel || 'N/A',
+            item.status || 'PENDING',
+            'VIEW',
+            item.remark || item.message || 'N/A',
+            `₹${adminComm.toFixed(2)}`,
+            `₹${uplineTotal.toFixed(2)}`,
+            ...uplineCells,
+          ];
+        })}
         renderRow={(item, index) => {
               let statusStyle = styles.statusPending;
               if (String(item.status).toUpperCase() === 'SUCCESS') statusStyle = styles.statusSuccess;

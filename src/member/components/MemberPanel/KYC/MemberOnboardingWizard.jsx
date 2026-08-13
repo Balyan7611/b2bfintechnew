@@ -86,6 +86,8 @@ const DOCUMENT_CHECKLISTS = {
   ]
 };
 
+const TODAY = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
+
 const MemberOnboardingWizard = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState({
@@ -133,14 +135,14 @@ const MemberOnboardingWizard = () => {
     website: '',
     supportEmail: '',
     supportMobile: '',
-    startDate: '',
+    startDate: TODAY,
     turnover: 'Below 10 Lakh'
   });
 
     const [gstData, setGstData] = useState({
     gstNumber: '',
     gstVerified: false,
-    gstRegDate: '',
+    gstRegDate: TODAY,
     cinNumber: '',
     cinVerified: false,
     llpin: '',
@@ -911,10 +913,11 @@ const MemberOnboardingWizard = () => {
 
                 <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>Business Start Date</label>
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     className={styles.formInput}
                     value={businessData.startDate}
+                    max={TODAY}
                     onChange={(e) => setBusinessData({...businessData, startDate: e.target.value})}
                   />
                 </div>
@@ -984,10 +987,11 @@ const MemberOnboardingWizard = () => {
 
                 <div className={styles.inputGroup}>
                   <label className={styles.inputLabel}>GST Registration Date</label>
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     className={styles.formInput}
                     value={gstData.gstRegDate}
+                    max={TODAY}
                     onChange={(e) => setGstData({...gstData, gstRegDate: e.target.value})}
                   />
                 </div>
@@ -1244,10 +1248,11 @@ const MemberOnboardingWizard = () => {
 
                     <div className={styles.inputGroup}>
                       <label className={styles.inputLabel}>Date of Birth</label>
-                      <input 
-                        type="date" 
+                      <input
+                        type="date"
                         className={styles.formInput}
                         value={dir.dob}
+                        max={TODAY}
                         onChange={(e) => handleDirectorChange(idx, 'dob', e.target.value)}
                       />
                     </div>

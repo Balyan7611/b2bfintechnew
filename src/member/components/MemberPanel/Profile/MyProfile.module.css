@@ -23,8 +23,16 @@
 
 .headerCover {
   height: 120px;
-  background: linear-gradient(135deg, #dde1f7, #013e93);
+  background: linear-gradient(120deg, #c7d4f5, #5b80d4, #013e93, #0a2a6e, #1756AA, #c7d4f5);
+  background-size: 300% 300%;
+  animation: gradientFlow 6s ease infinite;
   border-bottom: none;
+}
+
+@keyframes gradientFlow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .headerContent {

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import styles from './ApiHome.module.css';
 import { FaCheckCircle, FaExclamationTriangle, FaClock, FaTimesCircle, FaServer, FaShieldAlt, FaStore, FaLandmark, FaMoneyBillWave, FaMobileAlt, FaFingerprint, FaWallet, FaQrcode, FaExchangeAlt, FaIdCard, FaAddressCard, FaUniversity, FaUserPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
@@ -56,10 +55,6 @@ const ApiHome = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const healthData = [
-    { name: 'Success', value: 97, color: '#10B981' }, 
-    { name: 'Remaining', value: 3, color: isDarkMode ? '#334155' : '#e2e8f0' }
-  ];
 
   const laneData = {
     Success: {
@@ -240,29 +235,37 @@ const ApiHome = () => {
           <div className={styles.deckContent}>
                         <div className={styles.engineHealthCol}>
               <div className={styles.radialChartWrapper}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={healthData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={70}
-                      startAngle={90}
-                      endAngle={-270}
-                      dataKey="value"
-                      stroke="none"
-                      animationDuration={1000}
-                    >
-                      {healthData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
+                {(() => {
+                  const r = 58;
+                  const circ = 2 * Math.PI * r;
+                  const offset = circ * (1 - healthScore / 100);
+                  return (
+                    <svg viewBox="0 0 150 150" width="150" height="150" style={{ display: 'block' }}>
+                      {/* Track ring */}
+                      <circle
+                        cx="75" cy="75" r={r}
+                        fill="none"
+                        stroke={isDarkMode ? '#334155' : '#e2e8f0'}
+                        strokeWidth="13"
+                      />
+                      {/* Progress ring */}
+                      <circle
+                        cx="75" cy="75" r={r}
+                        fill="none"
+                        stroke="#10B981"
+                        strokeWidth="13"
+                        strokeLinecap="round"
+                        strokeDasharray={circ}
+                        strokeDashoffset={offset}
+                        transform="rotate(-90 75 75)"
+                        style={{ transition: 'stroke-dashoffset 1.5s ease' }}
+                      />
+                    </svg>
+                  );
+                })()}
                 <div className={styles.healthCenterText}>
                   <span className={styles.healthScore}>{healthScore}</span>
-                  <span className={styles.healthLabel}>Engine Health</span>
+                  <span className={styles.healthLabel}>ENGINE<br/>HEALTH</span>
                 </div>
               </div>
               
@@ -406,6 +409,15 @@ const ApiHome = () => {
           subtitle="Your latest API activities and status"
           columns={['TXN ID', 'DATE', 'SERVICE', 'AMOUNT', 'STATUS', 'RESPONSE CODE']}
           data={displayTxns}
+          fileNamePrefix="api_transactions"
+          exportData={displayTxns.map((txn) => [
+            txn.txnId || 'N/A',
+            txn.date ? new Date(txn.date).toLocaleString() : 'N/A',
+            txn.service || 'N/A',
+            txn.amount != null ? txn.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '0.00',
+            txn.status || 'N/A',
+            txn.apiResponseCode || 'N/A',
+          ])}
           renderRow={(txn, index) => (
             <tr key={index}>
               <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{txn.txnId}</td>

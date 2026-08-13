@@ -9,10 +9,12 @@ import { addHoldAmount, deleteHoldAmount, updateHoldAmount } from '../../../stor
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import styles from './HoldAmount.module.css';
 import { FiDatabase } from 'react-icons/fi';
+import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
 
 const HoldAmount = () => {
   const dispatch = useDispatch();
   const { holdAmountList } = useSelector((s) => s.balance);
+  const { popup, showPopup, closePopup } = usePopup();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -55,7 +57,7 @@ const HoldAmount = () => {
 
   const handleSubmit = () => {
     if (!selectedMember || !amount || !reason) {
-      alert('Please fill all fields');
+      showPopup('warning', 'Missing Fields', 'Please fill all fields.');
       return;
     }
 
@@ -381,7 +383,9 @@ const HoldAmount = () => {
           </div>
         </div>
       </div>
-    </div>
+    
+      <PopupModal show={popup.show} type={popup.type} title={popup.title} message={popup.message} onClose={closePopup} />
+</div>
   );
 };
 

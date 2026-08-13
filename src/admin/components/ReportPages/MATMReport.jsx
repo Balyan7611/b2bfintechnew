@@ -100,6 +100,18 @@ const MATMReport = () => {
         }
         columns={columns}
         data={list}
+        fileNamePrefix="admin_matm_report"
+        exportData={list.map((item, index) => [
+          (currentPage - 1) * rowsPerPage + index + 1,
+          item.member || 'N/A',
+          item.date || 'N/A',
+          item.amount || '0.00',
+          item.transId || 'N/A',
+          item.rrn || 'N/A',
+          item.card || 'N/A',
+          item.status || 'PENDING',
+          'VIEW',
+        ])}
         renderRow={(item, index) => {
           let statusStyle = styles.statusPending;
           if (item.status === 'SUCCESS') statusStyle = styles.statusSuccess;

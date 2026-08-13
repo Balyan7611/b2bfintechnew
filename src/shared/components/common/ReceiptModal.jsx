@@ -112,6 +112,15 @@ function SimpleReceiptBody({ data, cfg, title, icon, sections }) {
           </div>
         ))}
         <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        {(data?.forceAction || data?.forceReason || data?.forceUtr) && (
+          <div style={{ margin: '8px 0 4px', borderRadius: 6, border: `1.5px solid ${data.forceAction === 'Force Success' ? '#BBF7D0' : '#FECACA'}`, background: data.forceAction === 'Force Success' ? '#F0FDF4' : '#FFF5F5', padding: '8px 10px' }}>
+            <div style={{ fontWeight: 800, fontSize: Math.max(fs - 2, 8), color: data.forceAction === 'Force Success' ? '#15803D' : '#B91C1C', marginBottom: 3 }}>
+              {data.forceAction === 'Force Success' ? '✓ Force Success' : '✕ Force Fail'}
+            </div>
+            {data.forceUtr && <div style={{ fontSize: Math.max(fs - 2, 8), color: '#0F172A', fontWeight: 600 }}>UTR: {data.forceUtr}</div>}
+            {data.forceReason && <div style={{ fontSize: Math.max(fs - 2, 8), color: '#0F172A', fontWeight: 600 }}>Reason: {data.forceReason}</div>}
+          </div>
+        )}
         <div style={{ textAlign: 'center', fontSize: Math.max(fs - 3, 8), color: '#94A3B8', fontWeight: 700 }}>SECURED BY {SITE_CONFIG.shortName}</div>
       </div>
     );
@@ -159,6 +168,15 @@ function SimpleReceiptBody({ data, cfg, title, icon, sections }) {
         </table>
       ))}
 
+      {(data?.forceAction || data?.forceReason || data?.forceUtr) && (
+        <div style={{ margin: '12px 0 8px', borderRadius: 8, border: `1.5px solid ${data.forceAction === 'Force Success' ? '#BBF7D0' : '#FECACA'}`, background: data.forceAction === 'Force Success' ? '#F0FDF4' : '#FFF5F5', padding: '12px 16px' }}>
+          <div style={{ fontWeight: 800, fontSize: fs - 1, color: data.forceAction === 'Force Success' ? '#15803D' : '#B91C1C', marginBottom: 4 }}>
+            {data.forceAction === 'Force Success' ? '✓ Force Success Details' : '✕ Force Fail Details'}
+          </div>
+          {data.forceUtr && <div style={{ fontSize: fs - 1, color: '#0F172A', fontWeight: 600 }}>UTR Number: {data.forceUtr}</div>}
+          {data.forceReason && <div style={{ fontSize: fs - 1, color: '#0F172A', fontWeight: 600 }}>Reason: {data.forceReason}</div>}
+        </div>
+      )}
       <div style={{ textAlign: 'center', color: '#64748B', fontSize: fs - 2, marginTop: 20 }}>
         This is a system generated receipt. No seal or signature is required.<br />
         © 2026 {SITE_CONFIG.companyName || ''}. All rights reserved.
@@ -221,6 +239,15 @@ function AepsReceiptBody({ data, cfg }) {
           </div>
         ))}
         <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        {(data?.forceAction || data?.forceReason || data?.forceUtr) && (
+          <div style={{ margin: '8px 0 4px', borderRadius: 6, border: `1.5px solid ${data.forceAction === 'Force Success' ? '#BBF7D0' : '#FECACA'}`, background: data.forceAction === 'Force Success' ? '#F0FDF4' : '#FFF5F5', padding: '8px 10px' }}>
+            <div style={{ fontWeight: 800, fontSize: Math.max(fs - 2, 8), color: data.forceAction === 'Force Success' ? '#15803D' : '#B91C1C', marginBottom: 3 }}>
+              {data.forceAction === 'Force Success' ? '✓ Force Success' : '✕ Force Fail'}
+            </div>
+            {data.forceUtr && <div style={{ fontSize: Math.max(fs - 2, 8), color: '#0F172A', fontWeight: 600 }}>UTR: {data.forceUtr}</div>}
+            {data.forceReason && <div style={{ fontSize: Math.max(fs - 2, 8), color: '#0F172A', fontWeight: 600 }}>Reason: {data.forceReason}</div>}
+          </div>
+        )}
         <div style={{ textAlign: 'center', fontSize: Math.max(fs - 3, 8), color: '#94A3B8', fontWeight: 700 }}>
           SECURED BY {SITE_CONFIG.shortName}
         </div>
@@ -308,6 +335,15 @@ function AepsReceiptBody({ data, cfg }) {
         </table>
       </div>
 
+      {(data?.forceAction || data?.forceReason || data?.forceUtr) && (
+        <div style={{ margin: '12px 0 8px', borderRadius: 8, border: `1.5px solid ${data.forceAction === 'Force Success' ? '#BBF7D0' : '#FECACA'}`, background: data.forceAction === 'Force Success' ? '#F0FDF4' : '#FFF5F5', padding: '12px 16px' }}>
+          <div style={{ fontWeight: 800, fontSize: fs - 1, color: data.forceAction === 'Force Success' ? '#15803D' : '#B91C1C', marginBottom: 4 }}>
+            {data.forceAction === 'Force Success' ? '✓ Force Success Details' : '✕ Force Fail Details'}
+          </div>
+          {data.forceUtr && <div style={{ fontSize: fs - 1, color: '#0F172A', fontWeight: 600 }}>UTR Number: {data.forceUtr}</div>}
+          {data.forceReason && <div style={{ fontSize: fs - 1, color: '#0F172A', fontWeight: 600 }}>Reason: {data.forceReason}</div>}
+        </div>
+      )}
       <div style={{ textAlign: 'center', color: '#64748B', fontSize: fs - 2, fontWeight: 500 }}>
         This is a system generated receipt. No seal or signature is required.
       </div>
@@ -425,6 +461,15 @@ function ReceiptBody({ data, cfg }) {
 
         <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
         
+        {(data?.forceAction || data?.forceReason || data?.forceUtr) && (
+          <div style={{ margin: '8px 0 4px', borderRadius: 6, border: `1.5px solid ${data.forceAction === 'Force Success' ? '#BBF7D0' : '#FECACA'}`, background: data.forceAction === 'Force Success' ? '#F0FDF4' : '#FFF5F5', padding: '8px 10px' }}>
+            <div style={{ fontWeight: 800, fontSize: Math.max(fs - 2, 8), color: data.forceAction === 'Force Success' ? '#15803D' : '#B91C1C', marginBottom: 3 }}>
+              {data.forceAction === 'Force Success' ? '✓ Force Success' : '✕ Force Fail'}
+            </div>
+            {data.forceUtr && <div style={{ fontSize: Math.max(fs - 2, 8), color: '#0F172A', fontWeight: 600 }}>UTR: {data.forceUtr}</div>}
+            {data.forceReason && <div style={{ fontSize: Math.max(fs - 2, 8), color: '#0F172A', fontWeight: 600 }}>Reason: {data.forceReason}</div>}
+          </div>
+        )}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#94A3B8', fontSize: Math.max(fs - 2, 8.5), fontWeight: 700, letterSpacing: '0.3px' }}>
             SECURED BY {SITE_CONFIG.shortName}
@@ -534,6 +579,15 @@ function ReceiptBody({ data, cfg }) {
         </tbody>
       </table>
 
+      {(data?.forceAction || data?.forceReason || data?.forceUtr) && (
+        <div style={{ margin: '12px 0 8px', borderRadius: 8, border: `1.5px solid ${data.forceAction === 'Force Success' ? '#BBF7D0' : '#FECACA'}`, background: data.forceAction === 'Force Success' ? '#F0FDF4' : '#FFF5F5', padding: '12px 16px' }}>
+          <div style={{ fontWeight: 800, fontSize: fs - 1, color: data.forceAction === 'Force Success' ? '#15803D' : '#B91C1C', marginBottom: 4 }}>
+            {data.forceAction === 'Force Success' ? '✓ Force Success Details' : '✕ Force Fail Details'}
+          </div>
+          {data.forceUtr && <div style={{ fontSize: fs - 1, color: '#0F172A', fontWeight: 600 }}>UTR Number: {data.forceUtr}</div>}
+          {data.forceReason && <div style={{ fontSize: fs - 1, color: '#0F172A', fontWeight: 600 }}>Reason: {data.forceReason}</div>}
+        </div>
+      )}
             <div style={{ textAlign: 'center', marginTop: 25 }}>
         <p style={{ color: '#64748B', fontSize: fs - 2, fontWeight: '500', margin: 0, letterSpacing: '0.2px' }}>
           This is a system generated receipt, so no seal or signature is required. All rights reserved @2026.
@@ -651,38 +705,6 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
     );
   }
 
-  // FAILED screen
-  if (isFailed) {
-    return (
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,28,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 12 }} onClick={onClose}>
-        <div style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 420, padding: 40, textAlign: 'center', boxShadow: '0 32px 80px rgba(0,0,0,0.22)' }} onClick={e => e.stopPropagation()}>
-          <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#FEF2F2', border: '3px solid #FECACA', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
-            </svg>
-          </div>
-          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#991B1B', marginBottom: 8, fontFamily: '"DM Sans",sans-serif' }}>Transaction Failed</div>
-          <div style={{ fontSize: '0.85rem', color: '#64748B', fontFamily: '"DM Sans",sans-serif', lineHeight: 1.5 }}>
-            This transaction was not successful.<br/>No amount has been debited.
-          </div>
-          <div style={{ marginTop: 12, background: '#FEF2F2', borderRadius: 10, padding: '12px 16px', textAlign: 'left' }}>
-            {[
-              ['Amount', `₹${Number(mappedData?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`],
-              ['Txn ID', mappedData?.bankTransId || mappedData?.orderId || mappedData?.txnId || 'N/A'],
-              ['Date', mappedData?.date || 'N/A'],
-              ['Remark', mappedData?.remark || mappedData?.message || 'Transaction Failed'],
-            ].map(([k, v]) => (
-              <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px dashed #FECACA', fontFamily: '"DM Sans",sans-serif' }}>
-                <span style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 700 }}>{k}</span>
-                <span style={{ fontSize: '0.82rem', color: '#0F172A', fontWeight: 700, textAlign: 'right', maxWidth: '60%', wordBreak: 'break-all' }}>{v}</span>
-              </div>
-            ))}
-          </div>
-          <button onClick={onClose} style={{ marginTop: 24, padding: '10px 32px', borderRadius: 10, background: '#EF4444', color: '#fff', border: 'none', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', fontFamily: '"DM Sans",sans-serif' }}>Close</button>
-        </div>
-      </div>
-    );
-  }
 
   const receiptH = receiptRef.current?.scrollHeight || 600;
 

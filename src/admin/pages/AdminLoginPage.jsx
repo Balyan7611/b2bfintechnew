@@ -178,7 +178,11 @@ const AdminLoginPage = () => {
     sessionStorage.setItem('admin_token', token);
     sessionStorage.setItem('access_token', token);
 
-                const numericId = decoded?.sub || decoded?.id || decoded?.nameid || '0';
+        // Try all known JWT claim keys that could carry a numeric member/user ID
+        const _numericIdCandidates = ['MemberId','memberId','UserId','userId','Id','id','nameid','sub'];
+        const numericId = _numericIdCandidates
+          .map(k => String(decoded?.[k] ?? '').trim())
+          .find(v => v && v !== '0' && /^\d+$/.test(v)) || '0';
 
         saveSession({
       adminId,

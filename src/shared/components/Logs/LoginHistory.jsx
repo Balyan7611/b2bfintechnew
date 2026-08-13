@@ -120,24 +120,52 @@ const LoginHistory = () => {
     fetchHistory();
   }, [fromDate, toDate, statusFilter, selectedMember]);
 
-  const filteredData = fullData.filter(item => {
-    if (!searchTerm) return true;
-    const q = searchTerm.toLowerCase();
-    const matchedMember = memberOptions.find(m => String(m.id) === String(item.msrno));
-    const memberName = matchedMember ? matchedMember.name : '';
-    const memberCode = matchedMember ? (matchedMember.memberId || '') : '';
-    return (
-      (item.loginIpaddress || '').toLowerCase().includes(q) ||
-      (item.deviceName || '').toLowerCase().includes(q) ||
-      (item.browser || '').toLowerCase().includes(q) ||
-      (item.location || '').toLowerCase().includes(q) ||
-      (item.loginType || '').toLowerCase().includes(q) ||
-      memberName.toLowerCase().includes(q) ||
-      memberCode.toLowerCase().includes(q)
-    );
-  });
+  const filteredData = fullData
+    .filter(item => {
+      // Client-side date range filter (backend may not filter reliably)
+      const rawTime = item.loginTime || item.createdAt || item.createdOn || item.LoginTime || '';
+      const itemDateStr = rawTime ? rawTime.substring(0, 10) : ''; // "YYYY-MM-DD"
+      if (fromDate && itemDateStr && itemDateStr < fromDate) return false;
+      if (toDate && itemDateStr && itemDateStr > toDate) return false;
 
-  const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
+      // Search term filter
+      if (!searchTerm) return true;
+      const q = searchTerm.toLowerCase();
+      const matchedMember = memberOptions.find(m => String(m.id) === String(item.msrno));
+      const memberName = matchedMember ? matchedMember.name : '';
+      const memberCode = matchedMember ? (matchedMember.memberId || '') : '';
+      return (
+        (item.loginIpaddress || '').toLowerCase().includes(q) ||
+        (item.deviceName || '').toLowerCase().includes(q) ||
+        (item.browser || '').toLowerCase().includes(q) ||
+        (item.location || '').toLowerCase().includes(q) ||
+        (item.loginType || '').toLowerCase().includes(q) ||
+        memberName.toLowerCase().includes(q) ||
+        memberCode.toLowerCase().includes(q)
+      );
+    })
+    // Newest first
+    .sort((a, b) => {
+      const tA = a.loginTime || a.createdAt || a.createdOn || a.LoginTime || '';
+      const tB = b.loginTime || b.createdAt || b.createdOn || b.LoginTime || '';
+      return tB.localeCompare(tA);
+    });
+
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
+
+  const getPaginationPages = () => {
+    const pages = [];
+    const delta = 2;
+    const left = Math.max(2, page - delta);
+    const right = Math.min(totalPages - 1, page + delta);
+    pages.push(1);
+    if (left > 2) pages.push('...');
+    for (let i = left; i <= right; i++) pages.push(i);
+    if (right < totalPages - 1) pages.push('...');
+    if (totalPages > 1) pages.push(totalPages);
+    return pages;
+  };
+
   const pagedData = filteredData.slice((page - 1) * pageSize, page * pageSize);
 
   const handleNextPage = () => {
@@ -349,7 +377,7 @@ const LoginHistory = () => {
               type="text" 
               placeholder="Search IP, device, location..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
               style={{
                 width: '100%',
                 padding: '10px 16px 10px 40px',
@@ -541,47 +569,45 @@ const LoginHistory = () => {
           </table>
         </div>
 
-                <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          marginTop: '20px',
-          paddingTop: '16px',
-          borderTop: '1px solid #e2e8f0'
-        }}>
-          <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
-            Showing page {page} of {totalPages}
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button 
-              onClick={handlePrevPage} 
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '12px' }}>
+          <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 500 }}>
+            Showing {filteredData.length === 0 ? 0 : (page - 1) * pageSize + 1} to {Math.min(page * pageSize, filteredData.length)} of {filteredData.length} entries
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              onClick={() => setPage(p => Math.max(p - 1, 1))}
               disabled={page === 1}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '4px',
-                padding: '6px 12px',
-                borderRadius: '6px',
-                border: '1px solid #e2e8f0',
-                background: page === 1 ? '#f8fafc' : '#ffffff',
-                color: page === 1 ? '#cbd5e1' : '#334155',
-                cursor: page === 1 ? 'not-allowed' : 'pointer'
-              }}
+              style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: '1px solid #e2e8f0', background: page === 1 ? '#f8fafc' : '#fff', color: page === 1 ? '#cbd5e1' : '#334155', cursor: page === 1 ? 'not-allowed' : 'pointer' }}
             >
-              <FaChevronLeft style={{ fontSize: '10px' }} /> Prev
+              <FaChevronLeft style={{ fontSize: '10px' }} />
             </button>
-            <button 
-              onClick={handleNextPage} 
-              disabled={page === totalPages || totalPages === 0}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '4px',
-                padding: '6px 12px',
-                borderRadius: '6px',
-                border: '1px solid #e2e8f0',
-                background: (page === totalPages || totalPages === 0) ? '#f8fafc' : '#ffffff',
-                color: (page === totalPages || totalPages === 0) ? '#cbd5e1' : '#334155',
-                cursor: (page === totalPages || totalPages === 0) ? 'not-allowed' : 'pointer'
-              }}
+
+            {getPaginationPages().map((p, idx) =>
+              p === '...' ? (
+                <span key={`ell-${idx}`} style={{ width: 36, textAlign: 'center', color: '#94a3b8' }}>...</span>
+              ) : (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  style={{
+                    width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: 8, border: '1px solid #e2e8f0',
+                    background: p === page ? '#1756AA' : '#fff',
+                    color: p === page ? '#fff' : '#1756AA',
+                    fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer'
+                  }}
+                >
+                  {p}
+                </button>
+              )
+            )}
+
+            <button
+              onClick={() => setPage(p => Math.min(p + 1, totalPages))}
+              disabled={page === totalPages}
+              style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: '1px solid #e2e8f0', background: page === totalPages ? '#f8fafc' : '#fff', color: page === totalPages ? '#cbd5e1' : '#334155', cursor: page === totalPages ? 'not-allowed' : 'pointer' }}
             >
-              Next <FaChevronRight style={{ fontSize: '10px' }} />
+              <FaChevronRight style={{ fontSize: '10px' }} />
             </button>
           </div>
         </div>

@@ -23,7 +23,13 @@ const CreditLimit = () => {
       try {
         const res = await API.member.search('');
         const items = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-        setMembersList(items);
+        // Exclude admin/superadmin accounts from member selector
+        const members = items.filter(m => {
+          const role = (m.roleName || m.role || '').toLowerCase();
+          const mid = (m.memberId || m.loginId || '').toUpperCase();
+          return !role.includes('admin') && !mid.startsWith('AD');
+        });
+        setMembersList(members);
       } catch (err) {
         console.error("Error loading members in CreditLimit:", err);
       }

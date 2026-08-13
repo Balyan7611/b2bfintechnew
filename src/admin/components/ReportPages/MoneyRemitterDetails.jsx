@@ -307,7 +307,11 @@ const MoneyRemitterDetails = () => {
                 </tr>
               ) : (
                 transactions.map((t, idx) => (
-                  <tr key={t.id} className={styles.hoverRow}>
+                  <tr key={t.id} className={styles.hoverRow} style={(() => {
+                      const s = (t.status || '').toLowerCase();
+                      if (s === 'active') return { background: '#F0FDF4' };
+                      return { background: '#FFF5F5' };
+                    })()}>
                     <td style={{ fontWeight: 700, color: '#94A3B8', fontSize: '0.78rem' }}>{((pageNumber - 1) * pageSize) + idx + 1}</td>
                     <td style={{ textAlign: 'center' }}>
                       <button 

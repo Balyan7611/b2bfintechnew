@@ -220,6 +220,18 @@ const CommissionLedger = () => {
         }
         columns={['#', 'DATE & TIME', 'TRANSACTION ID', 'BENEFICIARY', 'ROLE', 'PACKAGE', 'LEVEL', 'TYPE', 'AMOUNT']}
         data={filtered}
+        fileNamePrefix="commission_ledger"
+        exportData={filtered.map((row, i) => [
+          (pageNumber - 1) * pageSize + i + 1,
+          fmtDate(row.createdOn),
+          row.transactionOrderId || '—',
+          `${row.beneficiaryMemberName || '—'} ${row.beneficiaryMemberMobile ? '(' + row.beneficiaryMemberMobile + ')' : ''}`.trim(),
+          row.roleName || '—',
+          row.packageName || '—',
+          row.levelNo ?? '—',
+          row.isComSur ? 'Commission' : 'Surcharge',
+          fmtAmt(row.amount),
+        ])}
         renderRow={(row, i) => (
           <tr key={row.id || i}>
             <td style={{ color: '#94A3B8', fontWeight: 700 }}>{(pageNumber - 1) * pageSize + i + 1}</td>

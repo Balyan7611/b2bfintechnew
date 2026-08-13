@@ -264,8 +264,22 @@ const BusinessAnalytics = () => {
 
                     <AdminTable
             title="BUSINESS ANALYTICS"
+            fileNamePrefix="business_analytics"
             columns={TABLE_COLS}
             data={members}
+            exportData={members.map((row, i) => [
+              row.loginId || i + 1,
+              row.memberName || 'N/A',
+              row.shopName || 'N/A',
+              row.aepsBusiness > 0 ? `₹${Number(row.aepsBusiness).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '—',
+              row.moneyTransferBusiness > 0 ? `₹${Number(row.moneyTransferBusiness).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '—',
+              row.rechargeBillsBusiness > 0 ? `₹${Number(row.rechargeBillsBusiness).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '—',
+              row.settlementBusiness > 0 ? `₹${Number(row.settlementBusiness).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '—',
+              row.upiTransferBusiness > 0 ? `₹${Number(row.upiTransferBusiness).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '—',
+              `₹${Number(row.totalBusinessValue).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+              row.totalTxns > 0 ? String(row.totalTxns) : '—',
+              row.successfulTxns > 0 ? String(row.successfulTxns) : '—',
+            ])}
             renderRow={(row, i) => (
               <tr key={row.memberId || i}>
                 <td><span style={{ background: '#F1F5F9', color: '#4B5DB8', fontWeight: 700, fontSize: '0.72rem', padding: '3px 8px', borderRadius: 6 }}>{row.loginId || i + 1}</span></td>

@@ -340,14 +340,16 @@ const FundRequest = () => {
             <span>rows</span>
           </div>
 
-          <ExportButtons 
-            headers={['S.No', 'Member ID', 'Amount', 'Company Bank Name', 'Bank Ref ID', 'Payment Date', 'Payment Mode', 'Status']}
-            rows={currentData.map((row, index) => [
-              startIndex + index + 1, row.memberId, row.amount, row.companyBankName, row.bankRefId, row.paymentDate, row.paymentMode, row.status
-            ])}
-            fileNamePrefix="fund_request_report"
-            sheetName="Fund Requests"
-          />
+          <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px' }}>
+            <ExportButtons
+              headers={['S.No', 'Member ID', 'Amount', 'Company Bank Name', 'Bank Ref ID', 'Payment Date', 'Payment Mode', 'Status']}
+              rows={currentData.map((row, index) => [
+                startIndex + index + 1, row.memberId, row.amount, row.companyBankName, row.bankRefId, row.paymentDate, row.paymentMode, row.status
+              ])}
+              fileNamePrefix="fund_request_report"
+              sheetName="Fund Requests"
+            />
+          </div>
 
           <div className={styles.searchBox}>
             <FaSearch className={styles.searchIcon} />
