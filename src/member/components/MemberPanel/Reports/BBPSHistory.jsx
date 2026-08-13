@@ -17,6 +17,7 @@ import styles from './AEPSReport.module.css';
 import { FiSearch } from 'react-icons/fi';
 import { API } from '../../../../api/endpoints';
 import { normalizeTxnResponse } from '../../../../services/transaction.service';
+import { resolveReportScopeId } from '../../../../utils/reportScope';
 
 const BBPSHistory = () => {
   const dispatch = useDispatch();
@@ -53,6 +54,14 @@ const BBPSHistory = () => {
   }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
 
   const fetchData = async () => {
+    // Fail closed: never query with a blank memberId (that returns every
+    // account's rows). If we can't resolve who we are, load nothing.
+    const { id: scopeId, error: scopeError } = await resolveReportScopeId();
+    if (!scopeId) {
+      console.error('[BBPSHistory.jsx] %s', scopeError);
+      dispatch(setBBPSList([]));
+      return;
+    }
     try {
       const res = await API.transaction.getAll({
         pageNumber: currentPage,
@@ -63,7 +72,7 @@ const BBPSHistory = () => {
         serviceIds: bbpsServiceIds,
         sectionType: '2',
         operatorId: filters.operatorId || '',
-        memberId: '',
+        memberId: scopeId,
         status: filters.status || ''
       });
       const { items: rawData } = normalizeTxnResponse(res);

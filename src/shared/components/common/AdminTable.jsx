@@ -31,6 +31,21 @@ const AdminTable = ({
 }) => {
   const dispatch = useDispatch();
 
+  /**
+   * Rows actually rendered in <tbody>.
+   *
+   * Some callers pass the FULL filtered list and rely on AdminTable to paginate;
+   * others pre-slice the page themselves before passing `data`. We auto-detect:
+   * a pre-sliced page can never be longer than rowsPerPage, so slicing only when
+   * data.length > rowsPerPage is safe for both styles and never double-slices.
+   */
+  const pageRows = (() => {
+    if (!rowsPerPage || !currentPage) return data;
+    if (data.length <= rowsPerPage) return data;   // already sliced (or single page)
+    const start = (currentPage - 1) * rowsPerPage;
+    return data.slice(start, start + rowsPerPage);
+  })();
+
   const getExportRows = () => {
     if (exportData && exportData.length > 0) return exportData;
     // fallback: extract primitive values from data objects (skip functions/arrays/objects)
@@ -189,8 +204,8 @@ const AdminTable = ({
             </tr>
           </thead>
           <tbody>
-            {data.length > 0 ? (
-              data.map((item, index) => renderRow(item, index))
+            {pageRows.length > 0 ? (
+              pageRows.map((item, index) => renderRow(item, index))
             ) : (
               <tr>
                 <td colSpan={columns.length}>

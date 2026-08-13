@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { Cells as UplineCells, getUplineShape } from '../../../../shared/components/common/UplineCommissionCols';
 import { useDispatch, useSelector } from 'react-redux';
-import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 import { FiFilter, FiSearch } from 'react-icons/fi';
 import { 
   setAEPSList, 
@@ -18,6 +17,7 @@ import ReceiptModal from '../../../../shared/components/common/ReceiptModal';
 import styles from './AEPSReport.module.css';
 import { API } from '../../../../api/endpoints';
 import { normalizeTxnResponse } from '../../../../services/transaction.service';
+import { resolveReportScopeId } from '../../../../utils/reportScope';
 import { getSession } from '../../../../utils/authUtils';
 
 const AEPSReport = () => {
@@ -45,7 +45,6 @@ const AEPSReport = () => {
   const [showStats, setShowStats] = useState(false);
   const [aepsServiceIds, setAepsServiceIds] = useState([]);
   const [breakdownTxn, setBreakdownTxn] = useState(null);
-  const [memberOptions, setMemberOptions] = useState([]);
 
   useEffect(() => {
     const fetchMasters = async () => {
@@ -63,18 +62,6 @@ const AEPSReport = () => {
         const apiRes = await API.masterApi.getAll({ pageSize: 500 });
         setMasterApis(Array.isArray(apiRes?.data?.items) ? apiRes.data.items : Array.isArray(apiRes?.data) ? apiRes.data : Array.isArray(apiRes) ? apiRes : []);
       } catch (e) { console.error('AEPSReport: APIs fetch failed', e); }
-      try {
-        const mRes = await API.member.getAll({ pageNumber: 1, pageSize: 5000 });
-        const mList = mRes?.data?.items || mRes?.data || (Array.isArray(mRes) ? mRes : []);
-        setMemberOptions([
-          { value: '', label: 'All Members' },
-          ...(Array.isArray(mList) ? mList : []).map(m => {
-            const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
-            const loginId = m.memberID || m.memberid || m.loginID || m.loginId || String(m.id || m.msrno || '');
-            return { value: String(m.id || m.msrno), label: name ? `${name} (${loginId})` : loginId };
-          })
-        ]);
-      } catch (e) { console.error('AEPSReport: members fetch failed', e); }
     };
     fetchMasters();
   }, []);
@@ -82,7 +69,16 @@ const AEPSReport = () => {
   const fetchAEPSReport = async () => {
     const session = getSession();
     const memberMsrNo = session?.msrno || session?.userId || 2;
-    
+
+    // Fail closed: never query with a blank memberId (that returns every
+    // account's rows). If we can't resolve who we are, load nothing.
+    const { id: scopeId, error: scopeError } = await resolveReportScopeId();
+    if (!scopeId) {
+      console.error('[AEPSReport.jsx]', scopeError);
+      dispatch(setAEPSList([]));
+      return;
+    }
+
     try {
                         const res = await API.transaction.getAll({
         pageNumber: currentPage,
@@ -94,7 +90,8 @@ const AEPSReport = () => {
         sectionType: '9,10',
         operatorId: filters.operatorId || '',
         apiId: '',
-        memberId: '',           status: filters.status || ''
+        memberId: scopeId,
+        status: filters.status || ''
       });
       
       let rawData = [];
@@ -160,6 +157,14 @@ const AEPSReport = () => {
   };
 
   const fetchData = async () => {
+    // Fail closed: never query with a blank memberId (that returns every
+    // account's rows). If we can't resolve who we are, load nothing.
+    const { id: scopeId, error: scopeError } = await resolveReportScopeId();
+    if (!scopeId) {
+      console.error('[AEPSReport.jsx]', scopeError);
+      dispatch(setAEPSList([]));
+      return;
+    }
     try {
       const res = await API.transaction.getAll({
         pageNumber: currentPage,
@@ -170,7 +175,7 @@ const AEPSReport = () => {
         serviceIds: filters.serviceId ? [] : aepsServiceIds,
         sectionType: '9,10',
         operatorId: filters.operatorId || '',
-        memberId: filters.memberId || '',
+        memberId: scopeId,
         status: filters.status || ''
       });
       const { items: rawData } = normalizeTxnResponse(res);
@@ -181,7 +186,7 @@ const AEPSReport = () => {
     }
   };
 
-      useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status, filters.memberId, filters.serviceId]);
+      useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status, filters.serviceId]);
 
   const filteredList = list.filter(item => {
     const name = item.memberName || '';
@@ -268,16 +273,6 @@ const AEPSReport = () => {
                       onChange={handleFilterChange}
                     />
                   </div>
-                                    <div className={styles.formGroup}>
-                    <label>Member</label>
-                    <SearchableSelect
-                      options={memberOptions}
-                      value={filters.memberId || ''}
-                      onChange={val => dispatch(updateAEPSFilters({ memberId: val || '' }))}
-                      placeholder="All Members"
-                    />
-                  </div>
-
                                     <div className={styles.formGroup}>
                     <label>Service</label>
                     <select

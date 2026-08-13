@@ -17,6 +17,7 @@ import styles from './AEPSReport.module.css';
 import { FiSearch } from 'react-icons/fi';
 import { API } from '../../../../api/endpoints';
 import { normalizeTxnResponse } from '../../../../services/transaction.service';
+import { resolveReportScopeId } from '../../../../utils/reportScope';
 
 const MATMHistory = () => {
   const dispatch = useDispatch();
@@ -53,6 +54,14 @@ const MATMHistory = () => {
   }, [dispatch]);
 
   const fetchData = async () => {
+    // Fail closed: never query with a blank memberId (that returns every
+    // account's rows). If we can't resolve who we are, load nothing.
+    const { id: scopeId, error: scopeError } = await resolveReportScopeId();
+    if (!scopeId) {
+      console.error('[MATMHistory.jsx] %s', scopeError);
+      dispatch(setMATMList([]));
+      return;
+    }
     try {
       const res = await API.transaction.getAll({
         pageNumber: currentPage,
@@ -63,7 +72,7 @@ const MATMHistory = () => {
         serviceIds: matmServiceIds,
         sectionType: '9',
         operatorId: filters.operatorId || '',
-        memberId: '',
+        memberId: scopeId,
         status: filters.status || ''
       });
       const { items: rawData } = normalizeTxnResponse(res);

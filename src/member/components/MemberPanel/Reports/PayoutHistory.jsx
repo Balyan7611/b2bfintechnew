@@ -15,6 +15,7 @@ import { FiBarChart2 } from 'react-icons/fi';
 import styles from './AEPSReport.module.css';
 import { API } from '../../../../api/endpoints';
 import { normalizeTxnResponse } from '../../../../services/transaction.service';
+import { resolveReportScopeId } from '../../../../utils/reportScope';
 
 const PayoutHistory = () => {
   const dispatch = useDispatch();
@@ -52,6 +53,14 @@ const PayoutHistory = () => {
   }, [dispatch]);
 
   const fetchData = async () => {
+    // Fail closed: never query with a blank memberId (that returns every
+    // account's rows). If we can't resolve who we are, load nothing.
+    const { id: scopeId, error: scopeError } = await resolveReportScopeId();
+    if (!scopeId) {
+      console.error('[PayoutHistory.jsx] %s', scopeError);
+      dispatch(setPayoutList([]));
+      return;
+    }
     try {
       const res = await API.transaction.getAll({
         pageNumber: currentPage,
@@ -62,7 +71,7 @@ const PayoutHistory = () => {
         serviceIds: payoutServiceIds,
         sectionType: '3',
         operatorId: filters.operatorId || '',
-        memberId: '',
+        memberId: scopeId,
         status: filters.status || ''
       });
       const { items: rawData } = normalizeTxnResponse(res);

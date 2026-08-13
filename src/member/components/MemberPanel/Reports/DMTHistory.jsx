@@ -16,6 +16,7 @@ import StatsGrid from '../../../../shared/components/common/StatsGrid';
 import { FiBarChart2 } from 'react-icons/fi';
 import styles from './AEPSReport.module.css'; import { API } from '../../../../api/endpoints';
 import { normalizeTxnResponse } from '../../../../services/transaction.service';
+import { resolveReportScopeId } from '../../../../utils/reportScope';
 
 const DMTHistory = () => {
   const dispatch = useDispatch();
@@ -55,6 +56,14 @@ const DMTHistory = () => {
   }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
 
   const fetchData = async () => {
+    // Fail closed: never query with a blank memberId (that returns every
+    // account's rows). If we can't resolve who we are, load nothing.
+    const { id: scopeId, error: scopeError } = await resolveReportScopeId();
+    if (!scopeId) {
+      console.error('[DMTHistory.jsx] %s', scopeError);
+      dispatch(setDMTList([]));
+      return;
+    }
     try {
       const res = await API.transaction.getAll({
         pageNumber: currentPage,
@@ -64,7 +73,7 @@ const DMTHistory = () => {
         serviceId: '16',
         sectionType: '7',
         operatorId: filters.operatorId || '',
-        memberId: '',
+        memberId: scopeId,
         status: filters.status || ''
       });
       const { items: rawData } = normalizeTxnResponse(res);

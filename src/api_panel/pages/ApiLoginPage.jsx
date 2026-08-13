@@ -348,7 +348,23 @@ const ApiLoginPage = () => {
         const loginId = decoded?.LoginId || decoded?.loginId || decoded?.sub || userId;
     const userName = decoded?.unique_name || decoded?.name || decoded?.Name || 'API User';
     const mobileNo = decoded?.mobile || decoded?.Mobile || decoded?.phone || userId;
-                const rawNumeric = decoded?.MemberId ?? decoded?.memberId ?? decoded?.Id ?? decoded?.id ?? decoded?.nameid ?? decoded?.sub;
+                let rawNumeric = decoded?.MemberId ?? decoded?.memberId ?? decoded?.Id ?? decoded?.id ?? decoded?.nameid ?? decoded?.sub;
+    if (decoded && (!rawNumeric || !/^\d+$/.test(String(rawNumeric).trim()))) {
+      for (const [k, v] of Object.entries(decoded)) {
+        const keyLower = k.toLowerCase();
+        if (
+          (keyLower.includes('memberid') || 
+           keyLower.includes('userid') || 
+           keyLower.includes('msrno') || 
+           keyLower.includes('nameidentifier') || 
+           keyLower.includes('sub')) && 
+          /^\d+$/.test(String(v ?? '').trim())
+        ) {
+          rawNumeric = v;
+          break;
+        }
+      }
+    }
     const numericId = /^\d+$/.test(String(rawNumeric ?? '').trim()) ? parseInt(rawNumeric, 10) : 0;
 
     saveSession({

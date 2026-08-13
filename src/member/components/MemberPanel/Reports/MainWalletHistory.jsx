@@ -9,44 +9,33 @@ import {
 } from '../../../../store/slices/reportSlice';
 import AdminTable from '../../../../shared/components/common/AdminTable';
 import { API } from '../../../../api/endpoints';
-import { resolveMemberId, getLoginId } from '../../../../utils/memberIdentity';
+import { getLoginId } from '../../../../utils/memberIdentity';
+import { resolveReportScopeId } from '../../../../utils/reportScope';
 import { getSession } from '../../../../utils/authUtils';
 import { formatLedgerDate } from '../../../../models/walletLedgerModel';
-import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 import styles from './AEPSReport.module.css';
 
 const MainWalletHistory = () => {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
-  const [memberOptions, setMemberOptions] = useState([]);
 
   const { list, filters, searchQuery, rowsPerPage, currentPage } =
     useSelector(state => state.report.mainWalletReport);
-
-    useEffect(() => {
-    API.member.getAll({ pageNumber: 1, pageSize: 5000 })
-      .then(res => {
-        const items = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
-        setMemberOptions([
-          { value: '', label: 'All Members' },
-          ...(Array.isArray(items) ? items : []).map(m => {
-            const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
-            const loginId = m.memberID || m.memberid || m.loginID || m.loginId || m.username || String(m.id || m.msrno || '');
-            return { value: String(m.id || m.msrno), label: name ? `${name} (${loginId})` : loginId };
-          })
-        ]);
-      })
-      .catch(err => console.warn('MainWallet: member list failed', err));
-  }, []);
 
     const loadHistory = useCallback(async (overrideFilters) => {
     setIsLoading(true);
     setApiError('');
     const f = overrideFilters || filters;
     try {
-      const defaultMemberId = await resolveMemberId();
-      const queryMemberId = f.memberId || defaultMemberId || undefined;
+      // Never accept a member id from the UI, and fail closed if we can't tell
+      // who we are — an unscoped ledger query returns other accounts' rows.
+      const { id: queryMemberId, error: scopeError } = await resolveReportScopeId();
+      if (!queryMemberId) {
+        setApiError(scopeError);
+        dispatch(setMainWalletList([]));
+        return;
+      }
 
       const { items } = await API.walletLedger.getMainLedger({
         memberId: queryMemberId,
@@ -134,15 +123,6 @@ const MainWalletHistory = () => {
                 <input type="date" className={styles.inputControl}
                   value={filters.toDate}
                   onChange={e => dispatch(updateMainWalletFilters({ toDate: e.target.value }))} />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Member</label>
-                <SearchableSelect
-                  options={memberOptions}
-                  value={filters.memberId}
-                  onChange={val => dispatch(updateMainWalletFilters({ memberId: val }))}
-                  placeholder="All / Select Member"
-                />
               </div>
               <button className={styles.submitBtn} disabled={isLoading}
                 onClick={() => loadHistory(filters)}>

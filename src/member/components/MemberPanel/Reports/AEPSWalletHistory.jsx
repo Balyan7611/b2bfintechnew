@@ -9,10 +9,10 @@ import {
 } from '../../../../store/slices/reportSlice';
 import AdminTable from '../../../../shared/components/common/AdminTable';
 import { API } from '../../../../api/endpoints';
-import { resolveMemberId, getLoginId } from '../../../../utils/memberIdentity';
+import { getLoginId } from '../../../../utils/memberIdentity';
+import { resolveReportScopeId } from '../../../../utils/reportScope';
 import { getSession } from '../../../../utils/authUtils';
 import { formatLedgerDate } from '../../../../models/walletLedgerModel';
-import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 import { FiSearch } from 'react-icons/fi';
 import styles from './AEPSReport.module.css';
 
@@ -21,34 +21,23 @@ const AEPSWalletHistory = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [focusedField, setFocusedField] = useState(null);
-  const [memberOptions, setMemberOptions] = useState([]);
 
   const { list, filters, searchQuery, rowsPerPage, currentPage } =
     useSelector(state => state.report.aepsWalletReport);
-
-    useEffect(() => {
-    API.member.getAll({ pageNumber: 1, pageSize: 5000 })
-      .then(res => {
-        const items = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
-        setMemberOptions([
-          { value: '', label: 'All Members' },
-          ...(Array.isArray(items) ? items : []).map(m => {
-            const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
-            const loginId = m.memberID || m.memberid || m.loginID || m.loginId || m.username || String(m.id || m.msrno || '');
-            return { value: String(m.id || m.msrno), label: name ? `${name} (${loginId})` : loginId };
-          })
-        ]);
-      })
-      .catch(err => console.warn('AEPSWallet: member list failed', err));
-  }, []);
 
     const loadHistory = useCallback(async (overrideFilters) => {
     setIsLoading(true);
     setApiError('');
     const f = overrideFilters || filters;
     try {
-      const defaultMemberId = await resolveMemberId();
-      const queryMemberId = f.memberId || defaultMemberId || undefined;
+      // Never accept a member id from the UI, and fail closed if we can't tell
+      // who we are — an unscoped ledger query returns other accounts' rows.
+      const { id: queryMemberId, error: scopeError } = await resolveReportScopeId();
+      if (!queryMemberId) {
+        setApiError(scopeError);
+        dispatch(setAEPSWalletList([]));
+        return;
+      }
 
       const { items } = await API.walletLedger.getAepsLedger({
         memberId: queryMemberId,
@@ -147,16 +136,6 @@ const AEPSWalletHistory = () => {
                     onFocus={() => setFocusedField('toDate')}
                     onBlur={() => setFocusedField(null)}
                     style={{ paddingLeft: 12, paddingRight: 12, height: 38, borderRadius: 10, fontSize: '0.825rem', border: focusedField === 'toDate' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'toDate' ? '0 0 0 3px rgba(23,86,170,0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }}
-                  />
-                </div>
-
-                                <div className={styles.formGroup}>
-                  <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>Member</label>
-                  <SearchableSelect
-                    options={memberOptions}
-                    value={filters.memberId}
-                    onChange={val => dispatch(updateAEPSWalletFilters({ memberId: val || '' }))}
-                    placeholder="All Members"
                   />
                 </div>
 
