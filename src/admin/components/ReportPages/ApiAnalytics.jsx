@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { FaFilter, FaSpinner, FaChevronDown, FaExclamationTriangle } from 'react-icons/fa';
 import { FiDownload, FiBarChart2 } from 'react-icons/fi';
 import { MdApi } from 'react-icons/md';
@@ -113,28 +114,34 @@ const ApiAnalytics = () => {
         <div className={styles.filterGrid}>
           <div className={styles.inputGroup}>
             <label className={styles.label}>Period</label>
-            <div className={styles.selectWrapper}>
-              <select className={styles.select} value={period} onChange={e => setPeriod(e.target.value)}>
-                <option value="today">Today</option>
-                <option value="yesterday">Yesterday</option>
-                <option value="7days">Last 7 days</option>
-                <option value="30days">Last 30 days</option>
-                <option value="thisMonth">This month</option>
-                <option value="lastMonth">Last month</option>
-              </select>
-              <FaChevronDown className={styles.selectChevron} />
-            </div>
+            <SearchableSelect
+              value={period}
+              onChange={val => setPeriod(val || 'today')}
+              options={[
+                { label: 'Today', value: 'today' },
+                { label: 'Yesterday', value: 'yesterday' },
+                { label: 'Last 7 days', value: '7days' },
+                { label: 'Last 30 days', value: '30days' },
+                { label: 'This month', value: 'thisMonth' },
+                { label: 'Last month', value: 'lastMonth' }
+              ]}
+              placeholder="Today"
+              style={{ height: '44px', borderRadius: '10px' }}
+            />
           </div>
           <div className={styles.inputGroup}>
             <label className={styles.label}>Show Cells As</label>
-            <div className={styles.selectWrapper}>
-              <select className={styles.select} value={showAs} onChange={e => setShowAs(e.target.value)}>
-                <option value="Transactions">Transactions</option>
-                <option value="Business">Business value (₹)</option>
-                <option value="Rates">Success rate (%)</option>
-              </select>
-              <FaChevronDown className={styles.selectChevron} />
-            </div>
+            <SearchableSelect
+              value={showAs}
+              onChange={val => setShowAs(val || 'Transactions')}
+              options={[
+                { label: 'Transactions', value: 'Transactions' },
+                { label: 'Business value (₹)', value: 'Business' },
+                { label: 'Success rate (%)', value: 'Rates' }
+              ]}
+              placeholder="Transactions"
+              style={{ height: '44px', borderRadius: '10px' }}
+            />
           </div>
         </div>
         <div className={styles.filterActions}>

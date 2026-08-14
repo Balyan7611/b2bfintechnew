@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FiSearch, FiEdit, FiTrash2, FiPlus, FiChevronLeft, FiChevronRight, FiDatabase, FiX, FiCheck, FiMonitor, FiClock, FiMapPin, FiUser
@@ -177,33 +178,33 @@ const EmployeeLoginList = () => {
            </div>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4E6080' }}>Status</label>
-              <select 
-                value={statusFilter} 
-                onChange={(e) => { setStatusFilter(e.target.value); setPageNumber(1); }} 
-                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none', fontSize: '0.9rem', background: '#fff', height: '40px', boxSizing: 'border-box' }}
-              >
-                <option value="">All Status</option>
-                <option value="Success">Success</option>
-                <option value="Failed">Failed</option>
-              </select>
+              <SearchableSelect
+                value={statusFilter}
+                onChange={val => { setStatusFilter(val || ''); setPageNumber(1); }}
+                options={[
+                  { label: 'All Status', value: '' },
+                  { label: 'Success', value: 'Success' },
+                  { label: 'Failed', value: 'Failed' }
+                ]}
+                placeholder="All Status"
+                style={{ height: '40px' }}
+              />
            </div>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4E6080' }}>Select Employee</label>
-              <select 
-                value={selectedMember} 
-                onChange={(e) => { setSelectedMember(e.target.value); setPageNumber(1); }} 
-                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', outline: 'none', fontSize: '0.9rem', background: '#fff', height: '40px', boxSizing: 'border-box' }}
-              >
-                <option value="">All Employees</option>
-                {membersList.map((m) => {
-                  const label = `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`;
-                  return (
-                    <option key={m.id || m.msrno} value={m.memberId || m.loginId || m.id || m.msrno}>
-                      {label}
-                    </option>
-                  );
-                })}
-              </select>
+              <SearchableSelect
+                value={selectedMember}
+                onChange={val => { setSelectedMember(val || ''); setPageNumber(1); }}
+                options={[
+                  { label: 'All Employees', value: '' },
+                  ...membersList.map((m) => ({
+                    label: `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`,
+                    value: m.memberId || m.loginId || m.id || m.msrno
+                  }))
+                ]}
+                placeholder="All Employees"
+                style={{ height: '40px' }}
+              />
            </div>
         </div>
         </div>

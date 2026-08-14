@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import StatsGrid from '../../../shared/components/common/StatsGrid';
 import { API } from '../../../api/endpoints';
@@ -192,14 +193,19 @@ const MoneyWalletLoadHistory = () => {
                             </div>
                             <div className={styles.formGroup}>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Select Member</label>
-                                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: focusedField === 'member' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', transition: 'all 0.25s', color: '#334155' }} value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} onFocus={() => setFocusedField('member')} onBlur={() => setFocusedField(null)}>
-                                    <option value="">All Active Members</option>
-                                    {memberList.map((m) => (
-                                        <option key={m.id || m.memberId} value={m.id || m.memberId}>
-                                            {m.name || m.memberId} ({m.mobile})
-                                        </option>
-                                    ))}
-                                </select>
+                                <SearchableSelect
+                                    options={[
+                                        { value: '', label: 'All Active Members' },
+                                        ...(Array.isArray(memberList) ? memberList : []).map((m) => ({
+                                            value: m.id || m.memberId,
+                                            label: `${m.name || m.memberId} (${m.mobile})`
+                                        }))
+                                    ]}
+                                    value={selectedMember}
+                                    onChange={val => setSelectedMember(val || '')}
+                                    placeholder="All Active Members"
+                                    style={{ height: '42px', borderRadius: '10px' }}
+                                />
                             </div>
                             <div className={styles.formGroup}>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Search Anything</label>

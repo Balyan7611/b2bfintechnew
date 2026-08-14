@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { useSelector, useDispatch } from 'react-redux';
 import axios from '../../../api/httpClient';
 import { 
@@ -234,16 +235,16 @@ const KYCDetails = () => {
             <p className={styles.directorySubtitle} style={{ fontSize: '0.75rem' }}>Tracking history of identification verification</p>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <select 
+            <SearchableSelect 
               value={selectedMember}
-              onChange={(e) => setSelectedMember(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: '8px', border: '1.5px solid #E2E8F0', outline: 'none', fontSize: '0.85rem', color: '#0D1B3E', fontWeight: 600, background: '#F8FAFF', minWidth: '200px' }}
-            >
-              <option value="">All Members</option>
-              {memberList && memberList.map(m => (
-                 <option key={m.id} value={m.id}>{m.memberId} - {m.name}</option>
-              ))}
-            </select>
+              onChange={(val) => setSelectedMember(val)}
+              options={[
+                { label: 'All Members', value: '' },
+                ...(memberList || []).map(m => ({ label: `${m.memberId} - ${m.name}`, value: m.id }))
+              ]}
+              placeholder="All Members"
+              style={{ minWidth: '240px', height: '36px', borderRadius: '8px', zIndex: 100 }}
+            />
 
             {selectedMember && (
               <button 

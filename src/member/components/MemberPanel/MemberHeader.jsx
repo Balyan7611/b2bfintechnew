@@ -477,25 +477,9 @@ const MemberHeader = () => {
                           <div className={`${styles.menuIcon} ${styles.iconNavy}`}><FaUser /></div>
                           <span>My Profile</span>
                         </div>
-                        <div className={styles.menuItem} onClick={() => handleNavigate('/member/dashboard/profile')}>
-                          <div className={`${styles.menuIcon} ${styles.iconChart}`}><FaEdit /></div>
-                          <span>Edit Profile</span>
-                        </div>
-                        <div className={styles.menuItem} onClick={() => handleNavigate('/member/dashboard/logs/login-history')}>
-                          <div className={`${styles.menuIcon} ${styles.iconNavy}`}><FaHistory /></div>
-                          <span>Login History</span>
-                        </div>
                         <div className={styles.menuItem} onClick={() => handleNavigate('/member/dashboard/logs/activity')}>
                           <div className={`${styles.menuIcon} ${styles.iconSupport}`}><FaHistory /></div>
                           <span>Activity Logs</span>
-                        </div>
-                        <div className={styles.menuItem} onClick={() => handleNavigate('/member/dashboard/logs/login-history')}>
-                          <div className={`${styles.menuIcon} ${styles.iconNavy}`}><FaMobileAlt /></div>
-                          <span>Mobile Logs</span>
-                        </div>
-                        <div className={styles.menuItem} onClick={() => handleNavigate('/member/dashboard/profile')}>
-                          <div className={`${styles.menuIcon} ${styles.iconChart}`}><FaCog /></div>
-                          <span>Account Setting</span>
                         </div>
                         <div className={styles.menuItem} onClick={() => handleNavigate('/member/dashboard/profile')}>
                           <div className={`${styles.menuIcon} ${styles.iconSupport}`}><FaCertificate /></div>

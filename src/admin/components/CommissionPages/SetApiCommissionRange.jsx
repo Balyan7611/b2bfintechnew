@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FaTrash, FaCheckCircle, FaSave, FaSearch, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, FaPrint, FaChevronLeft, FaChevronRight, FaExclamationCircle } from 'react-icons/fa';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { updateApiCommForm, addApiCommEntry, setApiCommForm, updateApiCommEntry, toggleApiCommStatus, deleteApiCommEntry } from '../../../store/slices/commissionSlice';
 import styles from './Commission.module.css';
 
@@ -107,32 +108,53 @@ const SetApiCommissionRange = () => {
                 <div className={styles.formGridFive}>
           <div className={styles.formGroup}>
             <label className={styles.label}>Select Api <span style={{color: '#EF4444'}}>*</span></label>
-            <select ref={apiNameRef} name="apiName" className={styles.inputControl} value={apiCommForm.apiName} onChange={handleChange}>
-              <option value="">Select Api</option>
-              <option value="Jio API">Jio API</option>
-              <option value="Airtel API">Airtel API</option>
-              <option value="Yes Bank API">Yes Bank API</option>
-            </select>
+            <SearchableSelect
+              name="apiName"
+              value={apiCommForm.apiName}
+              onChange={(val) => handleChange({ target: { name: 'apiName', value: val } })}
+              options={[
+                { label: 'Select Api', value: '' },
+                { label: 'Jio API', value: 'Jio API' },
+                { label: 'Airtel API', value: 'Airtel API' },
+                { label: 'Yes Bank API', value: 'Yes Bank API' }
+              ]}
+              placeholder="Select Api"
+              style={{ height: '42px', borderRadius: '10px' }}
+            />
             {errors.apiName && <span className={styles.errorText}><FaExclamationCircle /> API is required</span>}
           </div>
           <div className={styles.formGroup}>
             <label className={styles.label}>Select Service <span style={{color: '#EF4444'}}>*</span></label>
-            <select ref={serviceRef} name="service" className={styles.inputControl} value={apiCommForm.service} onChange={handleChange}>
-              <option value="">Select Service</option>
-              <option value="AEPS">AEPS</option>
-              <option value="DMT">DMT</option>
-              <option value="Recharge">Recharge</option>
-            </select>
+            <SearchableSelect
+              name="service"
+              value={apiCommForm.service}
+              onChange={(val) => handleChange({ target: { name: 'service', value: val } })}
+              options={[
+                { label: 'Select Service', value: '' },
+                { label: 'AEPS', value: 'AEPS' },
+                { label: 'DMT', value: 'DMT' },
+                { label: 'Recharge', value: 'Recharge' }
+              ]}
+              placeholder="Select Service"
+              style={{ height: '42px', borderRadius: '10px' }}
+            />
             {errors.service && <span className={styles.errorText}><FaExclamationCircle /> Service is required</span>}
           </div>
           <div className={styles.formGroup}>
             <label className={styles.label}>Operator <span style={{color: '#EF4444'}}>*</span></label>
-            <select ref={operatorRef} name="operator" className={styles.inputControl} value={apiCommForm.operator} onChange={handleChange}>
-              <option value="">Select</option>
-              <option value="Jio">Jio</option>
-              <option value="Airtel">Airtel</option>
-              <option value="VI">VI</option>
-            </select>
+            <SearchableSelect
+              name="operator"
+              value={apiCommForm.operator}
+              onChange={(val) => handleChange({ target: { name: 'operator', value: val } })}
+              options={[
+                { label: 'Select Operator', value: '' },
+                { label: 'Jio', value: 'Jio' },
+                { label: 'Airtel', value: 'Airtel' },
+                { label: 'VI', value: 'VI' }
+              ]}
+              placeholder="Select Operator"
+              style={{ height: '42px', borderRadius: '10px' }}
+            />
             {errors.operator && <span className={styles.errorText}><FaExclamationCircle /> Operator is required</span>}
           </div>
           <div className={styles.formGroup}>

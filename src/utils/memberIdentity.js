@@ -66,6 +66,9 @@ let cachedId = null;
 let cachedForToken = null;
 let inFlight = null;
 
+const isApiPanel = () =>
+    typeof window !== 'undefined' && window.location.pathname.startsWith('/api-panel');
+
 export const resolveMemberId = async () => {
             const token = readToken();
     if (cachedForToken !== token) {
@@ -89,6 +92,23 @@ export const resolveMemberId = async () => {
         const current = getSession();
         if (current) saveSession({ ...current, msrno: cachedId, userId: cachedId });
         return cachedId;
+    }
+
+    // API-panel accounts live in a different table than Members. Looking their
+    // loginId up in the Member master (below) can coincidentally match an
+    // unrelated member and leak that member's data — that is what happened
+    // when an API user's reports showed another member's ("Vishnu Project")
+    // transactions. So for the API panel we stop here: if the JWT/session
+    // didn't carry a usable numeric id, we don't guess — callers should fail
+    // closed rather than fall back to this cross-table lookup.
+    if (isApiPanel()) {
+        console.warn(
+            '[memberIdentity] API panel account has no numeric id in its session/token ' +
+            '(checked session.msrno/userId/id and JWT claims). Skipping the Member-master ' +
+            'lookup, which is unsafe for API accounts (can match an unrelated member). ' +
+            'Decoded token:', decodeToken(readToken())
+        );
+        return null;
     }
 
     if (inFlight) return inFlight;

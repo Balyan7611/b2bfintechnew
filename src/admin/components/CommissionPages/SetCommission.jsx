@@ -1,5 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FaTrash, FaExclamationCircle, FaPlus, FaTimes, FaSearch, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, FaPrint } from 'react-icons/fa';
+import { 
+  FaEdit, FaTrash, FaCheck, FaTimes, FaSearch, FaChevronLeft, FaChevronRight, 
+  FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint, FaCogs, FaCheckCircle, 
+  FaChevronDown, FaPercent, FaRupeeSign, FaSpinner, FaPlus, FaExclamationCircle
+} from 'react-icons/fa';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { apiService } from '../../../api/httpClient';
 import { API } from '../../../api/endpoints';
 import styles from './Commission.module.css';
@@ -415,30 +420,45 @@ const SetCommission = () => {
                     <div className={styles.dmToolbar}>
             <div className={styles.dmField}>
               <label>Select Package *</label>
-              <select value={dynPackage} onChange={(e) => setDynPackage(e.target.value)}>
-                <option value="">Select Package</option>
-                {packages.map(p => (
-                  <option key={p.id || p.ID} value={String(p.id || p.ID)}>{p.name || p.Name}</option>
-                ))}
-              </select>
+              <SearchableSelect
+                name="dynPackage"
+                value={dynPackage}
+                onChange={(val) => setDynPackage(val)}
+                options={[
+                  { label: 'Select Package', value: '' },
+                  ...packages.map(p => ({ label: p.name || p.Name, value: String(p.id || p.ID) }))
+                ]}
+                placeholder="Select Package"
+                style={{ height: '42px', borderRadius: '10px' }}
+              />
             </div>
             <div className={styles.dmField}>
               <label>Select Service *</label>
-              <select value={dynService} onChange={(e) => setDynService(e.target.value)}>
-                <option value="">Select Service</option>
-                {services.map(s => (
-                  <option key={s.id || s.ID} value={String(s.id || s.ID)}>{s.name || s.Name}</option>
-                ))}
-              </select>
+              <SearchableSelect
+                name="dynService"
+                value={dynService}
+                onChange={(val) => setDynService(val)}
+                options={[
+                  { label: 'Select Service', value: '' },
+                  ...services.map(s => ({ label: s.name || s.Name, value: String(s.id || s.ID) }))
+                ]}
+                placeholder="Select Service"
+                style={{ height: '42px', borderRadius: '10px' }}
+              />
             </div>
             <div className={styles.dmField}>
               <label>Select Operator *</label>
-              <select value={dynOperator} onChange={(e) => setDynOperator(e.target.value)}>
-                <option value="">Select Operator</option>
-                {filteredOperators.map(o => (
-                  <option key={o.id || o.ID} value={String(o.id || o.ID)}>{o.name || o.Name}</option>
-                ))}
-              </select>
+              <SearchableSelect
+                name="dynOperator"
+                value={dynOperator}
+                onChange={(val) => setDynOperator(val)}
+                options={[
+                  { label: 'Select Operator', value: '' },
+                  ...filteredOperators.map(o => ({ label: o.name || o.Name, value: String(o.id || o.ID) }))
+                ]}
+                placeholder="Select Operator"
+                style={{ height: '42px', borderRadius: '10px' }}
+              />
             </div>
           </div>
 

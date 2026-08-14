@@ -4,6 +4,8 @@ import { FaHistory, FaSearch, FaChevronLeft, FaChevronRight, FaCalendarAlt, FaUs
 import { FiDatabase } from 'react-icons/fi';
 import { API } from '../../../api/endpoints';
 import { getSession } from '../../../utils/authUtils';
+import { resolveReportScopeId } from '../../../utils/reportScope';
+import SearchableSelect from '../common/SearchableSelect';
 import sharedStyles from '../common/SharedTable.module.css';
 
 const LoginHistory = () => {
@@ -72,10 +74,26 @@ const LoginHistory = () => {
   const fetchHistory = async () => {
     setLoading(true);
     try {
-      const session = getSession();
-      const resolvedMemberId = isAdmin ? (selectedMember?.id || selectedMember?.msrno || '') : (session?.msrno || session?.userId || session?.memberId || '');
+      let resolvedMemberId;
+      if (isAdmin) {
+        resolvedMemberId = selectedMember?.id || selectedMember?.msrno || '';
+      } else {
+        // Never fall back to session.memberId here — for an API-panel account
+        // that field holds the login STRING (not a numeric id), and sending
+        // it as memberID would either error out or, worse, be misread by the
+        // backend as someone else's numeric id. Use the same fail-closed
+        // resolver the reports use instead.
+        const { id, error } = await resolveReportScopeId();
+        if (!id) {
+          console.error('[LoginHistory]', error);
+          setFullData([]);
+          setLoading(false);
+          return;
+        }
+        resolvedMemberId = id;
+      }
 
-      const res = await API.userLoginHistory.getAll({ 
+      const res = await API.userLoginHistory.getAll({
         pageNumber: 1, 
         pageSize: 10000,
         fromDate: fromDate || undefined,
@@ -309,17 +327,17 @@ const LoginHistory = () => {
 
          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4E6080' }}>Status</label>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: '#ffffff', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', height: '40px', boxSizing: 'border-box' }}>
-              <select
-                value={statusFilter}
-                onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                style={{ border: 'none', outline: 'none', background: 'transparent', color: '#1E293B', fontSize: '0.875rem', fontWeight: 500, width: '100%', cursor: 'pointer' }}
-              >
-                <option value="">All Status</option>
-                <option value="Success">Success</option>
-                <option value="Failed">Failed</option>
-              </select>
-            </div>
+            <SearchableSelect
+              value={statusFilter}
+              onChange={val => { setStatusFilter(val || ''); setPage(1); }}
+              options={[
+                { label: 'All Status', value: '' },
+                { label: 'Success', value: 'Success' },
+                { label: 'Failed', value: 'Failed' }
+              ]}
+              placeholder="All Status"
+              style={{ height: '40px', borderRadius: '8px' }}
+            />
          </div>
 
          <button 
@@ -520,14 +538,19 @@ const LoginHistory = () => {
 
                                             <td>
                         {locationRaw ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <a 
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationRaw)}`}
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            style={{ display: 'flex', alignItems: 'center', gap: 5, textDecoration: 'none', cursor: 'pointer' }}
+                          >
                             <FaMapMarkerAlt style={{ color: '#ef4444', fontSize: '0.65rem', flexShrink: 0 }} />
                             <span style={{
-                              fontSize: '0.72rem', color: '#475569',
+                              fontSize: '0.72rem', color: '#1756aa', fontWeight: 600,
                               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                              maxWidth: 110
-                            }} title={locationRaw}>{locationRaw}</span>
-                          </div>
+                              maxWidth: 110, textDecoration: 'underline'
+                            }} title={`View ${locationRaw} on Map`}>{locationRaw}</span>
+                          </a>
                         ) : (
                           <span style={{ fontSize: '0.7rem', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: 4 }}>
                             <FaGlobe style={{ fontSize: '0.65rem' }} /> Unknown

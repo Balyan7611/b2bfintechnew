@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { API } from '../../../api/endpoints';
 import { FiUserCheck, FiPackage, FiCheckSquare, FiChevronRight, FiCheck, FiAlertCircle, FiXCircle } from 'react-icons/fi';
 import styles from '../MemberPages/MemberPages.module.css';
@@ -219,17 +220,16 @@ const AssignPackage = () => {
             <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <FiUserCheck size={14} /> Select Role
             </label>
-            <select
+            <SearchableSelect
               value={selectedRoleId}
-              onChange={(e) => setSelectedRoleId(e.target.value)}
-              className={styles.inputControl}
-              style={{ borderRadius: '10px', padding: '12px 16px', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#1E293B', fontSize: '0.9rem' }}
-            >
-              <option value="">Select Role</option>
-              {roles.map(r => (
-                <option key={r.id} value={r.id}>{r.name}</option>
-              ))}
-            </select>
+              onChange={val => setSelectedRoleId(val || '')}
+              options={[
+                { label: 'Select Role', value: '' },
+                ...roles.map(r => ({ label: r.name, value: r.id }))
+              ]}
+              placeholder="Select Role"
+              style={{ height: '44px', borderRadius: '10px' }}
+            />
           </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid #F1F5F9' }}>

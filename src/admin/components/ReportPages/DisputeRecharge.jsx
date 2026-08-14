@@ -259,36 +259,48 @@ const DisputeRecharge = () => {
                             </div>
                             <div className={styles.formGroup}>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Service</label>
-                                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: focusedField === 'service' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', transition: 'all 0.25s', color: '#334155' }} value={selectedService} onChange={(e) => setSelectedService(e.target.value)} onFocus={() => setFocusedField('service')} onBlur={() => setFocusedField(null)}>
-                                    <option value="">All Services</option>
-                                    {serviceList.map(s => (
-                                        <option key={s.id || s.serviceId} value={s.id || s.serviceId}>
-                                            {s.serviceName || s.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                <SearchableSelect
+                                    options={[
+                                        { value: '', label: 'All Services' },
+                                        ...(Array.isArray(serviceList) ? serviceList : []).map((srv) => ({ value: srv.id || srv.serviceId, label: srv.name || srv.serviceName }))
+                                    ]}
+                                    value={selectedService}
+                                    onChange={val => setSelectedService(val || '')}
+                                    placeholder="All Services"
+                                    style={{ height: '42px', borderRadius: '10px' }}
+                                />
                             </div>
                             <div className={styles.formGroup}>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Operator</label>
-                                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: focusedField === 'operator' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', transition: 'all 0.25s', color: '#334155' }} value={selectedOperator} onChange={(e) => setSelectedOperator(e.target.value)} onFocus={() => setFocusedField('operator')} onBlur={() => setFocusedField(null)}>
-                                    <option value="">All Operators</option>
-                                    {operatorList.map(op => (
-                                        <option key={op.id || op.operatorId} value={op.id || op.operatorId}>
-                                            {op.operatorName || op.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                <SearchableSelect
+                                    options={[
+                                        { value: '', label: 'All Operators' },
+                                        ...(Array.isArray(operatorList) ? operatorList : []).map((op) => ({ 
+                                            value: op.id || op.operatorId, 
+                                            label: op.name || op.operatorName || op.title || op.id || 'Unknown' 
+                                        }))
+                                    ]}
+                                    value={selectedOperator}
+                                    onChange={val => setSelectedOperator(val || '')}
+                                    placeholder="All Operators"
+                                    style={{ height: '42px', borderRadius: '10px' }}
+                                />
                             </div>
                             <div className={styles.formGroup}>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Provider</label>
-                                <select className={styles.inputControl} style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: focusedField === 'api' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', transition: 'all 0.25s', color: '#334155' }} value={selectedApi} onChange={(e) => setSelectedApi(e.target.value)} onFocus={() => setFocusedField('api')} onBlur={() => setFocusedField(null)}>
-                                    <option value="">All Providers</option>
-                                    {Array.isArray(apiList) && apiList.map((api) => (
-                                        <option key={api.id || api.apiId} value={api.id || api.apiId}>
-                                            {api.apiname || api.apiName || api.name || `API #${api.id}`}
-                                        </option>
-                                    ))}
-                                </select>
+                                <SearchableSelect
+                                    options={[
+                                        { value: '', label: 'All Providers' },
+                                        ...(Array.isArray(apiList) ? apiList : []).map((api) => ({ 
+                                            value: api.id || api.apiId, 
+                                            label: api.apiname || api.apiName || api.name || `API #${api.id}` 
+                                        }))
+                                    ]}
+                                    value={selectedApi}
+                                    onChange={val => setSelectedApi(val || '')}
+                                    placeholder="All Providers"
+                                    style={{ height: '42px', borderRadius: '10px' }}
+                                />
                             </div>
                             <div className={styles.formGroup}>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Search</label>

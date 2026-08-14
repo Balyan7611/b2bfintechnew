@@ -8,7 +8,7 @@ import {
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint, FaArrowRight, FaUserFriends, FaWallet, FaUserAlt
 } from 'react-icons/fa';
 import styles from '../MemberPages/MemberPages.module.css';
-import Select from 'react-select';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 
 const AllMemberBalance = () => {
   const [memberList, setMemberList] = useState([]);
@@ -17,8 +17,9 @@ const AllMemberBalance = () => {
   const [balanceData, setBalanceData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-    const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const today = new Date().toISOString().split('T')[0];
+  const [fromDate, setFromDate] = useState(today);
+  const [toDate, setToDate] = useState(today);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
@@ -92,53 +93,19 @@ const AllMemberBalance = () => {
 
               <div className={styles.formGroup}>
                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Select Member</label>
-                <Select 
-                  options={Array.isArray(memberList) ? memberList.map(m => ({
-                    value: m.id || m.memberId,
-                    label: `${m.name || m.memberId} (${m.mobile})`
-                  })) : []}
-                  value={
-                    selectedMember 
-                      ? { 
-                          value: selectedMember, 
-                          label: (() => {
-                            const m = memberList.find(x => (x.id || x.memberId) === selectedMember);
-                            return m ? `${m.name || m.memberId} (${m.mobile})` : selectedMember;
-                          })()
-                        }
-                      : null
-                  }
-                  onChange={(selectedOption) => setSelectedMember(selectedOption ? selectedOption.value : '')}
+                <SearchableSelect
+                  name="memberId"
+                  value={selectedMember}
+                  onChange={(val) => setSelectedMember(val)}
+                  options={[
+                    { label: 'Select Member', value: '' },
+                    ...(Array.isArray(memberList) ? memberList.map(m => ({
+                      label: `${m.name || m.memberId} (${m.mobile})`,
+                      value: m.id || m.memberId
+                    })) : [])
+                  ]}
                   placeholder="Select Member"
-                  isSearchable={true}
-                  isClearable={true}
-                  menuPortalTarget={document.body}
-                  styles={{
-                    menuPortal: base => ({ ...base, zIndex: 9999 }),
-                    control: (base, state) => ({
-                      ...base,
-                      height: '42px',
-                      borderRadius: '10px',
-                      borderColor: state.isFocused ? '#1756AA' : '#CBD5E1',
-                      boxShadow: state.isFocused ? '0 0 0 1px #1756AA' : 'none',
-                      '&:hover': {
-                        borderColor: '#1756AA'
-                      }
-                    }),
-                    valueContainer: (base) => ({
-                      ...base,
-                      padding: '0 12px',
-                      fontSize: '0.85rem',
-                      color: '#334155'
-                    }),
-                    option: (base, state) => ({
-                      ...base,
-                      backgroundColor: state.isSelected ? '#1756AA' : state.isFocused ? '#F8FAFC' : 'transparent',
-                      color: state.isSelected ? 'white' : '#334155',
-                      cursor: 'pointer',
-                      fontSize: '0.85rem'
-                    })
-                  }}
+                  style={{ height: '42px', borderRadius: '10px' }}
                 />
               </div>
               

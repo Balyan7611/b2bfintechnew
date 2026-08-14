@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   FiGrid, FiArrowRight
@@ -11,6 +11,8 @@ import {
   setCommonCommissionList
 } from '../../../../store/slices/commissionSlice';
 import AdminTable from '../../../../shared/components/common/AdminTable';
+import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
+import { API } from '../../../../api/endpoints';
 import styles from './CommissionSetup.module.css';
 
 const CommissionSetup = () => {
@@ -23,10 +25,25 @@ const CommissionSetup = () => {
     currentPage 
   } = useSelector(state => state.commission.commonCommission);
 
-    const services = [
-    'Prepaid Mobile', 'Postpaid Mobile', 'DTH', 'Electricity', 
-    'Gas', 'Water', 'Insurance', 'DMT', 'AEPS'
-  ];
+  const [services, setServices] = useState([]);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const res = await API.service.getAll();
+        const raw = Array.isArray(res) ? res
+          : Array.isArray(res?.data) ? res.data
+          : Array.isArray(res?.data?.items) ? res.data.items
+          : Array.isArray(res?.items) ? res.items
+          : [];
+        const mapped = raw.map(s => ({ id: s.id || s.Id, name: s.name || s.Name || s.serviceName || s.ServiceName || '' })).filter(s => s.name);
+        setServices(mapped);
+      } catch (err) {
+        console.error('Failed to load services', err);
+      }
+    };
+    fetchServices();
+  }, []);
 
   useEffect(() => {
     dispatch(setCommonCommissionList([]));
@@ -48,14 +65,16 @@ const CommissionSetup = () => {
           <div className={styles.inlineFilterRow}>
             <div className={styles.inputWrap}>
               <FiGrid className={styles.inputIcon} />
-              <select 
-                className={styles.selectControl}
+              <SearchableSelect
                 value={selectedService}
-                onChange={(e) => dispatch(setCommonService(e.target.value))}
-              >
-                <option value="">Select Service</option>
-                {services.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+                onChange={(val) => dispatch(setCommonService(val || ''))}
+                options={[
+                  { label: 'Select Service', value: '' },
+                  ...services.map(s => ({ label: s.name, value: s.id }))
+                ]}
+                placeholder="Select Service"
+                style={{ height: '40px', minWidth: '220px', borderRadius: '8px' }}
+              />
             </div>
             <button className={styles.submitBtn}>
               SUBMIT <FiArrowRight />

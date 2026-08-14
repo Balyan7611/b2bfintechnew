@@ -6,6 +6,7 @@ import {
 import { 
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint 
 } from 'react-icons/fa';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { 
   setEntriesToShow, setSearchTerm, setLoading 
 } from '../../../store/slices/walletSlice';
@@ -90,17 +91,19 @@ const FundTransferReport = () => {
 
             <div className={styles.formGroup} style={{ margin: 0 }}>
               <label className={styles.label} style={{ fontSize: '0.75rem', marginBottom: '4px' }}><FiUser /> Member ID</label>
-              <select name="memberId" value={filters.memberId} onChange={handleFilterChange} className={styles.inputControl} style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }}>
-                <option value="">Select Member</option>
-                {membersList.map((m) => {
-                  const label = `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`;
-                  return (
-                    <option key={m.id || m.msrno} value={m.memberId || m.loginId || m.id || m.msrno}>
-                      {label}
-                    </option>
-                  );
-                })}
-              </select>
+              <SearchableSelect
+                name="memberId"
+                value={filters.memberId}
+                onChange={(val) => handleFilterChange({ target: { name: 'memberId', value: val } })}
+                options={[
+                  { label: 'Select Member', value: '' },
+                  ...membersList.map(m => ({
+                    label: `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`,
+                    value: m.memberId || m.loginId || m.id || m.msrno
+                  }))
+                ]}
+                placeholder="Select Member"
+              />
             </div>
 
             <div style={{ display: 'flex', gap: '8px' }}>

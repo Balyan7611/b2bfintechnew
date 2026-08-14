@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FiSearch, FiCalendar, FiUser, FiArrowRight, FiActivity, FiFilter, FiX, FiCheck, FiChevronLeft, FiChevronRight, FiDatabase, FiSettings
@@ -170,15 +171,16 @@ const GenericReportTable = ({ title, columns = [], data = [] }) => {
                   </div>
                   <div className={styles.formGroup}>
                     <label className={styles.label} style={{ fontSize: '0.75rem' }}><FiUser /> Member ID</label>
-                    <select 
-                      name="memberId" 
-                      className={styles.inputControl} 
+                    <SearchableSelect
+                      name="memberId"
                       value={filters.memberId}
-                      onChange={handleFilterChange}
-                    >
-                      <option value="">Select Member</option>
-                      <option value="M001">Ram Prasad (M001)</option>
-                    </select>
+                      onChange={(val) => handleFilterChange({ target: { name: 'memberId', value: val } })}
+                      options={[
+                        { label: 'Select Member', value: '' },
+                        { label: 'Ram Prasad (M001)', value: 'M001' }
+                      ]}
+                      placeholder="Select Member"
+                    />
                   </div>
                 </div>
 

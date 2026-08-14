@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 import ReactDOM from 'react-dom';
 import { Cells as UplineCells, getUplineShape } from '../../../../shared/components/common/UplineCommissionCols';
 import { useDispatch, useSelector } from 'react-redux';
@@ -129,12 +130,18 @@ const BBPSHistory = () => {
               <div className={styles.formGroup}><label>To Date</label><input type="date" className={styles.inputControl} value={filters.toDate} onChange={(e) => dispatch(updateBBPSFilters({toDate: e.target.value}))} /></div>
               <div className={styles.formGroup}>
                 <label>Category</label>
-                <select className={styles.inputControl} value={filters.category} onChange={(e) => dispatch(updateBBPSFilters({category: e.target.value}))}>
-                  <option value="">All Categories</option>
-                  <option value="Electricity">Electricity</option>
-                  <option value="Water">Water</option>
-                  <option value="Gas">Gas</option>
-                </select>
+                <SearchableSelect
+                  value={filters.category}
+                  onChange={(val) => dispatch(updateBBPSFilters({ category: val || '' }))}
+                  options={[
+                    { label: 'All Categories', value: '' },
+                    { label: 'Electricity', value: 'Electricity' },
+                    { label: 'Water', value: 'Water' },
+                    { label: 'Gas', value: 'Gas' }
+                  ]}
+                  placeholder="All Categories"
+                  style={{ height: '42px', minWidth: '150px' }}
+                />
               </div>
               <button className={styles.submitBtn} onClick={fetchData}>Apply Filters</button>
             </div>

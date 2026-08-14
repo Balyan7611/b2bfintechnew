@@ -6,6 +6,7 @@ import {
 import { FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint, FaRupeeSign } from 'react-icons/fa';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import RoleSelect from '../../../shared/components/common/RoleSelect';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import styles from '../MemberPages/MemberPages.module.css';
 
@@ -434,12 +435,17 @@ const PackageManagement = () => {
 
                   <div className={styles.formGroup}>
                     <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}><FiCopy size={14}/> Copy Slab From</label>
-                    <select name="copySlab" className={styles.inputControl} value={formData.copySlab} onChange={handleInputChange} style={{ borderRadius: '10px', padding: '12px 16px', border: '1px solid #E2E8F0', background: '#FCFDFE', color: '#1E293B', fontSize: '0.9rem', outline: 'none', transition: 'border 0.2s, box-shadow 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }} onFocus={(e) => { e.target.style.borderColor = '#1756AA'; e.target.style.boxShadow = '0 0 0 3px rgba(23,86,170,0.1)'; }} onBlur={(e) => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)'; }}>
-                      <option value="">No Slab</option>
-                      {localPackages.filter(p => p.id !== formData.id).map(p => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
-                      ))}
-                    </select>
+                    <SearchableSelect
+                      name="copySlab"
+                      value={formData.copySlab}
+                      onChange={(val) => handleInputChange({ target: { name: 'copySlab', value: val } })}
+                      options={[
+                        { label: 'No Slab', value: '' },
+                        ...localPackages.filter(p => p.id !== formData.id).map(p => ({ label: p.name, value: p.id }))
+                      ]}
+                      placeholder="No Slab"
+                      style={{ height: '44px', borderRadius: '10px' }}
+                    />
                   </div>
 
                   <div className={styles.formGroup}>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import {
   FaFilter, FaSpinner, FaChevronDown, FaRegLightbulb,
   FaUser, FaUsers, FaBolt, FaLayerGroup
@@ -146,17 +147,19 @@ const BusinessAnalytics = () => {
         <div className={styles.filterGrid}>
           <div className={styles.inputGroup}>
             <label className={styles.label}>Member <span className={styles.required}>*</span></label>
-            <div className={styles.selectWrapper}>
-              <select className={styles.select} value={selectedMember} onChange={e => setSelectedMember(e.target.value)}>
-                <option value="">Select Member</option>
-                {memberList.map(m => (
-                  <option key={m.id || m.memberId} value={m.id || m.memberId}>
-                    {m.name} ({m.mobile}) - {m.memberId}
-                  </option>
-                ))}
-              </select>
-              <FaChevronDown className={styles.selectChevron} />
-            </div>
+            <SearchableSelect
+              value={selectedMember}
+              onChange={val => setSelectedMember(val || '')}
+              options={[
+                { label: 'Select Member', value: '' },
+                ...memberList.map(m => ({
+                  label: `${m.name} (${m.mobile}) - ${m.memberId}`,
+                  value: m.id || m.memberId
+                }))
+              ]}
+              placeholder="Select Member"
+              style={{ height: '44px', borderRadius: '10px' }}
+            />
           </div>
           <div className={styles.inputGroup}>
             <label className={styles.label}>Scope</label>
@@ -167,17 +170,20 @@ const BusinessAnalytics = () => {
           </div>
           <div className={styles.inputGroup}>
             <label className={styles.label}>Period</label>
-            <div className={styles.selectWrapper}>
-              <select className={styles.select} value={period} onChange={e => setPeriod(e.target.value)}>
-                <option value="today">Today</option>
-                <option value="yesterday">Yesterday</option>
-                <option value="7days">Last 7 days</option>
-                <option value="30days">Last 30 days</option>
-                <option value="thisMonth">This month</option>
-                <option value="lastMonth">Last month</option>
-              </select>
-              <FaChevronDown className={styles.selectChevron} />
-            </div>
+            <SearchableSelect
+              value={period}
+              onChange={val => setPeriod(val || 'today')}
+              options={[
+                { label: 'Today', value: 'today' },
+                { label: 'Yesterday', value: 'yesterday' },
+                { label: 'Last 7 days', value: '7days' },
+                { label: 'Last 30 days', value: '30days' },
+                { label: 'This month', value: 'thisMonth' },
+                { label: 'Last month', value: 'lastMonth' }
+              ]}
+              placeholder="Today"
+              style={{ height: '44px', borderRadius: '10px' }}
+            />
           </div>
         </div>
         <div className={styles.filterActions}>

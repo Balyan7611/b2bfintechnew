@@ -6,6 +6,7 @@ import {
 import { 
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint 
 } from 'react-icons/fa';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { 
   setEntriesToShow, setSearchTerm, setLoading 
 } from '../../../store/slices/walletSlice';
@@ -64,12 +65,16 @@ const DownLineBalance = () => {
           <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
             <div className={styles.formGroup} style={{ margin: 0, width: '250px' }}>
               <label className={styles.label} style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px', color: '#0D1B3E' }}>Role</label>
-              <select name="role" value={filters.role} onChange={handleFilterChange} className={styles.inputControl} style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }}>
-                <option value="">All Roles</option>
-                {roles.map(r => (
-                  <option key={r.id} value={r.id}>{r.name}</option>
-                ))}
-              </select>
+              <SearchableSelect
+                name="role"
+                value={filters.role}
+                onChange={(val) => handleFilterChange({ target: { name: 'role', value: val } })}
+                options={[
+                  { label: 'All Roles', value: '' },
+                  ...roles.map(r => ({ label: r.name, value: r.id }))
+                ]}
+                placeholder="All Roles"
+              />
             </div>
 
             <button type="submit" disabled={isLoading} style={{ 

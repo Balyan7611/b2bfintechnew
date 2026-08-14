@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FaTachometerAlt, FaWallet, FaIdCard, FaLink, FaCog, FaNetworkWired, FaFileAlt,
-  FaMoneyCheckAlt, FaTicketAlt
+  FaMoneyCheckAlt, FaTicketAlt, FaHistory
 } from 'react-icons/fa';
 import { FiChevronRight, FiChevronLeft, FiX } from 'react-icons/fi';
 import { toggleSidebar, setSidebarOpen } from '../../store/slices/memberPanelSlice';
@@ -74,6 +74,14 @@ const ApiSidebar = () => {
       name: 'Help & Support',
       icon: <FaTicketAlt />,
       path: '/api-panel/dashboard/support'
+    },
+    {
+      name: 'Logs',
+      icon: <FaHistory />,
+      hasChildren: true,
+      children: [
+        { name: 'Login History', path: '/api-panel/dashboard/logs/login-history' }
+      ]
     },
     {
       name: 'Security Settings',

@@ -68,9 +68,9 @@ export const UserWalletBalanceService = {
         }
 
         return {
-            mainBalance: parseFloat(mine.mainBalance) || 0,
-            aepsBalance: parseFloat(mine.aepsBalance) || 0,
-            commissionBalance: parseFloat(mine.commissionBalance) || 0
+            mainBalance: Math.max(0, parseFloat(mine.mainBalance) || 0),
+            aepsBalance: Math.max(0, parseFloat(mine.aepsBalance) || 0),
+            commissionBalance: Math.max(0, parseFloat(mine.commissionBalance) || 0)
         };
     },
 

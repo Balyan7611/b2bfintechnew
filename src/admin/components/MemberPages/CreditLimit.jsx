@@ -6,6 +6,7 @@ import {
   FaSearch, FaFileExcel, FaFilePdf, FaPrint, FaCopy, FaFileCsv,
   FaChevronLeft, FaChevronRight, FaRupeeSign, FaCommentAlt, FaShieldAlt, FaPlus
 } from 'react-icons/fa';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { updateCreditLimitForm, addCreditLimit } from '../../../store/slices/memberSlice';
 import { API } from '../../../api/endpoints';
 import styles from './MemberPages.module.css';
@@ -88,17 +89,20 @@ const CreditLimit = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', alignItems: 'end' }}>
             <div className={styles.formGroup}>
               <label className={styles.label}>Member ID</label>
-              <select name="memberId" className={styles.inputControl} value={form.memberId} onChange={handleInputChange}>
-                <option value="">Select Member</option>
-                {membersList.map((m) => {
-                  const label = `${m.name || m.userName || ''} (${m.memberId || m.loginId || m.id || m.msrno})`;
-                  return (
-                    <option key={m.id || m.msrno} value={m.id || m.msrno}>
-                      {label}
-                    </option>
-                  );
-                })}
-              </select>
+              <SearchableSelect
+                name="memberId"
+                value={form.memberId}
+                onChange={(val) => handleInputChange({ target: { name: 'memberId', value: val } })}
+                options={[
+                  { label: 'Select Member', value: '' },
+                  ...membersList.map(m => {
+                    const label = `${m.name || m.userName || ''} (${m.memberId || m.loginId || m.id || m.msrno})`;
+                    return { label, value: m.id || m.msrno };
+                  })
+                ]}
+                placeholder="Select Member"
+                style={{ height: '42px', borderRadius: '8px' }}
+              />
             </div>
 
             <div className={styles.formGroup}>

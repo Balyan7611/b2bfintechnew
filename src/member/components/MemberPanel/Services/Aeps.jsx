@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   FaFingerprint, FaMobileAlt, FaRupeeSign, FaUniversity,
-  FaSearch, FaPrint, FaShieldAlt, FaHistory, FaSpinner,
-  FaMoneyBillWave, FaWallet, FaFileInvoice, FaInfoCircle, FaExclamationTriangle
+    FaSearch, FaPrint, FaShieldAlt, FaHistory, FaSpinner,
+    FaMoneyBillWave, FaWallet, FaFileInvoice, FaInfoCircle, FaExclamationTriangle,
+    FaChevronDown
 } from 'react-icons/fa';
 import styles from './Aeps.module.css';
 import ReceiptModal from '../../../../shared/components/common/ReceiptModal';
@@ -15,11 +16,11 @@ const getImagePath = (path) => {
   const pathname = window.location.pathname;
   const parts = pathname.split('/').filter(Boolean);
   const firstPart = parts[0] || '';
-  const isRepoSubdirectory = firstPart && 
-                             firstPart !== 'member' && 
-                             firstPart !== 'admin' && 
-                             firstPart !== 'dashboard' && 
-                             firstPart !== 'shopping';
+  const isRepoSubdirectory = firstPart &&
+    firstPart !== 'member' &&
+    firstPart !== 'admin' &&
+    firstPart !== 'dashboard' &&
+    firstPart !== 'shopping';
   const base = isRepoSubdirectory ? `/${firstPart}/` : '/';
   return base + cleanPath;
 };
@@ -117,6 +118,9 @@ const Aeps = () => {
   const [amount, setAmount] = useState('');
   const [aadharNumber, setAadharNumber] = useState('');
   const [selectedBank, setSelectedBank] = useState('');
+  const [isBankDropdownOpen, setIsBankDropdownOpen] = useState(false);
+  const [bankSearchQuery, setBankSearchQuery] = useState('');
+  const bankDropdownRef = useRef(null);
   const [deviceStatus, setDeviceStatus] = useState('Disconnected');
   const [deviceName, setDeviceName] = useState('');
   const [deviceCheckError, setDeviceCheckError] = useState('');
@@ -151,6 +155,16 @@ const Aeps = () => {
     return () => {
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (bankDropdownRef.current && !bankDropdownRef.current.contains(event.target)) {
+        setIsBankDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const startLightFlash = () => {
@@ -382,7 +396,7 @@ const Aeps = () => {
 
     setLoading(true);
 
-        setTimeout(() => {
+    setTimeout(() => {
       setLoading(false);
       const success = Math.random() > 0.15;
 
@@ -486,16 +500,16 @@ const Aeps = () => {
       });
       const normalized = normalizeTxnResponse(res);
       const mapped = normalized.items.map((t, i) => ({
-        sNo:      (txnPage - 1) * txnPageSize + i + 1,
-        orderId:  t.orderId || t.OrderId || t.txnId || t.TxnId || '-',
-        date:     t.createdDate || t.CreatedDate || t.date || '-',
-        type:     t.serviceName || t.ServiceName || t.txnType || 'AePS',
-        amount:   parseFloat(t.amount || t.Amount || 0),
-        status:   t.status || t.Status || '-',
-        bank:     t.bankName || t.BankName || t.operator || '-',
-        rrn:      t.rrn || t.RRN || t.bankRrn || '-',
-        remark:   t.remark || t.Remark || '-',
-        raw:      t,
+        sNo: (txnPage - 1) * txnPageSize + i + 1,
+        orderId: t.orderId || t.OrderId || t.txnId || t.TxnId || '-',
+        date: t.createdDate || t.CreatedDate || t.date || '-',
+        type: t.serviceName || t.ServiceName || t.txnType || 'AePS',
+        amount: parseFloat(t.amount || t.Amount || 0),
+        status: t.status || t.Status || '-',
+        bank: t.bankName || t.BankName || t.operator || '-',
+        rrn: t.rrn || t.RRN || t.bankRrn || '-',
+        remark: t.remark || t.Remark || '-',
+        raw: t,
       }));
       setTransactions(mapped);
       setTxnTotal(normalized.totalItems);
@@ -542,22 +556,22 @@ const Aeps = () => {
 
       {/* 2-Column Main Layout wrapping all steps */}
       <div className={styles.mainLayout} style={{ alignItems: 'flex-start' }}>
-        
+
         {/* LEFT COLUMN: Active Step Content */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
+
           {/* STEP 1: Select AEPS Provider */}
           {step === 'provider' && (
             <div style={{ background: '#fff', borderRadius: '16px', padding: '25px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', border: '1px solid #E2E8F0', width: '100%' }}>
               <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0D1B5E', margin: '0 0 8px 0' }}>Select AEPS Provider</h2>
               <p style={{ color: '#64748B', fontSize: '0.85rem', margin: '0 0 20px 0' }}>Please choose your preferred AEPS Banking Partner</p>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
                 {/* Provider 1 */}
-                <div 
+                <div
                   onClick={() => setStep('onboarding')}
-                  style={{ 
-                    border: '1.5px solid #E2E8F0', borderRadius: '12px', padding: '20px', display: 'flex', 
+                  style={{
+                    border: '1.5px solid #E2E8F0', borderRadius: '12px', padding: '20px', display: 'flex',
                     alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.2s',
                     background: '#fff'
                   }}
@@ -579,10 +593,10 @@ const Aeps = () => {
                 </div>
 
                 {/* Provider 2 */}
-                <div 
+                <div
                   onClick={() => setStep('onboarding')}
-                  style={{ 
-                    border: '1.5px solid #E2E8F0', borderRadius: '12px', padding: '20px', display: 'flex', 
+                  style={{
+                    border: '1.5px solid #E2E8F0', borderRadius: '12px', padding: '20px', display: 'flex',
                     alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.2s',
                     background: '#fff'
                   }}
@@ -614,7 +628,7 @@ const Aeps = () => {
                   <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0D1B5E', margin: '0 0 5px 0' }}>Merchant Onboarding</h2>
                   <p style={{ color: '#64748B', fontSize: '0.85rem', margin: 0 }}>Complete the pending steps to start AEPS</p>
                 </div>
-                <button 
+                <button
                   onClick={() => setStep('provider')}
                   style={{ background: '#F1F5F9', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700', color: '#475569' }}
                 >
@@ -640,23 +654,23 @@ const Aeps = () => {
 
               {/* Main Interactive Onboarding Card Layout */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', alignItems: 'center' }}>
-                
+
                 {/* Left Side: Instructions and Actions */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div style={{ background: '#F8FAFF', borderRadius: '12px', padding: '20px', border: '1px solid #E0E8F5' }}>
                     <h4 style={{ margin: '0 0 10px 0', color: '#0D1B5E', fontSize: '1.05rem', fontWeight: '800' }}>Two-Way Authentication</h4>
                     <p style={{ margin: 0, color: '#475569', fontSize: '0.85rem', lineHeight: '1.5' }}>
-                      As per compliance guidelines, merchants must verify their identity using biometric daily. 
+                      As per compliance guidelines, merchants must verify their identity using biometric daily.
                       Please ensure your scanner (Mantra/Morpho) is connected and RD services are active.
                     </p>
                   </div>
 
-                  <button 
+                  <button
                     onClick={startOnboardingAuth}
                     disabled={authScanning || authSuccess}
-                    style={{ 
-                      background: authSuccess ? '#16A34A' : 'linear-gradient(135deg, #1756AA 0%, #0d1b3e 100%)', 
-                      color: '#fff', border: 'none', padding: '15px 30px', borderRadius: '10px', 
+                    style={{
+                      background: authSuccess ? '#16A34A' : 'linear-gradient(135deg, #1756AA 0%, #0d1b3e 100%)',
+                      color: '#fff', border: 'none', padding: '15px 30px', borderRadius: '10px',
                       fontSize: '1rem', fontWeight: '800', cursor: authScanning ? 'not-allowed' : 'pointer',
                       boxShadow: '0 10px 20px rgba(23,86,170,0.2)', transition: 'all 0.3s'
                     }}
@@ -670,10 +684,10 @@ const Aeps = () => {
                   <h4 style={{ margin: '0 0 15px 0', color: '#0D1B5E', fontSize: '1rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <FaFingerprint /> BIOMETRIC SCANNER
                   </h4>
-                  
-                  <div style={{ 
-                    width: '120px', height: '120px', borderRadius: '50%', background: '#fff', 
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', 
+
+                  <div style={{
+                    width: '120px', height: '120px', borderRadius: '50%', background: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                     boxShadow: '0 8px 30px rgba(0,0,0,0.06)', position: 'relative', marginBottom: '15px',
                     border: authScanning ? '3px solid #22C55E' : '3px solid #E2E8F0',
                     animation: authScanning ? 'pulse 1.5s infinite' : 'none'
@@ -751,7 +765,7 @@ const Aeps = () => {
               </div>
 
               <form onSubmit={handleTransactionSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '10px 0' }}>
-                
+
                 {/* Row 1: Mobile & Aadhaar */}
                 <div className={styles.portalFormRow}>
                   <div className={styles.formGroup}>
@@ -788,7 +802,7 @@ const Aeps = () => {
                         required
                       />
                     </div>
-                    <span 
+                    <span
                       onClick={() => setRightTab('seeding')}
                       style={{ fontSize: '0.75rem', color: '#1756AA', fontWeight: '600', cursor: 'pointer', marginTop: '6px', display: 'inline-block' }}
                     >
@@ -803,7 +817,7 @@ const Aeps = () => {
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', fontSize: '0.85rem', color: '#334155' }}>
                       ₹ Transaction Amount
                     </label>
-                    
+
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                       {PRESETS.map(p => (
                         <button
@@ -848,7 +862,7 @@ const Aeps = () => {
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', fontSize: '0.85rem', color: '#334155' }}>
                     🏦 Select Bank
                   </label>
-                  
+
                   <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', justifyContent: 'space-between' }}>
                     {POPULAR_BANKS.map(b => (
                       <div
@@ -883,23 +897,91 @@ const Aeps = () => {
                   </div>
 
                   {/* Bank Select Dropdown Selector */}
-                  <div className={styles.inputWrapper}>
-                    <FaUniversity className={styles.inputIcon} />
-                    <select
-                      className={styles.inputField}
-                      value={selectedBank}
-                      onChange={e => setSelectedBank(e.target.value)}
-                      style={{ paddingLeft: '46px', appearance: 'auto' }}
-                      required
+                  <div style={{ position: 'relative', width: '100%' }} ref={bankDropdownRef}>
+                    <div
+                      onClick={() => setIsBankDropdownOpen(!isBankDropdownOpen)}
+                      style={{
+                        display: 'flex', gap: '10px', alignItems: 'center', background: '#ffffff',
+                        padding: '10px 14px', borderRadius: '12px', border: '1.5px solid #e2e8f0',
+                        cursor: 'pointer', height: '46px', justifyContent: 'space-between',
+                        boxSizing: 'border-box', transition: 'all 0.2s', userSelect: 'none'
+                      }}
+                      onMouseOver={(e) => { if (!isBankDropdownOpen) e.currentTarget.style.borderColor = '#1756AA' }}
+                      onMouseOut={(e) => { if (!isBankDropdownOpen) e.currentTarget.style.borderColor = '#e2e8f0' }}
                     >
-                      <option value="">-- Choose Customer Bank --</option>
-                      {POPULAR_BANKS.map(bank => (
-                        <option key={bank.id} value={bank.id}>{bank.name} ({bank.code})</option>
-                      ))}
-                    </select>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                        <FaUniversity style={{ color: '#94a3b8', flexShrink: 0, fontSize: '1rem' }} />
+                        <span style={{ fontSize: '0.9rem', color: selectedBank ? '#1e293b' : '#64748b', fontWeight: selectedBank ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {selectedBank ? `${POPULAR_BANKS.find(b => b.id === selectedBank)?.name} (${POPULAR_BANKS.find(b => b.id === selectedBank)?.code})` : '-- Choose Customer Bank --'}
+                        </span>
+                      </div>
+                      <FaChevronDown style={{ fontSize: '0.75rem', color: '#64748B', transition: 'transform 0.2s', transform: isBankDropdownOpen ? 'rotate(180deg)' : 'rotate(0)', flexShrink: 0 }} />
+                    </div>
+
+                    {isBankDropdownOpen && (
+                      <div style={{
+                        position: 'absolute', top: '52px', left: 0, background: '#ffffff',
+                        border: '1px solid #e2e8f0', borderRadius: '12px',
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                        zIndex: 1000, width: '100%', padding: '10px 0'
+                      }}>
+                        <div style={{ padding: '0 12px 10px 12px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <FaSearch style={{ color: '#94a3b8', fontSize: '0.875rem' }} />
+                          <input
+                            type="text"
+                            placeholder="Search bank..."
+                            value={bankSearchQuery}
+                            onChange={(e) => setBankSearchQuery(e.target.value)}
+                            style={{ border: 'none', outline: 'none', width: '100%', fontSize: '0.9rem', padding: '6px 4px', color: '#0f172a' }}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                        <div style={{ maxHeight: '250px', overflowY: 'auto', padding: '4px 0' }}>
+                          <div
+                            onClick={() => { setSelectedBank(''); setIsBankDropdownOpen(false); setBankSearchQuery(''); }}
+                            style={{
+                              padding: '10px 16px', fontSize: '0.9rem', cursor: 'pointer', color: '#475569',
+                              fontWeight: !selectedBank ? 600 : 500,
+                              backgroundColor: !selectedBank ? '#f8fafc' : 'transparent'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = !selectedBank ? '#f8fafc' : 'transparent'}
+                          >
+                            -- Choose Customer Bank --
+                          </div>
+                          {POPULAR_BANKS.filter(b => b.name.toLowerCase().includes(bankSearchQuery.toLowerCase()) || b.code.toLowerCase().includes(bankSearchQuery.toLowerCase())).length > 0 ? (
+                            POPULAR_BANKS.filter(b => b.name.toLowerCase().includes(bankSearchQuery.toLowerCase()) || b.code.toLowerCase().includes(bankSearchQuery.toLowerCase())).map(b => {
+                              const isSel = selectedBank === b.id;
+                              return (
+                                <div
+                                  key={b.id}
+                                  onClick={() => { setSelectedBank(b.id); setIsBankDropdownOpen(false); setBankSearchQuery(''); }}
+                                  style={{
+                                    padding: '10px 16px', fontSize: '0.9rem', cursor: 'pointer',
+                                    backgroundColor: isSel ? '#f8fafc' : 'transparent',
+                                    borderBottom: '1px solid #f8fafc'
+                                  }}
+                                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = isSel ? '#f8fafc' : 'transparent'}
+                                >
+                                  <div style={{ fontWeight: 600, color: '#0f172a' }}>{b.name}</div>
+                                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+                                    {b.code}
+                                  </div>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div style={{ padding: '16px', textAlign: 'center', fontSize: '0.85rem', color: '#94a3b8' }}>
+                              No banks found
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <span 
+                  <span
                     onClick={() => setRightTab('seeding')}
                     style={{ fontSize: '0.75rem', color: '#1756AA', fontWeight: '600', cursor: 'pointer' }}
                   >
@@ -999,7 +1081,7 @@ const Aeps = () => {
               </span>
               <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800', color: '#0D1B5E' }}>AEPS Transaction Rules</h3>
               <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748B' }}>Please follow these mandatory compliance rules</p>
-              
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '10px' }}>
                 {[
                   "Aadhaar & mobile number customer ke hone chahiye — third party transaction strictly prohibited.",
@@ -1107,8 +1189,8 @@ const Aeps = () => {
                   { name: 'Iris (Mantra MIS100V2)', desc: 'Iris scanner RD', link: 'https://www.rdservice.in' },
                   { name: 'UIDAI - certified device list', desc: 'Registered device ki official jaankari', link: 'https://uidai.gov.in' }
                 ].map((d, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(d.name + ' RD Service official download ' + d.desc)}`, '_blank')}
                     style={{ border: '1px solid #E2E8F0', borderRadius: '10px', padding: '12px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: '#fff', transition: 'all 0.2s', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' }}
                     onMouseOver={(e) => { e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; }}
@@ -1169,7 +1251,7 @@ const Aeps = () => {
                   const isOpen = openFaqIndex === idx;
                   return (
                     <div key={idx} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #E2E8F0', overflow: 'hidden', transition: 'all 0.2s' }}>
-                      <div 
+                      <div
                         onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
                         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', cursor: 'pointer', background: isOpen ? '#F8FAFF' : '#ffffff', userSelect: 'none' }}
                       >
@@ -1324,10 +1406,10 @@ const Aeps = () => {
       )}
 
       {step === 'portal' && (
-        <ReceiptModal 
-          isOpen={!!receiptData} 
-          onClose={() => setReceiptData(null)} 
-          data={receiptData} 
+        <ReceiptModal
+          isOpen={!!receiptData}
+          onClose={() => setReceiptData(null)}
+          data={receiptData}
         />
       )}
 
@@ -1339,24 +1421,24 @@ const Aeps = () => {
               Transaction amount is greater than ₹5,000. Please enter the 6-digit OTP sent to customer's mobile number: <strong>{mobileNumber}</strong>. (Use <strong>123456</strong> for testing).
             </p>
             <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 maxLength={6}
-                placeholder="Enter 6-digit OTP" 
+                placeholder="Enter 6-digit OTP"
                 value={otpValue}
                 onChange={e => setOtpValue(e.target.value.replace(/\D/g, ''))}
                 style={{ padding: '12px 16px', borderRadius: '8px', border: '1.5px solid #CBD5E1', outline: 'none', fontSize: '1.1rem', letterSpacing: '4px', textAlign: 'center', fontWeight: '700' }}
                 required
               />
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setShowOtpModal(false)}
                   style={{ flex: 1, padding: '12px', background: '#F1F5F9', border: 'none', borderRadius: '8px', color: '#475569', fontWeight: '700', cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   disabled={otpVerifying}
                   style={{ flex: 2, padding: '12px', background: '#1756AA', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: '700', cursor: 'pointer' }}

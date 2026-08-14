@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { useSelector, useDispatch } from 'react-redux';
 import { FiSearch, FiCalendar, FiUser, FiFilter, FiActivity, FiDatabase, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint } from 'react-icons/fa';
@@ -132,39 +133,48 @@ const AEPSWalletReport = () => {
 
             <div className={styles.formGroup} style={{ margin: 0 }}>
               <label className={styles.label} style={{ fontSize: '0.75rem', marginBottom: '4px' }}><FiUser /> Member ID</label>
-              <select 
-                value={selectedMember} 
-                onChange={(e) => setSelectedMember(e.target.value)} 
-                className={styles.inputControl} 
-                style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }}
-              >
-                <option value="">Select Member</option>
-                {membersList.map((m) => {
-                  const label = `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`;
-                  return (
-                    <option key={m.id || m.msrno} value={m.memberId || m.loginId || m.id || m.msrno}>
-                      {label}
-                    </option>
-                  );
-                })}
-              </select>
+              <SearchableSelect
+                value={selectedMember}
+                onChange={val => setSelectedMember(val || '')}
+                options={[
+                  { label: 'Select Member', value: '' },
+                  ...membersList.map((m) => ({
+                    label: `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`,
+                    value: m.memberId || m.loginId || m.id || m.msrno
+                  }))
+                ]}
+                placeholder="Select Member"
+                style={{ height: '36px' }}
+              />
             </div>
 
             <div className={styles.formGroup} style={{ margin: 0 }}>
               <label className={styles.label} style={{ fontSize: '0.75rem', marginBottom: '4px' }}><FiActivity /> Select Mode</label>
-              <select className={styles.inputControl} style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }}>
-                <option value="">All Modes</option>
-                <option value="dr">Dr (Debit)</option>
-                <option value="cr">Cr (Credit)</option>
-              </select>
+              <SearchableSelect
+                value={undefined} 
+                onChange={() => {}}
+                options={[
+                  { label: 'All Modes', value: '' },
+                  { label: 'Dr (Debit)', value: 'dr' },
+                  { label: 'Cr (Credit)', value: 'cr' }
+                ]}
+                placeholder="All Modes"
+                style={{ height: '36px' }}
+              />
             </div>
 
             <div className={styles.formGroup} style={{ margin: 0 }}>
               <label className={styles.label} style={{ fontSize: '0.75rem', marginBottom: '4px' }}><FiDatabase /> Select Service</label>
-              <select className={styles.inputControl} style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }}>
-                <option value="">All Services</option>
-                {servicesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
+              <SearchableSelect
+                value={undefined} 
+                onChange={() => {}}
+                options={[
+                  { label: 'All Services', value: '' },
+                  ...servicesList.map(s => ({ label: s.name, value: s.id }))
+                ]}
+                placeholder="All Services"
+                style={{ height: '36px' }}
+              />
             </div>
 
             <button type="submit" disabled={isLoading} style={{ 

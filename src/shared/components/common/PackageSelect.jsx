@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API } from '../../../api/endpoints';
+import SearchableSelect from './SearchableSelect';
 
 const PackageSelect = ({ value, onChange, placeholder = "Select Package", style = {} }) => {
   const [packages, setPackages] = useState([]);
@@ -28,21 +29,16 @@ const PackageSelect = ({ value, onChange, placeholder = "Select Package", style 
   }, []);
 
   return (
-    <select 
+    <SearchableSelect
       value={value || ""}
-      onChange={(e) => onChange(e.target.value)}
-      style={{ 
-        width: '100%', padding: '0 16px', borderRadius: '10px', 
-        border: '1px solid #CBD5E1', fontSize: '0.95rem', outline: 'none', 
-        background: '#fff', height: '48px', cursor: 'pointer', 
-        color: '#1E293B', fontWeight: 600, ...style 
-      }}
-    >
-      <option value="">{placeholder}</option>
-      {packages.map(p => (
-        <option key={p.id} value={p.id}>{p.name}</option>
-      ))}
-    </select>
+      onChange={onChange}
+      options={[
+        { label: placeholder, value: '' },
+        ...packages.map(p => ({ label: p.name, value: p.id }))
+      ]}
+      placeholder={placeholder}
+      style={{ height: '48px', ...style }}
+    />
   );
 };
 

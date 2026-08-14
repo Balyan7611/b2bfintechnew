@@ -6,6 +6,7 @@ import {
   FaLock, FaEye, FaEyeSlash, FaCheckCircle, FaArrowRight,
   FaSearch, FaShieldAlt
 } from 'react-icons/fa';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { updateChangePassword } from '../../../store/slices/memberSlice';
 import { API } from '../../../api/endpoints';
 import styles from './MemberPages.module.css';
@@ -195,7 +196,7 @@ const ChangePassword = () => {
     fetchAllMembers();
   }, []);
 
-  const selectedMemberObj = membersList.find(m => String(m.id) === String(changePassword.member));
+  const selectedMemberObj = membersList.find(m => String(m.id || m.memberId || m.loginId) === String(changePassword.member));
 
   return (
     <div className={styles.container}>
@@ -212,29 +213,23 @@ const ChangePassword = () => {
             <div className={styles.formGroup} style={{ gridColumn: '1 / -1', maxWidth: '480px' }}>
               <label style={{ fontSize: '0.8rem', color: '#4E6080', fontWeight: 600, display: 'block', marginBottom: '8px' }}>Select Member</label>
               <div style={{ position: 'relative' }}>
-                <select
+                <SearchableSelect
                   name="member"
-                  style={{ width: '100%', height: '42px', border: '1.5px solid #E2E8F0', background: '#F8FAFF', borderRadius: '10px', padding: '0 15px', outline: 'none', appearance: 'none', cursor: 'pointer', fontSize: '0.85rem', color: '#0D1B3E', fontWeight: 500 }}
                   value={changePassword.member}
-                  onChange={(e) => {
-                    handleInputChange(e);
-                    if (e.target.value) {
-                      setMemberError('');
-                    }
+                  onChange={(val) => {
+                    handleInputChange({ target: { name: 'member', value: val } });
+                    if (val) setMemberError('');
                   }}
-                  autoComplete="off"
-                >
-                  <option value="">Select Member</option>
-                  {membersList.map((m) => {
-                    const label = `${m.memberId || m.loginId || m.id} - ${m.name || ''} [${m.mobile || ''}]`;
-                    return (
-                      <option key={m.id} value={m.id}>
-                        {label}
-                      </option>
-                    );
-                  })}
-                </select>
-                <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#A0AEC0', fontSize: '0.7rem' }}>▼</div>
+                  options={[
+                    { label: 'Select Member', value: '' },
+                    ...membersList.map(m => ({
+                      label: `${m.memberId || m.loginId || m.id} - ${m.name || ''} [${m.mobile || ''}]`,
+                      value: m.memberId || m.loginId || m.id
+                    }))
+                  ]}
+                  placeholder="Select Member"
+                  style={{ height: '42px', borderRadius: '10px' }}
+                />
               </div>
             </div>
 

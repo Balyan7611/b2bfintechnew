@@ -66,11 +66,11 @@ export const ParentChangeInformationResponseModel = (res) => { if (!res || !res.
 
 export const ParentChangeInformationRequestModel = (data) => ({ id: parseInt(data.id) || 0, isActive: mapBoolean(data.isActive) });
 
-export const PipeMasterResponseModel = (res) => { if (!res || !res.status) return []; const items = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []); return items.map(item => ({ id: item.id || 0, name: item.name || item.title || item.bankName || item.deviceName || item.providerName || item.templateName || String(), isActive: mapBoolean(item.isActive) })); };
+export const PipeMasterResponseModel = (res) => { if (!res) return []; const items = Array.isArray(res) ? res : (Array.isArray(res.data) ? res.data : (res.data && Array.isArray(res.data.items) ? res.data.items : (Array.isArray(res.items) ? res.items : (res.data ? [res.data] : [])))); return items.map(item => ({ id: item.id || 0, name: item.name || item.title || item.bankName || item.deviceName || item.providerName || item.templateName || String(), isActive: mapBoolean(item.isActive) })); };
 
 export const PipeMasterRequestModel = (data) => ({ id: parseInt(data.id) || 0, isActive: mapBoolean(data.isActive) });
 
-export const PipeModuleSettingResponseModel = (res) => { if (!res || !res.status) return []; const items = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []); return items.map(item => ({ id: item.id || 0, name: item.name || item.title || item.bankName || item.deviceName || item.providerName || item.templateName || String(), isActive: mapBoolean(item.isActive) })); };
+export const PipeModuleSettingResponseModel = (res) => { if (!res) return []; const items = Array.isArray(res) ? res : (Array.isArray(res.data) ? res.data : (res.data && Array.isArray(res.data.items) ? res.data.items : (Array.isArray(res.items) ? res.items : (res.data ? [res.data] : [])))); return items.map(item => ({ id: item.id || 0, name: item.name || item.title || item.bankName || item.deviceName || item.providerName || item.templateName || String(), isActive: mapBoolean(item.isActive) })); };
 
 export const PipeModuleSettingRequestModel = (data) => ({ id: parseInt(data.id) || 0, isActive: mapBoolean(data.isActive) });
 

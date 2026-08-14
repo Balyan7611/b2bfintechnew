@@ -2,14 +2,15 @@
 const mapBoolean = (val) => val === true || val === 'true' || val === 1 || val === '1';
 
 export const PipeMasterResponseModel = (res) => {
-    if (!res || !res.status) return [];
     let items = [];
-    if (res.data && Array.isArray(res.data.items)) {
-        items = res.data.items;
-    } else if (Array.isArray(res.data)) {
-        items = res.data;
-    } else if (res.data) {
-        items = [res.data];
+    try {
+        if (Array.isArray(res)) items = res;
+        else if (res && Array.isArray(res.data)) items = res.data;
+        else if (res && res.data && Array.isArray(res.data.items)) items = res.data.items;
+        else if (res && Array.isArray(res.items)) items = res.items;
+        else if (res && res.data) items = [res.data];
+    } catch (e) {
+        console.error("Error parsing PipeMasterResponseModel", e);
     }
     return items.map(item => ({
         id: item.id || 0,

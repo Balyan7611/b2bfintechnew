@@ -5,6 +5,7 @@ import {
   FiSearch, FiEdit, FiTrash2, FiPlus, FiChevronLeft, FiChevronRight, FiDatabase, FiX, FiCheck, FiSettings, FiActivity, FiZap, FiRefreshCw, FiImage, FiList, FiDownload
 } from 'react-icons/fi';
 import { FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint } from 'react-icons/fa';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import styles from '../MemberPages/MemberPages.module.css';
@@ -638,12 +639,17 @@ const OperatorManagement = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
                     <div className={styles.formGroup}>
                       <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B' }}>Service :</label>
-                      <select name="serviceId" className={styles.inputControl} value={formData.serviceId} onChange={handleInputChange} style={{ borderRadius: '8px', padding: '10px 14px', border: '1px solid #E2E8F0', background: '#fff', fontSize: '0.9rem' }}>
-                        <option value="">Select Service</option>
-                        {services.map(s => (
-                          <option key={s.id} value={s.id}>{s.name}</option>
-                        ))}
-                      </select>
+                      <SearchableSelect
+                        name="serviceId"
+                        value={formData.serviceId}
+                        onChange={(val) => handleInputChange({ target: { name: 'serviceId', value: val } })}
+                        options={[
+                          { label: 'Select Service', value: '' },
+                          ...services.map(s => ({ label: s.name, value: s.id }))
+                        ]}
+                        placeholder="Select Service"
+                        style={{ height: '42px', borderRadius: '8px' }}
+                      />
                     </div>
                     <div className={styles.formGroup}>
                       <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B' }}>Logo</label>

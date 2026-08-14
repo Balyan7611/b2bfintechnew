@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API } from '../../../api/endpoints';
+import SearchableSelect from './SearchableSelect';
 
 const RoleSelect = ({ value, onChange, placeholder = "Select Role", style = {} }) => {
   const [roles, setRoles] = useState([]);
@@ -18,21 +19,16 @@ const RoleSelect = ({ value, onChange, placeholder = "Select Role", style = {} }
   }, []);
 
   return (
-    <select 
+    <SearchableSelect
       value={value || ""}
-      onChange={(e) => onChange(e.target.value)}
-      style={{ 
-        width: '100%', padding: '0 16px', borderRadius: '10px', 
-        border: '1px solid #CBD5E1', fontSize: '0.95rem', outline: 'none', 
-        background: '#fff', height: '48px', cursor: 'pointer', 
-        color: '#1E293B', fontWeight: 600, ...style 
-      }}
-    >
-      <option value="">All Roles</option>
-      {roles.map(r => (
-        <option key={r.id} value={r.id}>{r.name}</option>
-      ))}
-    </select>
+      onChange={onChange}
+      options={[
+        { label: 'All Roles', value: '' },
+        ...roles.map(r => ({ label: r.name, value: r.id }))
+      ]}
+      placeholder={placeholder}
+      style={{ height: '48px', ...style }}
+    />
   );
 };
 

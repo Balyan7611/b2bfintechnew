@@ -3,7 +3,8 @@ import {
   FaFingerprint, FaMobileAlt, FaRupeeSign, FaUniversity, 
   FaSearch, FaPrint, FaShieldAlt, FaHistory, FaCheckCircle, 
   FaTimes, FaSpinner, FaQrcode,
-  FaMoneyBillWave, FaWallet, FaFileInvoice, FaIdCard, FaInfoCircle, FaExclamationTriangle
+  FaMoneyBillWave, FaWallet, FaFileInvoice, FaIdCard, FaInfoCircle, FaExclamationTriangle,
+  FaChevronDown
 } from 'react-icons/fa';
 import styles from './AadharPay.module.css';
 import ReceiptModal from '../../../../shared/components/common/ReceiptModal';
@@ -66,6 +67,9 @@ const AadharPay = () => {
   const [amount, setAmount] = useState('');
   const [aadharNumber, setAadharNumber] = useState('');
   const [selectedBank, setSelectedBank] = useState('');
+  const [isBankDropdownOpen, setIsBankDropdownOpen] = useState(false);
+  const [bankSearchQuery, setBankSearchQuery] = useState('');
+  const bankDropdownRef = useRef(null);
   const [deviceStatus, setDeviceStatus] = useState('Disconnected');
   const [showBiometricModal, setShowBiometricModal] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
@@ -84,6 +88,16 @@ const AadharPay = () => {
 
   useEffect(() => {
     return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (bankDropdownRef.current && !bankDropdownRef.current.contains(event.target)) {
+        setIsBankDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handlePresetClick = (val) => {
@@ -656,20 +670,88 @@ const AadharPay = () => {
               </div>
 
               {/* Bank Select Dropdown Selector */}
-              <div className={styles.inputWrapper}>
-                <FaUniversity className={styles.inputIcon} />
-                <select
-                  className={styles.inputField}
-                  value={selectedBank}
-                  onChange={e => setSelectedBank(e.target.value)}
-                  style={{ paddingLeft: '46px', appearance: 'auto' }}
-                  required
+              <div style={{ position: 'relative', width: '100%', marginBottom: '15px' }} ref={bankDropdownRef}>
+                <div 
+                  onClick={() => setIsBankDropdownOpen(!isBankDropdownOpen)}
+                  style={{
+                    display: 'flex', gap: '10px', alignItems: 'center', background: '#ffffff', 
+                    padding: '10px 14px', borderRadius: '12px', border: '1.5px solid #e2e8f0',
+                    cursor: 'pointer', height: '46px', justifyContent: 'space-between',
+                    boxSizing: 'border-box', transition: 'all 0.2s', userSelect: 'none'
+                  }}
+                  onMouseOver={(e) => { if(!isBankDropdownOpen) e.currentTarget.style.borderColor = '#1756AA' }}
+                  onMouseOut={(e) => { if(!isBankDropdownOpen) e.currentTarget.style.borderColor = '#e2e8f0' }}
                 >
-                  <option value="">-- Choose Customer Bank --</option>
-                  {POPULAR_BANKS.map(bank => (
-                    <option key={bank.id} value={bank.id}>{bank.name} ({bank.code})</option>
-                  ))}
-                </select>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                    <FaUniversity style={{ color: '#94a3b8', flexShrink: 0, fontSize: '1rem' }} />
+                    <span style={{ fontSize: '0.9rem', color: selectedBank ? '#1e293b' : '#64748b', fontWeight: selectedBank ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {selectedBank ? `${POPULAR_BANKS.find(b => b.id === selectedBank)?.name} (${POPULAR_BANKS.find(b => b.id === selectedBank)?.code})` : '-- Choose Customer Bank --'}
+                    </span>
+                  </div>
+                  <FaChevronDown style={{ fontSize: '0.75rem', color: '#64748B', transition: 'transform 0.2s', transform: isBankDropdownOpen ? 'rotate(180deg)' : 'rotate(0)', flexShrink: 0 }} />
+                </div>
+
+                {isBankDropdownOpen && (
+                  <div style={{
+                    position: 'absolute', top: '52px', left: 0, background: '#ffffff',
+                    border: '1px solid #e2e8f0', borderRadius: '12px', 
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                    zIndex: 1000, width: '100%', padding: '10px 0'
+                  }}>
+                    <div style={{ padding: '0 12px 10px 12px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <FaSearch style={{ color: '#94a3b8', fontSize: '0.875rem' }} />
+                      <input
+                        type="text"
+                        placeholder="Search bank..."
+                        value={bankSearchQuery}
+                        onChange={(e) => setBankSearchQuery(e.target.value)}
+                        style={{ border: 'none', outline: 'none', width: '100%', fontSize: '0.9rem', padding: '6px 4px', color: '#0f172a' }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                    <div style={{ maxHeight: '250px', overflowY: 'auto', padding: '4px 0' }}>
+                      <div
+                        onClick={() => { setSelectedBank(''); setIsBankDropdownOpen(false); setBankSearchQuery(''); }}
+                        style={{ 
+                          padding: '10px 16px', fontSize: '0.9rem', cursor: 'pointer', color: '#475569',
+                          fontWeight: !selectedBank ? 600 : 500,
+                          backgroundColor: !selectedBank ? '#f8fafc' : 'transparent'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = !selectedBank ? '#f8fafc' : 'transparent'}
+                      >
+                        -- Choose Customer Bank --
+                      </div>
+                      {POPULAR_BANKS.filter(b => b.name.toLowerCase().includes(bankSearchQuery.toLowerCase()) || b.code.toLowerCase().includes(bankSearchQuery.toLowerCase())).length > 0 ? (
+                        POPULAR_BANKS.filter(b => b.name.toLowerCase().includes(bankSearchQuery.toLowerCase()) || b.code.toLowerCase().includes(bankSearchQuery.toLowerCase())).map(b => {
+                          const isSel = selectedBank === b.id;
+                          return (
+                            <div
+                              key={b.id}
+                              onClick={() => { setSelectedBank(b.id); setIsBankDropdownOpen(false); setBankSearchQuery(''); }}
+                              style={{
+                                padding: '10px 16px', fontSize: '0.9rem', cursor: 'pointer',
+                                backgroundColor: isSel ? '#f8fafc' : 'transparent',
+                                borderBottom: '1px solid #f8fafc'
+                              }}
+                              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                              onMouseOut={(e) => e.currentTarget.style.backgroundColor = isSel ? '#f8fafc' : 'transparent'}
+                            >
+                              <div style={{ fontWeight: 600, color: '#0f172a' }}>{b.name}</div>
+                              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+                                {b.code}
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div style={{ padding: '16px', textAlign: 'center', fontSize: '0.85rem', color: '#94a3b8' }}>
+                          No banks found
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <span 

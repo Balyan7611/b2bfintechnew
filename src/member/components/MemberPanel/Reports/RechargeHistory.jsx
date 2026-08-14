@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 import ReactDOM from 'react-dom';
 import { Cells as UplineCells, getUplineShape } from '../../../../shared/components/common/UplineCommissionCols';
 import { useDispatch, useSelector } from 'react-redux';
@@ -129,12 +130,18 @@ const RechargeHistory = () => {
               <div className={styles.formGroup}><label>To Date</label><input type="date" className={styles.inputControl} value={filters.toDate} onChange={(e) => dispatch(updateRechargeFilters({ toDate: e.target.value }))} /></div>
               <div className={styles.formGroup}>
                 <label>Status</label>
-                <select className={styles.inputControl} value={filters.status} onChange={(e) => dispatch(updateRechargeFilters({ status: e.target.value }))}>
-                  <option value="">All Status</option>
-                  <option value="SUCCESS">Success</option>
-                  <option value="PENDING">Pending</option>
-                  <option value="FAILED">Failed</option>
-                </select>
+                <SearchableSelect
+                  value={filters.status}
+                  onChange={(val) => dispatch(updateRechargeFilters({ status: val || '' }))}
+                  options={[
+                    { label: 'All Status', value: '' },
+                    { label: 'Success', value: 'SUCCESS' },
+                    { label: 'Pending', value: 'PENDING' },
+                    { label: 'Failed', value: 'FAILED' }
+                  ]}
+                  placeholder="All Status"
+                  style={{ height: '42px', minWidth: '150px' }}
+                />
               </div>
               <div className={styles.formGroup} style={{ flex: '0 0 auto', alignSelf: 'flex-end' }}>
                 <button className={styles.submitBtn} onClick={fetchData}>Apply Filters</button>

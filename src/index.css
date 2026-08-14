@@ -207,11 +207,23 @@ button {
   margin-bottom: 24px;
 }
 
+.global-table-toolbar > div:nth-child(2) {
+  min-width: 220px;
+}
+
 @media (max-width: 768px) {
   .global-table-toolbar {
     flex-direction: column;
     padding: 12px;
     gap: 15px;
+    align-items: stretch;
+  }
+  .global-table-toolbar > div {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
   }
 }
 

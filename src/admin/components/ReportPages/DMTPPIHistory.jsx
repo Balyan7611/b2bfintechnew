@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { API } from '../../../api/endpoints';
 import { normalizeTxnResponse } from '../../../services/transaction.service';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
@@ -183,14 +184,19 @@ const DMTPPIHistory = () => {
                         </div>
                         <div className={styles.formGroup}>
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Select Member</label>
-                            <select value={selectedMember} onChange={(e) => setSelectedMember(e.target.value)} className={styles.inputControl} style={{ paddingLeft: '12px', paddingRight: '12px', height: '38px', borderRadius: '10px', fontSize: '0.825rem', border: focusedField === 'member' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', boxShadow: focusedField === 'member' ? '0 0 0 3px rgba(23, 86, 170, 0.06)' : 'none', transition: 'all 0.25s', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }} onFocus={() => setFocusedField('member')} onBlur={() => setFocusedField(null)}>
-                                <option value="">All Members</option>
-                                {memberList.map(m => (
-                                    <option key={m.memberId || m.id} value={m.memberId || m.id}>
-                                        {m.name} ({m.mobile})
-                                    </option>
-                                ))}
-                            </select>
+                            <SearchableSelect
+                                options={[
+                                    { value: '', label: 'All Members' },
+                                    ...memberList.map(m => ({
+                                        value: m.memberId || m.id,
+                                        label: `${m.name} (${m.mobile})`
+                                    }))
+                                ]}
+                                value={selectedMember}
+                                onChange={val => setSelectedMember(val || '')}
+                                placeholder="All Members"
+                                style={{ height: '38px', borderRadius: '10px' }}
+                            />
                         </div>
                         <div className={styles.formGroup}>
                             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '2px', display: 'block' }}>Txn Mode</label>

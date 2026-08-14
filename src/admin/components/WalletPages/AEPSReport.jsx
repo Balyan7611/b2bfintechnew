@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { FiSearch, FiCalendar, FiUser, FiFilter, FiActivity, FiDatabase, FiChevronLeft, FiChevronRight, FiSliders } from 'react-icons/fi';
 import { FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint } from 'react-icons/fa';
 import styles from '../MemberPages/MemberPages.module.css';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import TransactionReceipt from '../../../member/components/MemberPanel/Services/TransactionReceipt';
 
 const servicesList = [
@@ -122,31 +123,50 @@ const AEPSReport = () => {
 
             <div className={styles.formGroup} style={{ margin: 0 }}>
               <label className={styles.label} style={{ fontSize: '0.75rem', marginBottom: '4px' }}><FiUser /> Member ID</label>
-              <select name="memberId" value={filters.memberId} onChange={handleFilterChange} className={styles.inputControl} style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }}>
-                <option value="">Select Member</option>
-                <option value="M001">M001 (Ram Prasad)</option>
-                <option value="M002">M002 (Shyam Kumar)</option>
-                <option value="M003">M003 (Amit Singh)</option>
-                <option value="M004">M004 (Ravi Sharma)</option>
-                <option value="M005">M005 (Priya Gupta)</option>
-              </select>
+              <SearchableSelect
+                name="memberId"
+                value={filters.memberId}
+                onChange={(val) => handleFilterChange({ target: { name: 'memberId', value: val } })}
+                options={[
+                  { label: 'Select Member', value: '' },
+                  { label: 'M001 (Ram Prasad)', value: 'M001' },
+                  { label: 'M002 (Shyam Kumar)', value: 'M002' },
+                  { label: 'M003 (Amit Singh)', value: 'M003' },
+                  { label: 'M004 (Ravi Sharma)', value: 'M004' },
+                  { label: 'M005 (Priya Gupta)', value: 'M005' }
+                ]}
+                placeholder="Select Member"
+              />
             </div>
 
             <div className={styles.formGroup} style={{ margin: 0 }}>
               <label className={styles.label} style={{ fontSize: '0.75rem', marginBottom: '4px' }}><FiDatabase /> Select Service</label>
-              <select name="service" value={filters.service} onChange={handleFilterChange} className={styles.inputControl} style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }}>
-                <option value="">All Services</option>
-                {servicesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
+              <SearchableSelect
+                name="service"
+                value={filters.service}
+                onChange={(val) => handleFilterChange({ target: { name: 'service', value: val } })}
+                options={[
+                  { label: 'All Services', value: '' },
+                  ...servicesList.map(s => ({ label: s.name, value: s.id }))
+                ]}
+                placeholder="All Services"
+              />
             </div>
 
             <div className={styles.formGroup} style={{ margin: 0 }}>
               <label className={styles.label} style={{ fontSize: '0.75rem', marginBottom: '4px' }}><FiActivity /> Select Mode</label>
-              <select name="mode" value={filters.mode} onChange={handleFilterChange} className={styles.inputControl} style={{ height: '36px', padding: '0 10px', fontSize: '0.85rem' }}>
-                <option value="">All Modes</option>
-                <option value="dr">Dr (Debit)</option>
-                <option value="cr">Cr (Credit)</option>
-              </select>
+              <SearchableSelect
+                name="mode"
+                value={filters.mode}
+                onChange={(val) => handleFilterChange({ target: { name: 'mode', value: val } })}
+                options={[
+                  { label: 'All Modes', value: '' },
+                  { label: 'Dr (Debit)', value: 'dr' },
+                  { label: 'Cr (Credit)', value: 'cr' }
+                ]}
+                placeholder="All Modes"
+                style={{ height: '36px' }}
+              />
             </div>
 
             <div style={{ display: 'flex', gap: '8px' }}>

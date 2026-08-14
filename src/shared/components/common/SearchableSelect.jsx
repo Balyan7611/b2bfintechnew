@@ -7,7 +7,9 @@ const SearchableSelect = ({
     onChange,
     placeholder = 'Select...',
     disabled = false,
-    required = false
+    required = false,
+    style = {},
+    className = ''
 }) => {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState('');
@@ -26,7 +28,7 @@ const SearchableSelect = ({
         setMenuStyle({
             position: 'fixed',
             left: rect.left,
-            width: rect.width,
+            minWidth: Math.max(rect.width, 240),
             zIndex: 99999,
             background: '#fff',
             border: '1px solid #E2E8F0',
@@ -95,6 +97,7 @@ const SearchableSelect = ({
         transition: 'border 0.2s, box-shadow 0.2s',
         boxSizing: 'border-box',
         fontWeight: 500,
+        ...style // merge custom styles
     };
 
     const searchInput = {
@@ -157,7 +160,7 @@ const SearchableSelect = ({
     );
 
     return (
-        <div style={{ position: 'relative', width: '100%' }} ref={wrapRef}>
+        <div className={className} style={{ position: 'relative', width: '100%' }} ref={wrapRef}>
             <div
                 style={control}
                 onClick={handleOpen}
@@ -168,8 +171,10 @@ const SearchableSelect = ({
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                     {selected ? selected.label : placeholder}
                 </span>
-                <span style={{ color: '#64748B', fontSize: '0.65rem', flexShrink: 0 }}>
-                    {open ? '▲' : '▼'}
+                <span style={{ display: 'flex', alignItems: 'center', color: '#64748B', flexShrink: 0, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
                 </span>
             </div>
 

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FaSave, FaTrash, FaCheckCircle, FaSearch, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, FaPrint, FaChevronLeft, FaChevronRight, FaExclamationCircle } from 'react-icons/fa';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { updateApiForm, addApiEntry, toggleApiStatus, deleteApiEntry } from '../../../store/slices/commissionSlice';
 import styles from './Commission.module.css';
 
@@ -86,14 +87,21 @@ const SetCommissionAPI = () => {
           </div>
           <div className={styles.formGroup}>
             <label className={styles.label}>Service Type</label>
-            <select name="serviceType" className={styles.inputControl} value={apiForm.serviceType} onChange={handleChange}>
-              <option value="">Select Service Type</option>
-              <option value="AEPS">AEPS</option>
-              <option value="DMT">DMT</option>
-              <option value="Recharge">Recharge</option>
-              <option value="Payout">Payout</option>
-              <option value="UPI">UPI</option>
-            </select>
+            <SearchableSelect
+              name="serviceType"
+              value={apiForm.serviceType}
+              onChange={(val) => handleChange({ target: { name: 'serviceType', value: val } })}
+              options={[
+                { label: 'Select Service Type', value: '' },
+                { label: 'AEPS', value: 'AEPS' },
+                { label: 'DMT', value: 'DMT' },
+                { label: 'Recharge', value: 'Recharge' },
+                { label: 'Payout', value: 'Payout' },
+                { label: 'UPI', value: 'UPI' }
+              ]}
+              placeholder="Select Service Type"
+              style={{ height: '42px', borderRadius: '10px' }}
+            />
           </div>
           <div className={styles.formGroup}>
             <label className={styles.label}>Commission %</label>

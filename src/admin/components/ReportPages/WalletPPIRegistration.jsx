@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { API } from '../../../api/endpoints';
 import { 
@@ -70,21 +71,19 @@ const WalletPPIRegistration = () => {
 
               <div className={styles.formGroup}>
                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Select Member</label>
-                <select 
-                  className={styles.inputControl} 
-                  style={{ height: '42px', fontSize: '0.85rem', width: '100%', borderRadius: '10px', border: '1.5px solid #CBD5E1', padding: '0 12px', outline: 'none', color: '#334155' }} 
-                  onFocus={(e) => e.target.style.borderColor = '#1756AA'} 
-                  onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}
+                <SearchableSelect
+                  options={[
+                    { value: '', label: 'All Registered Members' },
+                    ...(Array.isArray(memberList) ? memberList : []).map((m) => ({
+                      value: m.id || m.memberId,
+                      label: `${m.name || m.memberId} (${m.mobile})`
+                    }))
+                  ]}
                   value={selectedMember}
-                  onChange={(e) => setSelectedMember(e.target.value)}
-                >
-                  <option value="">All Registered Members</option>
-                  {Array.isArray(memberList) && memberList.map((m) => (
-                    <option key={m.id || m.memberId} value={m.id || m.memberId}>
-                      {m.name || m.memberId} ({m.mobile})
-                    </option>
-                  ))}
-                </select>
+                  onChange={val => setSelectedMember(val || '')}
+                  placeholder="All Registered Members"
+                  style={{ height: '42px', borderRadius: '10px' }}
+                />
               </div>
               
               <div className={styles.formGroup}>

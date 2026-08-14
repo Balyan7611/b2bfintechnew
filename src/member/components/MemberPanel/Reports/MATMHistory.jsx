@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 import ReactDOM from 'react-dom';
 import { Cells as UplineCells, getUplineShape } from '../../../../shared/components/common/UplineCommissionCols';
 import { useDispatch, useSelector } from 'react-redux';
@@ -129,11 +130,17 @@ const MATMHistory = () => {
               <div className={styles.formGroup}><label>To Date</label><input type="date" className={styles.inputControl} value={filters.toDate} onChange={(e) => dispatch(updateMATMFilters({toDate: e.target.value}))} /></div>
               <div className={styles.formGroup}>
                 <label>Status</label>
-                <select className={styles.inputControl} value={filters.status} onChange={(e) => dispatch(updateMATMFilters({status: e.target.value}))}>
-                  <option value="">All Status</option>
-                  <option value="SUCCESS">Success</option>
-                  <option value="FAILED">Failed</option>
-                </select>
+                <SearchableSelect
+                  value={filters.status}
+                  onChange={(val) => dispatch(updateMATMFilters({ status: val || '' }))}
+                  options={[
+                    { label: 'All Status', value: '' },
+                    { label: 'Success', value: 'SUCCESS' },
+                    { label: 'Failed', value: 'FAILED' }
+                  ]}
+                  placeholder="All Status"
+                  style={{ height: '42px', minWidth: '150px' }}
+                />
               </div>
               <button className={styles.submitBtn} onClick={fetchData}>Apply Filters</button>
             </div>

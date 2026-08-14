@@ -9,6 +9,7 @@ import {
   FaFileExcel, FaFilePdf, FaPrint, FaCopy, FaFileCsv, FaChevronLeft, FaChevronRight, 
   FaRegCopy, FaCheck, FaWallet, FaCalendarAlt, FaPen, FaExchangeAlt
 } from 'react-icons/fa';
+import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 import styles from './FundRequest.module.css';
 
 // Parse any date format → "YYYY-MM-DD" or '-'
@@ -442,16 +443,20 @@ const FundRequest = () => {
               <label className={styles.formLabel}>Company Bank Selected</label>
               <div className={styles.inputWrapper}>
                 <FaUniversity className={styles.inputIcon} />
-                <select 
-                  className={styles.selectInput}
+                <SearchableSelect 
+                  style={{ height: '40px', paddingLeft: '38px', backgroundColor: '#f8fafc', fontSize: '0.85rem' }}
                   value={selectedBank}
-                  onChange={e => setSelectedBank(e.target.value)}
-                >
-                  <option value="">Select Bank</option>
-                  {companyBanks.map(b => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
-                  ))}
-                </select>
+                  onChange={val => setSelectedBank(val || '')}
+                  options={[
+                    { label: 'Select Bank', value: '' },
+                    ...companyBanks.map(b => ({ 
+                      label: b.name || b.bankName, 
+                      value: String(b.id), 
+                      meta: b.accNo ? `A/C: ${b.accNo}` : '' 
+                    }))
+                  ]}
+                  placeholder="Select Bank"
+                />
               </div>
             </div>
 
@@ -488,18 +493,20 @@ const FundRequest = () => {
               <label className={styles.formLabel}>Payment Mode</label>
               <div className={styles.inputWrapper}>
                 <FaExchangeAlt className={styles.inputIcon} />
-                <select 
-                  className={styles.selectInput}
+                <SearchableSelect 
+                  style={{ height: '40px', paddingLeft: '38px', backgroundColor: '#f8fafc', fontSize: '0.85rem' }}
                   value={payMode}
-                  onChange={e => setPayMode(e.target.value)}
-                >
-                  <option value="">Select Mode</option>
-                  <option value="IMPS">IMPS</option>
-                  <option value="NEFT">NEFT</option>
-                  <option value="RTGS">RTGS</option>
-                  <option value="Cash Deposit">Cash Deposit</option>
-                  <option value="UPI Transfer">UPI Transfer</option>
-                </select>
+                  onChange={val => setPayMode(val || '')}
+                  options={[
+                    { label: 'Select Mode', value: '' },
+                    { label: 'IMPS', value: 'IMPS' },
+                    { label: 'NEFT', value: 'NEFT' },
+                    { label: 'RTGS', value: 'RTGS' },
+                    { label: 'Cash Deposit', value: 'Cash Deposit' },
+                    { label: 'UPI Transfer', value: 'UPI Transfer' }
+                  ]}
+                  placeholder="Select Mode"
+                />
               </div>
             </div>
 

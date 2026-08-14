@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 import ReactDOM from 'react-dom';
 import { Cells as UplineCells, getUplineShape } from '../../../../shared/components/common/UplineCommissionCols';
 import { useDispatch, useSelector } from 'react-redux';
@@ -50,9 +51,10 @@ const AEPSReport = () => {
     const fetchMasters = async () => {
       try {
         const svcRes = await API.service.getAll();
-        setMasterServices(Array.isArray(svcRes?.data) ? svcRes.data : Array.isArray(svcRes) ? svcRes : []);
         const allSvcs = Array.isArray(svcRes?.data) ? svcRes.data : Array.isArray(svcRes) ? svcRes : [];
-        setAepsServiceIds(allSvcs.filter(s => String(s.sectionType) === '10').map(s => String(s.id)));
+        const aepsSvcs = allSvcs.filter(s => String(s.sectionType) === '10' || String(s.sectionType) === '9');
+        setMasterServices(aepsSvcs);
+        setAepsServiceIds(aepsSvcs.map(s => String(s.id)));
       } catch (e) { console.error('AEPSReport: services fetch failed', e); }
       try {
         const opRes = await API.operator.getAll({ pageSize: 1000 });
@@ -275,34 +277,35 @@ const AEPSReport = () => {
                   </div>
                                     <div className={styles.formGroup}>
                     <label>Service</label>
-                    <select
-                      className={styles.inputControl}
-                      name="serviceId"
+                    <SearchableSelect
                       value={filters.serviceId || ''}
-                      onChange={handleFilterChange}
-                    >
-                      <option value="">All Services</option>
-                      {masterServices.map(s => (
-                        <option key={s.id || s.serviceId} value={s.id || s.serviceId}>
-                          {s.name || s.serviceName || s.title || s.id}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => handleFilterChange({ target: { name: 'serviceId', value: val || '' } })}
+                      options={[
+                        { label: 'All Services', value: '' },
+                        ...masterServices.map(s => ({
+                          label: s.name || s.serviceName || s.title || s.id,
+                          value: s.id || s.serviceId
+                        }))
+                      ]}
+                      placeholder="All Services"
+                      style={{ height: '42px', minWidth: '150px', fontSize: '0.85rem' }}
+                    />
                   </div>
 
                                     <div className={styles.formGroup}>
                     <label>Status</label>
-                    <select
-                      className={styles.inputControl}
-                      name="status"
+                    <SearchableSelect
                       value={filters.status}
-                      onChange={handleFilterChange}
-                    >
-                      <option value="">All Status</option>
-                      <option value="SUCCESS">Success</option>
-                      <option value="PENDING">Pending</option>
-                      <option value="FAILED">Failed</option>
-                    </select>
+                      onChange={(val) => handleFilterChange({ target: { name: 'status', value: val || '' } })}
+                      options={[
+                        { label: 'All Status', value: '' },
+                        { label: 'Success', value: 'SUCCESS' },
+                        { label: 'Pending', value: 'PENDING' },
+                        { label: 'Failed', value: 'FAILED' }
+                      ]}
+                      placeholder="All Status"
+                      style={{ height: '42px', minWidth: '150px', fontSize: '0.85rem' }}
+                    />
                   </div>
                   <button className={styles.submitBtn} onClick={fetchData}>
                     Apply Filters

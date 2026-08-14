@@ -7,6 +7,7 @@ import {
   FaMapMarkedAlt, FaExclamationCircle, FaPlus, FaUser, FaMobileAlt, FaKey, FaMapMarkerAlt, FaDatabase, FaTrash,
   FaFileExcel, FaFilePdf, FaPrint, FaCopy, FaFileCsv
 } from 'react-icons/fa';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { updateTidForm, toggleTidDrawer, setEditingTid, deleteTid } from '../../../store/slices/memberSlice';
 import { API } from '../../../api/endpoints';
 import styles from './MemberPages.module.css';
@@ -247,18 +248,21 @@ const AssignTID = () => {
                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div className={styles.formGroup}>
                     <label style={{ fontWeight: 700, fontSize: '0.75rem', color: '#4E6080', marginBottom: '8px' }}>SELECT MEMBER</label>
-                    <select name="member" className={styles.selectControl} style={{ height: '42px', paddingLeft: '15px' }} value={form.member} onChange={handleInputChange}>
-                       <option value="">Select Member</option>
-                       {membersList.map((m) => {
-                         const label = `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`;
-                         const val = `${m.name || m.userName || ''} (${m.memberId || m.loginId || m.id || m.msrno})`;
-                         return (
-                           <option key={m.id || m.msrno} value={val}>
-                             {label}
-                           </option>
-                         );
-                       })}
-                    </select>
+                    <SearchableSelect
+                      name="member"
+                      value={form.member}
+                      onChange={(val) => handleInputChange({ target: { name: 'member', value: val } })}
+                      options={[
+                        { label: 'Select Member', value: '' },
+                        ...membersList.map(m => {
+                          const label = `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`;
+                          const val = `${m.name || m.userName || ''} (${m.memberId || m.loginId || m.id || m.msrno})`;
+                          return { label, value: val };
+                        })
+                      ]}
+                      placeholder="Select Member"
+                      style={{ height: '42px', borderRadius: '8px' }}
+                    />
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>

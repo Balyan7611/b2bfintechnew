@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { 
   FiCheck, FiGrid, FiArrowRight, FiRefreshCw, FiInfo, FiShield
 } from 'react-icons/fi';
@@ -153,16 +154,16 @@ const AssignServiceRole = () => {
                  <label style={{ fontSize: '0.95rem', fontWeight: 800, color: '#4E6080', display: 'flex', alignItems: 'center', gap: '5px' }}>
                    <FiGrid style={{ color: '#1756AA' }} /> Filter Service Category
                  </label>
-                 <select 
+                 <SearchableSelect
                    value={categoryFilter}
-                   onChange={(e) => setCategoryFilter(e.target.value)}
-                   style={{ height: '48px', borderRadius: '10px', border: '1px solid #CBD5E1', padding: '0 16px', color: '#1E293B', fontWeight: 600, outline: 'none', background: '#fff', cursor: 'pointer' }}
-                 >
-                    <option value="all">All Services (Show All)</option>
-                    {categories.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                 </select>
+                   onChange={val => setCategoryFilter(val || 'all')}
+                   options={[
+                     { label: 'All Services (Show All)', value: 'all' },
+                     ...categories.map(c => ({ label: c.name, value: c.id }))
+                   ]}
+                   placeholder="All Services (Show All)"
+                   style={{ height: '48px', borderRadius: '10px' }}
+                 />
               </div>
            </div>
 

@@ -12,6 +12,7 @@ import {
 import { FiDatabase, FiUploadCloud } from 'react-icons/fi';
 import styles from './SupportTickets.module.css';
 import sharedStyles from '../common/SharedTable.module.css';
+import SearchableSelect from '../common/SearchableSelect';
 import { API } from '../../../api/endpoints';
 import ChatPopup from '../SupportList/ChatPopup';
 
@@ -397,16 +398,22 @@ const SupportTickets = () => {
             <div className={styles.formGrid}>
               <div className={styles.formGroup}>
                 <label>Issue Category <span style={{color: 'red'}}>*</span></label>
-                <select value={category} onChange={(e) => setCategory(e.target.value)} required className={styles.input}>
-                  <option value="">Select Category...</option>
-                  <option value="AEPS">AEPS Withdrawal / Enquiry</option>
-                  <option value="DMT">Money Transfer (DMT)</option>
-                  <option value="Recharge">Mobile / DTH Recharge</option>
-                  <option value="BBPS">Electricity / Water Bill (BBPS)</option>
-                  <option value="MATM">Micro ATM Transaction</option>
-                  <option value="Wallet">Wallet Loading / Credit Limit</option>
-                  <option value="Other">Other Query / Complaint</option>
-                </select>
+                <SearchableSelect
+                  style={{ height: '50px', padding: '0 16px', borderRadius: '12px', backgroundColor: '#f8fafc', fontSize: '0.95rem' }}
+                  value={category}
+                  onChange={(val) => setCategory(val || '')}
+                  options={[
+                    { label: 'Select Category...', value: '' },
+                    { label: 'AEPS Withdrawal / Enquiry', value: 'AEPS' },
+                    { label: 'Money Transfer (DMT)', value: 'DMT' },
+                    { label: 'Mobile / DTH Recharge', value: 'Recharge' },
+                    { label: 'Electricity / Water Bill (BBPS)', value: 'BBPS' },
+                    { label: 'Micro ATM Transaction', value: 'MATM' },
+                    { label: 'Wallet Loading / Credit Limit', value: 'Wallet' },
+                    { label: 'Other Query / Complaint', value: 'Other' }
+                  ]}
+                  placeholder="Select Category..."
+                />
               </div>
 
               <div className={styles.formGroup}>
@@ -422,11 +429,17 @@ const SupportTickets = () => {
 
               <div className={styles.formGroup}>
                 <label>Priority <span style={{color: 'red'}}>*</span></label>
-                <select value={priority} onChange={(e) => setPriority(e.target.value)} required className={styles.input}>
-                  <option value="Normal">Normal</option>
-                  <option value="High">High</option>
-                  <option value="Low">Low</option>
-                </select>
+                <SearchableSelect
+                  style={{ height: '50px', padding: '0 16px', borderRadius: '12px', backgroundColor: '#f8fafc', fontSize: '0.95rem' }}
+                  value={priority}
+                  onChange={(val) => setPriority(val || 'Normal')}
+                  options={[
+                    { label: 'Normal', value: 'Normal' },
+                    { label: 'High', value: 'High' },
+                    { label: 'Low', value: 'Low' }
+                  ]}
+                  placeholder="Select Priority"
+                />
               </div>
             </div>
 

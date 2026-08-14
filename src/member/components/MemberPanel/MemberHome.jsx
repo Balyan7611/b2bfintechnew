@@ -106,6 +106,7 @@ const MemberHome = () => {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [loadingDashboard, setLoadingDashboard] = useState(false);
+  const [todayChartData, setTodayChartData] = useState(null);
 
   const fetchDashboardData = React.useCallback(async () => {
     setLoadingDashboard(true);
@@ -242,16 +243,76 @@ const MemberHome = () => {
     };
   }, [overviewData, stats, wallets.main]);
 
+  // `/MemberDashboard/Analytics` (fetched once on mount, see fetchDashboardData)
+  // does not accept a date-range parameter — it always returns one fixed
+  // window from the backend. That window lines up with the default filter
+  // below. Because of that, the chart must only use the live API data while
+  // the user is on that default filter; for every other option it needs to
+  // fall back to the range-specific `chartData` (computed per `selectedFilter`
+  // above), otherwise switching filters had no visible effect and looked like
+  // "filter change karne par purana data hi rehta hai".
+  // TODO(backend): once /MemberDashboard/Analytics accepts fromDate/toDate,
+  // refetch on `selectedFilter` change instead of relying on this fallback.
+  const ANALYTICS_DEFAULT_FILTER = '7 Days';
+
   const displayChartData = useMemo(() => {
-    if (analyticsData?.dailyPerformance) {
+    if (selectedFilter === ANALYTICS_DEFAULT_FILTER && analyticsData?.dailyPerformance) {
       return analyticsData.dailyPerformance.map(p => ({
         time: p.date ? new Date(p.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '',
         amount: p.volume || 0,
         baseline: (p.volume || 0) * 0.8
       }));
     }
+    if (selectedFilter === 'Today' && todayChartData) {
+      return todayChartData;
+    }
     return chartData;
-  }, [analyticsData, chartData]);
+  }, [analyticsData, chartData, selectedFilter, todayChartData]);
+
+  useEffect(() => {
+    if (selectedFilter === 'Today' && !todayChartData) {
+      const fetchTodayData = async () => {
+        try {
+          const todayStr = new Date().toISOString().split('T')[0];
+          const res = await API.transaction.getAll({ fromDate: todayStr, toDate: todayStr, pageSize: 500 });
+          let items = [];
+          if (Array.isArray(res?.data?.items)) items = res.data.items;
+          else if (Array.isArray(res?.items)) items = res.items;
+          else if (Array.isArray(res?.data)) items = res.data;
+          
+          const intervals = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'];
+          const grouped = intervals.reduce((acc, time) => { acc[time] = 0; return acc; }, {});
+          
+          items.forEach(txn => {
+            const status = txn.status ? txn.status.toLowerCase() : '';
+            if (status !== 'success' && status !== '1') return;
+            const txnTime = new Date(txn.transferDate || txn.createdDate || txn.createdAt || new Date());
+            const hour = txnTime.getHours();
+            const amount = parseFloat(txn.amount) || 0;
+            
+            if (hour < 10) grouped['08:00'] += amount;
+            else if (hour < 12) grouped['10:00'] += amount;
+            else if (hour < 14) grouped['12:00'] += amount;
+            else if (hour < 16) grouped['14:00'] += amount;
+            else if (hour < 18) grouped['16:00'] += amount;
+            else if (hour < 20) grouped['18:00'] += amount;
+            else if (hour < 22) grouped['20:00'] += amount;
+            else grouped['22:00'] += amount;
+          });
+          
+          const chartDataFormat = intervals.map(time => ({
+            time,
+            amount: grouped[time],
+            baseline: grouped[time] * 0.8
+          }));
+          setTodayChartData(chartDataFormat);
+        } catch (err) {
+          console.error("Failed to fetch today chart data", err);
+        }
+      };
+      fetchTodayData();
+    }
+  }, [selectedFilter, todayChartData]);
 
   const daybookTabs = [
     { name: 'Recharge', icon: <FiSmartphone /> },
