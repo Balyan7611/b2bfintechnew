@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { FaShieldAlt, FaServer, FaCheckCircle, FaExclamationTriangle, FaPaperPlane, FaGlobe, FaNetworkWired, FaHistory, FaTrash, FaToggleOn, FaToggleOff, FaTimes } from 'react-icons/fa';
 import AdminTable from '../../shared/components/common/AdminTable';
 import { API } from '../../api/endpoints';
-import { getSession } from '../../utils/authUtils';
+import { resolveMemberId } from '../../utils/memberIdentity';
 import ApiCredentials from './ApiCredentials';
 import styles from './ApiWhitelisting.module.css';
 
@@ -32,13 +32,33 @@ const ApiWhitelisting = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const session = getSession();
-  const currentUserId = session?.userId || session?.msrno || 2;
+  // Resolved once, asynchronously, via the same fail-closed identity helper
+  // used everywhere else this session. NEVER fall back to a hardcoded id
+  // (this file used to default to account "2" when resolution failed, which
+  // meant an unresolvable session would silently read/write account 2's IP
+  // whitelist instead of failing).
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [identityError, setIdentityError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const id = await resolveMemberId();
+      if (cancelled) return;
+      if (id) {
+        setCurrentUserId(id);
+      } else {
+        setIdentityError('Unable to verify your account. Please sign out and sign in again.');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const fetchIpList = useCallback(async () => {
+    if (!currentUserId) return;
     setLoadingList(true);
     try {
-      const res = await API.ipAuthanticate.getAll({ userId: currentUserId > 0 ? currentUserId : '' });
+      const res = await API.ipAuthanticate.getAll({ userId: currentUserId });
       const data = res?.data?.items || res?.data?.data || res?.data || (Array.isArray(res) ? res : []);
       const rawList = Array.isArray(data) ? data : [];
             const filtered = rawList.filter(item => {
@@ -69,11 +89,16 @@ const ApiWhitelisting = () => {
       return;
     }
 
+    if (!currentUserId) {
+      setErrorMessage(identityError || 'Unable to verify your account. Please sign out and sign in again.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const payload = {
-        userId: Number(currentUserId) || 2,
+        userId: currentUserId,
         ip: inputValue.trim()
       };
 
@@ -108,6 +133,10 @@ const ApiWhitelisting = () => {
       setModalError('Please enter OTP');
       return;
     }
+    if (!currentUserId) {
+      setModalError(identityError || 'Unable to verify your account. Please sign out and sign in again.');
+      return;
+    }
     setModalError('');
     setIsVerifying(true);
 
@@ -116,7 +145,7 @@ const ApiWhitelisting = () => {
         token: otpToken,
         otp: otp.trim(),
         ip: inputValue.trim(),
-        userId: Number(currentUserId) || 2
+        userId: currentUserId
       };
 
       const res = await API.ipAuthanticate.verifyAndWhitelistIp(payload);
@@ -145,14 +174,22 @@ const ApiWhitelisting = () => {
   };
 
   const handleToggleStatus = async (item) => {
+    // Prefer the id already stamped on the row (it's the row's real owner);
+    // only fall back to our own resolved id, and never to a hardcoded value.
+    const ownerMsrno = item.msrno || item.Msrno || currentUserId;
+    const ownerUserId = item.userId || item.UserId || currentUserId;
+    if (!ownerMsrno || !ownerUserId) {
+      alert('Unable to verify your account. Please sign out and sign in again.');
+      return;
+    }
     try {
       const updatedPayload = {
         id: item.id || item.Id,
-        msrno: item.msrno || item.Msrno || Number(currentUserId) || 2,
+        msrno: ownerMsrno,
         ip: item.ip || item.IP,
         token: item.token || item.Token || 'IP_TOKEN',
         isActive: !(item.isActive ?? item.IsActive),
-        userId: item.userId || item.UserId || Number(currentUserId) || 2
+        userId: ownerUserId
       };
       await API.ipAuthanticate.update(updatedPayload);
       await fetchIpList();
@@ -197,6 +234,12 @@ const ApiWhitelisting = () => {
 
   return (
     <div className={styles.container}>
+
+      {identityError && (
+        <div style={{ background: '#FEE2E2', color: '#B91C1C', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid #FCA5A5', fontWeight: 600 }}>
+          <FaExclamationTriangle /> {identityError}
+        </div>
+      )}
 
       <div className={styles.topCards} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
         <div className={styles.configCard} style={{ minWidth: 0 }}>

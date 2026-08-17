@@ -62,7 +62,7 @@ import PrivacyPolicy from '../components/LegalPages/PrivacyPolicy';
 import RefundPolicy from '../components/LegalPages/RefundPolicy';
 import AdminChat from '../components/AdminChat/AdminChat';
 import SecurityTips from '../components/LegalPages/SecurityTips';
-import AEPSReport from '../components/ReportPages/AEPSHistory';
+import AEPSReport from '../components/ReportPages/AEPSReport';
 import MainWallet from '../components/WalletPages/MainWallet';
 import WalletSummary from '../components/WalletPages/WalletSummary';
 import FundTransferReport from '../components/WalletPages/FundTransferReport';
@@ -595,13 +595,10 @@ const DashboardPage = () => {
 
   const chartFilterOptions = ['Today', '7 Days', '1 Month', '3 Months', '6 Months', '1 Year', 'All Time'];
 
-  const serviceHealthData = useMemo(() => {
-    return [];
-  }, [selectedChartFilter]);
-
-  const revenueProfitData = useMemo(() => {
-    return [];
-  }, [selectedChartFilter]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const serviceHealthData = useMemo(() => [], [selectedChartFilter]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const revenueProfitData = useMemo(() => [], [selectedChartFilter]);
 
   const formatYAxis = (value) => {
     if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
@@ -724,10 +721,6 @@ const DashboardPage = () => {
         setShowAdminSearchResults(false);
       }
     };
-
-        if (window.innerWidth <= 1024) {
-      dispatch(setSidebarOpen(false));
-    }
 
     if (isQuickActionsOpen || isMemberDropdownOpen || isChartFilterOpen) {
       document.addEventListener('mousedown', handleClickOutside);
@@ -920,9 +913,9 @@ const DashboardPage = () => {
             {showAdminSearchResults && adminSearchQuery && (
               <div className={styles.adminSearchDropdown}>
                 {filteredAdminSearchItems.length > 0 ? (
-                  filteredAdminSearchItems.map((item, index) => (
-                    <div 
-                      key={index} 
+                  filteredAdminSearchItems.map((item) => (
+                    <div
+                      key={item.path || item.name}
                       className={styles.adminSearchResultItem}
                       onClick={() => {
                         setActiveTab(item.path);
@@ -946,8 +939,8 @@ const DashboardPage = () => {
 
         <div className={styles.headerRight}>
           <div className={`${styles.headerWallets} admin-header-wallets`}>
-            {headerWalletPills.map((pill, idx) => (
-              <div className={styles.walletPill} key={idx}>
+            {headerWalletPills.map((pill) => (
+              <div className={styles.walletPill} key={pill.name}>
                 <span className={styles.walletIconWrap} style={{ color: pill.color, background: pill.bg }}>
                   <FaWallet />
                 </span>
@@ -1039,8 +1032,8 @@ const DashboardPage = () => {
                     </button>
                   </div>
                   <div className={styles.actionGrid}>
-                    {ACTION_ICONS.map((item, i) => (
-                      <button key={i} className={styles.actionGridItem} onClick={() => handleQuickActionClick(item.label)}>
+                    {ACTION_ICONS.map((item) => (
+                      <button key={item.label} className={styles.actionGridItem} onClick={() => handleQuickActionClick(item.label)}>
                         <div className={styles.actionIconContainer} style={{ backgroundColor: item.bg }}>
                           <item.icon className={styles.actionGridIcon} style={{ color: item.color }} />
                         </div>

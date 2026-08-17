@@ -9,7 +9,7 @@ import {
 } from '../../../../store/slices/reportSlice';
 import AdminTable from '../../../../shared/components/common/AdminTable';
 import { API } from '../../../../api/endpoints';
-import { getLoginId } from '../../../../utils/memberIdentity';
+import { getLoginId, isApiPanel } from '../../../../utils/memberIdentity';
 import { resolveReportScopeId } from '../../../../utils/reportScope';
 import { getSession } from '../../../../utils/authUtils';
 import { formatLedgerDate } from '../../../../models/walletLedgerModel';
@@ -52,7 +52,13 @@ const AEPSWalletHistory = () => {
       let myName    = session?.name || session?.fullName || '';
       let myLoginId = getLoginId() || String(queryMemberId || '');
 
-      if (queryMemberId) {
+      // API-panel accounts live in a different table than Members. Even
+      // though queryMemberId is now safely resolved (see resolveReportScopeId),
+      // it can still coincidentally equal an unrelated Member's row id in
+      // that other table — looking it up here would display THAT member's
+      // name on this page instead of the API account's own. So on the API
+      // panel we skip this enrichment call and keep the session's own name.
+      if (!isApiPanel() && queryMemberId) {
         try {
           const res = await API.member.getById(queryMemberId);
           const m = res?.data?.data || res?.data || res || {};

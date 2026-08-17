@@ -53,10 +53,10 @@ const ApiHeader = () => {
   const searchItems = [];
   const filteredSearchItems = [];
 
-  const { 
+  const {
     isDarkMode, user, isProfileDropdownOpen, isMobile, isSidebarOpen,
     isMailOpen, isNotifOpen, unreadMail, unreadNotif,
-    mailList, notifList, apiWallets
+    mailList, notifList
   } = useSelector((state) => state.memberPanel);
 
   const handleFullscreen = () => {

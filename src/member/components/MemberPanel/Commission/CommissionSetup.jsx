@@ -73,7 +73,7 @@ const CommissionSetup = () => {
                   ...services.map(s => ({ label: s.name, value: s.id }))
                 ]}
                 placeholder="Select Service"
-                style={{ height: '40px', minWidth: '220px', borderRadius: '8px' }}
+                style={{ height: '40px', minWidth: '220px', borderRadius: '8px', padding: '0 12px 0 42px' }}
               />
             </div>
             <button className={styles.submitBtn}>

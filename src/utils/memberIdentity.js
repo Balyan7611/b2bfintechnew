@@ -66,7 +66,7 @@ let cachedId = null;
 let cachedForToken = null;
 let inFlight = null;
 
-const isApiPanel = () =>
+export const isApiPanel = () =>
     typeof window !== 'undefined' && window.location.pathname.startsWith('/api-panel');
 
 export const resolveMemberId = async () => {

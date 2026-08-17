@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const storedNotifs = JSON.parse(localStorage.getItem('local_notifications')) || [];
+let storedNotifs = [];
+try { storedNotifs = JSON.parse(localStorage.getItem('local_notifications')) || []; } catch { storedNotifs = []; }
 
 const initialState = {
   isDarkMode: false,

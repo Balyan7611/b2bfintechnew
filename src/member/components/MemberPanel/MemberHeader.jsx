@@ -27,7 +27,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { clearSession, getSession, saveSession } from '../../../utils/authUtils';
-import { resolveMemberId } from '../../../utils/memberIdentity';
+import { resolveMemberId, isApiPanel } from '../../../utils/memberIdentity';
 import { API } from '../../../api/endpoints';
 import { SITE_CONFIG } from '../../../config/siteConfig';
 import { requestForToken, setupForegroundListener } from '../../../firebase';
@@ -101,7 +101,16 @@ const MemberHeader = () => {
     const syncMemberHeaderInfo = async () => {
       const session = getSession();
       if (!session) return;
-      
+
+      // API-panel accounts live in a different table than Members. A numeric
+      // id (or loginId) that belongs to an API account can coincidentally
+      // match an unrelated Member row (different id sequences, same range) —
+      // that's how one API user's header/session got silently overwritten
+      // with another account's ("Vishnu Project") name. So on the API panel
+      // we never look ourselves up in the Member master; the name/loginId
+      // already saved to session at API login time is used as-is.
+      if (isApiPanel()) return;
+
       const targetMsrno = parseInt(session.msrno || session.userId || 0);
       const targetLoginId = String(session.loginId || session.username || '').trim();
       let memberData = null;

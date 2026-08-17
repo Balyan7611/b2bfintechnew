@@ -51,8 +51,8 @@ const BBPSHistory = () => {
       } catch (e) {}
     };
     fetchMasters();
-
-  }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchData = async () => {
     // Fail closed: never query with a blank memberId (that returns every
@@ -84,7 +84,8 @@ const BBPSHistory = () => {
     }
   };
 
-      useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
 
   const filteredList = list.filter(item => item.consumer?.toLowerCase().includes(searchQuery.toLowerCase()) || item.txnId?.toLowerCase().includes(searchQuery.toLowerCase()));
 

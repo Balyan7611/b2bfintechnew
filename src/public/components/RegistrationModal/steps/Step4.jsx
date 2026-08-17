@@ -22,7 +22,7 @@ const Step4 = ({ onComplete }) => {
     };
     const id = requestAnimationFrame(raf);
     return () => cancelAnimationFrame(id);
-  }, []); 
+  }, [onComplete, navigate]);
   return (
     <div className={styles.container}>
             <div className={styles.checkWrap}>

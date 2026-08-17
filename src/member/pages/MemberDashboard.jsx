@@ -142,6 +142,9 @@ const MemberDashboard = () => {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+
+  useEffect(() => {
     const session = getSession();
     if (!session) {
       setUser({ name: 'Member', role: 'Retailer' });
@@ -149,10 +152,10 @@ const MemberDashboard = () => {
       setUser(session);
     }
     dispatch(setSearchTerm(''));
-    
-        const timer = setTimeout(() => setIsLoading(false), 1500);
+    const timer = setTimeout(() => setIsLoading(false), 1500);
     return () => clearTimeout(timer);
-  }, [isDarkMode, dispatch]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch]);
 
   useEffect(() => {
     const fetchAssignedServices = async () => {

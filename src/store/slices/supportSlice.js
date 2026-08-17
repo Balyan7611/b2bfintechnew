@@ -13,11 +13,13 @@ const getFormattedDate = () => {
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
-const savedTickets = localStorage.getItem('bss_tickets');
-const savedMessages = localStorage.getItem('bss_chat_messages');
+let parsedTickets = [];
+let parsedMessages = {};
+try { parsedTickets = JSON.parse(localStorage.getItem('bss_tickets')) || []; } catch { parsedTickets = []; }
+try { parsedMessages = JSON.parse(localStorage.getItem('bss_chat_messages')) || {}; } catch { parsedMessages = {}; }
 
 const initialState = {
-  complainList: savedTickets ? JSON.parse(savedTickets) : [],
+  complainList: parsedTickets,
   currentPage: 1,
   rowsPerPage: 10,
   searchQuery: '',
@@ -30,7 +32,7 @@ const initialState = {
 
     isChatOpen: false,
   activeChatTicket: null,
-  chatMessages: savedMessages ? JSON.parse(savedMessages) : {},
+  chatMessages: parsedMessages,
   chatInput: '',
 };
 

@@ -187,7 +187,7 @@ const EmployeeLoginList = () => {
                   { label: 'Failed', value: 'Failed' }
                 ]}
                 placeholder="All Status"
-                style={{ height: '40px' }}
+                style={{ height: '40px', borderRadius: '8px', fontSize: '0.9rem', background: '#FCFDFE' }}
               />
            </div>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -198,12 +198,12 @@ const EmployeeLoginList = () => {
                 options={[
                   { label: 'All Employees', value: '' },
                   ...membersList.map((m) => ({
-                    label: `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`,
-                    value: m.memberId || m.loginId || m.id || m.msrno
+                    label: `${m.msrno || m.memberId || m.loginId || m.id} - ${m.name || m.userName || ''}`,
+                    value: String(m.msrno || m.memberId || m.loginId || m.id || '')
                   }))
                 ]}
                 placeholder="All Employees"
-                style={{ height: '40px' }}
+                style={{ height: '40px', borderRadius: '8px', fontSize: '0.9rem', background: '#FCFDFE' }}
               />
            </div>
         </div>

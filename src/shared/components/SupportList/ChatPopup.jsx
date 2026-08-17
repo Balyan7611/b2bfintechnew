@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { closeChat, setChatInput } from '../../../store/slices/supportSlice';
 import { FaTimes, FaPaperPlane, FaPaperclip, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
@@ -37,7 +37,7 @@ const ChatPopup = ({ isMember }) => {
     };
   };
 
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     if (!activeChatTicket || !activeChatTicket.ticketId) return;
     try {
       const res = await API.ticketConversation.getByTicketId(activeChatTicket.ticketId);
@@ -51,7 +51,7 @@ const ChatPopup = ({ isMember }) => {
     } catch (err) {
       console.error("Failed to fetch chat messages from DB:", err);
     }
-  };
+  }, [activeChatTicket]);
 
     useEffect(() => {
     if (isChatOpen) {
@@ -72,7 +72,7 @@ const ChatPopup = ({ isMember }) => {
       const interval = setInterval(fetchMessages, 3000);
       return () => clearInterval(interval);
     }
-  }, [isChatOpen, activeChatTicket]);
+  }, [isChatOpen, activeChatTicket, fetchMessages]);
 
     useEffect(() => {
     const handler = (e) => {

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { setMemberType, nextStep } from '../../../../store/slices/registrationSlice';
 import { FaUserTie, FaChevronDown, FaCheck, FaArrowRight } from 'react-icons/fa';
 import styles from './Step1.module.css';
@@ -8,6 +9,7 @@ const OPTIONS = [{ value: 'Retailer', label: 'Retailer', Icon: FaUserTie }];
 
 const Step1 = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const memberType = useSelector((s) => s.registration.memberType);
   const [open, setOpen] = useState(false);
 
@@ -61,12 +63,10 @@ const Step1 = () => {
 
       <div className={styles.loginLinkRow}>
         <span>Already have an account?</span>
-        <button 
-          type="button" 
-          className={styles.loginLink} 
-          onClick={() => {
-                                                window.location.href = '/login';
-          }}
+        <button
+          type="button"
+          className={styles.loginLink}
+          onClick={() => navigate('/login')}
         >
           Login
         </button>

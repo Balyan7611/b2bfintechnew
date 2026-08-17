@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { FaSearch, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, FaPrint, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import styles from './DynamicTable.module.css';
 
@@ -11,6 +11,7 @@ const DynamicTable = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const tableRef = useRef(null);
 
     const filteredData = useMemo(() => {
     if (!searchQuery) return data;
@@ -27,6 +28,60 @@ const DynamicTable = ({
     const start = (currentPage - 1) * rowsPerPage;
     return filteredData.slice(start, start + rowsPerPage);
   }, [filteredData, currentPage, rowsPerPage]);
+
+  const getHeaders = () =>
+    columns.filter(col => col.accessor).map(col => col.header);
+
+  const getPlainRows = () =>
+    filteredData.map(row =>
+      columns.filter(col => col.accessor).map(col => String(row[col.accessor] ?? ''))
+    );
+
+  const handleCopy = () => {
+    const headers = getHeaders().join('\t');
+    const rows = getPlainRows().map(r => r.join('\t')).join('\n');
+    navigator.clipboard.writeText(`${headers}\n${rows}`).catch(() => {});
+  };
+
+  const handleCSV = () => {
+    const headers = getHeaders().join(',');
+    const rows = getPlainRows()
+      .map(r => r.map(v => `"${v.replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob([`${headers}\n${rows}`], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExcel = () => {
+    const headers = getHeaders().join('\t');
+    const rows = getPlainRows().map(r => r.join('\t')).join('\n');
+    const blob = new Blob([`${headers}\n${rows}`], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrint = () => {
+    const headers = getHeaders().map(h => `<th>${h}</th>`).join('');
+    const rows = getPlainRows()
+      .map(r => `<tr>${r.map(v => `<td>${v}</td>`).join('')}</tr>`)
+      .join('');
+    const win = window.open('', '_blank');
+    if (!win) return;
+    win.document.write(`<html><head><title>${title}</title><style>table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:6px 10px;font-size:13px}th{background:#f1f5f9}</style></head><body><h3>${title}</h3><table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table></body></html>`);
+    win.document.close();
+    win.focus();
+    win.print();
+    win.close();
+  };
 
   const handlePrevPage = () => {
     if (currentPage > 1) setCurrentPage(prev => prev - 1);
@@ -62,11 +117,11 @@ const DynamicTable = ({
         </div>
 
         <div className={styles.exportButtons}>
-          <button className={`${styles.btnExport} ${styles.btnCopy}`} title="Copy"><FaCopy /></button>
-          <button className={`${styles.btnExport} ${styles.btnExcel}`} title="Excel"><FaFileExcel /></button>
-          <button className={`${styles.btnExport} ${styles.btnPdf}`} title="PDF"><FaFilePdf /></button>
-          <button className={`${styles.btnExport} ${styles.btnCsv}`} title="CSV"><FaFileCsv /></button>
-          <button className={`${styles.btnExport} ${styles.btnPrint}`} title="Print"><FaPrint /></button>
+          <button className={`${styles.btnExport} ${styles.btnCopy}`} title="Copy" onClick={handleCopy}><FaCopy /></button>
+          <button className={`${styles.btnExport} ${styles.btnExcel}`} title="Excel" onClick={handleExcel}><FaFileExcel /></button>
+          <button className={`${styles.btnExport} ${styles.btnPdf}`} title="Print as PDF" onClick={handlePrint}><FaFilePdf /></button>
+          <button className={`${styles.btnExport} ${styles.btnCsv}`} title="CSV" onClick={handleCSV}><FaFileCsv /></button>
+          <button className={`${styles.btnExport} ${styles.btnPrint}`} title="Print" onClick={handlePrint}><FaPrint /></button>
         </div>
 
         <div className={styles.searchBox}>

@@ -12,11 +12,17 @@ const Step2 = () => {
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
   const [copied, setCopied] = useState(false);
-  const refs = [useRef(), useRef(), useRef(), useRef()];
+  const ref0 = useRef(null);
+  const ref1 = useRef(null);
+  const ref2 = useRef(null);
+  const ref3 = useRef(null);
+  const refs = [ref0, ref1, ref2, ref3];
 
   useEffect(() => {
     if (isOtpSent && refs[0].current) refs[0].current.focus();
-  }, [isOtpSent]); 
+  // refs array is stable (same ref objects every render)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOtpSent]);
   useEffect(() => {
     if (success) {
       dispatch(setOtpVerified());

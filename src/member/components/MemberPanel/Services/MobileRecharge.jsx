@@ -230,10 +230,10 @@ const MobileRecharge = () => {
             </div>
 
             <div className={styles.actionRow}>
-              <button className={styles.linkBtn}>
+              <button type="button" className={styles.linkBtn}>
                 <MdFlashOn /> Latest Offers
               </button>
-              <button className={styles.linkBtn}>
+              <button type="button" className={styles.linkBtn}>
                 <MdInfoOutline /> View History
               </button>
             </div>

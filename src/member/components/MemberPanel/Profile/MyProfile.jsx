@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fa';
 import { setNotification } from '../../../../store/slices/uiSlice';
 import { getSession, saveSession } from '../../../../utils/authUtils';
-import { resolveMemberId, getLoginId } from '../../../../utils/memberIdentity';
+import { resolveMemberId, getLoginId, isApiPanel } from '../../../../utils/memberIdentity';
 import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 import { API } from '../../../../api/endpoints';
 import { SITE_CONFIG } from '../../../../config/siteConfig';
@@ -119,7 +119,15 @@ const MyProfile = () => {
 
       let fetchedMember = null;
 
-            if (targetMsrno > 0 && API.member?.getById) {
+      // API-panel accounts live in a different table than Members. A numeric
+      // id belonging to an API account can coincidentally be a real Member's
+      // id in that other table (separate id sequences, same range) — that's
+      // how this profile page could show ("Vishnu Project") a different
+      // account's details for an API user. This page is reused by both
+      // panels (see App.jsx `/api-panel/dashboard/profile`), so on the API
+      // panel we skip the Member-master lookup entirely and just use what's
+      // already in session (set correctly at API login).
+      if (!isApiPanel() && targetMsrno > 0 && API.member?.getById) {
         try {
           const res = await API.member.getById(targetMsrno);
           const candidate = res?.data?.data || res?.data || res;
@@ -132,7 +140,7 @@ const MyProfile = () => {
         } catch (_) {}
       }
 
-            if (!fetchedMember && targetLoginId && API.member?.getAll) {
+      if (!isApiPanel() && !fetchedMember && targetLoginId && API.member?.getAll) {
         try {
           const allRes = await API.member.getAll({ search: targetLoginId });
           const items = allRes?.data?.items || allRes?.data?.data || allRes?.data || (Array.isArray(allRes) ? allRes : []);
@@ -252,9 +260,13 @@ const MyProfile = () => {
   };
 
     const handleSaveProfile = async () => {
-    const memberId = formData.id || sessionUser?.msrno;
+    // Resolve through the same safe/fail-closed path used everywhere else —
+    // `formData.id || sessionUser?.msrno` could be an API account's generic
+    // numeric id, which can coincidentally match an unrelated Member's row.
+    // Writing with that id would silently edit the WRONG account's profile.
+    const memberId = await resolveMemberId();
     if (!memberId) {
-      dispatch(setNotification({ type: 'error', message: 'Unable to identify member ID' }));
+      dispatch(setNotification({ type: 'error', message: 'Unable to verify your account. Please sign out and sign in again.' }));
       return;
     }
 
@@ -310,7 +322,14 @@ const MyProfile = () => {
 
     setIsUpdatingPassword(true);
     try {
-      const memberId = formData.id || sessionUser?.msrno;
+      // Fail closed rather than trust formData.id/session.msrno directly —
+      // see handleSaveProfile for why that pair is unsafe for API accounts.
+      const memberId = await resolveMemberId();
+      if (!memberId) {
+        dispatch(setNotification({ type: 'error', message: 'Unable to verify your account. Please sign out and sign in again.' }));
+        setIsUpdatingPassword(false);
+        return;
+      }
       if (API.member?.changePassword) {
         const res = await API.member.changePassword({
           memberId: parseInt(memberId),
@@ -349,7 +368,14 @@ const MyProfile = () => {
 
     setIsUpdatingPin(true);
     try {
-      const memberId = formData.id || sessionUser?.msrno;
+      // Fail closed rather than trust formData.id/session.msrno directly —
+      // see handleSaveProfile for why that pair is unsafe for API accounts.
+      const memberId = await resolveMemberId();
+      if (!memberId) {
+        dispatch(setNotification({ type: 'error', message: 'Unable to verify your account. Please sign out and sign in again.' }));
+        setIsUpdatingPin(false);
+        return;
+      }
       if (API.member?.changePin) {
         const res = await API.member.changePin({
           memberId: parseInt(memberId),

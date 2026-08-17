@@ -179,8 +179,8 @@ httpClient.interceptors.response.use((response) => {
         const isAuthRequest = error.config?.url && (error.config.url.includes('/login') || error.config.url.includes('/register') || error.config.url.includes('/forgot') || error.config.url.includes('/otp'));
         const isLoginPath = window.location.pathname.includes('/login');
         
-        const isDashboardPath = window.location.pathname.startsWith('/member/dashboard') || window.location.pathname.startsWith('/admin/dashboard');
-        
+        const isDashboardPath = window.location.pathname.startsWith('/member/dashboard') || window.location.pathname.startsWith('/admin/dashboard') || window.location.pathname.startsWith('/api-panel/dashboard');
+
         const isPublicOrBgUrl = error.config?.url && (error.config.url.includes('/Company') || error.config.url.includes('/UserLoginHistory'));
         const shouldSkipLogout = isPublicOrBgUrl || error.config?.ignoreError || error.config?.hideLoader;
 
@@ -188,9 +188,10 @@ httpClient.interceptors.response.use((response) => {
             const hasAdminToken = localStorage.getItem('admin_token') || sessionStorage.getItem('admin_token');
             const hasAccessToken = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
             const isAdmin = window.location.pathname.startsWith('/admin');
-            
+            const isApiPanel = window.location.pathname.startsWith('/api-panel');
+
                         const isMockToken = hasAccessToken && (
-                !String(hasAccessToken).includes('.') || 
+                !String(hasAccessToken).includes('.') ||
                 String(hasAccessToken).includes('mock_signature')
             );
             if (isMockToken && !isAdmin) {
@@ -202,11 +203,16 @@ httpClient.interceptors.response.use((response) => {
 
             localStorage.removeItem('admin_token');
             localStorage.removeItem('access_token');
+            localStorage.removeItem('api_token');
+            localStorage.removeItem('member_token');
+            localStorage.removeItem('bss_current_session');
+            localStorage.removeItem('bss_admin_session');
+            localStorage.removeItem('bss_api_session');
             sessionStorage.removeItem('admin_token');
             sessionStorage.removeItem('access_token');
-            localStorage.removeItem('bss_current_session');
-            
-            window.location.href = isAdmin ? '/admin/login' : '/member/login';
+            sessionStorage.removeItem('api_token');
+
+            window.location.href = isAdmin ? '/admin/login' : isApiPanel ? '/api-panel/login' : '/member/login';
             
             return Promise.reject(error);
         }

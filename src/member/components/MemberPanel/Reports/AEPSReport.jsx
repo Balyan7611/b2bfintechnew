@@ -19,6 +19,7 @@ import styles from './AEPSReport.module.css';
 import { API } from '../../../../api/endpoints';
 import { normalizeTxnResponse } from '../../../../services/transaction.service';
 import { resolveReportScopeId } from '../../../../utils/reportScope';
+import { isApiPanel } from '../../../../utils/memberIdentity';
 import { getSession } from '../../../../utils/authUtils';
 
 const AEPSReport = () => {
@@ -115,24 +116,30 @@ const AEPSReport = () => {
       
             const uniqueMsrnos = [...new Set(rawData.map(i => i.memberId || i.msrNo || memberMsrNo).filter(Boolean))];
       const memberMap = {};
-      
-      await Promise.allSettled(
-        uniqueMsrnos.map(async (msrno) => {
-          try {
-            const res = await API.member.getById(msrno);
-            const m = res?.data?.data || res?.data || res || {};
-            
-            const name = m.name || m.fullName || m.memberName || m.ownerName || m.firstName || m.firmName || '';
-            const loginId = m.memberID || m.memberid || m.loginID || m.loginId || m.username || String(msrno);
-            
-            if (name || loginId) {
-              memberMap[String(msrno)] = { name, loginId };
+
+      // Upline/downline commission hierarchy is a Member-panel concept; API
+      // accounts aren't in the Member table, and any generic numeric id from
+      // their rows can coincidentally match an unrelated Member — so skip
+      // this name-enrichment lookup entirely on the API panel.
+      if (!isApiPanel()) {
+        await Promise.allSettled(
+          uniqueMsrnos.map(async (msrno) => {
+            try {
+              const res = await API.member.getById(msrno);
+              const m = res?.data?.data || res?.data || res || {};
+
+              const name = m.name || m.fullName || m.memberName || m.ownerName || m.firstName || m.firmName || '';
+              const loginId = m.memberID || m.memberid || m.loginID || m.loginId || m.username || String(msrno);
+
+              if (name || loginId) {
+                memberMap[String(msrno)] = { name, loginId };
+              }
+            } catch (err) {
+              console.error(`Failed to fetch member details for msrno ${msrno}`, err);
             }
-          } catch (err) {
-            console.error(`Failed to fetch member details for msrno ${msrno}`, err);
-          }
-        })
-      );
+          })
+        );
+      }
 
       const mappedList = rawData.map((item, idx) => {
         const msrno = String(item.memberId || item.msrNo || memberMsrNo);

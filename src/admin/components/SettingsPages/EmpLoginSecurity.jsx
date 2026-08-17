@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FiSearch, FiEdit, FiTrash2, FiPlus, FiChevronLeft, FiChevronRight, FiDatabase, FiX, FiCheck, FiShield, FiLock, FiMonitor, FiMapPin, FiRefreshCw
@@ -70,21 +71,19 @@ const EmpLoginSecurity = () => {
            </div>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px' }}>
               <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1E293B' }}>Employee</label>
-              <select 
+              <SearchableSelect 
                 value={selectedEmployee} 
-                onChange={(e) => setSelectedEmployee(e.target.value)} 
-                style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #E2E8F0', outline: 'none', background: '#fff', fontSize: '0.95rem', color: '#1E293B', fontWeight: 600 }}
-              >
-                 <option value="">-- Select Employee --</option>
-                 {membersList.map((m) => {
-                   const label = `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`;
-                   return (
-                     <option key={m.id || m.msrno} value={m.memberId || m.loginId || m.id || m.msrno}>
-                       {label}
-                     </option>
-                   );
-                 })}
-              </select>
+                onChange={(val) => setSelectedEmployee(val || '')} 
+                style={{ height: '42px', borderRadius: '8px', fontSize: '0.95rem', background: '#fff' }}
+                options={[
+                  { label: '-- Select Employee --', value: '' },
+                  ...membersList.map((m) => ({
+                    label: `${m.msrno || m.memberId || m.loginId || m.id} - ${m.name || m.userName || ''}`,
+                    value: String(m.msrno || m.memberId || m.loginId || m.id || '')
+                  }))
+                ]}
+                placeholder="-- Select Employee --"
+              />
            </div>
            <div>
               <button 

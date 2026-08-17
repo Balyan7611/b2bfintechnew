@@ -463,8 +463,15 @@
     color: #64748b;
     font-size: 1.2rem;
     cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
   }
-  
+
+  .closeSidebarBtn:hover {
+    background: #e2e8f0;
+    color: #1756AA;
+  }
+
   .mobileOpen {
     left: 0 !important;
   }

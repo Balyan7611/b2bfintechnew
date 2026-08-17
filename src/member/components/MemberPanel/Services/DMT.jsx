@@ -102,8 +102,12 @@ const DMT = () => {
   const [chunkReceiptData, setChunkReceiptData] = useState(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('dmt_beneficiaries');
-    setBeneficiaries(saved ? JSON.parse(saved) : DEFAULT_BENEFICIARIES);
+    try {
+      const saved = localStorage.getItem('dmt_beneficiaries');
+      setBeneficiaries(saved ? JSON.parse(saved) : DEFAULT_BENEFICIARIES);
+    } catch {
+      setBeneficiaries(DEFAULT_BENEFICIARIES);
+    }
   }, []);
 
   const toastTimerRef = useRef(null);
@@ -246,11 +250,11 @@ const DMT = () => {
       showToast('Chunk processed successfully!', 'success');
       setShowModal(null);
       setActiveChunkId(null);
-            if (updatedChunks.every(c => c.status === 'completed')) {
-                handleFinalSubmit(updatedChunks);
+      if (updatedChunks.every(c => c.status === 'completed')) {
+        handleFinalSubmit(updatedChunks);
       }
     }, 1500);
-  }, [chunkOtp, activeChunkId, transferChunks, showToast]);
+  }, [chunkOtp, activeChunkId, transferChunks, showToast, handleFinalSubmit]);
 
   const handleFinalSubmit = useCallback((completedChunks) => {
         if (!completedChunks) {
@@ -511,6 +515,10 @@ const DMT = () => {
       </html>
     `;
 
+    if (!printWindow) {
+      showToast('Popup blocked — please allow popups for printing', 'error');
+      return;
+    }
     printWindow.document.write(printHtml);
     printWindow.document.close();
     printWindow.focus();

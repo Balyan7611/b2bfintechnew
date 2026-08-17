@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { setNotification } from '../../../../store/slices/uiSlice';
 import { FiSearch, FiChevronRight, FiSmartphone, FiX, FiAlertCircle } from 'react-icons/fi';
 import styles from './MobilePostpaid.module.css';
 import ServiceQuickNav from './ServiceQuickNav';
 
 const MobilePostpaid = () => {
+  const dispatch = useDispatch();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [mobileNumber, setMobileNumber] = useState('');
@@ -66,7 +69,7 @@ const MobilePostpaid = () => {
       setError('Please Enter Valid Mobile Number : (Min. 10 to Max. 10)');
     } else {
       setError('');
-      alert(`Proceeding for ${selectedProvider.name} with number ${mobileNumber}`);
+      dispatch(setNotification({ type: 'info', message: `Proceeding for ${selectedProvider.name} with number ${mobileNumber}` }));
     }
   };
 
