@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fa';
 import { FiDatabase, FiMoreVertical } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { API } from '../../../api/endpoints';
 import styles from './CompanyBank.module.css';
 
@@ -153,32 +154,45 @@ const CompanyBank = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const formData = new FormData();
-      formData.append('id', formState.id);
-      formData.append('msrno', formState.msrno);
-      formData.append('bankid', formState.bankid);
-      formData.append('companyMemberId', formState.companyMemberId);
-      formData.append('bankName', formState.bankName);
-      formData.append('branchName', formState.branchName);
-      formData.append('accountHolderName', formState.accountHolderName);
-      formData.append('accountNumber', formState.accountNumber);
-      formData.append('ifsccode', formState.ifsccode);
-      formData.append('billinginfo', formState.billinginfo);
-      formData.append('cashdepositecharge', formState.cashdepositecharge);
-      formData.append('isActive', formState.isActive);
-      formData.append('isDelete', false);
+      // The backend's Update/Create endpoints only bind multipart/form-data
+      // when a file is actually attached; a text-only multipart body against
+      // a JSON-only [FromBody] action gets rejected with 415 Unsupported
+      // Media Type. So only build FormData when a logo file was picked —
+      // otherwise send a plain JSON payload like every other page here does.
+      const hasFile = !!(qrLogoFile || bankLogoFile);
+      let payload;
 
-      if (qrLogoFile) {
-        formData.append('QrlogoFile', qrLogoFile);
-      }
-      if (bankLogoFile) {
-        formData.append('BanklogoFile', bankLogoFile);
+      if (hasFile) {
+        const formData = new FormData();
+        formData.append('id', formState.id);
+        formData.append('msrno', formState.msrno);
+        formData.append('bankid', formState.bankid);
+        formData.append('companyMemberId', formState.companyMemberId);
+        formData.append('bankName', formState.bankName);
+        formData.append('branchName', formState.branchName);
+        formData.append('accountHolderName', formState.accountHolderName);
+        formData.append('accountNumber', formState.accountNumber);
+        formData.append('ifsccode', formState.ifsccode);
+        formData.append('billinginfo', formState.billinginfo);
+        formData.append('cashdepositecharge', formState.cashdepositecharge);
+        formData.append('isActive', formState.isActive);
+        formData.append('isDelete', false);
+
+        if (qrLogoFile) {
+          formData.append('QrlogoFile', qrLogoFile);
+        }
+        if (bankLogoFile) {
+          formData.append('BanklogoFile', bankLogoFile);
+        }
+        payload = formData;
+      } else {
+        payload = { ...formState, isDelete: false };
       }
 
       if (isEditing) {
-        await API.companyBankDetail.update(formData);
+        await API.companyBankDetail.update(payload);
       } else {
-        await API.companyBankDetail.create(formData);
+        await API.companyBankDetail.create(payload);
       }
       setShowModal(false);
       fetchData();
@@ -257,27 +271,34 @@ const CompanyBank = () => {
                 </div>
                 <div className={styles.formGroup}>
                   <label>Bank Name</label>
-                  <select 
-                    name="bankid"
-                    className={styles.inputControl} 
+                  <SearchableSelect
                     value={formState.bankid}
-                    onChange={(e) => {
-                      const bid = parseInt(e.target.value);
-                      const selected = bankMasterList.find(b => b.id === bid);
-                      setFormState(prev => ({ 
-                        ...prev, 
-                        bankid: bid, 
+                    onChange={(bid) => {
+                      const selected = bankMasterList.find(b => Number(b.id) === Number(bid));
+                      setFormState(prev => ({
+                        ...prev,
+                        bankid: bid,
                         bankName: selected ? selected.bankName || selected.name : '',
                         ifsccode: selected ? selected.ifscCode || '' : ''
                       }));
                     }}
+                    options={[
+                      // When editing a record whose bankid doesn't match anything
+                      // in bankMasterList (id type mismatch, or the bank was
+                      // removed from master list since), the dropdown would
+                      // otherwise fall back to the blank placeholder and hide
+                      // the bank name that's actually saved on this record —
+                      // even though formState.bankName still holds the real
+                      // value underneath. Inject it as its own option so it
+                      // stays visible and selected instead of disappearing.
+                      ...(formState.bankName && !bankMasterList.some(b => Number(b.id) === Number(formState.bankid))
+                        ? [{ value: formState.bankid, label: formState.bankName }]
+                        : []),
+                      ...bankMasterList.map(b => ({ value: b.id, label: b.bankName || b.name }))
+                    ]}
+                    placeholder="Select Bank Name"
                     required
-                  >
-                    <option value="">Select Bank Name</option>
-                    {bankMasterList.map(b => (
-                      <option key={b.id} value={b.id}>{b.bankName || b.name}</option>
-                    ))}
-                  </select>
+                  />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Account Holder</label>
@@ -478,8 +499,8 @@ const CompanyBank = () => {
             <span>Show</span>
             <select 
               className={styles.selectInput}
-              value={rowsPerPage} 
-              onChange={(e) => setRowsPerPage(Number(e.target.value))}
+              value={rowsPerPage}
+              onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
             >
               <option value={10}>10</option>
               <option value={25}>25</option>
@@ -504,7 +525,7 @@ const CompanyBank = () => {
               placeholder="Search Bank or Account..." 
               className={styles.searchInput}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             />
           </div>
         </div>
@@ -515,6 +536,7 @@ const CompanyBank = () => {
               <tr>
                 <th>S.No</th>
                 <th style={{ width: '120px', textAlign: 'center' }}>Action</th>
+                <th>Status</th>
                 <th>Bank Name</th>
                 <th>Branch Name</th>
                 <th>Account Holder</th>
@@ -529,7 +551,7 @@ const CompanyBank = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="12" style={{ textAlign: 'center', padding: '20px', color: '#64748B', fontWeight: 600 }}>Loading company banks...</td>
+                  <td colSpan="13" style={{ textAlign: 'center', padding: '20px', color: '#64748B', fontWeight: 600 }}>Loading company banks...</td>
                 </tr>
               ) : currentData.length > 0 ? (
                 currentData.map((row, index) => (
@@ -574,6 +596,22 @@ const CompanyBank = () => {
                           Action <FiMoreVertical style={{ marginRight: '-4px' }} />
                         </button>
                       </div>
+                    </td>
+                    <td>
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '2px 9px',
+                        borderRadius: '20px',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.3px',
+                        background: row.isActive ? '#DCFCE7' : '#FEE2E2',
+                        color: row.isActive ? '#15803D' : '#991B1B',
+                        border: row.isActive ? '1px solid #86EFAC' : '1px solid #FCA5A5',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {row.isActive ? 'Active' : 'Deactive'}
+                      </span>
                     </td>
                     <td className={styles.fwBold}>{row.bankName}</td>
                     <td>{row.branchName}</td>
@@ -622,7 +660,7 @@ const CompanyBank = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="12" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
+                  <td colSpan="13" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
                     <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No data available in table</span>
                   </td>
                 </tr>
@@ -631,38 +669,51 @@ const CompanyBank = () => {
           </table>
         </div>
 
-                <div className={styles.paginationRow}>
-          <div className={styles.pageInfo}>
-            Showing {filteredData.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, filteredData.length)} of {filteredData.length} entries
-          </div>
-          <div className={styles.pagination}>
-            <button 
-              className={styles.pageBtn} 
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              <FaChevronLeft />
-            </button>
-            
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(num => (
-              <button 
-                key={num}
-                className={`${styles.pageBtn} ${currentPage === num ? styles.pageActive : ''}`}
-                onClick={() => setCurrentPage(num)}
-              >
-                {num}
-              </button>
-            ))}
-
-            <button 
-              className={styles.pageBtn} 
-              disabled={currentPage === totalPages || totalPages === 0}
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              <FaChevronRight />
-            </button>
-          </div>
-        </div>
+                {/* PAGINATION — same "global-page-btn" style/markup used on
+            AEPS History and every other report page, so this page's
+            pagination looks and behaves identically to the rest of the app. */}
+        {(() => {
+          const tp = totalPages || 1;
+          const delta = 2;
+          const left = currentPage - delta;
+          const right = currentPage + delta;
+          const pages = [];
+          let prev = null;
+          for (let i = 1; i <= tp; i++) {
+            if (i === 1 || i === tp || (i >= left && i <= right)) {
+              if (prev !== null && i - prev > 1) pages.push('...');
+              pages.push(i);
+              prev = i;
+            }
+          }
+          return (
+            <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ fontSize: '0.82rem', color: '#718096', fontWeight: 600 }}>
+                Showing {filteredData.length === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + rowsPerPage, filteredData.length)} of <strong>{filteredData.length}</strong> records &nbsp;|&nbsp; Page {currentPage} of {tp}
+              </div>
+              <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button className="global-page-btn" onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} disabled={currentPage === 1}><FaChevronLeft /></button>
+                {pages.map((pg, i) =>
+                  pg === '...'
+                    ? <span key={`dot-${i}`} style={{ padding: '0 4px', color: '#94a3b8', fontSize: '0.85rem', lineHeight: '36px' }}>…</span>
+                    : <button
+                        key={pg}
+                        onClick={() => setCurrentPage(pg)}
+                        style={{
+                          minWidth: 36, height: 36, borderRadius: 8, border: '1.5px solid',
+                          borderColor: pg === currentPage ? '#1756AA' : '#e2e8f0',
+                          background: pg === currentPage ? '#1756AA' : '#fff',
+                          color: pg === currentPage ? '#fff' : '#475569',
+                          fontWeight: pg === currentPage ? 800 : 500,
+                          fontSize: '0.82rem', cursor: 'pointer',
+                        }}
+                      >{pg}</button>
+                )}
+                <button className="global-page-btn" onClick={() => setCurrentPage(p => Math.min(p + 1, tp))} disabled={currentPage >= tp}><FaChevronRight /></button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
             {activeActionRow.row && (

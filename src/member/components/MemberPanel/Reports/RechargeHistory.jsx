@@ -15,7 +15,7 @@ import ReceiptModal from '../../../../shared/components/common/ReceiptModal';
 import StatsGrid from '../../../../shared/components/common/StatsGrid';
 import { FiBarChart2 } from 'react-icons/fi';
 import styles from './AEPSReport.module.css';
-import { FiFilter, FiSearch, FiDatabase } from 'react-icons/fi';
+import { FiFilter, FiSearch, FiDatabase, FiRefreshCw } from 'react-icons/fi';
 import { API } from '../../../../api/endpoints';
 import { normalizeTxnResponse } from '../../../../services/transaction.service';
 import { resolveReportScopeId } from '../../../../utils/reportScope';
@@ -144,8 +144,22 @@ const RechargeHistory = () => {
                   style={{ height: '42px', minWidth: '150px' }}
                 />
               </div>
-              <div className={styles.formGroup} style={{ flex: '0 0 auto', alignSelf: 'flex-end' }}>
-                <button className={styles.submitBtn} onClick={fetchData}>Apply Filters</button>
+              <div className={styles.formGroup} style={{ flex: '0 0 auto', alignSelf: 'flex-end', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
+                <button className={styles.submitBtn} onClick={fetchData}>Apply</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const today = new Date().toISOString().split('T')[0];
+                    dispatch(updateRechargeFilters({ fromDate: today, toDate: today, status: '' }));
+                    dispatch(setRechargeSearchQuery(''));
+                    dispatch(setRechargeCurrentPage(1));
+                  }}
+                  style={{ background: '#fff', color: '#475569', border: '1.5px solid #CBD5E1', borderRadius: '10px', height: '42px', padding: '0 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.color = '#1756AA'; e.currentTarget.style.background = '#F8FAFC'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; e.currentTarget.style.background = '#fff'; }}
+                >
+                  <FiRefreshCw size={14} /> Reset
+                </button>
               </div>
             </div>
           </div>
@@ -221,7 +235,7 @@ const RechargeHistory = () => {
         searchQuery={searchQuery}
         onSearchChange={(val) => dispatch(setRechargeSearchQuery(val))}
         rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={(val) => dispatch(setRechargeRowsPerPage(val))}
+        onRowsPerPageChange={(val) => { dispatch(setRechargeRowsPerPage(val)); dispatch(setRechargeCurrentPage(1)); }}
         currentPage={currentPage}
         onPageChange={(val) => dispatch(setRechargeCurrentPage(val))}
         totalEntries={filteredList.length}

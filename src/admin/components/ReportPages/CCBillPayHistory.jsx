@@ -2,9 +2,9 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { API } from '../../../api/endpoints';
 import { 
-  FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo, 
+  FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo,
   FiActivity, FiDatabase, FiAlertCircle, FiXCircle, FiActivity as FiSignal,
-  FiUser, FiSmartphone, FiCpu, FiTrendingUp, FiShield, FiBarChart2
+  FiUser, FiSmartphone, FiCpu, FiTrendingUp, FiShield, FiBarChart2, FiRefreshCw
 } from 'react-icons/fi';
 import { 
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint
@@ -392,15 +392,20 @@ const CCBillPayHistory = () => {
                 />
               </div>
             </div>
-            <div className={styles.formGroup}>
-              <button 
-                type="submit" 
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
+              <button
+                type="submit"
                 style={{
                   background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '10px',
                   height: '38px',
+                  width: '140px',
+                  boxSizing: 'border-box',
+                  flexShrink: 0,
                   fontSize: '0.825rem',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -410,7 +415,6 @@ const CCBillPayHistory = () => {
                   justifyContent: 'center',
                   gap: '6px',
                   transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                  width: '100%',
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}
@@ -426,9 +430,48 @@ const CCBillPayHistory = () => {
                 }}
               >
                 <FiSearch size={15} />
-                {isLoading ? 'Loading…' : 'Search'}
+                Search
               </button>
-            </div>
+              <button
+                type="button"
+                title="Reset Filters"
+                onClick={() => {
+                  setFromDate(today);
+                  setToDate(today);
+                  setSelectedMember('');
+                  setSelectedService('');
+                  setSelectedOperator('');
+                  setSelectedApi('');
+                  setSearchKeyword('');
+                  setPageNumber(1);
+                }}
+                style={{
+                  background: '#fff',
+                  color: '#475569',
+                  border: '1.5px solid #CBD5E1',
+                  borderRadius: '10px',
+                  height: '38px',
+                  width: '120px',
+                  boxSizing: 'border-box',
+                  flexShrink: 0,
+                  fontSize: '0.825rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s',
+                  padding: '0 16px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.color = '#1756AA'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
+              >
+                <FiRefreshCw size={14} />
+                Reset
+              </button>
           </div>
         </form>
       </div>

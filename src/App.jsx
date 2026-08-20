@@ -629,10 +629,10 @@ function App() {
             <Route path="whitelist" element={<ApiWhitelisting />} />
             <Route path="webhook" element={<WebhookCallbacks />} />
             <Route path="profile" element={<MyProfile />} />
-            {/* Onboarding only — Upload KYC is member-panel only. Old /kyc and
-                /kyc/upload links redirect so nothing 404s. */}
-            <Route path="kyc" element={<Navigate to="/api-panel/dashboard/kyc/onboarding" replace />} />
-            <Route path="kyc/upload" element={<Navigate to="/api-panel/dashboard/kyc/onboarding" replace />} />
+            {/* Same Upload KYC component as the member panel — backend scopes
+                rows by the JWT/scope id, so no per-panel data wiring is needed. */}
+            <Route path="kyc" element={<Navigate to="/api-panel/dashboard/kyc/upload" replace />} />
+            <Route path="kyc/upload" element={<UploadKYC />} />
             <Route path="kyc/onboarding" element={<MemberOnboardingWizard />} />
             
             {/* Logs Routes */}

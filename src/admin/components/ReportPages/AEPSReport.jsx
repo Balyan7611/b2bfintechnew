@@ -176,7 +176,7 @@ const AEPSReport = () => {
         searchQuery={searchQuery}
         onSearchChange={(val) => dispatch(setAEPSSearchQuery(val))}
         rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={(val) => dispatch(setAEPSRowsPerPage(val))}
+        onRowsPerPageChange={(val) => { dispatch(setAEPSRowsPerPage(val)); dispatch(setAEPSCurrentPage(1)); }}
         currentPage={currentPage}
         onPageChange={(val) => dispatch(setAEPSCurrentPage(val))}
         totalEntries={totalEntries}

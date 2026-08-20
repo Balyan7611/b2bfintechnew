@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { closeChat, setChatInput } from '../../../store/slices/supportSlice';
+import { setNotification } from '../../../store/slices/uiSlice';
 import { FaTimes, FaPaperPlane, FaPaperclip, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import styles from './ChatPopup.module.css';
 import { API } from '../../../api/endpoints';
@@ -95,20 +96,39 @@ const ChatPopup = ({ isMember }) => {
       
       if (!isMember) {
         try {
+          // Send the FULL ticket record back, not just the changed fields —
+          // if the backend does a full-record update/validate on this
+          // endpoint, omitting fields like ContactNumber/TransactionId/
+          // AttachmentPath/ApiRequestPayload/ApiResponsePayload can make it
+          // silently reject or reset the row, which is why AdminReply was
+          // never actually persisting even though the chat bubble sent fine
+          // (that goes through a separate ticketConversation endpoint).
           const formData = new FormData();
           formData.append('Id', activeChatTicket.id);
           formData.append('TicketId', activeChatTicket.ticketId);
           formData.append('MemberId', activeChatTicket.memberId || '');
           formData.append('MemberName', activeChatTicket.memberName || '');
+          formData.append('ContactNumber', activeChatTicket.contactNumber || '');
           formData.append('Category', activeChatTicket.category || activeChatTicket.service || '');
           formData.append('Priority', activeChatTicket.priority || 'Normal');
           formData.append('UserMessage', activeChatTicket.userMessage || activeChatTicket.message || '');
           formData.append('Status', activeChatTicket.status || 'Open');
+          formData.append('AttachmentPath', activeChatTicket.attachmentPath || '');
+          formData.append('TransactionId', activeChatTicket.transactionId || '');
+          formData.append('ApiRequestPayload', activeChatTicket.apiRequest || '');
+          formData.append('ApiResponsePayload', activeChatTicket.apiResponse || '');
           formData.append('AdminReply', text);
-          
-          await API.supportTicket.update(formData);
+
+          const res = await API.supportTicket.update(formData);
+          if (res && res.status === false) {
+            throw new Error(res.mess || res.message || 'Update rejected by server');
+          }
         } catch(e) {
           console.error("Failed to update ticket AdminReply:", e);
+          dispatch(setNotification({
+            type: 'error',
+            message: 'Reply was posted to chat but could not be saved as the ticket\'s Admin Reply — please retry or check the ticket.'
+          }));
         }
       }
 

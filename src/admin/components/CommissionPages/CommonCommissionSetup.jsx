@@ -132,7 +132,7 @@ const CommonCommissionSetup = () => {
         searchQuery={searchQuery}
         onSearchChange={(val) => dispatch(setCommonSearchQuery(val))}
         rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={(val) => dispatch(setCommonRowsPerPage(val))}
+        onRowsPerPageChange={(val) => { dispatch(setCommonRowsPerPage(val)); dispatch(setCommonCurrentPage(1)); }}
         currentPage={currentPage}
         onPageChange={(val) => dispatch(setCommonCurrentPage(val))}
         totalEntries={totalEntries}

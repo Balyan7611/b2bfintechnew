@@ -62,7 +62,12 @@ export const UserWalletBalanceService = {
         );
 
         if (!mine) {
-            console.warn('[wallet] no balance row for member', memberId,
+            // Expected for admin accounts (they don't hold a wallet balance
+            // row) — code already falls back to zero balances correctly, so
+            // this doesn't need to be a console.warn (shows as a scary
+            // warning triangle on every dashboard load). Kept as console.debug
+            // for anyone actually debugging a real member's missing balance.
+            console.debug('[wallet] no balance row for member', memberId,
                 '- server returned', rows.length, 'row(s):', rows.map(r => r.msrno));
             return zero;
         }

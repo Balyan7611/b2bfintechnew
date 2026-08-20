@@ -176,7 +176,7 @@ const RechargeReport = () => {
                                 searchQuery={searchQuery}
         onSearchChange={(val) => dispatch(setRechargeSearchQuery(val))}
         rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={(val) => dispatch(setRechargeRowsPerPage(val))}
+        onRowsPerPageChange={(val) => { dispatch(setRechargeRowsPerPage(val)); dispatch(setRechargeCurrentPage(1)); }}
         currentPage={currentPage}
         onPageChange={(val) => dispatch(setRechargeCurrentPage(val))}
         totalEntries={totalEntries}

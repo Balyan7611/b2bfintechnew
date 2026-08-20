@@ -11,7 +11,7 @@ import { KycDocumentService } from '../../../services/kycDocument.service';
 import { MemberService } from '../../../services/member.service';
 import styles from '../MemberPages/MemberPages.module.css';
 
-const API_BASE_URL = 'https://api.sahayatamoney.in/api/MemberKYCDocuments';
+const API_BASE_URL = '/MemberKYCDocuments';
 
 const maskDocNumber = (docName, docNumber) => {
   if (!docNumber) return '—';

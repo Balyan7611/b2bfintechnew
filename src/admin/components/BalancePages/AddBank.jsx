@@ -421,8 +421,8 @@ const AddBank = () => {
             <span>Show</span>
             <select 
               className={styles.selectInput}
-              value={rowsPerPage} 
-              onChange={(e) => setRowsPerPage(Number(e.target.value))}
+              value={rowsPerPage}
+              onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
             >
               <option value={10}>10</option>
               <option value={25}>25</option>
@@ -447,7 +447,7 @@ const AddBank = () => {
               placeholder="Search Bank..." 
               className={styles.searchInput}
               value={tableSearch}
-              onChange={(e) => setTableSearch(e.target.value)}
+              onChange={(e) => { setTableSearch(e.target.value); setCurrentPage(1); }}
             />
           </div>
         </div>
@@ -528,36 +528,50 @@ const AddBank = () => {
           </table>
         </div>
 
-                <div className={styles.paginationRow}>
-          <div className={styles.pageInfo}>
-            Showing {tableFilteredData.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + rowsPerPage, tableFilteredData.length)} of {tableFilteredData.length} entries
-          </div>
-          <div className={styles.pagination}>
-            <button 
-              className={styles.pageBtn} 
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              <FaChevronLeft />
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(num => (
-              <button 
-                key={num}
-                className={`${styles.pageBtn} ${currentPage === num ? styles.pageActive : ''}`}
-                onClick={() => setCurrentPage(num)}
-              >
-                {num}
-              </button>
-            ))}
-            <button 
-              className={styles.pageBtn} 
-              disabled={currentPage === totalPages || totalPages === 0}
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              <FaChevronRight />
-            </button>
-          </div>
-        </div>
+                {/* PAGINATION — same "global-page-btn" style/markup used on
+            AEPS History and every other report page. */}
+        {(() => {
+          const tp = totalPages || 1;
+          const delta = 2;
+          const left = currentPage - delta;
+          const right = currentPage + delta;
+          const pages = [];
+          let prev = null;
+          for (let i = 1; i <= tp; i++) {
+            if (i === 1 || i === tp || (i >= left && i <= right)) {
+              if (prev !== null && i - prev > 1) pages.push('...');
+              pages.push(i);
+              prev = i;
+            }
+          }
+          return (
+            <div className="global-pagination" style={{ padding: '10px 15px', borderTop: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ fontSize: '0.82rem', color: '#718096', fontWeight: 600 }}>
+                Showing {tableFilteredData.length === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + rowsPerPage, tableFilteredData.length)} of <strong>{tableFilteredData.length}</strong> records &nbsp;|&nbsp; Page {currentPage} of {tp}
+              </div>
+              <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button className="global-page-btn" onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} disabled={currentPage === 1}><FaChevronLeft /></button>
+                {pages.map((pg, i) =>
+                  pg === '...'
+                    ? <span key={`dot-${i}`} style={{ padding: '0 4px', color: '#94a3b8', fontSize: '0.85rem', lineHeight: '36px' }}>…</span>
+                    : <button
+                        key={pg}
+                        onClick={() => setCurrentPage(pg)}
+                        style={{
+                          minWidth: 36, height: 36, borderRadius: 8, border: '1.5px solid',
+                          borderColor: pg === currentPage ? '#1756AA' : '#e2e8f0',
+                          background: pg === currentPage ? '#1756AA' : '#fff',
+                          color: pg === currentPage ? '#fff' : '#475569',
+                          fontWeight: pg === currentPage ? 800 : 500,
+                          fontSize: '0.82rem', cursor: 'pointer',
+                        }}
+                      >{pg}</button>
+                )}
+                <button className="global-page-btn" onClick={() => setCurrentPage(p => Math.min(p + 1, tp))} disabled={currentPage >= tp}><FaChevronRight /></button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
     

@@ -68,7 +68,11 @@ const ApiSidebar = () => {
         {
       name: 'KYC',
       icon: <FaIdCard />,
-      path: '/api-panel/dashboard/kyc/onboarding'
+      hasChildren: true,
+      children: [
+        { name: 'Onboarding', path: '/api-panel/dashboard/kyc/onboarding' },
+        { name: 'Upload KYC', path: '/api-panel/dashboard/kyc/upload' },
+      ]
     },
     {
       name: 'Help & Support',

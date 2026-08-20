@@ -11,7 +11,7 @@ const initialState = {
   openActionMenu: null,
   isSubmitting: false,
   memberUpload: {
-    uploadRows: [{ id: 1, document: '', file: null, number: '', status: 'idle' }],
+    uploadRows: [{ id: 1, document: '', frontFile: null, backFile: null, number: '', status: 'idle' }],
     myDocuments: [],
     searchQuery: '',
     rowsPerPage: 10,
@@ -71,7 +71,7 @@ const kycSlice = createSlice({
     },
     addUploadRow: (state) => {
       const newId = state.memberUpload.uploadRows.length ? Math.max(...state.memberUpload.uploadRows.map(r => r.id)) + 1 : 1;
-      state.memberUpload.uploadRows.push({ id: newId, document: '', file: null, number: '', status: 'idle' });
+      state.memberUpload.uploadRows.push({ id: newId, document: '', frontFile: null, backFile: null, number: '', status: 'idle' });
     },
     updateUploadRow: (state, action) => {
       const { id, field, value } = action.payload;
@@ -85,7 +85,7 @@ const kycSlice = createSlice({
     },
     submitUploadRow: (state, action) => {
       const row = state.memberUpload.uploadRows.find(r => r.id === action.payload);
-      if (row && row.document && row.file) {
+      if (row && row.document && row.frontFile) {
         row.status = 'success';
         state.memberUpload.myDocuments.unshift({
           id: Date.now(),
@@ -105,6 +105,9 @@ const kycSlice = createSlice({
     },
     setMemberUploadCurrentPage: (state, action) => {
       state.memberUpload.currentPage = action.payload;
+    },
+    resetUploadRows: (state) => {
+      state.memberUpload.uploadRows = [{ id: 1, document: '', frontFile: null, backFile: null, number: '', status: 'idle' }];
     }
   }
 });
@@ -124,7 +127,8 @@ export const {
   submitUploadRow,
   setMemberUploadSearch,
   setMemberUploadRowsPerPage,
-  setMemberUploadCurrentPage
+  setMemberUploadCurrentPage,
+  resetUploadRows
 } = kycSlice.actions;
 
 export default kycSlice.reducer;

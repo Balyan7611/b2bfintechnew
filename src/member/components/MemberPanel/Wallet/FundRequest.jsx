@@ -185,6 +185,7 @@ const FundRequest = () => {
       date: fmtDate(r.paymentDate || r.createdDate),
       paymentDate: fmtDate(r.paymentDate),
       payMode: r.paymentMode || '-',
+      gst: r.gst || 0,
       companyBank: r.companyBankName || bank?.name || (r.companyBankId ? `Bank #${r.companyBankId}` : '-'),
       amount: r.amount,
       remark: r.remark || '-',
@@ -680,7 +681,7 @@ const FundRequest = () => {
         <div className={styles.toolbarControls}>
           <div className={styles.rowLimiter}>
             <span>Show</span>
-            <select value={rowsPerPage} onChange={e => setRowsPerPage(Number(e.target.value))}>
+            <select value={rowsPerPage} onChange={e => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}>
               <option value={10}>10</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
@@ -714,6 +715,7 @@ const FundRequest = () => {
                 <th>Request ID</th>
                 <th>Payment Date</th>
                 <th>Payment Mode</th>
+                <th>GST</th>
                 <th>Company Bank Name</th>
                 <th>Amount</th>
                 <th>Remark</th>
@@ -729,7 +731,7 @@ const FundRequest = () => {
             <tbody>
               {currentData.length === 0 ? (
                 <tr>
-                  <td colSpan="14" style={{ textAlign: 'center', padding: '40px 0', color: '#64748b' }}>
+                  <td colSpan="15" style={{ textAlign: 'center', padding: '40px 0', color: '#64748b' }}>
                     No recent fund requests available in table.
                   </td>
                 </tr>
@@ -740,6 +742,7 @@ const FundRequest = () => {
                     <td><code className={styles.requestIdCode}>{row.requestId}</code></td>
                     <td>{row.paymentDate !== '-' ? row.paymentDate : row.date}</td>
                     <td>{row.payMode}</td>
+                    <td>₹{Number(row.gst || 0).toFixed(2)}</td>
                     <td>{row.companyBank}</td>
                     <td style={{ fontWeight: 800 }}>₹{row.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                     <td>{row.remark}</td>

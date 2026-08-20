@@ -64,7 +64,14 @@ const SearchableSelect = ({
 
         useEffect(() => {
         if (!open) return;
-        const update = () => calcMenuStyle();
+        const update = (e) => {
+            // Ignore scroll events that originate from inside the dropdown's
+            // own option list (mouse-wheel scrolling the menu) — recalculating
+            // and re-setting menuStyle on every wheel tick fights the native
+            // scroll and makes the list feel like it won't scroll at all.
+            if (menuRef.current && e.target && menuRef.current.contains(e.target)) return;
+            calcMenuStyle();
+        };
         window.addEventListener('scroll', update, true);
         window.addEventListener('resize', update);
         return () => {
@@ -114,7 +121,7 @@ const SearchableSelect = ({
     };
 
     const menu = (
-        <div style={menuStyle} ref={menuRef}>
+        <div style={menuStyle} ref={menuRef} onWheel={(e) => e.stopPropagation()}>
             <input
                 autoFocus
                 style={searchInput}

@@ -13,7 +13,7 @@ import { getLoginId, isApiPanel } from '../../../../utils/memberIdentity';
 import { resolveReportScopeId } from '../../../../utils/reportScope';
 import { getSession } from '../../../../utils/authUtils';
 import { formatLedgerDate } from '../../../../models/walletLedgerModel';
-import { FiSearch } from 'react-icons/fi';
+import { FiSearch, FiRefreshCw } from 'react-icons/fi';
 import styles from './AEPSReport.module.css';
 
 const AEPSWalletHistory = () => {
@@ -21,6 +21,7 @@ const AEPSWalletHistory = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [focusedField, setFocusedField] = useState(null);
+  const [typeFilter, setTypeFilter] = useState('');
 
   const { list, filters, searchQuery, rowsPerPage, currentPage } =
     useSelector(state => state.report.aepsWalletReport);
@@ -104,8 +105,9 @@ const AEPSWalletHistory = () => {
     useEffect(() => { loadHistory(); }, []); 
   const lower = v => String(v ?? '').toLowerCase();
   const filteredList = list.filter(item =>
-    lower(item.name).includes(lower(searchQuery)) ||
-    lower(item.desc).includes(lower(searchQuery))
+    (lower(item.name).includes(lower(searchQuery)) ||
+     lower(item.desc).includes(lower(searchQuery))) &&
+    (!typeFilter || item.factor === typeFilter)
   );
 
   const displayColumns = ['#', 'Member', 'Opening Bal', 'Amount', 'Cr / Dr', 'Commission', 'GST', 'TDS', 'Closing Bal', 'Narration', 'Date'];
@@ -117,9 +119,9 @@ const AEPSWalletHistory = () => {
         topContent={
           <div style={{ padding: '18px 20px', borderBottom: '1px solid #E8EDF5' }}>
             <form onSubmit={e => { e.preventDefault(); loadHistory(filters); }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap', width: '100%' }}>
 
-                                <div className={styles.formGroup}>
+                <div className={styles.formGroup} style={{ flex: '1 1 160px', minWidth: '150px' }}>
                   <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>From Date</label>
                   <input
                     type="date"
@@ -132,7 +134,7 @@ const AEPSWalletHistory = () => {
                   />
                 </div>
 
-                                <div className={styles.formGroup}>
+                <div className={styles.formGroup} style={{ flex: '1 1 160px', minWidth: '150px' }}>
                   <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>To Date</label>
                   <input
                     type="date"
@@ -145,14 +147,49 @@ const AEPSWalletHistory = () => {
                   />
                 </div>
 
-                                <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <div className={styles.formGroup} style={{ flex: '1 1 130px', minWidth: '120px' }}>
+                  <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>Type</label>
+                  <select
+                    className={styles.inputControl}
+                    value={typeFilter}
+                    onChange={e => setTypeFilter(e.target.value)}
+                    style={{ paddingLeft: 12, paddingRight: 12, height: 38, borderRadius: 10, fontSize: '0.825rem', border: '1.5px solid #CBD5E1', width: '100%', background: '#FCFDFE', color: '#334155', fontWeight: 500 }}
+                  >
+                    <option value="">All</option>
+                    <option value="CR">CR (Credit)</option>
+                    <option value="DR">DR (Debit)</option>
+                  </select>
+                </div>
+
+                <div className={styles.formGroup} style={{ flex: '0 0 auto' }}>
+                  <label style={{ visibility: 'hidden', fontSize: '0.68rem', marginBottom: 4, display: 'block' }}>Search</label>
                   <button
                     type="submit"
                     disabled={isLoading}
-                    style={{ width: '100%', height: 38, background: 'linear-gradient(135deg,#1756AA,#1E3A8A)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(23,86,170,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.2s' }}
+                    style={{ minWidth: 120, whiteSpace: 'nowrap', boxSizing: 'border-box', flexShrink: 0, height: 38, background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '0.825rem', textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.2s' }}
                   >
                     <FiSearch size={14} />
-                    {isLoading ? 'Loading…' : 'Search'}
+                    Search
+                  </button>
+                </div>
+
+                <div className={styles.formGroup} style={{ flex: '0 0 auto' }}>
+                  <label style={{ visibility: 'hidden', fontSize: '0.68rem', marginBottom: 4, display: 'block' }}>Reset</label>
+                  <button
+                    type="button"
+                    title="Reset Filters"
+                    onClick={() => {
+                      dispatch(updateAEPSWalletFilters({ fromDate: '', toDate: '' }));
+                      setTypeFilter('');
+                      dispatch(setAEPSWalletSearchQuery(''));
+                      dispatch(setAEPSWalletCurrentPage(1));
+                    }}
+                    style={{ minWidth: 100, whiteSpace: 'nowrap', boxSizing: 'border-box', flexShrink: 0, padding: '0 14px', height: 38, background: '#fff', color: '#475569', border: '1.5px solid #CBD5E1', borderRadius: 10, fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.2s' }}
+                    onMouseOver={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.color = '#1756AA'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
+                  >
+                    <FiRefreshCw size={14} />
+                    Reset
                   </button>
                 </div>
 
@@ -195,8 +232,8 @@ const AEPSWalletHistory = () => {
             <td style={{ width: 70 }}>
               <span style={{
                 display: 'inline-block', padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700,
-                background: item.factor === 'Credit' ? '#D1FAE5' : '#FEE2E2',
-                color: item.factor === 'Credit' ? '#065F46' : '#991B1B'
+                background: item.factor === 'CR' ? '#D1FAE5' : '#FEE2E2',
+                color: item.factor === 'CR' ? '#065F46' : '#991B1B'
               }}>{item.factor}</span>
             </td>
             <td style={{ fontSize: '0.82rem', color: '#64748B', whiteSpace: 'nowrap' }}>₹{item.commission}</td>

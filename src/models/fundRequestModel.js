@@ -54,6 +54,7 @@ export const FundRequestResponseModel = (res) => {
         bankRefId: item.bankRefId || item.BankRefId || '',
         transactionId: item.transactionId || '',
         paymentMode: item.paymentMode || item.PaymentMode || '',
+        gst: parseFloat(item.gst || item.GST || item.gstAmount || item.GstAmount || 0) || 0,
         status: item.status || FUND_REQUEST_STATUS.PENDING,
         isApprove: item.isApprove === true,
         remark: item.remark || '',

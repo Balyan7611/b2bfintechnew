@@ -42,15 +42,37 @@ export const FundRequestService = {
     },
 
     update: async (data) => {
-        const payload = FundRequestRequestModel(data);
-        const form = new FormData();
-        Object.entries(payload).forEach(([key, val]) => {
-            if (val !== undefined && val !== null) form.append(key, val);
-        });
-        if (data.slipFile) {
-            form.append('slipFile', data.slipFile);
+        // Same reasoning as create() above: the server only accepts JSON on
+        // this controller, not multipart/form-data. This used to always
+        // build a FormData (even for plain approve/reject calls with no
+        // file), which gets rejected with 415 Unsupported Media Type —
+        // breaking the admin's Approve/Reject actions entirely. Mirror
+        // create()'s base64-in-JSON approach instead.
+        const { slipFile, ...rest } = data;
+        const payload = FundRequestRequestModel(rest);
+
+        if (slipFile) {
+            try {
+                const base64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const result = reader.result;
+                        const base64Data = result.includes(',') ? result.split(',')[1] : result;
+                        resolve(base64Data);
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(slipFile);
+                });
+                payload.cashslip = base64;
+                payload.slipFile = base64;
+                payload.slipFileName = slipFile.name;
+                payload.slipFileType = slipFile.type;
+            } catch (err) {
+                console.warn('FundRequest: could not encode slip file, submitting without it', err);
+            }
         }
-        return await apiService.putForm('/FundRequest/Update', form);
+
+        return await apiService.put('/FundRequest/Update', payload);
     },
 
     getById: async (id) => {

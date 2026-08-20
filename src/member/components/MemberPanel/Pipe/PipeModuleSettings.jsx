@@ -144,6 +144,7 @@ const PipeModuleSettings = () => {
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loadError, setLoadError] = useState('');
 
   const [formData, setFormData] = useState({
     id: 0,
@@ -165,11 +166,15 @@ const PipeModuleSettings = () => {
 
   const fetchServicesAndSettings = async () => {
     setLoading(true);
+    setLoadError('');
     try {
+      // Same issue as PipeMasterNew.jsx: these were caught individually with
+      // `.catch(() => [])` so a genuine failure (401/500/network) silently
+      // produced an empty table forever instead of surfacing the real error.
       const [sRes, settingsData, pipeData] = await Promise.all([
-        API.service.getAll().catch(() => null),
-        API.pipeModuleSetting.getAll().catch(() => []),
-        API.pipeMaster.getAll().catch(() => [])
+        API.service.getAll().catch((e) => { console.error('PipeModuleSettings: failed to load services:', e); return null; }),
+        API.pipeModuleSetting.getAll(),
+        API.pipeMaster.getAll().catch((e) => { console.error('PipeModuleSettings: failed to load pipes:', e); return []; })
       ]);
       const servicesList = (sRes && sRes.status && Array.isArray(sRes.data)) ? sRes.data : [];
       setServices(servicesList);
@@ -177,7 +182,10 @@ const PipeModuleSettings = () => {
       const pList = Array.isArray(pipeData) ? pipeData.map(p => ({ id: p.pipeName, name: p.pipeName })) : [];
       setPipes(pList);
     } catch (error) {
-      console.error('Failed to fetch data:', error);
+      console.error('Failed to fetch pipe module settings:', error);
+      const msg = error?.response?.data?.mess || error?.response?.data?.message || error?.message || 'Failed to load pipe module settings.';
+      setLoadError(msg);
+      setData([]);
     } finally {
       setLoading(false);
     }
@@ -355,6 +363,12 @@ const PipeModuleSettings = () => {
             />
           </div>
         </div>
+
+        {loadError && (
+          <div style={{ margin: '0 25px 15px', padding: '10px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#b91c1c', fontSize: '0.82rem', fontWeight: 600 }}>
+            ⚠️ {loadError}
+          </div>
+        )}
 
         <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ width: '100%', minWidth: '1600px', tableLayout: 'auto' }}>

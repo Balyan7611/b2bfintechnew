@@ -100,6 +100,7 @@ const PipeMasterNew = () => {
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loadError, setLoadError] = useState('');
 
   const [formData, setFormData] = useState({
     id: 0,
@@ -111,16 +112,25 @@ const PipeMasterNew = () => {
 
   const fetchServicesAndPipes = async () => {
     setLoading(true);
+    setLoadError('');
     try {
+      // These used to be caught individually with `.catch(() => [])`/`.catch(() => null)`
+      // — meaning if GetPipeMaster genuinely failed (401, 500, network error, etc.),
+      // the error was thrown away silently and the table would just show
+      // "No records found" forever with zero indication anything went wrong.
+      // Surface the real reason now instead of hiding it.
       const [sRes, pipesData] = await Promise.all([
-        API.service.getAll().catch(() => null),
-        API.pipeMaster.getAll().catch(() => [])
+        API.service.getAll().catch((e) => { console.error('PipeMaster: failed to load services:', e); return null; }),
+        API.pipeMaster.getAll()
       ]);
       const servicesList = (sRes && sRes.status && Array.isArray(sRes.data)) ? sRes.data : [];
       setServices(servicesList);
       setData(pipesData || []);
     } catch (error) {
-      console.error('Failed to fetch data:', error);
+      console.error('Failed to fetch pipe master data:', error);
+      const msg = error?.response?.data?.mess || error?.response?.data?.message || error?.message || 'Failed to load pipe master data.';
+      setLoadError(msg);
+      setData([]);
     } finally {
       setLoading(false);
     }
@@ -257,6 +267,12 @@ const PipeMasterNew = () => {
             />
           </div>
         </div>
+
+        {loadError && (
+          <div style={{ margin: '0 25px 15px', padding: '10px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#b91c1c', fontSize: '0.82rem', fontWeight: 600 }}>
+            ⚠️ {loadError}
+          </div>
+        )}
 
         <div className={styles.tableWrapper}>
           <table className={styles.table} style={{ width: '100%', minWidth: '900px', tableLayout: 'auto' }}>

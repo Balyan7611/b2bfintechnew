@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FaPlus, FaSearch, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, 
+import { useDispatch } from 'react-redux';
+import {
+  FaPlus, FaSearch, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv,
   FaPrint, FaChevronLeft, FaChevronRight, FaCheck, FaCalendarAlt, FaTimes, FaFlag
 } from 'react-icons/fa';
 import { FiEdit, FiTrash2, FiX, FiCheck } from 'react-icons/fi';
 import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import { API } from '../../../api/endpoints';
+import { setNotification } from '../../../store/slices/uiSlice';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const BannerType = () => {
+  const dispatch = useDispatch();
   const [showModal, setShowModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
   const [editingType, setEditingType] = useState(null);
@@ -90,7 +93,7 @@ const BannerType = () => {
       resetForm();
     } catch (error) {
       console.error("Error saving banner type:", error);
-      alert("Failed to save banner type. Please try again.");
+      dispatch(setNotification({ type: 'error', message: "Failed to save banner type. Please try again." }));
     }
   };
 
@@ -101,7 +104,7 @@ const BannerType = () => {
       setShowConfirmModal({ isOpen: false, id: null });
     } catch (error) {
       console.error("Error deleting banner type:", error);
-      alert("Failed to delete banner type.");
+      dispatch(setNotification({ type: 'error', message: "Failed to delete banner type." }));
     }
   };
 

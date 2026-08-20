@@ -117,22 +117,24 @@ select.inputControl {
 .submitBtn {
   height: 42px;
   padding: 0 24px;
-  background: #1756AA;
+  background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
   color: #fff;
   border: none;
   border-radius: 8px;
   font-weight: 700;
   font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(23, 86, 170, 0.15);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
   white-space: nowrap;
 }
 
 .submitBtn:hover {
-  background: #1e6bd6;
+  background: linear-gradient(135deg, #16A34A 0%, #15803D 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(23, 86, 170, 0.25);
+  box-shadow: 0 6px 15px rgba(22, 163, 74, 0.3);
 }
 
 .statusBadge {

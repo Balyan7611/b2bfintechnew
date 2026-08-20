@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   FaKey, FaCopy, FaEye, FaEyeSlash, FaRedoAlt, FaTimes, FaExclamationTriangle
 } from 'react-icons/fa';
 import { API } from '../../api/endpoints';
+import { setNotification } from '../../store/slices/uiSlice';
 import styles from '../components/ApiSettings.module.css';
 
 const ApiCredentials = ({ compact = false }) => {
+  const dispatch = useDispatch();
   const { isDarkMode } = useSelector(state => state.memberPanel);
   const [showSecret, setShowSecret] = useState(false);
   const [clientId, setClientId] = useState('');
@@ -22,7 +24,7 @@ const ApiCredentials = ({ compact = false }) => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    alert('Copied to clipboard!');
+    dispatch(setNotification({ type: 'success', message: 'Copied to clipboard!' }));
   };
 
   const startOtpFlow = async (mode) => {

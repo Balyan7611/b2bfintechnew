@@ -3,7 +3,7 @@ import { apiService } from '../../../api/httpClient';
 import { API } from '../../../api/endpoints';
 import AdminTable from '../../../shared/components/common/AdminTable';
 import StatsGrid from '../../../shared/components/common/StatsGrid';
-import { FiBarChart2, FiSearch } from 'react-icons/fi';
+import { FiBarChart2, FiSearch, FiRefreshCw } from 'react-icons/fi';
 import styles from '../MemberPages/MemberPages.module.css';
 import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 
@@ -204,16 +204,33 @@ const CommissionLedger = () => {
                   </div>
                 </div>
 
-                                <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'flex-end' }}>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    style={{ width: '100%', height: 38, background: 'linear-gradient(135deg,#1756AA,#1E3A8A)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(23,86,170,0.2)', transition: 'all 0.2s' }}
-                  >
-                    {loading ? 'Loading…' : 'Search'}
-                  </button>
-                </div>
+              </div>
 
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{ width: '120px', padding: '0 16px', whiteSpace: 'nowrap', boxSizing: 'border-box', flexShrink: 0, height: 38, background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(34, 197, 94, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)', transition: 'all 0.2s' }}
+                >
+                  Search
+                </button>
+                <button
+                  type="button"
+                  title="Reset Filters"
+                  onClick={() => {
+                    setFromDate(today);
+                    setToDate(today);
+                    setMemberId('');
+                    setSearchQuery('');
+                    setPageNumber(1);
+                  }}
+                  style={{ width: '120px', boxSizing: 'border-box', flexShrink: 0, padding: '0 16px', height: 38, background: '#fff', color: '#475569', border: '1.5px solid #CBD5E1', borderRadius: 10, fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.2s' }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.color = '#1756AA'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
+                >
+                  <FiRefreshCw size={14} />
+                  Reset
+                </button>
               </div>
             </form>
           </div>

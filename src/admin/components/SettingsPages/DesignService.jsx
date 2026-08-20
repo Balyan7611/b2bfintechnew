@@ -8,6 +8,7 @@ import {
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint 
 } from 'react-icons/fa';
 import PrimaryButton from '../../../shared/components/common/PrimaryButton';
+import { setNotification } from '../../../store/slices/uiSlice';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const DesignService = () => {
@@ -125,7 +126,7 @@ const DesignService = () => {
     
     const targetSectionId = formData.serviceType;
     if (!targetSectionId || targetSectionId === 'Banner') {
-      alert("Please select a target Section Type!");
+      dispatch(setNotification({ type: 'error', message: "Please select a target Section Type!" }));
       return;
     }
     
@@ -156,11 +157,11 @@ const DesignService = () => {
         await Promise.all(promises);
       }
 
-      alert("Design service section updated successfully!");
+      dispatch(setNotification({ type: 'success', message: "Design service section updated successfully!" }));
       setIsModalOpen(false);
       fetchInitialData();     } catch (err) {
       console.error("Error saving design service", err);
-      alert("Failed to save design service");
+      dispatch(setNotification({ type: 'error', message: "Failed to save design service" }));
     } finally {
       setIsSaving(false);
     }

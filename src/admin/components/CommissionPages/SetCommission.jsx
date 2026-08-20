@@ -1,15 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  FaEdit, FaTrash, FaCheck, FaTimes, FaSearch, FaChevronLeft, FaChevronRight, 
-  FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint, FaCogs, FaCheckCircle, 
+import { useDispatch } from 'react-redux';
+import {
+  FaEdit, FaTrash, FaCheck, FaTimes, FaSearch, FaChevronLeft, FaChevronRight,
+  FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint, FaCogs, FaCheckCircle,
   FaChevronDown, FaPercent, FaRupeeSign, FaSpinner, FaPlus, FaExclamationCircle
 } from 'react-icons/fa';
 import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { apiService } from '../../../api/httpClient';
 import { API } from '../../../api/endpoints';
+import { setNotification } from '../../../store/slices/uiSlice';
 import styles from './Commission.module.css';
 
 const SetCommission = () => {
+  const dispatch = useDispatch();
   const topFormRef = useRef(null);
 
     const [packages, setPackages] = useState([]);
@@ -307,11 +310,11 @@ const SetCommission = () => {
 
     const handleSaveMatrix = async () => {
     if (!dynPackage || !dynService || !dynOperator) {
-      alert("Please select Package, Service, and Operator.");
+      dispatch(setNotification({ type: 'error', message: 'Please select Package, Service, and Operator.' }));
       return;
     }
     if (overlapIndices.size > 0) {
-      alert("Please fix overlapping slab ranges before saving.");
+      dispatch(setNotification({ type: 'error', message: 'Please fix overlapping slab ranges before saving.' }));
       return;
     }
 
@@ -353,13 +356,13 @@ const SetCommission = () => {
     try {
       const res = await apiService.post('/Commission/SaveDynamicMatrix', payload);
       if (res && res.status === true) {
-        alert("Commission matrix saved successfully to database!");
+        dispatch(setNotification({ type: 'success', message: 'Commission matrix saved successfully to database!' }));
         handleLoadMatrix();         fetchList();       } else {
-        alert(res?.message || "Failed to save commission matrix.");
+        dispatch(setNotification({ type: 'error', message: res?.message || 'Failed to save commission matrix.' }));
       }
     } catch (err) {
       console.error("Error saving matrix to database:", err);
-      alert("Error saving matrix to database API.");
+      dispatch(setNotification({ type: 'error', message: 'Error saving matrix to database API.' }));
     }
   };
 
@@ -368,23 +371,23 @@ const SetCommission = () => {
       if (confirmModal.type === 'toggle') {
         const res = await apiService.post(`/Commission/ToggleActive/${confirmModal.id}`);
         if (res && res.status === true) {
-          alert("Status toggled successfully!");
+          dispatch(setNotification({ type: 'success', message: 'Status toggled successfully!' }));
           fetchList();
         } else {
-          alert(res?.message || "Failed to toggle status.");
+          dispatch(setNotification({ type: 'error', message: res?.message || 'Failed to toggle status.' }));
         }
       } else if (confirmModal.type === 'delete') {
         const res = await apiService.delete(`/Commission/Delete/${confirmModal.id}`);
         if (res && res.status === true) {
-          alert("Commission entry deleted successfully!");
+          dispatch(setNotification({ type: 'success', message: 'Commission entry deleted successfully!' }));
           fetchList();
         } else {
-          alert(res?.message || "Failed to delete entry.");
+          dispatch(setNotification({ type: 'error', message: res?.message || 'Failed to delete entry.' }));
         }
       }
     } catch (err) {
       console.error("Error performing action:", err);
-      alert("API error during action execution.");
+      dispatch(setNotification({ type: 'error', message: 'API error during action execution.' }));
     } finally {
       setConfirmModal({ ...confirmModal, isOpen: false });
     }

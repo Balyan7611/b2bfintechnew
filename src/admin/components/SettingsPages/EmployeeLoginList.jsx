@@ -8,6 +8,7 @@ import {
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint 
 } from 'react-icons/fa';
 import { API } from '../../../api/endpoints';
+import ConfirmModal from '../../../shared/components/common/ConfirmModal';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const EmployeeLoginList = () => {
@@ -35,6 +36,7 @@ const EmployeeLoginList = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [deletingId, setDeletingId] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null });
 
   const SERVER_FETCH_SIZE = 5000;
 
@@ -101,9 +103,15 @@ const EmployeeLoginList = () => {
     setPageNumber(1);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     if (!id) return;
-    if (!window.confirm('Delete this login history record? This cannot be undone.')) return;
+    setDeleteConfirm({ show: true, id });
+  };
+
+  const confirmDeleteRecord = async () => {
+    const id = deleteConfirm.id;
+    setDeleteConfirm({ show: false, id: null });
+    if (!id) return;
 
     setDeletingId(id);
     try {
@@ -386,6 +394,15 @@ const EmployeeLoginList = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        show={deleteConfirm.show}
+        title="Delete Login Record"
+        message="Delete this login history record? This cannot be undone."
+        type="danger"
+        onConfirm={confirmDeleteRecord}
+        onCancel={() => setDeleteConfirm({ show: false, id: null })}
+      />
     </div>
   );
 };

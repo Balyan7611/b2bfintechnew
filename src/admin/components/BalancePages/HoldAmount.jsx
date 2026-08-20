@@ -1,15 +1,17 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   FaSearch, FaFileExcel, FaFilePdf, FaPrint, FaCopy, FaFileCsv,
-  FaChevronLeft, FaChevronRight, FaPlus, FaChevronDown, FaUser, FaTimes,
-  FaEdit, FaTrash 
+  FaChevronLeft, FaChevronRight, FaPlus, FaTimes,
+  FaEdit, FaTrash
 } from 'react-icons/fa';
 import { addHoldAmount, deleteHoldAmount, updateHoldAmount } from '../../../store/slices/balanceSlice';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import styles from './HoldAmount.module.css';
 import { FiDatabase } from 'react-icons/fi';
 import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
+import { API } from '../../../api/endpoints';
 
 const HoldAmount = () => {
   const dispatch = useDispatch();
@@ -27,32 +29,27 @@ const HoldAmount = () => {
 
     const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
 
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedMember, setSelectedMember] = useState(null);
-  const [memberSearch, setMemberSearch] = useState('');
-  const dropdownRef = useRef(null);
+    const [selectedMember, setSelectedMember] = useState(null);
+  const [members, setMembers] = useState([]);
 
-  const members = [
-    { id: '1', name: 'Sachin Balyan', memberId: 'RT1236' },
-    { id: '2', name: 'Vivek Varshney', memberId: 'Pay99RT4003' },
-    { id: '3', name: 'Naruto Uzumaki', memberId: 'Pay99DT5048' },
-    { id: '4', name: 'Rohit Sharma', memberId: 'Pay99RT4010' },
-    { id: '5', name: 'Virat Kohli', memberId: 'Pay99RT4018' },
-  ];
-
-  const filteredMembers = members.filter(m => 
-    m.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
-    m.memberId.toLowerCase().includes(memberSearch.toLowerCase())
-  );
-
-    useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
+  useEffect(() => {
+    let cancelled = false;
+    const fetchMembers = async () => {
+      try {
+        const res = await API.member.search('');
+        const raw = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        const list = raw.filter(m => {
+          const role = (m.roleName || m.role || '').toLowerCase();
+          const mid = (m.memberId || m.loginId || '').toUpperCase();
+          return !role.includes('admin') && !mid.startsWith('AD');
+        });
+        if (!cancelled) setMembers(list);
+      } catch (err) {
+        console.error('HoldAmount: failed to fetch members', err);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    fetchMembers();
+    return () => { cancelled = true; };
   }, []);
 
   const handleSubmit = () => {
@@ -87,7 +84,8 @@ const HoldAmount = () => {
   const handleEdit = (row) => {
     setIsEditMode(true);
     setEditingId(row.id);
-    setSelectedMember({ name: row.name, memberId: row.memberId });
+    const matched = members.find(m => (m.memberId || m.loginId) === row.memberId);
+    setSelectedMember(matched || { id: row.memberId, name: row.name, memberId: row.memberId });
     setAmount(row.amount);
     setReason(row.reason);
     setShowModal(true);
@@ -139,61 +137,22 @@ const HoldAmount = () => {
             
             <div className={styles.modalBody}>
               <div className={styles.modalForm}>
-                                <div className={`${styles.formGroup} ${isEditMode ? styles.disabled : ''}`} ref={dropdownRef}>
+                                <div className={`${styles.formGroup} ${isEditMode ? styles.disabled : ''}`}>
                   <label>Select Member</label>
-                  <div className={styles.dropdownContainer}>
-                    <div 
-                      className={`${styles.dropdownHeader} ${isDropdownOpen ? styles.dropdownActive : ''}`}
-                      onClick={() => !isEditMode && setIsDropdownOpen(!isDropdownOpen)}
-                    >
-                      <div className={styles.selectedDisplay}>
-                        {selectedMember ? (
-                          <span className={styles.selectedText}>
-                            <FaUser className={styles.userIcon} /> {selectedMember.name} ({selectedMember.memberId})
-                          </span>
-                        ) : (
-                          <span className={styles.placeholder}>Select a member...</span>
-                        )}
-                      </div>
-                      <FaChevronDown className={`${styles.arrowIcon} ${isDropdownOpen ? styles.arrowRotate : ''}`} />
-                    </div>
-
-                    {isDropdownOpen && (
-                      <div className={styles.dropdownMenu}>
-                        <div className={styles.dropdownSearch}>
-                          <FaSearch className={styles.innerSearchIcon} />
-                          <input 
-                            type="text" 
-                            placeholder="Search member..." 
-                            value={memberSearch}
-                            onChange={(e) => setMemberSearch(e.target.value)}
-                            autoFocus
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </div>
-                        <div className={styles.optionsList}>
-                          {filteredMembers.length > 0 ? filteredMembers.map(m => (
-                            <div 
-                              key={m.id} 
-                              className={`${styles.optionItem} ${selectedMember?.id === m.id ? styles.optionSelected : ''}`}
-                              onClick={() => {
-                                setSelectedMember(m);
-                                setIsDropdownOpen(false);
-                                setMemberSearch('');
-                              }}
-                            >
-                              <div className={styles.optionInfo}>
-                                <span className={styles.optionName}>{m.name}</span>
-                                <span className={styles.optionId}>{m.memberId}</span>
-                              </div>
-                            </div>
-                          )) : (
-                            <div className={styles.noOption}>No member found</div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <SearchableSelect
+                    disabled={isEditMode}
+                    value={selectedMember?.id ?? ''}
+                    onChange={(val) => {
+                      const m = members.find(x => String(x.id) === String(val));
+                      setSelectedMember(m || null);
+                    }}
+                    options={members.map(m => ({
+                      value: m.id,
+                      label: m.name,
+                      meta: m.memberId || m.loginId || ''
+                    }))}
+                    placeholder="Select a member..."
+                  />
                 </div>
 
                 <div className={styles.formGroup}>
@@ -260,8 +219,8 @@ const HoldAmount = () => {
             <span>Show</span>
             <select 
               className={styles.selectInput}
-              value={rowsPerPage} 
-              onChange={(e) => setRowsPerPage(Number(e.target.value))}
+              value={rowsPerPage}
+              onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
             >
               <option value={10}>10</option>
               <option value={25}>25</option>

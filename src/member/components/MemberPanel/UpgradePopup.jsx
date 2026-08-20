@@ -5,6 +5,7 @@ import {
 } from 'react-icons/fi';
 import { FaFingerprint } from 'react-icons/fa';
 import { setUpgradePopup, setSelectedPlan } from '../../../store/slices/memberPanelSlice';
+import { setNotification } from '../../../store/slices/uiSlice';
 import styles from './UpgradePopup.module.css';
 
 const plans = [
@@ -67,7 +68,7 @@ const UpgradePopup = () => {
 
   const handleBuy = (plan) => {
     dispatch(setSelectedPlan(plan));
-    alert('Plan purchased!');
+    dispatch(setNotification({ type: 'success', message: 'Plan purchased!' }));
     dispatch(setUpgradePopup(false));
   };
 

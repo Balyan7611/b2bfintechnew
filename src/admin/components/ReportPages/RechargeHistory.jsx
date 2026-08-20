@@ -7,9 +7,9 @@ import { normalizeTxnResponse } from '../../../services/transaction.service';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { useLocation } from 'react-router-dom';
 import { 
-  FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo, 
+  FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo,
   FiActivity, FiDatabase, FiAlertCircle, FiXCircle, FiActivity as FiSignal,
-  FiUser, FiSmartphone, FiCpu, FiTrendingUp, FiBarChart2
+  FiUser, FiSmartphone, FiCpu, FiTrendingUp, FiBarChart2, FiRefreshCw
 } from 'react-icons/fi';
 import { 
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint
@@ -494,9 +494,10 @@ const RechargeHistory = () => {
                 />
               </div>
             </div>
-            <div className={styles.formGroup}>
-              <button 
-                type="submit" 
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
+              <button
+                type="submit"
                 style={{
                   background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)',
                   color: '#ffffff',
@@ -512,7 +513,9 @@ const RechargeHistory = () => {
                   justifyContent: 'center',
                   gap: '6px',
                   transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                  width: '100%',
+                  width: '140px',
+                  boxSizing: 'border-box',
+                  flexShrink: 0,
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}
@@ -530,7 +533,47 @@ const RechargeHistory = () => {
                 <FiSearch size={15} />
                 Search
               </button>
-            </div>
+              <button
+                type="button"
+                title="Reset Filters"
+                onClick={() => {
+                  setFromDate(today);
+                  setToDate(today);
+                  setSelectedService('');
+                  setSelectedOperator('');
+                  setSelectedMember('');
+                  setSelectedApi('');
+                  setSelectedStatus('');
+                  setSearchKeyword('');
+                  setPageNumber(1);
+                }}
+                style={{
+                  background: '#fff',
+                  color: '#475569',
+                  border: '1.5px solid #CBD5E1',
+                  borderRadius: '10px',
+                  height: '38px',
+                  fontSize: '0.825rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s',
+                  width: '120px',
+                  boxSizing: 'border-box',
+                  flexShrink: 0,
+                  padding: '0 16px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.color = '#1756AA'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
+              >
+                <FiRefreshCw size={14} />
+                Reset
+              </button>
           </div>
         </form>
       </div>

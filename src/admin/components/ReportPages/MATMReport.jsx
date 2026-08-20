@@ -140,7 +140,7 @@ const MATMReport = () => {
         searchQuery={searchQuery}
         onSearchChange={(val) => dispatch(setMATMSearchQuery(val))}
         rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={(val) => dispatch(setMATMRowsPerPage(val))}
+        onRowsPerPageChange={(val) => { dispatch(setMATMRowsPerPage(val)); dispatch(setMATMCurrentPage(1)); }}
         currentPage={currentPage}
         onPageChange={(val) => dispatch(setMATMCurrentPage(val))}
         totalEntries={totalEntries}

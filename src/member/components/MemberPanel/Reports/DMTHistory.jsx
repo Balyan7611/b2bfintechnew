@@ -3,7 +3,7 @@ import SearchableSelect from '../../../../shared/components/common/SearchableSel
 import ReactDOM from 'react-dom';
 import { Cells as UplineCells, getUplineShape } from '../../../../shared/components/common/UplineCommissionCols';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiFilter, FiSearch, FiDatabase } from 'react-icons/fi';
+import { FiFilter, FiSearch, FiDatabase, FiRefreshCw } from 'react-icons/fi';
 import { 
   setDMTList, 
   updateDMTFilters, 
@@ -171,7 +171,23 @@ const DMTHistory = () => {
                   style={{ height: '42px', minWidth: '150px' }}
                 />
               </div>
-              <button className={styles.submitBtn} onClick={fetchData}>Apply Filters</button>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', minWidth: '220px' }}>
+                <button className={styles.submitBtn} onClick={fetchData} style={{ flex: '1 1 120px', minWidth: '120px' }}>Apply</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const today = new Date().toISOString().split('T')[0];
+                    dispatch(updateDMTFilters({ fromDate: today, toDate: today, status: '' }));
+                    dispatch(setDMTSearchQuery(''));
+                    dispatch(setDMTCurrentPage(1));
+                  }}
+                  style={{ background: '#fff', color: '#475569', border: '1.5px solid #CBD5E1', borderRadius: '10px', height: '42px', padding: '0 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', flex: '1 1 100px', minWidth: '100px' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.color = '#1756AA'; e.currentTarget.style.background = '#F8FAFC'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; e.currentTarget.style.background = '#fff'; }}
+                >
+                  <FiRefreshCw size={14} /> Reset
+                </button>
+              </div>
             </div>
           </div>
         }
@@ -264,7 +280,7 @@ const DMTHistory = () => {
         searchQuery={searchQuery}
         onSearchChange={(val) => dispatch(setDMTSearchQuery(val))}
         rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={(val) => dispatch(setDMTRowsPerPage(val))}
+        onRowsPerPageChange={(val) => { dispatch(setDMTRowsPerPage(val)); dispatch(setDMTCurrentPage(1)); }}
         currentPage={currentPage}
         onPageChange={(val) => dispatch(setDMTCurrentPage(val))}
         totalEntries={totalEntries}

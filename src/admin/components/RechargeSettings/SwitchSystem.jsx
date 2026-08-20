@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fa';
 import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import MemberSearchSelect from '../../../shared/components/common/MemberSearchSelect';
+import ConfirmModal from '../../../shared/components/common/ConfirmModal';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const SWITCH_TYPES = [
@@ -188,8 +189,15 @@ const SwitchSystem = () => {
     }
   };
 
-    const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this switch rule?')) return;
+    const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null });
+
+  const handleDelete = (id) => {
+    setDeleteConfirm({ show: true, id });
+  };
+
+  const confirmDelete = async () => {
+    const id = deleteConfirm.id;
+    setDeleteConfirm({ show: false, id: null });
     try {
       await API.apiSwitchingConcept.delete(id);
       dispatch(setNotification({ type: 'success', message: 'Rule deleted.' }));
@@ -544,6 +552,15 @@ const SwitchSystem = () => {
         </div>
 
       </div>
+
+      <ConfirmModal
+        show={deleteConfirm.show}
+        title="Delete Switch Rule"
+        message="Are you sure you want to delete this switch rule?"
+        type="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirm({ show: false, id: null })}
+      />
     </div>
   );
 };

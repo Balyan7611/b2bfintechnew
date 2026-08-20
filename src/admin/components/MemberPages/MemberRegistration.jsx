@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiDatabase } from 'react-icons/fi';
 import RoleSelect from '../../../shared/components/common/RoleSelect';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import PackageSelect from '../../../shared/components/common/PackageSelect';
 import MemberSearchSelect from '../../../shared/components/common/MemberSearchSelect';
 import PopupModal, { usePopup } from '../../../shared/components/common/PopupModal';
@@ -241,8 +242,8 @@ const MemberRegistration = ({ isModal = false, onClose }) => {
           background: '#fff',
           borderRadius: '24px',
           width: '100%',
-          maxWidth: '900px',
-          maxHeight: '90vh',
+          maxWidth: '1180px',
+          maxHeight: '95vh',
           boxShadow: '0 20px 40px rgba(13, 27, 62, 0.15)',
           display: 'flex',
           flexDirection: 'column',
@@ -426,10 +427,13 @@ const Step3 = ({ form, onChange, states, errors = {} }) => (
     <div className={styles.formGroup}>
       <label style={{ fontWeight: 700, fontSize: '0.7rem' }}>STATE SELECTION</label>
       <div className={styles.inputWrap}>
-         <select name="state" className={styles.selectControl} style={{ height: '40px', paddingLeft: '15px', fontSize: '0.85rem' }} value={form.state} onChange={onChange}>
-           <option value="">Select State</option>
-           {states.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-         </select>
+         <SearchableSelect
+           value={form.state}
+           onChange={(val) => onChange({ target: { name: 'state', value: val || '' } })}
+           options={states.map(s => ({ value: s.id, label: s.name }))}
+           placeholder="Select State"
+           style={{ height: '40px' }}
+         />
       </div>
       {errors.state && <span style={{ color: '#E53E3E', fontSize: '0.72rem', marginTop: '4px', display: 'block', fontWeight: 600 }}>{errors.state}</span>}
     </div>
@@ -462,10 +466,13 @@ const Step4 = ({ form, onChange, states, errors = {} }) => (
     <div className={styles.formGroup}>
       <label style={{ fontWeight: 700, fontSize: '0.7rem' }}>BUSINESS STATE</label>
       <div className={styles.inputWrap}>
-         <select name="bizState" className={styles.selectControl} style={{ height: '40px', paddingLeft: '15px', fontSize: '0.85rem' }} value={form.bizState} onChange={onChange}>
-           <option value="">Select State</option>
-           {states.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-         </select>
+         <SearchableSelect
+           value={form.bizState}
+           onChange={(val) => onChange({ target: { name: 'bizState', value: val || '' } })}
+           options={states.map(s => ({ value: s.id, label: s.name }))}
+           placeholder="Select State"
+           style={{ height: '40px' }}
+         />
       </div>
       {errors.bizState && <span style={{ color: '#E53E3E', fontSize: '0.72rem', marginTop: '4px', display: 'block', fontWeight: 600 }}>{errors.bizState}</span>}
     </div>

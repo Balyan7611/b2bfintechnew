@@ -8,6 +8,7 @@ import styles from './DMT.module.css';
 import TransactionReceipt from './TransactionReceipt';
 import { SITE_CONFIG } from '../../../../config/siteConfig';
 import { useFetchServices } from '../../../../hooks/useFetchServices';
+import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 
 const DEFAULT_BENEFICIARIES = [];
 
@@ -1313,14 +1314,12 @@ const DMT = () => {
             <h1 className={styles.title} style={{ marginTop: '15px', marginBottom: '20px', fontSize: '1.6rem', color: '#1756AA' }}>DMT Service</h1>
             <div className={styles.formGroup}>
               <label>Service Provider</label>
-              <select
-                className={styles.select}
+              <SearchableSelect
                 value={selectedService}
-                onChange={(e) => setSelectedService(e.target.value)}
-              >
-                <option value="">{servicesLoading ? 'Loading services...' : '-- Select Service --'}</option>
-                {services && services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
+                onChange={(val) => setSelectedService(val || '')}
+                options={(services || []).map(s => ({ value: s.id, label: s.name }))}
+                placeholder={servicesLoading ? 'Loading services...' : '-- Select Service --'}
+              />
             </div>
             <div className={styles.formGroup}>
               <label>Select Customer Mobile Number</label>

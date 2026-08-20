@@ -439,7 +439,7 @@ const ApiHome = () => {
           searchQuery={txnSearchQuery}
           onSearchChange={setTxnSearchQuery}
           rowsPerPage={txnRowsPerPage}
-          onRowsPerPageChange={setTxnRowsPerPage}
+          onRowsPerPageChange={(val) => { setTxnRowsPerPage(val); setTxnCurrentPage(1); }}
           currentPage={txnCurrentPage}
           onPageChange={setTxnCurrentPage}
           totalEntries={totalTxnEntries}

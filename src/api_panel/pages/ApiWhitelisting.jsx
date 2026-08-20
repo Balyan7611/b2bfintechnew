@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useDispatch } from 'react-redux';
 import { FaShieldAlt, FaServer, FaCheckCircle, FaExclamationTriangle, FaPaperPlane, FaGlobe, FaNetworkWired, FaHistory, FaTrash, FaToggleOn, FaToggleOff, FaTimes } from 'react-icons/fa';
 import AdminTable from '../../shared/components/common/AdminTable';
 import { API } from '../../api/endpoints';
 import { resolveMemberId } from '../../utils/memberIdentity';
+import { setNotification } from '../../store/slices/uiSlice';
 import ApiCredentials from './ApiCredentials';
 import styles from './ApiWhitelisting.module.css';
 
 const ApiWhitelisting = () => {
+  const dispatch = useDispatch();
   const [inputValue, setInputValue] = useState('');
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -179,7 +182,7 @@ const ApiWhitelisting = () => {
     const ownerMsrno = item.msrno || item.Msrno || currentUserId;
     const ownerUserId = item.userId || item.UserId || currentUserId;
     if (!ownerMsrno || !ownerUserId) {
-      alert('Unable to verify your account. Please sign out and sign in again.');
+      dispatch(setNotification({ type: 'error', message: 'Unable to verify your account. Please sign out and sign in again.' }));
       return;
     }
     try {
@@ -194,7 +197,7 @@ const ApiWhitelisting = () => {
       await API.ipAuthanticate.update(updatedPayload);
       await fetchIpList();
     } catch (err) {
-      alert('Failed to update status: ' + err.message);
+      dispatch(setNotification({ type: 'error', message: 'Failed to update status: ' + err.message }));
     }
   };
 
@@ -208,12 +211,12 @@ const ApiWhitelisting = () => {
     try {
       const res = await API.ipAuthanticate.delete(id);
       if (res?.status === false) {
-        alert(res?.message || 'Failed to delete entry. The server returned an error.');
+        dispatch(setNotification({ type: 'error', message: res?.message || 'Failed to delete entry. The server returned an error.' }));
       } else {
         await fetchIpList();
       }
     } catch (err) {
-      alert('Failed to delete entry: ' + err.message);
+      dispatch(setNotification({ type: 'error', message: 'Failed to delete entry: ' + err.message }));
     } finally {
       setDeleteModal({ show: false, id: null });
     }

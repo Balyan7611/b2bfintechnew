@@ -541,13 +541,15 @@ const DashboardPage = () => {
       setSuggestions([]);
       return;
     }
+    let cancelled = false;
     const timer = setTimeout(async () => {
       setIsSearchingMember(true);
       const query = memberSearchQuery.toLowerCase().trim();
       try {
         const results = await API.member.search(memberSearchQuery.trim());
-        
-                const localMatches = memberList.filter(m => 
+        if (cancelled) return;
+
+                const localMatches = memberList.filter(m =>
           (m.name && m.name.toLowerCase().includes(query)) ||
           (m.memberId && m.memberId.toLowerCase().includes(query)) ||
           (m.mobile && m.mobile.toLowerCase().includes(query)) ||
@@ -557,8 +559,8 @@ const DashboardPage = () => {
 
                 const merged = [...(results || [])];
         localMatches.forEach(lm => {
-          const alreadyExists = merged.some(m => 
-            String(m.id) === String(lm.id) || 
+          const alreadyExists = merged.some(m =>
+            String(m.id) === String(lm.id) ||
             (m.memberId && lm.memberId && String(m.memberId).toLowerCase() === String(lm.memberId).toLowerCase())
           );
           if (!alreadyExists) {
@@ -566,7 +568,7 @@ const DashboardPage = () => {
           }
         });
 
-                const filteredSuggestions = merged.filter(m => 
+                const filteredSuggestions = merged.filter(m =>
           (m.name && m.name.toLowerCase().includes(query)) ||
           (m.memberId && m.memberId.toLowerCase().includes(query)) ||
           (m.mobile && m.mobile.toLowerCase().includes(query)) ||
@@ -574,23 +576,27 @@ const DashboardPage = () => {
           (m.shopName && m.shopName.toLowerCase().includes(query))
         );
 
-        setSuggestions(filteredSuggestions);
+        if (!cancelled) setSuggestions(filteredSuggestions);
       } catch (err) {
         console.error("DashboardPage: Member Search Error:", err);
-                const localMatches = memberList.filter(m => 
+        if (cancelled) return;
+                const localMatches = memberList.filter(m =>
           (m.name && m.name.toLowerCase().includes(query)) ||
           (m.memberId && m.memberId.toLowerCase().includes(query)) ||
           (m.mobile && m.mobile.toLowerCase().includes(query)) ||
           (m.email && m.email.toLowerCase().includes(query)) ||
           (m.shopName && m.shopName.toLowerCase().includes(query))
         );
-        setSuggestions(localMatches);
+        if (!cancelled) setSuggestions(localMatches);
       } finally {
-        setIsSearchingMember(false);
+        if (!cancelled) setIsSearchingMember(false);
       }
     }, 400);
 
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [memberSearchQuery, memberList]);
 
   const chartFilterOptions = ['Today', '7 Days', '1 Month', '3 Months', '6 Months', '1 Year', 'All Time'];

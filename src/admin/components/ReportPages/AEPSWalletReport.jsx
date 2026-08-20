@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiFilter, FiSearch } from 'react-icons/fi';
+import { FiFilter, FiSearch, FiRefreshCw } from 'react-icons/fi';
 import {
   setAEPSWalletList,
   updateAEPSWalletFilters,
@@ -22,6 +22,7 @@ const AEPSWalletReport = () => {
 
   const { list, filters, searchQuery, rowsPerPage, currentPage } =
     useSelector(state => state.report.aepsWalletReport);
+  const today = new Date().toISOString().split('T')[0];
 
     useEffect(() => {
     API.member.getAll({ pageNumber: 1, pageSize: 5000 })
@@ -121,13 +122,29 @@ const AEPSWalletReport = () => {
                     placeholder="All Members"
                   />
                 </div>
-                <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'flex-end' }}>
-                  <button type="submit" disabled={isLoading}
-                    style={{ width: '100%', height: 38, background: 'linear-gradient(135deg,#1756AA,#1E3A8A)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                    <FiSearch size={14} />
-                    {isLoading ? 'Loading…' : 'Search'}
-                  </button>
-                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
+                <button type="submit" disabled={isLoading}
+                  style={{ width: '140px', boxSizing: 'border-box', flexShrink: 0, height: 38, background: 'linear-gradient(135deg,#1756AA,#1E3A8A)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <FiSearch size={14} />
+                  Search
+                </button>
+                <button
+                  type="button"
+                  title="Reset Filters"
+                  onClick={() => {
+                    dispatch(updateAEPSWalletFilters({ fromDate: today, toDate: today, memberId: '' }));
+                    dispatch(setAEPSWalletSearchQuery(''));
+                    dispatch(setAEPSWalletCurrentPage(1));
+                  }}
+                  style={{ width: '120px', boxSizing: 'border-box', flexShrink: 0, padding: '0 16px', height: 38, background: '#fff', color: '#475569', border: '1.5px solid #CBD5E1', borderRadius: 10, fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.2s' }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.color = '#1756AA'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
+                >
+                  <FiRefreshCw size={14} />
+                  Reset
+                </button>
               </div>
             </form>
             {apiError && (

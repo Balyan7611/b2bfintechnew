@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import {
   FiCheck,
@@ -14,9 +15,11 @@ import {
 } from 'react-icons/fi';
 import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import { API } from '../../../api/endpoints';
+import { setNotification } from '../../../store/slices/uiSlice';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const RoleManagement = () => {
+  const dispatch = useDispatch();
   const [roles, setRoles] = useState([]);
   const [masterRoles, setMasterRoles] = useState([]);
   const [filteredRoles, setFilteredRoles] = useState([]);
@@ -229,7 +232,7 @@ const RoleManagement = () => {
       await API.saveRole(formData);
       setIsModalOpen(false);
       fetchRoles();
-    } catch (err) { alert(err.message); }
+    } catch (err) { dispatch(setNotification({ type: 'error', message: err.message })); }
   };
 
   const handleToggleStatus = async (role) => {
@@ -245,7 +248,7 @@ const RoleManagement = () => {
       };
       await API.saveRole(updatedRole);
       fetchRoles();
-    } catch (err) { alert(err.message); }
+    } catch (err) { dispatch(setNotification({ type: 'error', message: err.message })); }
   };
 
   const handleMouseEnter = (e, role) => {
@@ -321,7 +324,7 @@ const RoleManagement = () => {
         fetchRoles();
       } catch (err) {
         console.error('Error saving assigned services:', err);
-        alert(err.message || 'Failed to assign services.');
+        dispatch(setNotification({ type: 'error', message: err.message || 'Failed to assign services.' }));
       } finally {
         setLoading(false);
       }
@@ -342,7 +345,7 @@ const RoleManagement = () => {
       fetchRoles();
     } catch (error) {
       console.error('Error removing service from role:', error);
-      alert(error.message || 'Failed to remove service.');
+      dispatch(setNotification({ type: 'error', message: error.message || 'Failed to remove service.' }));
     }
   };
 

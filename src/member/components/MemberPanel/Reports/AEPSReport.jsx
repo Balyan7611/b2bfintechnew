@@ -3,7 +3,7 @@ import SearchableSelect from '../../../../shared/components/common/SearchableSel
 import ReactDOM from 'react-dom';
 import { Cells as UplineCells, getUplineShape } from '../../../../shared/components/common/UplineCommissionCols';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiFilter, FiSearch } from 'react-icons/fi';
+import { FiFilter, FiSearch, FiRefreshCw } from 'react-icons/fi';
 import { 
   setAEPSList, 
   updateAEPSFilters, 
@@ -314,9 +314,25 @@ const AEPSReport = () => {
                       style={{ height: '42px', minWidth: '150px', fontSize: '0.85rem' }}
                     />
                   </div>
-                  <button className={styles.submitBtn} onClick={fetchData}>
-                    Apply Filters
-                  </button>
+                  <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '10px' }}>
+                    <button className={styles.submitBtn} onClick={fetchData} style={{ width: '140px', boxSizing: 'border-box', flexShrink: 0 }}>
+                      Apply
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const today = new Date().toISOString().split('T')[0];
+                        dispatch(updateAEPSFilters({ fromDate: today, toDate: today, status: '', serviceId: '' }));
+                        dispatch(setAEPSSearchQuery(''));
+                        dispatch(setAEPSCurrentPage(1));
+                      }}
+                      style={{ background: '#fff', color: '#475569', border: '1.5px solid #CBD5E1', borderRadius: '10px', height: '42px', padding: '0 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '120px', boxSizing: 'border-box', flexShrink: 0 }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.color = '#1756AA'; e.currentTarget.style.background = '#F8FAFC'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; e.currentTarget.style.background = '#fff'; }}
+                    >
+                      <FiRefreshCw size={14} /> Reset
+                    </button>
+                  </div>
                 </div>
               </div>
             }

@@ -3,9 +3,22 @@ const API_BASE = 'https://api.sahayatamoney.in';
 
 export const getImageUrl = (filename, folder) => {
   if (!filename) return null;
-    if (filename.startsWith('http://') || filename.startsWith('https://')) return filename;
-    const clean = filename.replace(/^\/+/, '');
+  // Backend sometimes returns Windows-style backslashes, and sometimes
+  // returns the FULL relative path (e.g. "UploadedFiles/SupportTickets/x.jpg")
+  // instead of a bare filename — without normalizing both cases, the URL
+  // built below either has literal backslashes in it or double-prepends the
+  // folder ("UploadedFiles/SupportTickets/UploadedFiles/SupportTickets/x.jpg"),
+  // both of which fail to load. Same fix as the KYC document image resolver.
+  const normalized = String(filename).replace(/\\/g, '/');
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) return normalized;
+  const clean = normalized.replace(/^\/+/, '');
   if (!clean) return null;
+  const prefix = `uploadedfiles/${folder}`.toLowerCase();
+  if (clean.toLowerCase().startsWith(prefix)) {
+    const suffix = clean.substring(prefix.length);
+    const cleanSuffix = suffix.startsWith('/') ? suffix : (suffix ? '/' + suffix : '');
+    return `${API_BASE}/UploadedFiles/${folder}${cleanSuffix}`;
+  }
   return `${API_BASE}/UploadedFiles/${folder}/${clean}`;
 };
 

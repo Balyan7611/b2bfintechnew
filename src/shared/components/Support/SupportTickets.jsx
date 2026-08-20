@@ -97,7 +97,7 @@ const SupportTickets = () => {
     const id = t.id || t.Id;
 
     let attachment = null;
-    const attachmentUrl = t.AttachmentUrl || t.attachmentUrl || t.attachmentPath || '';
+    const attachmentUrl = t.AttachmentUrl || t.attachmentUrl || t.attachmentPath || t.AttachmentPath || '';
     const attachmentType = t.AttachmentType || t.attachmentType || '';
     const resolveAttachmentUrl = (url) => {
       if (!url) return '';

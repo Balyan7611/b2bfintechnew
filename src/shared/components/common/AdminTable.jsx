@@ -175,7 +175,7 @@ const AdminTable = ({
           entries
         </div>
 
-        <div className={sharedStyles.exportGroup} style={{ margin: 0, width: 'auto' }}>
+        <div className={sharedStyles.exportGroup} style={{ margin: 0, width: 'auto', justifySelf: 'center' }}>
           <button className={`${sharedStyles.exportBtn} ${sharedStyles.bg_copy}`} title="Copy" onClick={() => handleExport('copy')}><FiCopy /></button>
           <button className={`${sharedStyles.exportBtn} ${sharedStyles.bg_excel}`} title="Excel" onClick={() => handleExport('excel')}><FaFileExcel /></button>
           <button className={`${sharedStyles.exportBtn} ${sharedStyles.bg_csv}`} title="CSV" onClick={() => handleExport('csv')}><FaFileCsv /></button>
@@ -183,11 +183,11 @@ const AdminTable = ({
           <button className={`${sharedStyles.exportBtn} ${sharedStyles.bg_print}`} title="Print" onClick={() => handleExport('print')}><FaPrint /></button>
         </div>
 
-        <div className={styles.searchBox}>
+        <div className={styles.searchBox} style={{ justifySelf: 'end' }}>
           <FiSearch className={styles.searchIcon} />
-          <input 
-            type="text" 
-            placeholder="Search reports..." 
+          <input
+            type="text"
+            placeholder="Search reports..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
           />

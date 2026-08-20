@@ -327,62 +327,62 @@ const MemberSecurity = () => {
         </div>
 
                 <div className={styles.tableContainer}>
-          <table className={styles.tableFull} style={{ minWidth: '800px', width: '100%' }}>
+          <table className={styles.tableFull} style={{ minWidth: '800px', width: '100%', fontSize: '0.95rem' }}>
             <thead>
               <tr>
-                <th style={{ width: '50px' }}>#</th>
-                <th style={{ width: '25%' }}>MEMBER NAME</th>
-                <th style={{ width: '15%' }}>MEMBER ID</th>
-                <th style={{ width: '15%', textAlign: 'center' }}>TWO WAY AUTH</th>
-                <th style={{ width: '15%', textAlign: 'center' }}>OTP LOGIN</th>
-                <th style={{ width: '15%', textAlign: 'center' }}>TPIN LOGIN</th>
+                <th style={{ width: '50px', padding: '14px 10px', fontSize: '0.8rem' }}>#</th>
+                <th style={{ width: '25%', padding: '14px 10px', fontSize: '0.8rem' }}>MEMBER NAME</th>
+                <th style={{ width: '15%', padding: '14px 10px', fontSize: '0.8rem' }}>MEMBER ID</th>
+                <th style={{ width: '15%', textAlign: 'center', padding: '14px 10px', fontSize: '0.8rem' }}>TWO WAY AUTH</th>
+                <th style={{ width: '15%', textAlign: 'center', padding: '14px 10px', fontSize: '0.8rem' }}>OTP LOGIN</th>
+                <th style={{ width: '15%', textAlign: 'center', padding: '14px 10px', fontSize: '0.8rem' }}>TPIN LOGIN</th>
               </tr>
             </thead>
             <tbody>
               {filteredMembers.length > 0 ? filteredMembers.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage).map((m, idx) => (
                 <tr key={m.msrno || m.id}>
-                  <td style={{ color: '#A0AEC0', fontWeight: 700 }}>{(currentPage - 1) * rowsPerPage + idx + 1}</td>
-                  <td className={styles.fwBold}>{m.name}</td>
-                  <td style={{ color: '#1756AA', fontWeight: 700 }}>{m.memberId || '—'}</td>
-                  <td style={{ textAlign: 'center' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <td style={{ color: '#A0AEC0', fontWeight: 700, padding: '14px 10px', fontSize: '0.9rem' }}>{(currentPage - 1) * rowsPerPage + idx + 1}</td>
+                  <td className={styles.fwBold} style={{ padding: '14px 10px', fontSize: '0.92rem' }}>{m.name}</td>
+                  <td style={{ color: '#1756AA', fontWeight: 700, padding: '14px 10px', fontSize: '0.9rem' }}>{m.memberId || '—'}</td>
+                  <td style={{ textAlign: 'center', padding: '14px 10px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                       <label className={`${styles.switch} ${styles.switchSmall}`}>
-                        <input 
-                          type="checkbox" 
-                          checked={m.twoWay} 
-                          onChange={() => handleToggle(m.msrno, 'twoWay')} 
+                        <input
+                          type="checkbox"
+                          checked={m.twoWay}
+                          onChange={() => handleToggle(m.msrno, 'twoWay')}
                         />
                         <span className={styles.slider}></span>
                       </label>
-                      <span style={{ fontSize: '0.6rem', fontWeight: 800, color: m.twoWay ? '#27AE60' : '#A0AEC0' }}>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 800, color: m.twoWay ? '#27AE60' : '#A0AEC0' }}>
                         {m.twoWay ? 'ON' : 'OFF'}
                       </span></div></td>
-                  <td style={{ textAlign: 'center' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <td style={{ textAlign: 'center', padding: '14px 10px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                       <label className={`${styles.switch} ${styles.switchSmall}`} style={!m.twoWay ? { opacity: 0.5, cursor: 'not-allowed', pointerEvents: 'none' } : {}}>
-                        <input 
-                          type="checkbox" 
-                          checked={m.otp} 
+                        <input
+                          type="checkbox"
+                          checked={m.otp}
                           disabled={!m.twoWay}
-                          onChange={() => handleToggle(m.msrno, 'otp')} 
+                          onChange={() => handleToggle(m.msrno, 'otp')}
                         />
                         <span className={styles.slider}></span>
                       </label>
-                      <span style={{ fontSize: '0.6rem', fontWeight: 800, color: m.twoWay && m.otp ? '#27AE60' : '#A0AEC0' }}>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 800, color: m.twoWay && m.otp ? '#27AE60' : '#A0AEC0' }}>
                         {m.otp ? 'ON' : 'OFF'}
                       </span></div></td>
-                  <td style={{ textAlign: 'center' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <td style={{ textAlign: 'center', padding: '14px 10px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                       <label className={`${styles.switch} ${styles.switchSmall}`} style={!m.twoWay ? { opacity: 0.5, cursor: 'not-allowed', pointerEvents: 'none' } : {}}>
-                        <input 
-                          type="checkbox" 
-                          checked={m.tpin} 
+                        <input
+                          type="checkbox"
+                          checked={m.tpin}
                           disabled={!m.twoWay}
-                          onChange={() => handleToggle(m.msrno, 'tpin')} 
+                          onChange={() => handleToggle(m.msrno, 'tpin')}
                         />
                         <span className={styles.slider}></span>
                       </label>
-                      <span style={{ fontSize: '0.6rem', fontWeight: 800, color: m.twoWay && m.tpin ? '#27AE60' : '#A0AEC0' }}>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 800, color: m.twoWay && m.tpin ? '#27AE60' : '#A0AEC0' }}>
                         {m.tpin ? 'ON' : 'OFF'}
                       </span></div></td>
                 </tr>

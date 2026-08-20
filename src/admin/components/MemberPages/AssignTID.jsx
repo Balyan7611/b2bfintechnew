@@ -9,6 +9,7 @@ import {
 } from 'react-icons/fa';
 import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { updateTidForm, toggleTidDrawer, setEditingTid, deleteTid } from '../../../store/slices/memberSlice';
+import { setNotification } from '../../../store/slices/uiSlice';
 import { API } from '../../../api/endpoints';
 import styles from './MemberPages.module.css';
 
@@ -51,7 +52,7 @@ const AssignTID = () => {
 
   const fetchCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      dispatch(setNotification({ type: 'error', message: "Geolocation is not supported by your browser" }));
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -62,7 +63,7 @@ const AssignTID = () => {
         }));
       },
       (error) => {
-        alert("Error fetching location: " + error.message);
+        dispatch(setNotification({ type: 'error', message: "Error fetching location: " + error.message }));
       }
     );
   };

@@ -118,10 +118,21 @@ httpClient.interceptors.request.use((config) => {
     }
     
     if (config.data instanceof FormData) {
-        delete config.headers['Content-Type'];
-        delete config.headers['content-type'];
-        config.headers['Content-Type'] = undefined;
-        config.headers['content-type'] = undefined;
+        // axios v1's config.headers is an AxiosHeaders instance, not a plain
+        // object — bracket delete / assigning undefined doesn't reliably
+        // remove the header on it (same reason Authorization above uses
+        // .set() instead of bracket assignment). Leaving a stale
+        // "Content-Type: application/json" (or literal "undefined") header
+        // on a multipart FormData body makes the server reject the request
+        // with 415 Unsupported Media Type — the browser never gets to set
+        // its own "multipart/form-data; boundary=..." header.
+        if (config.headers && typeof config.headers.delete === 'function') {
+            config.headers.delete('Content-Type');
+            config.headers.delete('content-type');
+        } else if (config.headers) {
+            delete config.headers['Content-Type'];
+            delete config.headers['content-type'];
+        }
     }
     
         if (!config.hideLoader) {
@@ -237,7 +248,15 @@ httpClient.interceptors.response.use((response) => {
         errorMsg = error.message || 'Network Error';
     }
 
-    console.error("HTTP Request Failed. URL:", error.config?.url, "Status:", error.response?.status, "Error Details:", error.response?.data || error.message);
+    // Calls made with `ignoreError: true` have already told us the caller
+    // will handle the failure quietly (has its own fallback/retry) — don't
+    // also blast a top-level console.error for those, just keep it at
+    // debug level. Everything else still logs loudly as before.
+    if (error.config?.ignoreError) {
+        console.debug("HTTP Request Failed (ignored). URL:", error.config?.url, "Status:", error.response?.status, "Error Details:", error.response?.data || error.message);
+    } else {
+        console.error("HTTP Request Failed. URL:", error.config?.url, "Status:", error.response?.status, "Error Details:", error.response?.data || error.message);
+    }
 
     if (!error.config || (!error.config.hideLoader && !error.config.ignoreError)) {
         store.dispatch(setNotification({
@@ -391,11 +410,13 @@ export const apiService = {
 
         postForm: async (url, formData, config = {}) => {
         const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token') || sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token') || localStorage.getItem('member_token');
+        // Plain object here (not AxiosHeaders), so bracket delete is fine —
+        // just make sure we don't re-add the key at all (not even as
+        // undefined) since axios still serializes an "undefined" string
+        // Content-Type in some adapters, which breaks the multipart boundary.
         const headers = { ...(config.headers || {}) };
         delete headers['Content-Type'];
         delete headers['content-type'];
-        headers['Content-Type'] = undefined;
-        headers['content-type'] = undefined;
         if (token) {
             let cleanToken = String(token).replace(/^"(.*)"$/, '$1').trim();
             cleanToken = cleanToken.replace(/^Bearer\s+/i, '').trim();
@@ -413,8 +434,6 @@ export const apiService = {
         const headers = { ...(config.headers || {}) };
         delete headers['Content-Type'];
         delete headers['content-type'];
-        headers['Content-Type'] = undefined;
-        headers['content-type'] = undefined;
         if (token) {
             let cleanToken = String(token).replace(/^"(.*)"$/, '$1').trim();
             cleanToken = cleanToken.replace(/^Bearer\s+/i, '').trim();

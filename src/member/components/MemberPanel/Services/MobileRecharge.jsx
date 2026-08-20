@@ -14,6 +14,7 @@ import {
 import { BiNetworkChart } from 'react-icons/bi';
 import ServiceQuickNav from './ServiceQuickNav';
 import { useFetchServices } from '../../../../hooks/useFetchServices';
+import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 
 const MobileRecharge = () => {
   const [mobileNumber, setMobileNumber] = useState('');
@@ -150,15 +151,14 @@ const MobileRecharge = () => {
               <label className={styles.label}>Service Provider</label>
               <div className={styles.inputWrapper}>
                 <BiNetworkChart className={styles.inputIcon} />
-                <select 
-                  className={`${styles.inputField} ${styles.selectField}`}
+                <SearchableSelect
                   value={service}
-                  onChange={(e) => setService(e.target.value)}
+                  onChange={(val) => setService(val || '')}
+                  options={(services || []).map(s => ({ value: s.id, label: s.name }))}
+                  placeholder={servicesLoading ? 'Loading services...' : 'Select Service'}
                   required
-                >
-                  <option value="">{servicesLoading ? 'Loading services...' : 'Select Service'}</option>
-                  {services && services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
+                  style={{ paddingLeft: '38px' }}
+                />
               </div>
             </div>
 

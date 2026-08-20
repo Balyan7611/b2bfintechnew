@@ -153,7 +153,7 @@ const DMTReport = () => {
         searchQuery={searchQuery}
         onSearchChange={(val) => dispatch(setDMTSearchQuery(val))}
         rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={(val) => dispatch(setDMTRowsPerPage(val))}
+        onRowsPerPageChange={(val) => { dispatch(setDMTRowsPerPage(val)); dispatch(setDMTCurrentPage(1)); }}
         currentPage={currentPage}
         onPageChange={(val) => dispatch(setDMTCurrentPage(val))}
         totalEntries={totalEntries}

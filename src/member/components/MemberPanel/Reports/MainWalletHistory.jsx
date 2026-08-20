@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { FiSearch, FiRefreshCw } from 'react-icons/fi';
 import {
   setMainWalletList,
   updateMainWalletFilters,
@@ -19,6 +20,8 @@ const MainWalletHistory = () => {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const today = new Date().toISOString().split('T')[0];
 
   const { list, filters, searchQuery, rowsPerPage, currentPage } =
     useSelector(state => state.report.mainWalletReport);
@@ -105,8 +108,9 @@ const MainWalletHistory = () => {
     useEffect(() => { loadHistory(); }, []);   
   const lower = v => String(v ?? '').toLowerCase();
   const filteredList = list.filter(item =>
-    lower(item.narration).includes(lower(searchQuery)) ||
-    lower(item.member).includes(lower(searchQuery))
+    (lower(item.narration).includes(lower(searchQuery)) ||
+     lower(item.member).includes(lower(searchQuery))) &&
+    (!typeFilter || item.factor === typeFilter)
   );
 
   const displayColumns = ['#', 'Member', 'Service', 'Operator', 'Opening Bal', 'Amount', 'CR / DR', 'Surcharge', 'GST', 'TDS', 'Commission', 'Closing Bal', 'Narration', 'Date'];
@@ -117,24 +121,59 @@ const MainWalletHistory = () => {
         title="E-WALLET HISTORY"
         topContent={
           <div className={styles.filterSection}>
-            <div className={styles.filterRow}>
-              <div className={styles.formGroup}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap', width: '100%' }}>
+              <div className={styles.formGroup} style={{ flex: '1 1 150px', minWidth: '140px' }}>
                 <label>From Date</label>
                 <input type="date" className={styles.inputControl}
                   value={filters.fromDate}
                   onChange={e => dispatch(updateMainWalletFilters({ fromDate: e.target.value }))} />
               </div>
-              <div className={styles.formGroup}>
+              <div className={styles.formGroup} style={{ flex: '1 1 150px', minWidth: '140px' }}>
                 <label>To Date</label>
                 <input type="date" className={styles.inputControl}
                   value={filters.toDate}
                   onChange={e => dispatch(updateMainWalletFilters({ toDate: e.target.value }))} />
               </div>
-              <button className={styles.submitBtn} disabled={isLoading}
-                onClick={() => loadHistory(filters)}>
-                {isLoading ? 'Loading...' : 'Search'}
-              </button>
+              <div className={styles.formGroup} style={{ flex: '1 1 130px', minWidth: '120px' }}>
+                <label>Type</label>
+                <select className={styles.inputControl} value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
+                  <option value="">All</option>
+                  <option value="CR">CR (Credit)</option>
+                  <option value="DR">DR (Debit)</option>
+                </select>
+              </div>
+              <div className={styles.formGroup} style={{ flex: '0 0 auto' }}>
+                <label style={{ visibility: 'hidden' }}>Search</label>
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => loadHistory(filters)}
+                  style={{ minWidth: '120px', whiteSpace: 'nowrap', boxSizing: 'border-box', flexShrink: 0, height: '42px', background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.825rem', textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                >
+                  <FiSearch size={14} /> Search
+                </button>
+              </div>
+              <div className={styles.formGroup} style={{ flex: '0 0 auto' }}>
+                <label style={{ visibility: 'hidden' }}>Reset</label>
+                <button
+                  type="button"
+                  title="Reset Filters"
+                  onClick={() => {
+                    dispatch(updateMainWalletFilters({ fromDate: today, toDate: today }));
+                    setTypeFilter('');
+                    dispatch(setMainWalletSearchQuery(''));
+                    dispatch(setMainWalletCurrentPage(1));
+                    loadHistory({ fromDate: today, toDate: today });
+                  }}
+                  style={{ minWidth: '100px', whiteSpace: 'nowrap', boxSizing: 'border-box', flexShrink: 0, padding: '0 14px', height: '42px', background: '#fff', color: '#475569', border: '1.5px solid #CBD5E1', borderRadius: 8, fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.2s' }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.color = '#1756AA'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
+                >
+                  <FiRefreshCw size={14} /> Reset
+                </button>
+              </div>
             </div>
+
             {apiError && (
               <div style={{ margin: '8px 0 0', padding: '10px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#b91c1c', fontSize: '0.8rem', fontWeight: 600 }}>
                 ⚠️ {apiError}

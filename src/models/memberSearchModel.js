@@ -17,7 +17,15 @@ export const MemberSearchResponseModel = (res) => {
     }
 
     return arr.map(item => ({
-        id: item.uniqueID || item.UniqueID || item.loginID || item.loginId || item.mobile || item.MemberID || '',
+        // Numeric database id must win over string fields. loginID/loginId
+        // (e.g. "API100") and mobile are NOT valid ids — sending one of them
+        // as `id` to update-profile-style endpoints fails backend validation
+        // ("id: The value 'API100' is not valid"). The backend's raw response
+        // uses plain `id` as the numeric primary key (confirmed by the
+        // existing parentDetails.id usage a few lines below in this same
+        // file), so it must be checked FIRST — uniqueID/MemberID are just
+        // legacy fallback guesses that don't actually exist on this response.
+        id: item.id || item.uniqueID || item.UniqueID || item.MemberID || item.memberID || item.loginID || item.loginId || item.mobile || '',
         name: item.name || '',
         mobile: item.mobile || '',
         email: item.email || '',

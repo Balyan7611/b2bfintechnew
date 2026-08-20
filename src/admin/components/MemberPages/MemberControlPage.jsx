@@ -255,7 +255,10 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
       email: profileForm.shop,       mobile: profileForm.mobile,
       alterNativeMobileNumber: profileForm.altMobile,
       genderId: profileForm.gender === 'Female' ? 2 : profileForm.gender === 'Other' ? 3 : 1,
-      dob: profileForm.dob ? profileForm.dob.split('T')[0] : "",
+      // Backend binds this to a nullable DateOnly — an empty string fails to
+      // parse ("$.dob: The JSON value could not be converted to
+      // System.Nullable`1[System.DateOnly]"). Must send null, not "".
+      dob: profileForm.dob ? profileForm.dob.split('T')[0] : null,
       pic: activeMemberData.pic || "profile2.jpg",
       loginOnOff: activeMemberData.loginOnOff ?? false,
       deviceId: activeMemberData.deviceId || "",
@@ -263,7 +266,7 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
       macAddress: activeMemberData.macAddress || "",
       deviceRegister: activeMemberData.deviceRegister || "",
       fromChannel: activeMemberData.fromChannel || "",
-      time: parseInt(activeMemberData.time) || 8243,
+      time: parseInt(activeMemberData.time) || 0,
       aadhar: profileForm.aadhar,
       pan: profileForm.pan,
       address: profileForm.address,
@@ -323,11 +326,45 @@ const MemberControlPage = ({ activeMemberData, onClose, initialEdit = false, bac
           }
         }, 2000);
       } else {
-        setValidationError(res.message || "Failed to update profile.");
+        // Backend's ApiResponse.Error wrapper (duplicate mobile/email/aadhar
+        // checks, etc.) puts the real reason in `mess`, not `message` — this
+        // was only checking `message`, so those specific errors (e.g.
+        // "Mobile number '...' is already registered") were silently
+        // replaced by the generic fallback below.
+        setValidationError(res?.mess || res?.message || "Failed to update profile.");
       }
     } catch (error) {
       console.error("Profile update error:", error);
-      setValidationError("An error occurred while updating the profile.");
+
+      // A raw 400 here is ASP.NET Core's automatic model-validation response
+      // (ValidationProblemDetails), which has neither `mess` nor `message` —
+      // the real per-field reasons live in `errors: { fieldName: [...] }`.
+      // Without reading that, the UI just shows axios's generic
+      // "Request failed with status code 400" and hides the actual cause.
+      const errorsObj = error?.response?.data?.errors;
+      const fieldErrors = errorsObj && typeof errorsObj === 'object'
+        ? Object.entries(errorsObj)
+            .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(' ') : msgs}`)
+            .join(' | ')
+        : '';
+
+      // A 500 means the server itself threw (not a validation rejection).
+      // ASP.NET Core sometimes returns the raw exception as a plain string
+      // body rather than JSON — surface that too instead of dropping straight
+      // to axios's generic "Request failed with status code 500".
+      const rawStringBody = typeof error?.response?.data === 'string' ? error.response.data : '';
+      const status = error?.response?.status;
+      const statusPrefix = status ? `[HTTP ${status}] ` : '';
+
+      setValidationError(
+        statusPrefix + (
+          fieldErrors ||
+          error?.response?.data?.mess || error?.response?.data?.message ||
+          error?.response?.data?.title ||
+          rawStringBody ||
+          error?.message || "An error occurred while updating the profile."
+        )
+      );
     }
   };
 

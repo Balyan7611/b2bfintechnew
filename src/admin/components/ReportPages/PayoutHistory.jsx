@@ -7,9 +7,9 @@ import ExportButtons from '../../../shared/components/common/ExportButtons';
 import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { useLocation } from 'react-router-dom';
 import { 
-  FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo, 
+  FiSearch, FiFilter, FiCalendar, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo,
   FiActivity, FiDatabase, FiAlertCircle, FiXCircle, FiActivity as FiSignal,
-  FiUser, FiSmartphone, FiCpu, FiTrendingUp, FiList, FiBarChart2
+  FiUser, FiSmartphone, FiCpu, FiTrendingUp, FiList, FiBarChart2, FiRefreshCw
 } from 'react-icons/fi';
 import { 
   FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint
@@ -461,43 +461,87 @@ const PayoutHistory = () => {
                 />
               </div>
             </div>
-            <div className={styles.formGroup}>
-              <button 
-                type="submit" 
-                style={{
-                  background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '10px',
-                  height: '38px',
-                  fontSize: '0.825rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(34, 197, 94, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                  width: '100%',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #24D366 0%, #17b350 100%)';
-                  e.currentTarget.style.transform = 'translateY(-1.5px)';
-                  e.currentTarget.style.boxShadow = '0 5px 15px rgba(34, 197, 94, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.12)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)';
-                }}
-              >
-                <FiSearch size={15} />
-                Search
-              </button>
-            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
+            <button
+              type="submit"
+              style={{
+                background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '10px',
+                height: '38px',
+                width: '140px',
+                boxSizing: 'border-box',
+                flexShrink: 0,
+                fontSize: '0.825rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(34, 197, 94, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #24D366 0%, #17b350 100%)';
+                e.currentTarget.style.transform = 'translateY(-1.5px)';
+                e.currentTarget.style.boxShadow = '0 5px 15px rgba(34, 197, 94, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.12)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)';
+              }}
+            >
+              <FiSearch size={15} />
+              Search
+            </button>
+            <button
+              type="button"
+              title="Reset Filters"
+              onClick={() => {
+                setFromDate(today);
+                setToDate(today);
+                setSelectedService('');
+                setSelectedOperator('');
+                setSelectedMember('');
+                setSelectedApi('');
+                setSelectedStatus('');
+                setSearchKeyword('');
+                setPageNumber(1);
+              }}
+              style={{
+                background: '#fff',
+                color: '#475569',
+                border: '1.5px solid #CBD5E1',
+                borderRadius: '10px',
+                height: '38px',
+                width: '120px',
+                boxSizing: 'border-box',
+                flexShrink: 0,
+                fontSize: '0.825rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                transition: 'all 0.2s',
+                padding: '0 16px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.color = '#1756AA'; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
+            >
+              <FiRefreshCw size={14} />
+              Reset
+            </button>
           </div>
         </form>
       </div>

@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fa';
 import styles from '../MemberPages/MemberPages.module.css';
 import { sanitizeHTML } from '../../../utils/securityUtils';
+import { setNotification } from '../../../store/slices/uiSlice';
 
 const ManageNews = () => {
   const dispatch = useDispatch();
@@ -99,7 +100,7 @@ const ManageNews = () => {
 
   const handlePublish = () => {
     if (!title.trim() || !content.trim()) {
-      alert("Please fill Title and Content fields.");
+      dispatch(setNotification({ type: 'error', message: "Please fill Title and Content fields." }));
       return;
     }
     setIsPublishing(true);

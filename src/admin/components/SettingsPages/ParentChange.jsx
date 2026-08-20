@@ -1,16 +1,19 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { 
+import { useDispatch } from 'react-redux';
+import {
   FiChevronLeft, FiChevronRight, FiRefreshCw, FiCheck, FiUser, FiSearch
 } from 'react-icons/fi';
-import { 
-  FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint 
+import {
+  FaFileExcel, FaFilePdf, FaFileCsv, FaCopy, FaPrint
 } from 'react-icons/fa';
 import { API } from '../../../api/endpoints';
 import MemberSearchSelect from '../../../shared/components/common/MemberSearchSelect';
 import RoleSelect from '../../../shared/components/common/RoleSelect';
+import { setNotification } from '../../../store/slices/uiSlice';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const ParentChange = () => {
+  const dispatch = useDispatch();
   const [fetchedMember, setFetchedMember] = useState(null);
   const [fetchedParent, setFetchedParent] = useState(null);
   const [selectedRoleId, setSelectedRoleId] = useState("");
@@ -100,7 +103,7 @@ const ParentChange = () => {
       setSelectedRoleId("");
     } catch (error) {
       console.error("Error saving parent change:", error);
-      alert("Failed to save parent change. Please try again.");
+      dispatch(setNotification({ type: 'error', message: "Failed to save parent change. Please try again." }));
     } finally {
       setIsSaving(false);
     }

@@ -5,7 +5,7 @@ import ExportButtons from '../../../shared/components/common/ExportButtons';
 import StatsGrid from '../../../shared/components/common/StatsGrid';
 import {
     FiSearch, FiChevronLeft, FiChevronRight, FiCheckCircle,
-    FiDatabase, FiAlertCircle, FiXCircle, FiBarChart2, FiInfo, FiTrendingUp
+    FiDatabase, FiAlertCircle, FiXCircle, FiBarChart2, FiInfo, FiTrendingUp, FiRefreshCw
 } from 'react-icons/fi';
 import styles from '../MemberPages/MemberPages.module.css';
 import SearchableSelect from '../../../shared/components/common/SearchableSelect';
@@ -312,11 +312,31 @@ const EarningCommission = () => {
                                     <input type="text" placeholder="User, Particular..." className={styles.inputControl} style={{ height: '42px', width: '100%', paddingLeft: '35px', fontSize: '0.85rem', borderRadius: '10px', border: focusedField === 'search' ? '1.5px solid #1756AA' : '1.5px solid #CBD5E1', outline: 'none', transition: 'all 0.25s', boxSizing: 'border-box' }} value={searchKeyword} onChange={(e) => setSearchKeyword(e.target.value)} onFocus={() => setFocusedField('search')} onBlur={() => setFocusedField(null)} />
                                 </div>
                             </div>
-                            <div>
-                                <button type="submit" style={{ height: '42px', width: '100%', background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(5, 150, 105, 0.2)', transition: 'all 0.2s' }}>
-                                    <FiSearch /> Generate Report
-                                </button>
-                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
+                            <button type="submit" style={{ height: '38px', width: '120px', padding: '0 16px', whiteSpace: 'nowrap', boxSizing: 'border-box', flexShrink: 0, background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '0.825rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(34, 197, 94, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)', transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                <FiSearch size={15} /> Search
+                            </button>
+                            <button
+                                type="button"
+                                title="Reset Filters"
+                                onClick={() => {
+                                    setFromDate(today);
+                                    setToDate(today);
+                                    setSelectedMember('');
+                                    setSelectedService('');
+                                    setSelectedOperator('');
+                                    setSelectedApi('');
+                                    setSearchKeyword('');
+                                    setPageNumber(1);
+                                }}
+                                style={{ height: '38px', width: '120px', boxSizing: 'border-box', flexShrink: 0, padding: '0 16px', background: '#fff', color: '#475569', border: '1.5px solid #CBD5E1', borderRadius: '10px', fontWeight: 700, fontSize: '0.825rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase', letterSpacing: '0.5px' }}
+                                onMouseOver={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.color = '#1756AA'; }}
+                                onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
+                            >
+                                <FiRefreshCw size={14} /> Reset
+                            </button>
                         </div>
                     </form>
                 </div>

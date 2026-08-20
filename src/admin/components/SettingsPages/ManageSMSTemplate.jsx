@@ -266,15 +266,15 @@ const ManageSMSTemplate = () => {
         </div>
 
         <div className={styles.tableWrapper}>
-          <table className={styles.table} style={{ width: '100%', minWidth: '800px', tableLayout: 'auto' }}>
+          <table className={styles.table} style={{ width: '100%', minWidth: '800px', tableLayout: 'fixed' }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '60px' }}>S.No</th>
-                <th style={{ width: '110px', textAlign: 'center' }}>ACTION</th>
-                <th style={{ width: '250px' }}>TEMPLATE NAME</th>
-                <th style={{ width: '150px', textAlign: 'left' }}>APPROVAL STATUS</th>
-                <th style={{ width: '120px', textAlign: 'left' }}>USAGE COUNT</th>
-                <th style={{ textAlign: 'left' }}>LAST MODIFIED</th>
+                <th style={{ width: '8%' }}>S.No</th>
+                <th style={{ width: '12%', textAlign: 'center' }}>ACTION</th>
+                <th style={{ width: '28%' }}>TEMPLATE NAME</th>
+                <th style={{ width: '20%', textAlign: 'left' }}>APPROVAL STATUS</th>
+                <th style={{ width: '16%', textAlign: 'left' }}>USAGE COUNT</th>
+                <th style={{ width: '16%', textAlign: 'left' }}>LAST MODIFIED</th>
               </tr>
             </thead>
             <tbody>

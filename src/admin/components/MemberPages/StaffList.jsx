@@ -15,6 +15,7 @@ import {
   toggleDrawer, setEditingStaff, updateStaffForm, toggleStaffStatus, deleteStaff,
   addStaff, updateStaff, resetStaffForm
 } from '../../../store/slices/memberSlice';
+import { setNotification } from '../../../store/slices/uiSlice';
 import styles from './MemberPages.module.css';
 
 const StaffList = () => {
@@ -32,7 +33,7 @@ const StaffList = () => {
 
   const handleSave = () => {
     if (!staffForm.name || !staffForm.mobile) {
-      alert('Please fill at least Name and Mobile');
+      dispatch(setNotification({ type: 'error', message: 'Please fill at least Name and Mobile' }));
       return;
     }
     

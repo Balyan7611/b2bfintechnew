@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { 
-  FaSms, FaLink, FaSearch, FaEdit, FaTrash, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, 
+import { useDispatch } from 'react-redux';
+import {
+  FaSms, FaLink, FaSearch, FaEdit, FaTrash, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv,
   FaPrint, FaChevronLeft, FaChevronRight, FaPlug, FaCheck, FaCalendarAlt, FaGlobe, FaRoute, FaSlidersH, FaPlus, FaTimes, FaArrowRight, FaArrowLeft, FaDatabase
 } from 'react-icons/fa';
 import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import { API } from '../../../api/endpoints';
+import { setNotification } from '../../../store/slices/uiSlice';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const SMSIntegration = () => {
+  const dispatch = useDispatch();
   const [showModal, setShowModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
   const [currentStep, setCurrentStep] = useState(1);
@@ -139,7 +142,7 @@ const SMSIntegration = () => {
       resetForm();
     } catch (error) {
       console.error("Error saving integration:", error);
-      alert("Failed to save. Please try again.");
+      dispatch(setNotification({ type: 'error', message: "Failed to save. Please try again." }));
     }
   };
 
@@ -162,7 +165,7 @@ const SMSIntegration = () => {
       setShowConfirmModal({ isOpen: false, id: null });
     } catch (error) {
       console.error("Error deleting integration:", error);
-      alert("Failed to delete integration.");
+      dispatch(setNotification({ type: 'error', message: "Failed to delete integration." }));
     }
   };
 

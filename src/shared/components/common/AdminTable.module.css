@@ -81,8 +81,8 @@
 }
 
 .controlsRow {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   margin-bottom: 24px;
   padding: 16px 24px;
@@ -90,12 +90,13 @@
   border-radius: 16px;
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-card);
-  flex-wrap: wrap;
   gap: 16px;
 }
 
 @media (max-width: 768px) {
   .controlsRow {
+    display: flex;
+    flex-wrap: wrap;
     padding: 12px 16px;     margin: 0 8px 24px;     gap: 10px;
     justify-content: center;
     border-radius: 12px;
@@ -193,6 +194,29 @@
   left: 16px;
   color: #A0AEC0;
   font-size: 1.1rem;
+}
+
+.resetBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 16px;
+  border: 1.5px solid #EDF2F7;
+  border-radius: 12px;
+  background: #fff;
+  color: #4A5568;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.resetBtn:hover {
+  background: #F8FAFC;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .tableWrapper {

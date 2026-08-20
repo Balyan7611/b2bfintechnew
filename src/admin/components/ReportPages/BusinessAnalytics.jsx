@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import {
   FaFilter, FaSpinner, FaChevronDown, FaRegLightbulb,
@@ -9,6 +10,7 @@ import { MdOutlineAccountBalanceWallet, MdPhoneAndroid, MdSwapHoriz } from 'reac
 import { apiService } from '../../../api/httpClient';
 import { API } from '../../../api/endpoints';
 import AdminTable from '../../../shared/components/common/AdminTable';
+import { setNotification } from '../../../store/slices/uiSlice';
 import styles from './BusinessAnalytics.module.css';
 
 function toYMD(d) { return d.toISOString().slice(0, 10); }
@@ -76,6 +78,7 @@ function SvcCard({ svc }) {
 }
 
 const BusinessAnalytics = () => {
+  const dispatch = useDispatch();
   const [memberList, setMemberList] = useState([]);
   const [selectedMember, setSelectedMember] = useState('');
   const [scope, setScope] = useState('Downline');
@@ -96,7 +99,7 @@ const BusinessAnalytics = () => {
   }, []);
 
   const handleAnalyse = async () => {
-    if (!selectedMember) return alert('Please select a member.');
+    if (!selectedMember) { dispatch(setNotification({ type: 'error', message: 'Please select a member.' })); return; }
     setLoading(true); setAnalyzed(false); setError('');
 
     const { startDate, endDate } = periodDates(period);

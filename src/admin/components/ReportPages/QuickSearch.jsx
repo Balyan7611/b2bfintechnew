@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
-import { 
-  FiSearch, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo, FiActivity, FiDatabase, FiAlertCircle, FiXCircle, FiZap, FiLoader
+import {
+  FiSearch, FiChevronLeft, FiChevronRight, FiCheckCircle, FiInfo, FiActivity, FiDatabase, FiAlertCircle, FiXCircle, FiLoader, FiRefreshCw
 } from 'react-icons/fi';
 import { API } from '../../../api/endpoints';
 import styles from '../MemberPages/MemberPages.module.css';
@@ -117,7 +117,7 @@ const QuickSearch = () => {
 
                 <div style={{ padding: '20px', background: '#FAFBFC' }}>
           <form onSubmit={(e) => handleSearch(e, 1)}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '16px', alignItems: 'flex-end', maxWidth: '800px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) auto', gap: '16px', alignItems: 'flex-end', maxWidth: '800px', rowGap: '12px' }}>
               
               <div className={styles.formGroup}>
                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Search Criteria (Order ID / RRN / Mobile / Account / Customer)</label>
@@ -136,15 +136,31 @@ const QuickSearch = () => {
                 </div>
               </div>
 
-              <div>
-                <button 
-                  type="submit" 
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', minWidth: '220px' }}>
+                <button
+                  type="submit"
                   disabled={loading}
-                  style={{ height: '42px', padding: '0 25px', background: 'linear-gradient(135deg, #1756AA 0%, #0d3b7a 100%)', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(23, 86, 170, 0.2)', transition: 'all 0.2s' }} 
-                  onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }} 
+                  style={{ height: '42px', padding: '0 25px', flex: '1 1 120px', minWidth: '120px', background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(34, 197, 94, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.12)', transition: 'all 0.2s' }}
+                  onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
                   onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
-                  {loading ? <FiLoader className={styles.spin} /> : <FiZap />} Search
+                  {loading ? 'Searching...' : 'Search'}
+                </button>
+                <button
+                  type="button"
+                  title="Reset Search"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setResults([]);
+                    setTotalItems(0);
+                    setPage(1);
+                    setStats({ success: 0, pending: 0, failed: 0 });
+                  }}
+                  style={{ height: '42px', padding: '0 16px', flex: '1 1 100px', minWidth: '100px', background: '#fff', color: '#475569', border: '1.5px solid #CBD5E1', borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'all 0.2s' }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.color = '#1756AA'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
+                >
+                  <FiRefreshCw size={14} /> Reset
                 </button>
               </div>
 

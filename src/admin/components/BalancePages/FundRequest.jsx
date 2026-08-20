@@ -81,6 +81,7 @@ const FundRequest = () => {
       paymentDate: fmtDate(r.paymentDate),
       addDate: fmtDateTime(r.createdDate),
       approveRejectDate: r.approveDate ? fmtDateTime(r.approveDate) : '-',
+      gst: r.gst || 0,
       status: normalizeStatus(r.status) === 'approved' ? 'Approved'
         : normalizeStatus(r.status) === 'rejected' ? 'Rejected' : 'Pending',
       reason: normalizeStatus(r.status) === 'rejected' ? (r.reason || r.remark || '-') : '-',
@@ -330,8 +331,8 @@ const FundRequest = () => {
             <span>Show</span>
             <select 
               className={styles.selectInput}
-              value={rowsPerPage} 
-              onChange={(e) => setRowsPerPage(Number(e.target.value))}
+              value={rowsPerPage}
+              onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
             >
               <option value={10}>10</option>
               <option value={25}>25</option>
@@ -342,9 +343,9 @@ const FundRequest = () => {
 
           <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px' }}>
             <ExportButtons
-              headers={['S.No', 'Member ID', 'Amount', 'Company Bank Name', 'Bank Ref ID', 'Payment Date', 'Payment Mode', 'Status']}
+              headers={['S.No', 'Member ID', 'Amount', 'Company Bank Name', 'Bank Ref ID', 'Payment Date', 'Payment Mode', 'GST', 'Status']}
               rows={currentData.map((row, index) => [
-                startIndex + index + 1, row.memberId, row.amount, row.companyBankName, row.bankRefId, row.paymentDate, row.paymentMode, row.status
+                startIndex + index + 1, row.memberId, row.amount, row.companyBankName, row.bankRefId, row.paymentDate, row.paymentMode, row.gst || 0, row.status
               ])}
               fileNamePrefix="fund_request_report"
               sheetName="Fund Requests"
@@ -376,6 +377,7 @@ const FundRequest = () => {
                 <th>Bank Ref ID</th>
                 <th>Payment Date</th>
                 <th>Payment Mode</th>
+                <th>GST</th>
                 <th>Remark</th>
                 <th>Status</th>
                 <th>Indemnity Bond</th>
@@ -418,6 +420,7 @@ const FundRequest = () => {
                   <td>{row.bankRefId}</td>
                   <td className={styles.fwBold}>{row.paymentDate}</td>
                   <td><span className={styles.payModeBadge}>{row.paymentMode}</span></td>
+                  <td>₹{Number(row.gst || 0).toFixed(2)}</td>
                   <td style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={row.remark}>{row.remark}</td>
                   <td>{getStatusBadge(row.status)}</td>
                   <td>
@@ -428,7 +431,7 @@ const FundRequest = () => {
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="14" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
+                  <td colSpan="15" style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
                     
                       <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
                         {isLoading ? 'Loading fund requests...' : 'No data available in table'}
@@ -548,9 +551,6 @@ const FundRequest = () => {
                       }}
                     />
                   )}
-                  <div style={{ fontSize: '10px', color: '#ccc', wordBreak: 'break-all', marginTop: '4px' }}>
-                    DEBUG URL: {activeSlip.slip}
-                  </div>
                   <a
                     href={activeSlip.slip}
                     target="_blank"

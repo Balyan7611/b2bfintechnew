@@ -153,7 +153,7 @@ const PayoutReport = () => {
         searchQuery={searchQuery}
         onSearchChange={(val) => dispatch(setPayoutSearchQuery(val))}
         rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={(val) => dispatch(setPayoutRowsPerPage(val))}
+        onRowsPerPageChange={(val) => { dispatch(setPayoutRowsPerPage(val)); dispatch(setPayoutCurrentPage(1)); }}
         currentPage={currentPage}
         onPageChange={(val) => dispatch(setPayoutCurrentPage(val))}
         totalEntries={totalEntries}

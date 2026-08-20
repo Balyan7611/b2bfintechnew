@@ -7,6 +7,7 @@ import sharedStyles from '../common/SharedTable.module.css';
 import styles from './SupportList.module.css';
 import ChatPopup from './ChatPopup';
 import { API } from '../../../api/endpoints';
+import SearchableSelect from '../common/SearchableSelect';
 
 const SupportList = () => {
   const dispatch = useDispatch();
@@ -17,6 +18,7 @@ const SupportList = () => {
   const [fetchError, setFetchError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPriority, setFilterPriority] = useState('All');
+  const [filterMember, setFilterMember] = useState('');
   
     const [viewImage, setViewImage] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -49,7 +51,7 @@ const SupportList = () => {
     const id = t.id || t.Id;
 
     let attachment = null;
-    const attachmentUrl = t.AttachmentUrl || t.attachmentUrl || t.attachmentPath || '';
+    const attachmentUrl = t.AttachmentUrl || t.attachmentUrl || t.attachmentPath || t.AttachmentPath || '';
     const attachmentType = t.AttachmentType || t.attachmentType || '';
     if (attachmentUrl) {
       attachment = {
@@ -130,12 +132,25 @@ const SupportList = () => {
   };
 
     const filteredData = tickets.filter(item => {
-    const matchSearch = (item.ticketId || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchSearch = (item.ticketId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                         (item.memberName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                         (item.memberId || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchPriority = filterPriority === 'All' || item.priority === filterPriority;
-    return matchSearch && matchPriority;
+    const matchMember = !filterMember || String(item.memberId) === filterMember;
+    return matchSearch && matchPriority && matchMember;
   });
+
+  // Built straight from the tickets already fetched — every member listed
+  // here is guaranteed to actually have a ticket, so there's no separate
+  // member-list API call needed just to populate this dropdown.
+  const memberOptions = Array.from(
+    tickets.reduce((map, t) => {
+      if (t.memberId && !map.has(String(t.memberId))) {
+        map.set(String(t.memberId), t.memberName || t.memberId);
+      }
+      return map;
+    }, new Map())
+  ).map(([id, name]) => ({ id, name }));
 
   const handleStatusChange = async (ticket, newStatus) => {
     try {
@@ -233,7 +248,19 @@ const SupportList = () => {
               className={styles.searchInput}
             />
           </div>
-          <select 
+          <div style={{ position: 'relative', width: '220px' }}>
+            <SearchableSelect
+              value={filterMember}
+              onChange={(val) => setFilterMember(val)}
+              options={[
+                { label: 'All Members', value: '' },
+                ...memberOptions.map(m => ({ label: `${m.name} (${m.id})`, value: m.id }))
+              ]}
+              placeholder="All Members"
+              style={{ height: '38px', borderRadius: '10px', border: '1.5px solid #E2E8F0', fontSize: '0.85rem' }}
+            />
+          </div>
+          <select
             className={styles.selectInput}
             value={filterPriority}
             onChange={(e) => setFilterPriority(e.target.value)}

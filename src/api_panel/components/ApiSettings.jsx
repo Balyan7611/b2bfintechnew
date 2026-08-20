@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   FaKey, FaShieldAlt, FaLink, FaNetworkWired, FaSave,
   FaCopy, FaEye, FaEyeSlash, FaRedoAlt, FaTimes, FaExclamationTriangle,
@@ -7,11 +7,13 @@ import {
 } from 'react-icons/fa';
 import { getSession } from '../../utils/authUtils';
 import { API } from '../../api/endpoints';
+import { setNotification } from '../../store/slices/uiSlice';
 import ApiWhitelisting from '../pages/ApiWhitelisting';
 import WebhookCallbacks from '../pages/WebhookCallbacks';
 import styles from './ApiSettings.module.css';
 
 const ApiSettings = () => {
+  const dispatch = useDispatch();
   const { isDarkMode } = useSelector(state => state.memberPanel);
   const [activeTab, setActiveTab] = useState('ApiCredentials');
   const [showSecret, setShowSecret] = useState(false);
@@ -28,7 +30,7 @@ const ApiSettings = () => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    alert('Copied to clipboard!');
+    dispatch(setNotification({ type: 'success', message: 'Copied to clipboard!' }));
   };
 
       const startOtpFlow = async (mode) => {

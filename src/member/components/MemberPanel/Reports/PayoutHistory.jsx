@@ -12,7 +12,7 @@ import {
 } from '../../../../store/slices/reportSlice';
 import AdminTable from '../../../../shared/components/common/AdminTable';
 import StatsGrid from '../../../../shared/components/common/StatsGrid';
-import { FiBarChart2 } from 'react-icons/fi';
+import { FiBarChart2, FiRefreshCw } from 'react-icons/fi';
 import styles from './AEPSReport.module.css';
 import { API } from '../../../../api/endpoints';
 import { normalizeTxnResponse } from '../../../../services/transaction.service';
@@ -170,7 +170,23 @@ const PayoutHistory = () => {
                     style={{ height: '42px', minWidth: '150px' }}
                   />
                 </div>
-                <button className={styles.submitBtn} onClick={fetchData}>Apply Filters</button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className={styles.submitBtn} onClick={fetchData}>Apply</button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const today = new Date().toISOString().split('T')[0];
+                      dispatch(updatePayoutFilters({ fromDate: today, toDate: today, status: '' }));
+                      dispatch(setPayoutSearchQuery(''));
+                      dispatch(setPayoutCurrentPage(1));
+                    }}
+                    style={{ background: '#fff', color: '#475569', border: '1.5px solid #CBD5E1', borderRadius: '10px', height: '42px', padding: '0 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.color = '#1756AA'; e.currentTarget.style.background = '#F8FAFC'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; e.currentTarget.style.background = '#fff'; }}
+                  >
+                    <FiRefreshCw size={14} /> Reset
+                  </button>
+                </div>
               </div>
             </div>
           }
@@ -251,7 +267,7 @@ const PayoutHistory = () => {
           searchQuery={searchQuery}
           onSearchChange={(val) => dispatch(setPayoutSearchQuery(val))}
           rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={(val) => dispatch(setPayoutRowsPerPage(val))}
+          onRowsPerPageChange={(val) => { dispatch(setPayoutRowsPerPage(val)); dispatch(setPayoutCurrentPage(1)); }}
           currentPage={currentPage}
           onPageChange={(val) => dispatch(setPayoutCurrentPage(val))}
           totalEntries={filteredList.length}

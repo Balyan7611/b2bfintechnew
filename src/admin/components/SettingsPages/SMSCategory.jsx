@@ -1,13 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  FaSms, FaPlus, FaSearch, FaEdit, FaTrash, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, 
+import { useDispatch } from 'react-redux';
+import {
+  FaSms, FaPlus, FaSearch, FaEdit, FaTrash, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv,
   FaPrint, FaChevronLeft, FaChevronRight, FaLayerGroup, FaCheck, FaCalendarAlt, FaTimes, FaDatabase, FaChevronDown
 } from 'react-icons/fa';
 import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import { API } from '../../../api/endpoints';
+import { setNotification } from '../../../store/slices/uiSlice';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const SMSCategory = () => {
+  const dispatch = useDispatch();
   const [showModal, setShowModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
   const [editingCategory, setEditingCategory] = useState(null);
@@ -96,7 +99,7 @@ const SMSCategory = () => {
       resetForm();
     } catch (error) {
       console.error("Error saving category:", error);
-      alert("Failed to save category. Please try again.");
+      dispatch(setNotification({ type: 'error', message: "Failed to save category. Please try again." }));
     }
   };
 
@@ -107,7 +110,7 @@ const SMSCategory = () => {
       setShowConfirmModal({ isOpen: false, id: null });
     } catch (error) {
       console.error("Error deleting category:", error);
-      alert("Failed to delete category.");
+      dispatch(setNotification({ type: 'error', message: "Failed to delete category." }));
     }
   };
 

@@ -104,7 +104,7 @@ const BusinessSummary = () => {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={setRowsPerPage}
+        onRowsPerPageChange={(val) => { setRowsPerPage(val); setCurrentPage(1); }}
         currentPage={currentPage}
         onPageChange={setCurrentPage}
         totalEntries={totalEntries}

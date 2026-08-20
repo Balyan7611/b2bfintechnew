@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  FaSms, FaPlus, FaSearch, FaTrash, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv, 
+import { useDispatch } from 'react-redux';
+import {
+  FaSms, FaPlus, FaSearch, FaTrash, FaCopy, FaFileExcel, FaFilePdf, FaFileCsv,
   FaPrint, FaChevronLeft, FaChevronRight, FaCheck, FaTimes, FaEdit, FaFileAlt, FaDatabase
 } from 'react-icons/fa';
 import PrimaryButton from '../../../shared/components/common/PrimaryButton';
 import { API } from '../../../api/endpoints';
+import { setNotification } from '../../../store/slices/uiSlice';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const SMSTemplate = () => {
+  const dispatch = useDispatch();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState({ isOpen: false, id: null });
   const [successToast, setSuccessToast] = useState('');
@@ -165,7 +168,7 @@ const SMSTemplate = () => {
       resetForm();
     } catch (error) {
       console.error("Error saving template:", error);
-      alert("Failed to save template. Please try again.");
+      dispatch(setNotification({ type: 'error', message: "Failed to save template. Please try again." }));
     }
   };
 
@@ -177,7 +180,7 @@ const SMSTemplate = () => {
       showSuccessToast('Template deleted successfully.');
     } catch (error) {
       console.error("Error deleting template:", error);
-      alert("Failed to delete template.");
+      dispatch(setNotification({ type: 'error', message: "Failed to delete template." }));
     }
   };
 
@@ -189,7 +192,7 @@ const SMSTemplate = () => {
       fetchData();
     } catch (error) {
       console.error("Error toggling status:", error);
-      alert("Failed to update status.");
+      dispatch(setNotification({ type: 'error', message: "Failed to update status." }));
     }
   };
 

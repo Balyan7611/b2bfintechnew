@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fa';
 import { FiDatabase, FiMoreVertical } from 'react-icons/fi';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
+import SearchableSelect from '../../../shared/components/common/SearchableSelect';
 import { API } from '../../../api/endpoints';
 import styles from './MemberBankDetails.module.css';
 
@@ -18,10 +19,13 @@ const MemberBankDetails = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedMemberFilter, setSelectedMemberFilter] = useState(null);
-  const [memberSearchQuery, setMemberSearchQuery] = useState('');
-  const dropdownRef = useRef(null);
+  // This used to be a hand-rolled dropdown (isDropdownOpen/memberSearchQuery/
+  // dropdownRef with a `position: absolute` menu) which overlapped the
+  // export buttons and search box because it wasn't portal-positioned like
+  // the shared SearchableSelect component used everywhere else. Swapped to
+  // SearchableSelect for the same searchable look/behavior as the rest of
+  // the app (AEPS History's Member filter, the modal above, etc.).
+  const [selectedMemberFilterId, setSelectedMemberFilterId] = useState('');
 
   const [activeActionRow, setActiveActionRow] = useState({ id: null, x: 0, y: 0, row: null });
 
@@ -95,23 +99,14 @@ const MemberBankDetails = () => {
 
   useEffect(() => {
     fetchData();
+    // Fetch the full member list once up front (blank query = all members)
+    // — SearchableSelect filters client-side as the user types, so the
+    // old per-keystroke debounced server search is no longer needed.
     handleSearchMembers('');
   }, []);
 
   useEffect(() => {
-    if (memberSearchQuery !== undefined) {
-      const delayDebounce = setTimeout(() => {
-        handleSearchMembers(memberSearchQuery);
-      }, 300);
-      return () => clearTimeout(delayDebounce);
-    }
-  }, [memberSearchQuery]);
-
-  useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
       if (!event.target.closest('.action-dropdown-wrapper')) {
         setActiveActionRow({ id: null, x: 0, y: 0, row: null });
       }
@@ -222,7 +217,7 @@ const MemberBankDetails = () => {
 
   const filteredData = bankList.filter(item => {
     if (item.isDelete) return false;
-    const matchMember = !selectedMemberFilter || item.msrno === parseInt(selectedMemberFilter.id) || item.name === selectedMemberFilter.name;
+    const matchMember = !selectedMemberFilterId || item.msrno === parseInt(selectedMemberFilterId);
     const matchSearch = (item.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                         (item.accountNumber || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchMember && matchSearch;
@@ -247,35 +242,32 @@ const MemberBankDetails = () => {
             <div className={styles.modalBody}>
               <div className={styles.modalGrid}>
                 <div className={styles.formGroup}>
-                  <label>Select Member</label>
-                  <select 
-                    name="msrno"
-                    className={styles.inputControl}
+                  <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase' }}>Select Member</label>
+                  <SearchableSelect
                     value={formState.msrno}
-                    onChange={(e) => {
-                      const msrVal = parseInt(e.target.value);
-                      const selected = memberList.find(m => parseInt(m.id) === msrVal || m.uniqueID === e.target.value);
+                    onChange={(val) => {
+                      const msrVal = parseInt(val);
                       setFormState(prev => ({
                         ...prev,
                         msrno: msrVal
                       }));
                     }}
+                    options={memberList.map(m => ({
+                      value: m.id,
+                      label: m.name,
+                      meta: m.memberId || m.id
+                    }))}
+                    placeholder="Choose Member"
+                    style={{ height: '38px', borderRadius: '10px' }}
                     required
-                  >
-                    <option value="">Choose Member</option>
-                    {memberList.map(m => (
-                      <option key={m.id} value={m.id}>{m.name} ({m.memberId || m.id})</option>
-                    ))}
-                  </select>
+                  />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Select Bank</label>
-                  <select 
-                    name="bankId"
-                    className={styles.inputControl}
+                  <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase' }}>Select Bank</label>
+                  <SearchableSelect
                     value={formState.bankId}
-                    onChange={(e) => {
-                      const bId = parseInt(e.target.value);
+                    onChange={(val) => {
+                      const bId = parseInt(val);
                       const selected = bankMasterList.find(b => parseInt(b.id) === bId);
                       setFormState(prev => ({
                         ...prev,
@@ -284,13 +276,14 @@ const MemberBankDetails = () => {
                         ifsccode: selected ? (selected.ifscCode || '') : ''
                       }));
                     }}
+                    options={bankMasterList.map(b => ({
+                      value: b.id,
+                      label: b.bankName || b.name
+                    }))}
+                    placeholder="Choose Bank"
+                    style={{ height: '38px', borderRadius: '10px' }}
                     required
-                  >
-                    <option value="">Choose Bank</option>
-                    {bankMasterList.map(b => (
-                      <option key={b.id} value={b.id}>{b.bankName || b.name}</option>
-                    ))}
-                  </select>
+                  />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Account Holder Name</label>
@@ -401,58 +394,20 @@ const MemberBankDetails = () => {
           </h2>
           
           <div className={styles.headerFilters} style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-            <div className={styles.dropdownWrapper} ref={dropdownRef}>
-              <div 
-                className={`${styles.headerDropdown} ${isDropdownOpen ? styles.dropdownActive : ''}`}
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              >
-                <div className={styles.selectedMemberText}>
-                  {selectedMemberFilter ? (
-                    <span className={styles.fwBold}>
-                      <FaUser className={styles.memberIcon} /> {selectedMemberFilter.name}
-                    </span>
-                  ) : (
-                    <span className={styles.placeholder}>All Members</span>
-                  )}
-                </div>
-                <FaChevronDown className={`${styles.arrowIcon} ${isDropdownOpen ? styles.arrowRotate : ''}`} />
-              </div>
-
-              {isDropdownOpen && (
-                <div className={styles.dropdownMenu}>
-                  <div className={styles.dropdownSearch}>
-                    <FaSearch className={styles.innerSearchIcon} />
-                    <input 
-                      type="text" 
-                      placeholder="Search member..." 
-                      value={memberSearchQuery}
-                      onChange={(e) => setMemberSearchQuery(e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                      autoFocus
-                    />
-                  </div>
-                  <div className={styles.optionsList}>
-                    <div 
-                      className={styles.optionItem}
-                      onClick={() => { setSelectedMemberFilter(null); setIsDropdownOpen(false); setMemberSearchQuery(''); }}
-                    >
-                      All Members
-                    </div>
-                    {memberList.map(m => (
-                      <div 
-                        key={m.id} 
-                        className={`${styles.optionItem} ${selectedMemberFilter?.id === m.id ? styles.optionSelected : ''}`}
-                        onClick={() => { setSelectedMemberFilter(m); setIsDropdownOpen(false); setMemberSearchQuery(''); }}
-                      >
-                        <div className={styles.optionInfo}>
-                          <span className={styles.optionName}>{m.name}</span>
-                          <span className={styles.optionId}>{m.memberId || m.id}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+            <div style={{ minWidth: '220px' }}>
+              <SearchableSelect
+                value={selectedMemberFilterId}
+                onChange={(val) => setSelectedMemberFilterId(val || '')}
+                options={[
+                  { value: '', label: 'All Members' },
+                  ...memberList.map(m => ({
+                    value: m.id,
+                    label: m.name,
+                    meta: m.memberId || m.id
+                  }))
+                ]}
+                placeholder="All Members"
+              />
             </div>
             <button className={styles.addBtn} style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '0.85rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={handleOpenAdd}>
               <FaPlus /> Add Member Bank
@@ -464,8 +419,8 @@ const MemberBankDetails = () => {
             <span>Show</span>
             <select 
               className={styles.selectInput}
-              value={rowsPerPage} 
-              onChange={(e) => setRowsPerPage(Number(e.target.value))}
+              value={rowsPerPage}
+              onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
             >
               <option value={10}>10</option>
               <option value={25}>25</option>

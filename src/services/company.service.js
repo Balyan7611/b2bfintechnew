@@ -17,7 +17,11 @@ export const CompanyService = {
             }
             return null;
         } catch (err) {
-            console.error('Company fetch error:', err);
+            // A 401/404 here just means this origin (e.g. localhost during
+            // dev) isn't registered as a company URL — expected, and the
+            // fallback below already recovers by pulling the first company
+            // record. Not worth an alarming console.error every load.
+            console.debug('Company fetch by URL failed, falling back to get-all:', err?.response?.status || err?.message);
             try {
                 const allRes = await apiService.get('/Company/get-all?PageNumber=1&PageSize=10000', { ignoreError: true, hideLoader: true });
                 if (allRes && allRes.status === true && Array.isArray(allRes.data) && allRes.data.length > 0) {

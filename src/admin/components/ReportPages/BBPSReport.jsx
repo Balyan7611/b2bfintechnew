@@ -160,7 +160,7 @@ const BBPSReport = () => {
         searchQuery={searchQuery}
         onSearchChange={(val) => dispatch(setBBPSSearchQuery(val))}
         rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={(val) => dispatch(setBBPSRowsPerPage(val))}
+        onRowsPerPageChange={(val) => { dispatch(setBBPSRowsPerPage(val)); dispatch(setBBPSCurrentPage(1)); }}
         currentPage={currentPage}
         onPageChange={(val) => dispatch(setBBPSCurrentPage(val))}
         totalEntries={totalEntries}

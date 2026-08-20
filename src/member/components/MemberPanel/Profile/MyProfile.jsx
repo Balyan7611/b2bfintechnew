@@ -437,18 +437,27 @@ const MyProfile = () => {
     }
   };
 
-    const handleDeleteBank = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this bank account?')) return;
-    try {
-      if (API.memberBankDetail?.delete) {
-        await API.memberBankDetail.delete(id);
-        dispatch(setNotification({ type: 'success', message: 'Bank account deleted successfully' }));
-        fetchBankAccounts(formData.id || sessionUser?.msrno);
+    const handleDeleteBank = (id) => {
+    setConfirmModal({
+      show: true,
+      title: 'Delete Bank Account',
+      message: 'Are you sure you want to delete this bank account? This action cannot be undone.',
+      confirmText: 'Delete',
+      confirmBg: '#EF4444',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, show: false }));
+        try {
+          if (API.memberBankDetail?.delete) {
+            await API.memberBankDetail.delete(id);
+            dispatch(setNotification({ type: 'success', message: 'Bank account deleted successfully' }));
+            fetchBankAccounts(formData.id || sessionUser?.msrno);
+          }
+        } catch (err) {
+          console.error('Delete bank error:', err);
+          dispatch(setNotification({ type: 'error', message: 'Failed to delete bank account' }));
+        }
       }
-    } catch (err) {
-      console.error('Delete bank error:', err);
-      dispatch(setNotification({ type: 'error', message: 'Failed to delete bank account' }));
-    }
+    });
   };
 
     const handleSaveKyc = async (e) => {

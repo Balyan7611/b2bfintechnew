@@ -3,6 +3,7 @@ import { FiSearch, FiChevronRight, FiZap, FiX } from 'react-icons/fi';
 import styles from './Electricity.module.css';
 import ServiceQuickNav from './ServiceQuickNav';
 import { useFetchServices } from '../../../../hooks/useFetchServices';
+import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
 
 const Electricity = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -79,15 +80,13 @@ const Electricity = () => {
       </div>
 
       <div style={{ marginBottom: '20px' }}>
-        <select 
-          className={styles.searchInput}
-          style={{ width: '100%', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', appearance: 'auto' }}
+        <SearchableSelect
           value={selectedService}
-          onChange={(e) => setSelectedService(e.target.value)}
-        >
-          <option value="">{servicesLoading ? 'Loading services...' : 'Select Service'}</option>
-          {services && services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
+          onChange={(val) => setSelectedService(val || '')}
+          options={(services || []).map(s => ({ value: s.id, label: s.name }))}
+          placeholder={servicesLoading ? 'Loading services...' : 'Select Service'}
+          style={{ width: '100%', height: '46px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+        />
       </div>
 
       <div className={styles.searchSection}>

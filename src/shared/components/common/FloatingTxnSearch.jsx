@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { FaSearch, FaTimes } from 'react-icons/fa';
 import { API } from '../../../api/endpoints';
+import { setNotification } from '../../../store/slices/uiSlice';
 import ReceiptModal from './ReceiptModal';
 import styles from './FloatingTxnSearch.module.css';
 
 const FloatingTxnSearch = () => {
+  const dispatch = useDispatch();
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchTxnId, setSearchTxnId] = useState('');
   const [txnModalOpen, setTxnModalOpen] = useState(false);
@@ -49,14 +52,14 @@ const FloatingTxnSearch = () => {
           setTxnResult(item);
           setTxnModalOpen(true);
         } else {
-          alert('No transaction found with this ID.');
+          dispatch(setNotification({ type: 'error', message: 'No transaction found with this ID.' }));
         }
       } else {
-        alert('No transaction found with this ID.');
+        dispatch(setNotification({ type: 'error', message: 'No transaction found with this ID.' }));
       }
     } catch (err) {
       console.error('Floating Transaction Search error:', err);
-      alert('Error performing transaction search.');
+      dispatch(setNotification({ type: 'error', message: 'Error performing transaction search.' }));
     } finally {
       setIsSearchExpanded(false);
       setSearchTxnId('');
