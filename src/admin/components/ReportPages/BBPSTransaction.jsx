@@ -101,6 +101,13 @@ const BBPSTransaction = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalRecords, setTotalRecords] = useState(0);
+  // Gate every transaction fetch on this: until bbpsServiceIds is loaded, a
+  // fetch would go out with an empty serviceIds filter (only sectionType
+  // sent), which isn't strict enough and lets other transaction types
+  // (Main Wallet/AEPS Wallet fund-load entries, etc.) leak into this list —
+  // and since the original effect below never re-ran once serviceIds
+  // finally loaded, that wrong first fetch just stayed on screen.
+  const [mastersLoaded, setMastersLoaded] = useState(false);
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -119,14 +126,23 @@ const BBPSTransaction = () => {
         status: selectedStatus,
         keyword: searchKeyword
       });
-      const { items: _txns, totalItems: _total } = normalizeTxnResponse(res);
+      const { items: _rawTxns, totalItems: _total } = normalizeTxnResponse(res);
+      // Wallet-transfer records get mistagged server-side with SectionType
+      // values that leak into other reports — they reliably carry a "WT..."
+      // order ID though. Filter those out as a stopgap. (Same issue found in
+      // PayoutHistory.jsx / RechargeHistory.jsx.)
+      const _txns = _rawTxns.filter(t => !String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT'));
       setTransactions(_txns);
-      setTotalRecords(_total);
+      setTotalRecords(_txns.length === _rawTxns.length ? _total : Math.max(0, (_total || 0) - (_rawTxns.length - _txns.length)));
     } catch (e) { console.error('BBPSTransaction fetch error:', e); setTransactions([]); }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchTransactions(); }, [pageNumber, pageSize]);
+  useEffect(() => {
+    if (!mastersLoaded) return;
+    fetchTransactions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageNumber, pageSize, mastersLoaded]);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -149,9 +165,20 @@ const BBPSTransaction = () => {
       } catch (err) { console.error("Error fetching members:", err); }
     };
 
-    fetchServices();
-    fetchMembers();
+    Promise.all([fetchServices(), fetchMembers()]).finally(() => setMastersLoaded(true));
   }, []);
+
+  // Transaction rows only carry the member's numeric DB id (memberId/userId),
+  // not their human-readable code (e.g. "RT100") — that code only lives on
+  // the member master record. Look it up from the already-fetched
+  // memberList instead of guessing at a field name that isn't on the txn.
+  const resolveMemberCode = (txn) => {
+    const key = txn?.memberId ?? txn?.userId ?? txn?.loginId;
+    if (key === undefined || key === null || key === '') return null;
+    const m = memberList.find(mm => String(mm.id ?? mm.uniqueID ?? mm.msrno ?? '') === String(key));
+    if (!m) return null;
+    return m.memberID || m.memberid || m.loginID || m.loginId || null;
+  };
 
   useEffect(() => {
     const fetchOperators = async () => {
@@ -556,6 +583,7 @@ const BBPSTransaction = () => {
                 <th rowSpan="2" style={{ width: '60px' }}>SNO</th>
                 <th rowSpan="2">Date</th>
                 <th rowSpan="2">Name</th>
+                <th rowSpan="2">ID</th>
                 <th rowSpan="2">Operator</th>
                 <th rowSpan="2">Image</th>
                 <th rowSpan="2">Number</th>
@@ -592,12 +620,19 @@ const BBPSTransaction = () => {
                     <td style={{ textAlign: 'center', overflow: 'visible' }}>
                       <ActionMenu txn={txn} onViewReceipt={txn => {
                             const fd = forceDataMap[txn.id || txn.orderId];
-                            setActiveReceipt({ ...txn, _type: 'bbps', forceAction: fd?.action, forceUtr: fd?.utr, forceReason: fd?.reason });
+                            // `...txn` already carries the row's own `memberCode` field straight
+                            // from the API (same field AEPSHistory.jsx reads directly as
+                            // `txn.memberCode`) — don't clobber it with the memberList lookup,
+                            // that was wiping out a perfectly good value whenever the lookup
+                            // (keyed off a different id field) came up empty. Only fill it in
+                            // via the lookup when the row itself doesn't already have it.
+                            setActiveReceipt({ ...txn, _type: 'bbps', memberCode: txn.memberCode || resolveMemberCode(txn), forceAction: fd?.action, forceUtr: fd?.utr, forceReason: fd?.reason });
                           }} onAction={handleMenuAction} alignUp={index >= transactions.length - 2 && transactions.length > 2} />
                     </td>
                     <td>{((pageNumber-1)*pageSize)+index+1}</td>
                     <td>{txn.createdDate || txn.date || 'N/A'}</td>
                     <td>{txn.customerName || txn.memberName || 'N/A'}</td>
+                    <td>{txn.memberCode || resolveMemberCode(txn) || txn.memberId || txn.userId || txn.loginId || 'N/A'}</td>
                     <td>{txn.operatorName || txn.operator || 'N/A'}</td>
                     <td>-</td>
                     <td>{txn.accountNo || txn.number || 'N/A'}</td>
@@ -637,7 +672,7 @@ const BBPSTransaction = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="23" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0', position: 'relative' }}>
+                  <td colSpan="24" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0', position: 'relative' }}>
                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                        <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '50%', border: '1px solid #E2E8F0' }}>
                          <FiDatabase size={24} color="#94A3B8" />

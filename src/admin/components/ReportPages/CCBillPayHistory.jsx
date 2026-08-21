@@ -94,6 +94,14 @@ const CCBillPayHistory = () => {
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [billpayServiceIds, setBillpayServiceIds] = useState([]);
+  // Gate the first fetch on this: previously this page only ever sent
+  // `sectionType: '2'` with no serviceIds narrowing at all, which isn't a
+  // strict enough filter on its own — same weak-filter class of bug found
+  // in BBPSTransaction.jsx (sectionType alone let other transaction types
+  // leak through). Narrow with serviceIds once loaded, and don't fetch
+  // before that.
+  const [mastersLoaded, setMastersLoaded] = useState(false);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -111,10 +119,10 @@ const CCBillPayHistory = () => {
             else if (Array.isArray(res)) list = res;
             const billpayServices = list.filter(srv => String(srv.sectionType || '') === '2');
             setServiceList(billpayServices);
+            setBillpayServiceIds(billpayServices.map(s => String(s.id)));
         } catch (err) { console.error("Failed to fetch services:", err); }
     };
-    fetchMembers();
-    fetchServices();
+    Promise.all([fetchMembers(), fetchServices()]).finally(() => setMastersLoaded(true));
   }, []);
 
   useEffect(() => {
@@ -156,6 +164,11 @@ const CCBillPayHistory = () => {
       const params = {
         sectionType: '2',           pageNumber: pg,
         pageSize,
+        // Narrow to bill-pay services specifically once loaded, instead of
+        // relying on sectionType alone (which wasn't strict enough and let
+        // other transaction types leak in — same bug class fixed in
+        // BBPSTransaction.jsx).
+        ...(!selectedService && { serviceIds: billpayServiceIds }),
         ...(selectedService  && { serviceId: selectedService }),
         ...(selectedOperator && { operatorId: selectedOperator }),
         ...(selectedApi      && { apiId: selectedApi }),
@@ -166,10 +179,15 @@ const CCBillPayHistory = () => {
       };
       const res = await API.transaction.getAll(params);
       const data = res?.data?.data || res?.data || res || {};
-      const items = Array.isArray(data.items) ? data.items
+      const rawItems = Array.isArray(data.items) ? data.items
         : Array.isArray(data.data)  ? data.data
         : Array.isArray(data)       ? data
         : [];
+      // Wallet-transfer records get mistagged server-side with SectionType
+      // values that leak into other reports — they reliably carry a "WT..."
+      // order ID though. Filter those out as a stopgap. (Same issue found in
+      // PayoutHistory.jsx / RechargeHistory.jsx.)
+      const items = rawItems.filter(t => !String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT'));
       setTransactions(items);
       const _total = data.totalCount || data.totalItems || items.length || 0;
       setTotalRecords(_total);
@@ -181,9 +199,13 @@ const CCBillPayHistory = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedMember, selectedService, selectedOperator, selectedApi, fromDate, toDate, searchKeyword, pageSize]);
+  }, [selectedMember, selectedService, selectedOperator, selectedApi, fromDate, toDate, searchKeyword, pageSize, billpayServiceIds]);
 
-  useEffect(() => { loadTransactions(pageNumber); }, [pageNumber, pageSize]); // eslint-disable-line
+  useEffect(() => {
+    if (!mastersLoaded) return;
+    loadTransactions(pageNumber);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageNumber, pageSize, mastersLoaded]);
   return (
     <div className={styles.container} style={{ padding: '20px' }}>
             <style>{`
@@ -554,7 +576,7 @@ const CCBillPayHistory = () => {
                     <td>
                       <ActionMenu txn={txn} onViewReceipt={txn => {
                             const fd = forceDataMap[txn.id || txn.orderId];
-                            setActiveReceipt({ ...txn, _type: 'bbps', forceAction: fd?.action, forceUtr: fd?.utr, forceReason: fd?.reason });
+                            setActiveReceipt({ ...txn, _type: 'ccbillpay', forceAction: fd?.action, forceUtr: fd?.utr, forceReason: fd?.reason });
                           }} onAction={handleMenuAction} alignUp={index >= transactions.length - 2 && transactions.length > 2} />
                     </td>
                     <td>{txn.createdDate || txn.date || 'N/A'}</td>
@@ -594,7 +616,7 @@ const CCBillPayHistory = () => {
                     </td>
                     <td>{txn.message || '-'}</td>
                     <td>
-                        <button onClick={() => { const fd = forceDataMap[txn.id || txn.orderId]; setActiveReceipt({ ...txn, _type: 'bbps', forceAction: fd?.action, forceUtr: fd?.utr, forceReason: fd?.reason }); }} style={{ background: '#1756AA', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}>Receipt</button>
+                        <button onClick={() => { const fd = forceDataMap[txn.id || txn.orderId]; setActiveReceipt({ ...txn, _type: 'ccbillpay', forceAction: fd?.action, forceUtr: fd?.utr, forceReason: fd?.reason }); }} style={{ background: '#1756AA', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}>Receipt</button>
                     </td>
                   </tr>
                 ))

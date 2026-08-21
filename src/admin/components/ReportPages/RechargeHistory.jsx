@@ -104,6 +104,12 @@ const RechargeHistory = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalRecords, setTotalRecords] = useState(0);
+  // Gate every transaction fetch on this: until rechargeServiceIds is
+  // loaded, a fetch would go out with an empty serviceIds filter (only
+  // sectionType sent), which isn't strict enough and can let other
+  // transaction types leak into this list. (Same bug found/fixed in
+  // BBPSTransaction.jsx.)
+  const [mastersLoaded, setMastersLoaded] = useState(false);
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -123,13 +129,24 @@ const RechargeHistory = () => {
         keyword: searchKeyword
       });
       const { items: _txns, totalItems: _total } = normalizeTxnResponse(res);
-      setTransactions(_txns);
-      setTotalRecords(_total);
+      // Admin's "Add Fund"/"Deduct Fund" wallet actions write into the
+      // shared Transaction table with a mistagged SectionType, so no
+      // sectionType/serviceId filter can fully exclude them — those records
+      // reliably carry a "WT..." order ID (Wallet Transfer) though. Filter
+      // those out as a stopgap. (Same backend mistagging issue found in
+      // PayoutHistory.jsx.)
+      const filtered = _txns.filter(t => !String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT'));
+      setTransactions(filtered);
+      setTotalRecords(filtered.length === _txns.length ? _total : Math.max(0, (_total || 0) - (_txns.length - filtered.length)));
     } catch (e) { console.error('RechargeHistory fetch error:', e); setTransactions([]); }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchTransactions(); }, [pageNumber, pageSize]);
+  useEffect(() => {
+    if (!mastersLoaded) return;
+    fetchTransactions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageNumber, pageSize, mastersLoaded]);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -141,12 +158,14 @@ const RechargeHistory = () => {
         } else if (Array.isArray(res)) {
           list = res;
         }
-        
+
                 const rechargeServices = list.filter(srv => String(srv.sectionType || '') === '1');
         setServiceList(rechargeServices);
         setRechargeServiceIds(rechargeServices.map(s => String(s.id)));
       } catch (err) {
         console.error("Failed to fetch services:", err);
+      } finally {
+        setMastersLoaded(true);
       }
     };
     fetchServices();

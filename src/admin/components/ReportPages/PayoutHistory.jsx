@@ -104,6 +104,11 @@ const PayoutHistory = () => {
   const [pageSize, setPageSize] = useState(10);
   const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(false);
+  // Gate every transaction fetch on this: until payoutServiceIds is loaded,
+  // a fetch would go out with an empty serviceIds filter (only sectionType
+  // sent), which isn't strict enough and can let other transaction types
+  // leak into this list. (Same bug found/fixed in BBPSTransaction.jsx.)
+  const [mastersLoaded, setMastersLoaded] = useState(false);
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -117,13 +122,28 @@ const PayoutHistory = () => {
         keyword: searchKeyword
       });
       const { items: _txns, totalItems: _total } = normalizeTxnResponse(res);
-      setTransactions(_txns);
-      setTotalRecords(_total);
+      // Admin's "Add Fund"/"Deduct Fund" wallet actions (Member Control
+      // Center) call a completely separate endpoint (UserWalletBalance/
+      // transfer) — they never go through this Payout screen. But the
+      // backend apparently still writes those wallet-transfer records into
+      // the shared Transaction table tagged with SectionType=3 (Payout's own
+      // code), so sectionType/serviceId filtering alone can't separate them
+      // — the record itself is mistagged server-side. The one reliable
+      // frontend signal we've found: those records always carry a "WT..."
+      // order ID (Wallet Transfer), unlike genuine payout order IDs. Filter
+      // those out here as a stopgap until the backend stops mistagging them.
+      const filtered = _txns.filter(t => !String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT'));
+      setTransactions(filtered);
+      setTotalRecords(filtered.length === _txns.length ? _total : Math.max(0, (_total || 0) - (_txns.length - filtered.length)));
     } catch (e) { console.error('PayoutHistory fetch error:', e); setTransactions([]); }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchTransactions(); }, [pageNumber, pageSize, selectedStatus]);
+  useEffect(() => {
+    if (!mastersLoaded) return;
+    fetchTransactions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageNumber, pageSize, selectedStatus, mastersLoaded]);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -142,6 +162,8 @@ const PayoutHistory = () => {
         setPayoutServiceIds(payoutServices.map(s => String(s.id)));
       } catch (err) {
         console.error("Failed to fetch services:", err);
+      } finally {
+        setMastersLoaded(true);
       }
     };
     fetchServices();

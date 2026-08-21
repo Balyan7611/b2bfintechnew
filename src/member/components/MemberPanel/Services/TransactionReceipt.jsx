@@ -66,6 +66,76 @@ function toWords(num) {
   return out.trim() + ' Only';
 }
 
+// Same paired-cell AEPS info table as ReceiptModal.jsx's AepsReceiptBody —
+// duplicated here (not imported) because this file lives under member/
+// Services and is used from admin report pages too; keeping it self
+// contained avoids a cross-tree import for one small helper. A field with
+// no value is skipped entirely (identity fields fall back to 'N/A' so they
+// always render).
+function AepsInfoTable({ data, fs }) {
+  const pairs = [
+    ['Bank Name', data.aepsBankName],
+    ['BC Code', data.aepsBcCode],
+    ['BC Name', data.aepsBcName],
+    ['Aadhar No', data.aepsAadhar],
+    ['Customer Mobile', data.customerMobile],
+    ['Balance', data.aepsBalance],
+    ['Remark', data.aepsRemark],
+  ].filter(([, v]) => v !== undefined && v !== null && v !== '');
+  const rows = [];
+  for (let i = 0; i < pairs.length; i += 2) rows.push(pairs.slice(i, i + 2));
+  return (
+    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 25, fontSize: fs }}>
+      <tbody>
+        {rows.map((row, i) => (
+          <tr key={i}>
+            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: 800, color: '#64748B', background: '#F8FAFC', width: '20%' }}>{row[0][0]}:</td>
+            {row.length === 2 ? (
+              <>
+                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A', width: '30%', wordBreak: 'break-all' }}>{row[0][1]}</td>
+                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: 800, color: '#64748B', background: '#F8FAFC', width: '20%' }}>{row[1][0]}:</td>
+                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A', width: '30%', wordBreak: 'break-all' }}>{row[1][1]}</td>
+              </>
+            ) : (
+              <td colSpan="3" style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A', wordBreak: 'break-all' }}>{row[0][1]}</td>
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+// Same paired-cell style as AepsInfoTable above, generalized to take any
+// [label, value] list — used for the DMT/generic receipt so it matches the
+// same "only fields that have a value" presentation as the AEPS receipt.
+function PairTable({ pairs, fs }) {
+  const present = pairs.filter(([, v]) => v !== undefined && v !== null && v !== '');
+  if (present.length === 0) return null;
+  const rows = [];
+  for (let i = 0; i < present.length; i += 2) rows.push(present.slice(i, i + 2));
+  return (
+    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 25, fontSize: fs }}>
+      <tbody>
+        {rows.map((row, i) => (
+          <tr key={i}>
+            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: 800, color: '#64748B', background: '#F8FAFC', width: '20%' }}>{row[0][0]}:</td>
+            {row.length === 2 ? (
+              <>
+                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A', width: '30%', wordBreak: 'break-all' }}>{row[0][1]}</td>
+                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: 800, color: '#64748B', background: '#F8FAFC', width: '20%' }}>{row[1][0]}:</td>
+                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A', width: '30%', wordBreak: 'break-all' }}>{row[1][1]}</td>
+              </>
+            ) : (
+              <td colSpan="3" style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A', wordBreak: 'break-all' }}>{row[0][1]}</td>
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 function ReceiptBody({ data, cfg }) {
   const isThermal = !cfg.twoCol;
   const fs = cfg.fontSize;
@@ -238,57 +308,60 @@ function ReceiptBody({ data, cfg }) {
         })()}
       </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 25, fontSize: fs }}>
-        <tbody>
-          <tr>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC', width: '20%' }}>Merchant:</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', width: '30%', wordBreak: 'break-all' }}>{merchantName}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC', width: '20%' }}>Business Name:</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', width: '30%', wordBreak: 'break-all' }}>{shopName}</td>
-          </tr>
-          <tr>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>{data?.mode === 'AEPS' ? 'Member Name:' : 'Customer Name:'}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.customerName || 'N/A'}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>{data?.mode === 'AEPS' ? 'Member ID:' : 'Customer Mobile:'}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.customerMobile || 'N/A'}</td>
-          </tr>
-          <tr>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>{data?.mode === 'AEPS' ? 'Aadhar Number:' : 'Beneficiary Name:'}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.beneficiary || 'N/A'}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>{data?.mode === 'AEPS' ? 'Txn Type:' : 'Bank Name:'}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.bank || 'N/A'}</td>
-          </tr>
-          <tr>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>{data?.mode === 'AEPS' ? 'Bank Trans ID:' : 'Account Number:'}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.accountNo || 'N/A'} {data?.ifsc ? `(IFSC: ${data?.ifsc})` : ''}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Date & Time:</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.date}</td>
-          </tr>
-          {data?.mode === 'AEPS' && (
-            <>
-              <tr>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Opening Bal:</td>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A' }}>₹{Number(data.opBal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Closing Bal:</td>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A' }}>₹{Number(data.clBal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-              </tr>
-              <tr>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Commission:</td>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#15803D' }}>+₹{Number(data.commission || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>TDS:</td>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#B91C1C' }}>-₹{Number(data.tds || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-              </tr>
-              <tr>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Status:</td>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: (()=>{ const s=(data?.status||'').toLowerCase(); return s==='success'?'#15803D':s==='pending'?'#B45309':s==='processing'?'#1E40AF':'#B91C1C'; })() }}>{data.status || 'N/A'}</td>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Remark:</td>
-                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data.remark || 'N/A'}</td>
-              </tr>
-            </>
-          )}
-        </tbody>
-      </table>
+            {data?.isAeps ? (
+        <AepsInfoTable data={data} fs={fs} />
+      ) : data?.isUpi ? (
+        <PairTable fs={fs} pairs={[
+          ['Name', data?.upiName || 'N/A'],
+          ['UPI ID', data?.upiId || 'N/A'],
+          ['Txn ID', data?.upiTxnId || 'N/A'],
+          ['Reference ID', data?.upiRefId || 'N/A'],
+          ['Amount', `₹${Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`],
+          ['UTR', data?.upiUtr || 'N/A'],
+          ['Date', data?.date || ''],
+        ]} />
+      ) : data?.isRecharge ? (
+        <PairTable fs={fs} pairs={[
+          ['Number', data?.rgNumber || 'N/A'],
+          ['Operator', data?.rgOperator || 'N/A'],
+          ['Service', data?.rgService || 'N/A'],
+          ['Total Amount', `₹${Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`],
+          ['TXN ID', data?.rgTxnId || 'N/A'],
+          ['Operator Ref Number', data?.rgOperatorRefNumber || 'N/A'],
+          ['Date & Time', data?.date || ''],
+        ]} />
+      ) : data?.isCcBillPay ? (
+        <PairTable fs={fs} pairs={[
+          ['Credit Card No', data?.ccCardNo || 'N/A'],
+          ['Name', data?.ccName || 'N/A'],
+          ['Mobile No', data?.ccMobile || 'N/A'],
+          ['Amount', `₹${Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`],
+          ['TXN ID', data?.ccTxnId || 'N/A'],
+          ['TXN Date', data?.date || ''],
+        ]} />
+      ) : data?.isBbps ? (
+        <PairTable fs={fs} pairs={[
+          ['Mobile/Consumer No', data?.bbpsConsumerNo || 'N/A'],
+          ['Operator', data?.bbpsOperator || 'N/A'],
+          ['TXN ID', data?.bbpsTxnId || 'N/A'],
+          ['Operator Ref Number', data?.bbpsOperatorRefNumber || 'N/A'],
+          ['Date and Time', data?.date || ''],
+          ['Amount', `₹${Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`],
+          ['Member Name', data?.bbpsMemberId || 'N/A'],
+        ]} />
+      ) : (
+        <PairTable fs={fs} pairs={[
+          ['Customer Name', data?.customerName || 'N/A'],
+          ['Mobile Number', data?.customerMobile || 'N/A'],
+          ['Beneficiary Name', data?.beneficiary || 'N/A'],
+          ['Bank Name', data?.bank || 'N/A'],
+          ['Account Number', data?.accountNo ? `${data.accountNo}${data?.ifsc ? ` (IFSC: ${data.ifsc})` : ''}` : 'N/A'],
+          ['Date & Time', data?.date || ''],
+        ]} />
+      )}
 
+            {!data?.isUpi && !data?.isRecharge && !data?.isCcBillPay && !data?.isBbps && (
+            <>
             <div style={{ textAlign: 'center', marginBottom: 15 }}>
         <span style={{ fontSize: fs + 1.5, fontWeight: '800', color: '#1756AA', textTransform: 'uppercase', letterSpacing: '1px' }}>
           Transaction Summary
@@ -298,20 +371,24 @@ function ReceiptBody({ data, cfg }) {
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20, fontSize: fs, tableLayout: 'fixed' }}>
         <thead>
           <tr>
-            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '28%' }}>TID</th>
-            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '17%' }}>TXN DATE</th>
-            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '18%' }}>AMOUNT</th>
-            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '22%' }}>UTR NO.</th>
-            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'center', width: '15%' }}>STATUS</th>
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: data?.isAeps ? '28%' : '40%' }}>{data?.isAeps ? 'TID' : 'TXN ID'}</th>
+            {data?.isAeps && <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '17%' }}>TXN DATE</th>}
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: data?.isAeps ? '18%' : '30%' }}>AMOUNT</th>
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: data?.isAeps ? '22%' : '30%' }}>{data?.isAeps ? 'RRN' : 'UTR NUMBER'}</th>
+            {data?.isAeps && <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'center', width: '15%' }}>STATUS</th>}
           </tr>
         </thead>
         <tbody>
-          {((data?.chunks && data.chunks.length > 0) ? data.chunks : [{ id: 'chk_1', txnId: 'N/A', amount: data?.amount || 0 }]).map((c, i) => (
+          {(data?.isAeps
+            ? [{ id: 'aeps_1', txnId: data?.bankTransId || 'N/A', amount: data?.amount || 0 }]
+            : ((data?.chunks && data.chunks.length > 0) ? data.chunks : [{ id: 'chk_1', txnId: 'N/A', amount: data?.amount || 0 }])
+          ).map((c, i) => (
             <tr key={c.id || i}>
               <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600', wordBreak: 'break-all' }}>{c.txnId || 'N/A'}</td>
-              <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600', wordBreak: 'break-all' }}>{data?.date?.split(' ')[0]}</td>
+              {data?.isAeps && <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600', wordBreak: 'break-all' }}>{data?.date?.split(' ')[0]}</td>}
               <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#0F172A', fontWeight: '700' }}>₹{Number(c.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-              <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600', wordBreak: 'break-all' }}>{c.txnId || 'N/A'}</td>
+              <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600', wordBreak: 'break-all' }}>{data?.isAeps ? (data?.rrn || 'N/A') : (c.txnId || 'N/A')}</td>
+              {data?.isAeps && (
               <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', textAlign: 'center' }}>
                 {(() => {
                   const s = (data?.status || '').toLowerCase();
@@ -321,15 +398,25 @@ function ReceiptBody({ data, cfg }) {
                   return <span style={{ background:bg, border:`1px solid ${bdr}`, color:clr, padding:'2px 8px', borderRadius:50, fontSize:9.5, fontWeight:'800' }}>{(data?.status||'N/A').toUpperCase()}</span>;
                 })()}
               </td>
+              )}
             </tr>
           ))}
+          {data?.isAeps ? (
           <tr style={{ background: '#FFFFFF' }}>
             <td colSpan="2" style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#1756AA' }}>Total Amount:</td>
             <td style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#1756AA' }}>₹{Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
             <td colSpan="2" style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#1756AA', wordBreak: 'break-word' }}>Rs. {Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} ( {toWords(data?.amount || 0)} )</td>
           </tr>
+          ) : (
+          <tr style={{ background: '#FFFFFF' }}>
+            <td style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#1756AA' }}>Total Amount:</td>
+            <td colSpan="2" style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#1756AA', wordBreak: 'break-word' }}>₹{Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} — Rs. {Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} ( {toWords(data?.amount || 0)} )</td>
+          </tr>
+          )}
         </tbody>
       </table>
+            </>
+            )}
 
             {/* Force Action Details Box — shown only if force action was taken */}
             {(data?.forceAction || data?.forceReason || data?.forceUtr) && (
@@ -380,23 +467,103 @@ export default function TransactionReceipt({ data, onClose }) {
   const cfg = sizeConfig[size];
   const receiptPxWidth = SIZE_PX[size];
 
+    // AEPS rows aren't always tagged with mode === 'AEPS' from the raw API
+    // record — but every caller that opens an AEPS receipt (admin AEPSHistory,
+    // AEPSReport) does set `_type: 'aeps'`. Trust that tag first so every AEPS
+    // row renders the same way regardless of what the backend happened to put
+    // in `mode`/`transactionType` for that particular row (this was the cause
+    // of AEPS receipts looking different row-to-row).
+    const isAeps = data?._type === 'aeps' || data?.mode === 'AEPS' || String(data?.transactionType || '').toUpperCase() === 'AEPS';
+    const isUpi = data?._type === 'upi';
+    const isRecharge = data?._type === 'recharge';
+    const isCcBillPay = data?._type === 'ccbillpay';
+    // Admin panel's BBPS receipt — its own dedicated field set (distinct
+    // from Recharge and from member panel's BBPS receipt in ReceiptModal.jsx).
+    const isBbps = data?._type === 'bbps';
+
     const mappedData = data ? {
     ...data,
+    isAeps,
+    isUpi,
+    isRecharge,
+    isCcBillPay,
+    isBbps,
     date: data.date || (data.createdDate ? new Date(data.createdDate).toLocaleString('en-IN') : data.txnDate || data.transactionDate || 'N/A'),
     status: data.status || 'PENDING',
-    customerName: data.customerName || data.memberName || data.name || data.beneName || 'Guest',
+    // `memberName` deliberately dropped from this fallback chain — that's the
+    // BC's own name, not the customer's, and it was causing the receipt to
+    // silently show the BC as the "customer" whenever the transaction had no
+    // real customer name. If there's genuinely no customer data, show N/A —
+    // never fabricate a name.
+    customerName: data.customerName || data.name || data.beneName || 'N/A',
     customerMobile: data.customerMobile || data.mobileNumber || data.mobile || data.number || data.senderMobile || 'N/A',
     beneficiary: data.beneficiary || data.beneficiaryName || data.beneName || data.beniName || data.beniVerifyName || data.memberName || 'N/A',
     bank: data.bank || data.bankName || data.beneBankName || 'N/A',
     accountNo: data.accountNo || data.accountNumber || data.accNo || data.aadhar || data.aadharNo || data.cardNo || 'N/A',
     ifsc: data.ifsc || data.ifscCode || '',
-    mode: data.mode || data.transactionType || data.fromChannel || 'IMPS',
+    mode: isAeps ? 'AEPS' : (data.mode || data.transactionType || data.fromChannel || 'IMPS'),
     bankTransId: data.bankTransId || data.txnId || data.transId || data.orderId || data.vendorId || data.refid || data.rrn || 'N/A',
-    rrn: data.rrn || data.bankTransId || data.txnId || data.refid || 'N/A',
+    rrn: data.rrn || data.vendorId || data.bankTransId || data.txnId || data.refid || 'N/A',
     amount: Number(data.amount || 0),
     charge: Number(data.charge || data.surcharge || data.serviceCharge || 0),
     total: data.total || (Number(data.amount || 0) + Number(data.charge || data.surcharge || 0)),
     chunks: data.chunks || [{ txnId: data.bankTransId || data.txnId || data.orderId || data.refid || 'N/A', amount: Number(data.amount || 0) }],
+    // AEPS-specific display fields (same set/labels as ReceiptModal.jsx's AepsReceiptBody)
+    aepsBankName: data.bankName || data.bank || 'N/A',
+    aepsAadhar: (() => {
+      const a = String(data.aadhar || data.aadharNo || data.accountNo || data.accountNumber || '');
+      return a.length >= 4 ? 'XXXX XXXX ' + a.slice(-4) : 'N/A';
+    })(),
+    aepsBcCode: data.memberId || data.loginId || 'N/A',
+    aepsBcName: data.memberName || data.customerName || 'N/A',
+    aepsBalance: (() => {
+      const b = data.closing ?? data.closingBalance ?? data.clBal ?? data.balance ?? data.walletBalance;
+      return (b !== undefined && b !== null && b !== '') ? `₹${Number(b).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '';
+    })(),
+    aepsRemark: data.remark || data.message || '',
+    // UPI Transfer-specific display fields: Name, UPI ID, TXN ID, Reference
+    // ID, Amount, UTR, Date — nothing else.
+    upiName: data.name || data.beneficiary || data.customerName || 'N/A',
+    upiId: data.upiId || data.accountNo || 'N/A',
+    upiTxnId: data.txnId || data.bankTransId || data.orderId || 'N/A',
+    upiRefId: data.refId || data.refid || data.referenceId || 'N/A',
+    upiUtr: data.utr || data.rrn || 'N/A',
+    // Recharge-specific display fields: Number, Operator, Service, Total
+    // Amount, TXN ID, Operator Ref Number, Date & Time — nothing else.
+    rgNumber: data.number || data.customerMobile || data.accountNo || data.mobileNumber || 'N/A',
+    rgOperator: data.operatorName || data.operator || data.operatorId || 'N/A',
+    rgService: data.serviceName || data.service || 'Recharge',
+    rgTxnId: data.orderId || data.txnId || data.transId || data.bankTransId || 'N/A',
+    rgOperatorRefNumber: data.refid || data.rrn || data.operatorRefNo || data.bankRefNo || data.vendorId || 'N/A',
+    // Admin BBPS-specific display fields: Mobile/Consumer No, Operator, TXN
+    // ID, Operator Ref Number, Date & Time, Amount, Member ID (their member
+    // code, e.g. "RT100").
+    bbpsConsumerNo: data.number || data.customerMobile || data.accountNo || data.mobileNumber || 'N/A',
+    bbpsOperator: data.operatorName || data.operator || data.operatorId || 'N/A',
+    bbpsTxnId: data.orderId || data.txnId || data.transId || data.bankTransId || 'N/A',
+    bbpsOperatorRefNumber: data.refid || data.rrn || data.operatorRefNo || data.bankRefNo || data.vendorId || 'N/A',
+    // `memberId` is often blank on these records — the actual member code
+    // (e.g. "RT100") usually comes through as `userId` instead (same fields
+    // CCBillPayHistory.jsx's table already falls back to). Show the name
+    // together with whichever ID is actually populated, so this row isn't
+    // blank just because one of the two field names happened to be empty.
+    bbpsMemberId: (() => {
+      const nm = data.memberName || data.customerName || '';
+      // `memberCode` is the actual human-readable member code (e.g.
+      // "RT100"), resolved by BBPSTransaction.jsx by looking the row's
+      // numeric memberId up against the member master list — that's the
+      // real ID, not the raw memberId/userId (which is just a DB primary
+      // key and isn't what shows anywhere else in the app as "member ID").
+      const id = data.memberCode || data.memberId || data.userId || data.loginId || '';
+      if (nm && id) return `${nm} (${id})`;
+      return nm || id || 'N/A';
+    })(),
+    // Credit Card Bill Pay-specific display fields: Credit Card No, Name,
+    // Mobile No, Amount, TXN ID, TXN Date — nothing else.
+    ccCardNo: data.cardNumber || data.accountNo || 'N/A',
+    ccName: data.customerName || data.memberName || data.name || 'N/A',
+    ccMobile: data.customerMobile || data.mobile || data.number || 'N/A',
+    ccTxnId: data.orderId || data.txnId || data.refid || 'N/A',
   } : null;
 
   useLayoutEffect(() => {
@@ -417,6 +584,15 @@ export default function TransactionReceipt({ data, onClose }) {
 
     const printReceipt = () => {
     const pw = window.open('', '_blank', 'width=900,height=700');
+    if (!pw) {
+      // This was the actual cause of "print karta hu print hi nahi hota":
+      // window.open() returns null when the browser's popup blocker kicks
+      // in, and the code below would then throw on pw.document.write with
+      // no visible error — print silently never happened. Guard + tell the
+      // user instead of failing silently.
+      alert('Print window was blocked by your browser. Please allow pop-ups for this site and try again.');
+      return;
+    }
     const isTh = !cfg.twoCol;
     const fs = cfg.fontSize;
 
@@ -424,13 +600,13 @@ export default function TransactionReceipt({ data, onClose }) {
     const merchantName = _session?.name || _session?.fullName || _session?.ownerName || _session?.firmName || SITE_CONFIG.name || 'Merchant';
     const shopName = _session?.shopName || _session?.firmName || _session?.businessName || SITE_CONFIG.name || 'Shop';
 
-    const chunksHtml = (mappedData.chunks || []).map((c, i, arr) => `
+    const chunksHtml = (mappedData.isAeps ? [{ txnId: mappedData.bankTransId, amount: mappedData.amount }] : (mappedData.chunks || [])).map((c, i, arr) => `
       <tr>
         <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">${c.txnId || 'N/A'}</td>
-        <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">${mappedData.date ? mappedData.date.split(' ')[0] : ''}</td>
+        ${mappedData.isAeps ? `<td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">${mappedData.date ? mappedData.date.split(' ')[0] : ''}</td>` : ''}
         <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#0F172A;font-weight:700;">₹${Number(c.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-        <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">${c.txnId || 'N/A'}</td>
-        <td style="padding:10px 12px;border:1.5px solid #E2E8F0;text-align:center;"><span style="background:$(mappedData.status?.toLowerCase()==='success'?'#DCFCE7':mappedData.status?.toLowerCase()==='pending'?'#FEF3C7':mappedData.status?.toLowerCase()==='processing'?'#DBEAFE':'#FEE2E2');border:1px solid $(mappedData.status?.toLowerCase()==='success'?'#BBF7D0':mappedData.status?.toLowerCase()==='pending'?'#FDE68A':mappedData.status?.toLowerCase()==='processing'?'#BFDBFE':'#FECACA');color:$(mappedData.status?.toLowerCase()==='success'?'#065F46':mappedData.status?.toLowerCase()==='pending'?'#92400E':'#991B1B');padding:2px 8px;border-radius:50px;font-size:9.5px;font-weight:800;display:inline-block;">${(mappedData.status||'N/A').toUpperCase()}</span></td>
+        <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">${mappedData.isAeps ? (mappedData.rrn || 'N/A') : (c.txnId || 'N/A')}</td>
+        ${mappedData.isAeps ? `<td style="padding:10px 12px;border:1.5px solid #E2E8F0;text-align:center;"><span style="background:${mappedData.status?.toLowerCase()==='success'?'#DCFCE7':mappedData.status?.toLowerCase()==='pending'?'#FEF3C7':mappedData.status?.toLowerCase()==='processing'?'#DBEAFE':'#FEE2E2'};border:1px solid ${mappedData.status?.toLowerCase()==='success'?'#BBF7D0':mappedData.status?.toLowerCase()==='pending'?'#FDE68A':mappedData.status?.toLowerCase()==='processing'?'#BFDBFE':'#FECACA'};color:${mappedData.status?.toLowerCase()==='success'?'#065F46':mappedData.status?.toLowerCase()==='pending'?'#92400E':'#991B1B'};padding:2px 8px;border-radius:50px;font-size:9.5px;font-weight:800;display:inline-block;">${(mappedData.status||'N/A').toUpperCase()}</span></td>` : ''}
       </tr>
     `).join('');
 
@@ -438,13 +614,13 @@ export default function TransactionReceipt({ data, onClose }) {
       <!-- Top Banner Row for Printing -->
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
         <img src="${SITE_CONFIG.logo}" style="height:${cfg.logoH}px;display:block;margin:0;"/>
-        <div style="display:flex;align-items:center;gap:6px;background:$(mappedData.status?.toLowerCase()==='success'?'#DCFCE7':mappedData.status?.toLowerCase()==='pending'?'#FEF3C7':mappedData.status?.toLowerCase()==='processing'?'#DBEAFE':'#FEE2E2');border:1px solid $(mappedData.status?.toLowerCase()==='success'?'#BBF7D0':mappedData.status?.toLowerCase()==='pending'?'#FDE68A':mappedData.status?.toLowerCase()==='processing'?'#BFDBFE':'#FECACA');border-radius:50px;padding:5px 14px;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
-          <div style="width:14px;height:14px;border-radius:50%;background:$(mappedData.status?.toLowerCase()==='success'?'#10B981':mappedData.status?.toLowerCase()==='pending'?'#F59E0B':'#EF4444');display:flex;align-items:center;justify-content:center;">
+        <div style="display:flex;align-items:center;gap:6px;background:${mappedData.status?.toLowerCase()==='success'?'#DCFCE7':mappedData.status?.toLowerCase()==='pending'?'#FEF3C7':mappedData.status?.toLowerCase()==='processing'?'#DBEAFE':'#FEE2E2'};border:1px solid ${mappedData.status?.toLowerCase()==='success'?'#BBF7D0':mappedData.status?.toLowerCase()==='pending'?'#FDE68A':mappedData.status?.toLowerCase()==='processing'?'#BFDBFE':'#FECACA'};border-radius:50px;padding:5px 14px;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+          <div style="width:14px;height:14px;border-radius:50%;background:${mappedData.status?.toLowerCase()==='success'?'#10B981':mappedData.status?.toLowerCase()==='pending'?'#F59E0B':'#EF4444'};display:flex;align-items:center;justify-content:center;">
             <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round">
-              $(mappedData.status?.toLowerCase()==='success'?'<polyline points="20 6 9 17 4 12" />':mappedData.status?.toLowerCase()==='pending'?'<circle cx="12" cy="12" r="4"/>':'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>')
+              ${mappedData.status?.toLowerCase()==='success'?'<polyline points="20 6 9 17 4 12" />':mappedData.status?.toLowerCase()==='pending'?'<circle cx="12" cy="12" r="4"/>':'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'}
             </svg>
           </div>
-          <span style="font-size:${fs - 3}px;font-weight:800;color:$(mappedData.status?.toLowerCase()==='success'?'#065F46':mappedData.status?.toLowerCase()==='pending'?'#92400E':'#991B1B');letter-spacing:0.6px;">${(mappedData.status||'N/A').toUpperCase()}</span>
+          <span style="font-size:${fs - 3}px;font-weight:800;color:${mappedData.status?.toLowerCase()==='success'?'#065F46':mappedData.status?.toLowerCase()==='pending'?'#92400E':'#991B1B'};letter-spacing:0.6px;">${(mappedData.status||'N/A').toUpperCase()}</span>
         </div>
       </div>
 
@@ -453,53 +629,145 @@ export default function TransactionReceipt({ data, onClose }) {
       <!-- Main Grid Table -->
       <table style="width:100%;border-collapse:collapse;margin-bottom:25px;font-size:${fs}px;font-family:'DM Sans',sans-serif;">
         <tbody>
+          ${mappedData.isAeps ? `
           <tr>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">Merchant:</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${merchantName}</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">Business Name:</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${shopName}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">Bank Name:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${mappedData.aepsBankName}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">BC Code:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${mappedData.aepsBcCode}</td>
           </tr>
           <tr>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">${mappedData.mode === 'AEPS' ? 'Member Name:' : 'Customer Name:'}</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.customerName || 'N/A'}</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">${mappedData.mode === 'AEPS' ? 'Member ID:' : 'Customer Mobile:'}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">BC Name:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.aepsBcName}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Aadhar No:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.aepsAadhar}</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Customer Mobile:</td>
             <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.customerMobile || 'N/A'}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Balance:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.aepsBalance || 'N/A'}</td>
+          </tr>
+          ${mappedData.aepsRemark ? `
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Remark:</td>
+            <td colspan="3" style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.aepsRemark}</td>
+          </tr>
+          ` : ''}
+          ` : mappedData.isUpi ? `
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">Name:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${mappedData.upiName}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">UPI ID:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${mappedData.upiId}</td>
           </tr>
           <tr>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">${mappedData.mode === 'AEPS' ? 'Aadhar Number:' : 'Beneficiary Name:'}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Txn ID:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.upiTxnId}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Reference ID:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.upiRefId}</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Amount:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">₹${Number(mappedData.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">UTR:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.upiUtr}</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Date:</td>
+            <td colspan="3" style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.date}</td>
+          </tr>
+          ` : mappedData.isRecharge ? `
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">Number:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${mappedData.rgNumber}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">Operator:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${mappedData.rgOperator}</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Service:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.rgService}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Total Amount:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">₹${Number(mappedData.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">TXN ID:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.rgTxnId}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Operator Ref Number:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.rgOperatorRefNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Date & Time:</td>
+            <td colspan="3" style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.date}</td>
+          </tr>
+          ` : mappedData.isCcBillPay ? `
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">Credit Card No:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${mappedData.ccCardNo}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">Name:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${mappedData.ccName}</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Mobile No:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.ccMobile}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Amount:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">₹${Number(mappedData.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">TXN ID:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.ccTxnId}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">TXN Date:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.date}</td>
+          </tr>
+          ` : mappedData.isBbps ? `
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">Mobile/Consumer No:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${mappedData.bbpsConsumerNo}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">Operator:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${mappedData.bbpsOperator}</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">TXN ID:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.bbpsTxnId}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Operator Ref Number:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.bbpsOperatorRefNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Date and Time:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.date}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Amount:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">₹${Number(mappedData.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Member Name:</td>
+            <td colspan="3" style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.bbpsMemberId}</td>
+          </tr>
+          ` : `
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">Customer Name:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${mappedData.customerName || 'N/A'}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;width:20%;">Mobile Number:</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;width:30%;">${mappedData.customerMobile || 'N/A'}</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Beneficiary Name:</td>
             <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.beneficiary || 'N/A'}</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">${mappedData.mode === 'AEPS' ? 'Txn Type:' : 'Bank Name:'}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Bank Name:</td>
             <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.bank || 'N/A'}</td>
           </tr>
           <tr>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">${mappedData.mode === 'AEPS' ? 'Bank Trans ID:' : 'Account Number:'}</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.accountNo || 'N/A'} ${mappedData.ifsc ? `(IFSC: ${mappedData.ifsc})` : ''}</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Date & Time:</td>
-            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.date}</td>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Account Number:</td>
+            <td colspan="3" style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.accountNo || 'N/A'} ${mappedData.ifsc ? `(IFSC: ${mappedData.ifsc})` : ''}</td>
           </tr>
-          ${mappedData.mode === 'AEPS' ? `
-            <tr>
-              <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Opening Bal:</td>
-              <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">₹${Number(mappedData.opBal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-              <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Closing Bal:</td>
-              <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">₹${Number(mappedData.clBal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-            </tr>
-            <tr>
-              <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Commission:</td>
-              <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#15803D;">+₹${Number(mappedData.commission || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-              <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">TDS:</td>
-              <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#B91C1C;">-₹${Number(mappedData.tds || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-            </tr>
-            <tr>
-              <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Status:</td>
-              <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:$(mappedData.status?.toLowerCase()==='success'?'#15803D':mappedData.status?.toLowerCase()==='pending'?'#B45309':mappedData.status?.toLowerCase()==='processing'?'#1E40AF':'#B91C1C');">${mappedData.status || 'N/A'}</td>
-              <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Remark:</td>
-              <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.remark || 'N/A'}</td>
-            </tr>
-          ` : ''}
+          <tr>
+            <td style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:800;color:#64748B;background:#F8FAFC;">Date & Time:</td>
+            <td colspan="3" style="padding:10px 14px;border:1.5px solid #E2E8F0;font-weight:700;color:#0F172A;">${mappedData.date}</td>
+          </tr>
+          `}
         </tbody>
       </table>
 
+      ${(mappedData.isUpi || mappedData.isRecharge || mappedData.isCcBillPay || mappedData.isBbps) ? '' : `
       <div style="text-align:center;margin-bottom:15px;">
         <span style="font-size:${fs + 1.5}px;font-weight:800;color:#1756AA;text-transform:uppercase;letter-spacing:1px;">Transaction Summary</span>
       </div>
@@ -507,30 +775,44 @@ export default function TransactionReceipt({ data, onClose }) {
       <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:${fs}px;font-family:'DM Sans',sans-serif;">
         <thead>
           <tr style="background:#F8FAFC;">
-            <th style="padding:10px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#475569;text-align:left;">TID</th>
-            <th style="padding:10px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#475569;text-align:left;">TXN DATE</th>
+            <th style="padding:10px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#475569;text-align:left;">${mappedData.isAeps ? 'TID' : 'TXN ID'}</th>
+            ${mappedData.isAeps ? `<th style="padding:10px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#475569;text-align:left;">TXN DATE</th>` : ''}
             <th style="padding:10px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#475569;text-align:left;">AMOUNT</th>
-            <th style="padding:10px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#475569;text-align:left;">UTR NO.</th>
-            <th style="padding:10px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#475569;text-align:left;">STATUS</th>
+            <th style="padding:10px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#475569;text-align:left;">${mappedData.isAeps ? 'RRN' : 'UTR NUMBER'}</th>
+            ${mappedData.isAeps ? `<th style="padding:10px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#475569;text-align:left;">STATUS</th>` : ''}
           </tr>
         </thead>
         <tbody>
-          ${chunksHtml ? chunksHtml : `
+          ${chunksHtml ? chunksHtml : (mappedData.isAeps ? `
             <tr>
               <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">N/A</td>
               <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">${mappedData.date ? mappedData.date.split(' ')[0] : ''}</td>
               <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#0F172A;font-weight:700;">₹${Number(mappedData.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
               <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">N/A</td>
-              <td style="padding:10px 12px;border:1.5px solid #E2E8F0;"><span style="background:$(mappedData.status?.toLowerCase()==='success'?'#DCFCE7':mappedData.status?.toLowerCase()==='pending'?'#FEF3C7':mappedData.status?.toLowerCase()==='processing'?'#DBEAFE':'#FEE2E2');border:1px solid $(mappedData.status?.toLowerCase()==='success'?'#BBF7D0':mappedData.status?.toLowerCase()==='pending'?'#FDE68A':mappedData.status?.toLowerCase()==='processing'?'#BFDBFE':'#FECACA');color:$(mappedData.status?.toLowerCase()==='success'?'#065F46':mappedData.status?.toLowerCase()==='pending'?'#92400E':'#991B1B');padding:2px 8px;border-radius:50px;font-size:9.5px;font-weight:800;">${(mappedData.status||'N/A').toUpperCase()}</span></td>
+              <td style="padding:10px 12px;border:1.5px solid #E2E8F0;"><span style="background:${mappedData.status?.toLowerCase()==='success'?'#DCFCE7':mappedData.status?.toLowerCase()==='pending'?'#FEF3C7':mappedData.status?.toLowerCase()==='processing'?'#DBEAFE':'#FEE2E2'};border:1px solid ${mappedData.status?.toLowerCase()==='success'?'#BBF7D0':mappedData.status?.toLowerCase()==='pending'?'#FDE68A':mappedData.status?.toLowerCase()==='processing'?'#BFDBFE':'#FECACA'};color:${mappedData.status?.toLowerCase()==='success'?'#065F46':mappedData.status?.toLowerCase()==='pending'?'#92400E':'#991B1B'};padding:2px 8px;border-radius:50px;font-size:9.5px;font-weight:800;">${(mappedData.status||'N/A').toUpperCase()}</span></td>
             </tr>
-          `}
+          ` : `
+            <tr>
+              <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">N/A</td>
+              <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#0F172A;font-weight:700;">₹${Number(mappedData.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+              <td style="padding:10px 12px;border:1.5px solid #E2E8F0;color:#334155;font-weight:600;">N/A</td>
+            </tr>
+          `)}
+          ${mappedData.isAeps ? `
           <tr style="background:#FFFFFF;">
             <td colSpan="2" style="padding:12px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#1756AA;">Total Amount:</td>
             <td style="padding:12px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#1756AA;">₹${Number(mappedData.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
             <td colSpan="2" style="padding:12px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#1756AA;">Rs. ${Number(mappedData.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} ( ${toWords(mappedData.amount || 0)} )</td>
           </tr>
+          ` : `
+          <tr style="background:#FFFFFF;">
+            <td style="padding:12px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#1756AA;">Total Amount:</td>
+            <td colSpan="2" style="padding:12px 12px;border:1.5px solid #E2E8F0;font-weight:800;color:#1756AA;">₹${Number(mappedData.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} — Rs. ${Number(mappedData.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} ( ${toWords(mappedData.amount || 0)} )</td>
+          </tr>
+          `}
         </tbody>
       </table>
+      `}
 
       <div style="text-align:center;margin-top:25px;">
         <p style="color:#64748B;font-size:${fs - 2}px;font-weight:500;margin:0;letter-spacing:0.2px;">
@@ -602,7 +884,7 @@ export default function TransactionReceipt({ data, onClose }) {
             </div>
             <div style="display:flex;justify-content:space-between;">
               <span style="font-size:${Math.max(fs - 3, 8)}px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">STATUS</span>
-              <span style="font-size:${Math.max(fs - 2, 8)}px;color:$(mappedData.status?.toLowerCase()==='success'?'#15803D':mappedData.status?.toLowerCase()==='pending'?'#B45309':mappedData.status?.toLowerCase()==='processing'?'#1E40AF':'#B91C1C');font-weight:700;">${mappedData.status || 'N/A'}</span>
+              <span style="font-size:${Math.max(fs - 2, 8)}px;color:${mappedData.status?.toLowerCase()==='success'?'#15803D':mappedData.status?.toLowerCase()==='pending'?'#B45309':mappedData.status?.toLowerCase()==='processing'?'#1E40AF':'#B91C1C'};font-weight:700;">${mappedData.status || 'N/A'}</span>
             </div>
             <div style="display:flex;justify-content:space-between;">
               <span style="font-size:${Math.max(fs - 3, 8)}px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">REMARK</span>
@@ -659,7 +941,17 @@ export default function TransactionReceipt({ data, onClose }) {
     </div></body></html>`);
     pw.document.close();
     pw.focus();
-    setTimeout(() => { pw.print(); pw.close(); }, 700);
+    setTimeout(() => {
+      // NOTE: deliberately NOT auto-closing this window on 'afterprint'.
+      // That event is unreliable for popup windows opened via window.open()
+      // — depending on the browser it can fire before the print/Save-as-PDF
+      // dialog even opens (closing the window mid-print, so nothing gets
+      // printed/saved) or never fire at all (window stays open forever).
+      // Just print and leave the tab open — the user closes it themselves,
+      // same as any normal browser print/PDF-save tab. This is the only
+      // approach that doesn't race the actual print job.
+      pw.print();
+    }, 700);
   };
 
   const receiptH = receiptRef.current?.scrollHeight || 600;

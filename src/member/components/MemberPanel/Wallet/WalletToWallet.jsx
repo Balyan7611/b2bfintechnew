@@ -105,15 +105,24 @@ const WalletToWallet = () => {
     if (!senderMsrno) return;
     setHistLoading(true);
     try {
-      const { items, totalItems } = await API.walletLedger.getMainLedger({
+      const { items } = await API.walletLedger.getMainLedger({
         memberId: senderMsrno,
         pageNumber,
         pageSize,
         fromDate,
         toDate,
       });
-      setTransactions(items);
-      setTotalRecords(totalItems ?? items.length);
+      // getMainLedger returns EVERY Main Wallet ledger entry for this member
+      // — including admin's own fund-add/deduct actions from Member Control
+      // Center, which aren't wallet-to-wallet transfers at all. This page
+      // should only show actual W2W transfers, so filter out the admin
+      // fund-update entries by their fixed narration signature.
+      const w2wOnly = items.filter(t => {
+        const n = String(t.narration || t.description || '').toLowerCase();
+        return n !== 'wallet update via member control center';
+      });
+      setTransactions(w2wOnly);
+      setTotalRecords(w2wOnly.length);
     } catch (e) {
       console.error('WalletToWallet history error:', e);
       setTransactions([]);

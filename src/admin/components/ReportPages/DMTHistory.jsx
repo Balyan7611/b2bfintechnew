@@ -132,9 +132,13 @@ const DMTHistory = () => {
         status: selectedStatus,
         keyword: searchKeyword
       });
-            const { items: _txns, totalItems: _total, totalSuccess: _succ, totalPending: _pend, totalFailed: _fail } = normalizeTxnResponse(res);
+            const { items: _rawTxns, totalItems: _total, totalSuccess: _succ, totalPending: _pend, totalFailed: _fail } = normalizeTxnResponse(res);
+      // Wallet-transfer records get mistagged server-side with SectionType
+      // values that leak into other reports — they reliably carry a "WT..."
+      // order ID though. Filter those out as a stopgap.
+      const _txns = _rawTxns.filter(t => !String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT'));
       setTransactions(_txns);
-      setTotalRecords(_total);
+      setTotalRecords(_txns.length === _rawTxns.length ? _total : Math.max(0, (_total || 0) - (_rawTxns.length - _txns.length)));
     } catch (err) {
       console.error("Failed to fetch transactions:", err);
       setTransactions([]);

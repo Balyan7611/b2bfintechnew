@@ -11,12 +11,20 @@ import {
   setEntriesToShow, setSearchTerm, setLoading 
 } from '../../../store/slices/walletSlice';
 import { API } from '../../../api/endpoints';
+import { formatLedgerDate } from '../../../models/walletLedgerModel';
 import styles from '../MemberPages/MemberPages.module.css';
 
 const MainWalletReport = () => {
   const dispatch = useDispatch();
   const { entriesToShow, searchTerm, isLoading } = useSelector(state => state.wallet);
-  const sampleData = [];
+  // This page was never actually wired to real data — it always rendered a
+  // hardcoded empty array, so nothing an admin did (e.g. adding funds to a
+  // member's Main Wallet) ever showed up here. Now backed by the same
+  // WalletLedger endpoint (WalletTypeId=MAIN) the member panel's own Main
+  // Wallet history page uses.
+  const [walletList, setWalletList] = useState([]);
+  const [apiError, setApiError] = useState('');
+  const [totalRecords, setTotalRecords] = useState(0);
   const [membersList, setMembersList] = useState([]);
   
   const getCurrentDateString = () => {
@@ -58,17 +66,74 @@ const MainWalletReport = () => {
   };
 
   const handleClear = () => {
-    setFilters({ fromDate: getCurrentDateString(), toDate: getCurrentDateString(), memberId: '' });
+    const cleared = { fromDate: getCurrentDateString(), toDate: getCurrentDateString(), memberId: '' };
+    setFilters(cleared);
+    loadHistory(cleared);
   };
 
   const hasFilters = Object.values(filters).some(val => val !== getCurrentDateString() && val !== '');
 
+  // Admin panel: memberId is optional — an admin should see every member's
+  // wallet activity by default, and can narrow to one specific member via
+  // the "Select Member" dropdown above. (Unlike the member panel's own
+  // wallet history page, which must always scope to just the logged-in
+  // member — this page has no such restriction.)
+  const loadHistory = async (f) => {
+    const activeFilters = f || filters;
+    dispatch(setLoading(true));
+    setApiError('');
+    try {
+      const { items, totalItems } = await API.walletLedger.getMainLedger({
+        memberId: activeFilters.memberId || undefined,
+        pageNumber: 1,
+        pageSize: 500,
+        fromDate: activeFilters.fromDate || '',
+        toDate: activeFilters.toDate || ''
+      });
+      setWalletList(items.map(r => {
+        const rawFactor = r.factor || (r.isCredit ? 'CR' : 'DR');
+        const factor = String(rawFactor).toUpperCase().includes('CR') ? 'CR' : 'DR';
+        return {
+          ...r,
+          member: r.memberName || r.loginId || 'N/A',
+          mode: factor,
+          opening: (r.openingBalance || 0).toFixed(2),
+          amount: (r.amount || 0).toFixed(2),
+          closing: (r.balance || 0).toFixed(2),
+          surcharge: (r.surcharge || 0).toFixed(2),
+          gst: (r.gst || 0).toFixed(2),
+          tds: (r.tds || 0).toFixed(2),
+          commission: (r.commission || 0).toFixed(2),
+          narration: r.narration || r.description || 'N/A',
+          date: formatLedgerDate(r.createdDate)
+        };
+      }));
+      setTotalRecords(totalItems || items.length || 0);
+    } catch (err) {
+      console.error('[MainWalletReport] failed:', err);
+      const msg = err?.response?.data?.mess || err?.message || 'API error';
+      setApiError(`Failed to load wallet report: ${msg}`);
+      setWalletList([]);
+      setTotalRecords(0);
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+
+  useEffect(() => { loadHistory(filters); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSearch = (e) => {
     if (e) e.preventDefault();
-    dispatch(setLoading(true));
-    if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
-    loadingTimerRef.current = setTimeout(() => dispatch(setLoading(false)), 800);
+    loadHistory(filters);
   };
+
+  const lowerSearch = String(searchTerm || '').toLowerCase();
+  const filteredList = walletList.filter(item =>
+    !lowerSearch ||
+    String(item.member || '').toLowerCase().includes(lowerSearch) ||
+    String(item.narration || '').toLowerCase().includes(lowerSearch)
+  );
+  const visibleList = filteredList.slice(0, Number(entriesToShow) || 10);
 
   return (
     <div className={styles.container} style={{ padding: '15px', maxWidth: '100%' }}>
@@ -127,6 +192,11 @@ const MainWalletReport = () => {
             </div>
           </div>
         </form>
+        {apiError && (
+          <div style={{ margin: '12px 0 0', padding: '10px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#b91c1c', fontSize: '0.8rem', fontWeight: 600 }}>
+            ⚠️ {apiError}
+          </div>
+        )}
       </div>
 
             <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
@@ -166,22 +236,28 @@ const MainWalletReport = () => {
           </div>
         </div>
 
-        <div className={styles.tableWrapper}>
-          <table className={styles.table} style={{ minWidth: '3200px' }}>
+        <div className={styles.tableWrapper} style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #EEF1F6' }}>
+          {/* table-layout: auto (default) — each column sizes itself to fit its
+              own content instead of being forced into a fixed pixel width. That
+              forced-width approach was cutting Date/Member text off mid-word and
+              letting it visually spill into the next column. The wrapper above
+              already has overflow-x: auto, so on a narrow/small screen the whole
+              table just scrolls horizontally instead of squeezing or overlapping. */}
+          <table className={styles.table} style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>
-                <th style={{ width: '50px', padding: '10px 12px', fontSize: '0.75rem' }}>#</th>
-                <th style={{ padding: '10px 12px', fontSize: '0.75rem' }}>Date</th>
-                <th style={{ padding: '10px 12px', fontSize: '0.75rem' }}>Member</th>
-                <th style={{ padding: '10px 12px', fontSize: '0.75rem' }}>Mode</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '0.75rem' }}>Opening</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '0.75rem' }}>Amount</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '0.75rem' }}>Closing</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '0.75rem' }}>Surcharge</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '0.75rem' }}>GST</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '0.75rem' }}>TDS</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '0.75rem' }}>Commission</th>
-                <th style={{ padding: '10px 12px', fontSize: '0.75rem' }}>Narration</th>
+                <th style={{ padding: '12px 10px', fontSize: '0.72rem', color: '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>#</th>
+                <th style={{ padding: '12px 10px', fontSize: '0.72rem', color: '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Date</th>
+                <th style={{ padding: '12px 10px', fontSize: '0.72rem', color: '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Member</th>
+                <th style={{ padding: '12px 10px', fontSize: '0.72rem', color: '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Mode</th>
+                <th style={{ textAlign: 'center', padding: '12px 10px', fontSize: '0.72rem', color: '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Opening</th>
+                <th style={{ textAlign: 'center', padding: '12px 10px', fontSize: '0.72rem', color: '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Amount</th>
+                <th style={{ textAlign: 'center', padding: '12px 10px', fontSize: '0.72rem', color: '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Closing</th>
+                <th style={{ textAlign: 'center', padding: '12px 10px', fontSize: '0.72rem', color: '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Surcharge</th>
+                <th style={{ textAlign: 'center', padding: '12px 10px', fontSize: '0.72rem', color: '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>GST</th>
+                <th style={{ textAlign: 'center', padding: '12px 10px', fontSize: '0.72rem', color: '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>TDS</th>
+                <th style={{ textAlign: 'center', padding: '12px 10px', fontSize: '0.72rem', color: '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Commission</th>
+                <th style={{ padding: '12px 10px', fontSize: '0.72rem', color: '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Narration</th>
               </tr>
             </thead>
             <tbody>
@@ -192,7 +268,7 @@ const MainWalletReport = () => {
                       <div className={styles.spinner} style={{ width: '30px', height: '30px', borderWidth: '3px' }}></div>
                       <span style={{ fontSize: '0.85rem', color: '#718096', fontWeight: 600 }}>Loading records...</span></div></td>
                 </tr>
-              ) : sampleData.length === 0 ? (
+              ) : visibleList.length === 0 ? (
                 <>
                   <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
                     <td colSpan="12" style={{ textAlign: 'center', color: '#A0AEC0', padding: '20px' }}>
@@ -202,29 +278,49 @@ const MainWalletReport = () => {
                                     <tr style={{ height: '30px' }}><td colSpan="12" style={{ border: 'none' }}></td></tr>
                 </>
               ) : (
-                sampleData.map((item, index) => (
-                  <tr key={index} className={styles.hoverRow}>
-                    <td style={{ fontWeight: 700, color: '#A0AEC0' }}>{index + 1}</td>
-                    <td style={{ fontWeight: 600, color: '#4E6080', fontSize: '0.75rem' }}>{item.date || 'N/A'}</td>
-                    <td style={{ fontWeight: 700, color: '#0D1B3E' }}>{item.member || 'N/A'}</td>
-                    <td style={{ fontWeight: 600, color: '#4E6080' }}>{item.mode || 'N/A'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#475569' }}>₹{item.opening || '0.00'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 800, color: '#0D1B3E' }}>₹{item.amount || '0.00'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#0F172A' }}>₹{item.closing || '0.00'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 600, color: '#D97706' }}>₹{item.surcharge || '0.00'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 600, color: '#D97706' }}>₹{item.gst || '0.00'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 600, color: '#EF4444' }}>₹{item.tds || '0.00'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#27AE60' }}>₹{item.commission || '0.00'}</td>
-                    <td><div style={{ maxWidth: '200px', whiteSpace: 'normal', fontSize: '0.75rem', color: '#718096', lineHeight: '1.4' }}>{item.narration || 'N/A'}</div></td>
+                visibleList.map((item, index) => {
+                  const isCredit = String(item.mode).toUpperCase() === 'CR';
+                  return (
+                  <tr
+                    key={index}
+                    className={styles.hoverRow}
+                    style={{
+                      background: index % 2 === 0 ? '#FFFFFF' : '#F8FAFC',
+                      borderBottom: '1px solid #EEF1F6',
+                    }}
+                  >
+                    <td style={{ fontWeight: 700, color: '#A0AEC0', padding: '11px 8px' }}>{index + 1}</td>
+                    <td style={{ fontWeight: 600, color: '#4E6080', fontSize: '0.75rem', padding: '11px 8px' }}>{item.date || 'N/A'}</td>
+                    <td style={{ fontWeight: 700, color: '#0D1B3E', padding: '11px 8px' }}>{item.member || 'N/A'}</td>
+                    <td style={{ padding: '11px 8px' }}>
+                      <span style={{
+                        display: 'inline-block', padding: '3px 10px', borderRadius: 50,
+                        fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.3px',
+                        background: isCredit ? '#ECFDF5' : '#FEF2F2',
+                        color: isCredit ? '#15803D' : '#B91C1C',
+                        border: `1px solid ${isCredit ? '#A7F3D0' : '#FECACA'}`,
+                      }}>{item.mode || 'N/A'}</span>
+                    </td>
+                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#475569', padding: '11px 8px', fontSize: '0.78rem' }}>₹{item.opening || '0.00'}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 800, color: isCredit ? '#15803D' : '#B91C1C', padding: '11px 8px', fontSize: '0.78rem' }}>₹{item.amount || '0.00'}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#0F172A', padding: '11px 8px', fontSize: '0.78rem' }}>₹{item.closing || '0.00'}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 600, color: '#D97706', padding: '11px 8px', fontSize: '0.78rem' }}>₹{item.surcharge || '0.00'}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 600, color: '#D97706', padding: '11px 8px', fontSize: '0.78rem' }}>₹{item.gst || '0.00'}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 600, color: '#EF4444', padding: '11px 8px', fontSize: '0.78rem' }}>₹{item.tds || '0.00'}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#27AE60', padding: '11px 8px', fontSize: '0.78rem' }}>₹{item.commission || '0.00'}</td>
+                    <td style={{ padding: '11px 8px' }}><div style={{ whiteSpace: 'normal', wordBreak: 'break-word', fontSize: '0.75rem', color: '#718096', lineHeight: '1.4' }}>{item.narration || 'N/A'}</div></td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
 
         <div className="global-pagination" style={{ padding: '15px 20px', borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ fontSize: '0.8rem', color: '#718096', fontWeight: 600 }}>Showing 0 to 0 of 0 entries</div>
+          <div style={{ fontSize: '0.8rem', color: '#718096', fontWeight: 600 }}>
+            Showing {visibleList.length === 0 ? 0 : 1} to {visibleList.length} of {totalRecords} entries
+          </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <button className="global-page-btn" disabled style={{ borderRadius: '6px', width: '30px', height: '30px' }}><FiChevronLeft size={14} /></button>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', background: '#1756AA', color: 'white', borderRadius: '6px', fontWeight: 700, fontSize: '0.85rem' }}>1</div>

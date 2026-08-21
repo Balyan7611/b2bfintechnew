@@ -325,7 +325,29 @@ const LoginPage = () => {
         const loginId = decoded?.LoginId || decoded?.loginId || decoded?.sub || userId;
     const userName = decoded?.unique_name || decoded?.name || decoded?.Name || 'Member';
     const mobileNo = decoded?.mobile || decoded?.Mobile || decoded?.phone || userId;
-                const rawNumeric = decoded?.MemberId ?? decoded?.memberId ?? decoded?.Id ?? decoded?.id ?? decoded?.nameid ?? decoded?.sub;
+                let rawNumeric = decoded?.MemberId ?? decoded?.memberId ?? decoded?.Id ?? decoded?.id ?? decoded?.nameid ?? decoded?.sub;
+    // If the JWT's numeric id lives under a claim name outside the short list
+    // above (e.g. a namespaced ASP.NET claim URI, or "Msrno"/"UserId"), the
+    // lookup above misses it and numericId silently becomes 0 — which is why
+    // wallet balance and other member-scoped data can end up looking empty
+    // even though the login itself succeeded. Same fallback scan already
+    // used by the API panel's login (src/api_panel/pages/ApiLoginPage.jsx).
+    if (decoded && (!rawNumeric || !/^\d+$/.test(String(rawNumeric).trim()))) {
+      for (const [k, v] of Object.entries(decoded)) {
+        const keyLower = k.toLowerCase();
+        if (
+          (keyLower.includes('memberid') ||
+           keyLower.includes('userid') ||
+           keyLower.includes('msrno') ||
+           keyLower.includes('nameidentifier') ||
+           keyLower.includes('sub')) &&
+          /^\d+$/.test(String(v ?? '').trim())
+        ) {
+          rawNumeric = v;
+          break;
+        }
+      }
+    }
     const numericId = /^\d+$/.test(String(rawNumeric ?? '').trim()) ? parseInt(rawNumeric, 10) : 0;
 
         saveSession({

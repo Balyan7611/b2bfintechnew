@@ -93,6 +93,12 @@ const AEPSHistory = () => {
 
   const [serviceList, setServiceList] = useState([]);
   const [selectedService, setSelectedService] = useState('');
+  const [aepsServiceIds, setAepsServiceIds] = useState([]);
+  // Gate every transaction fetch on this: until aepsServiceIds is loaded, a
+  // fetch would go out with no serviceIds narrowing (only sectionType
+  // sent), which isn't strict enough and can let other transaction types
+  // leak into this list. (Same bug found/fixed in BBPSTransaction.jsx.)
+  const [mastersLoaded, setMastersLoaded] = useState(false);
 
   const [operatorList, setOperatorList] = useState([]);
   const [selectedOperator, setSelectedOperator] = useState('');
@@ -141,7 +147,12 @@ const AEPSHistory = () => {
         pageSize,
         fromDate,
         toDate,
-        serviceId: '',
+        serviceId: selectedService || '',
+        // Narrow to AEPS-specific services once loaded, instead of relying
+        // on sectionType alone (which wasn't strict enough on its own and
+        // let other transaction types leak in — same bug class fixed in
+        // BBPSTransaction.jsx).
+        serviceIds: selectedService ? [] : aepsServiceIds,
         sectionType: '9,10',
         operatorId: selectedOperator,
         apiId: selectedApi,
@@ -151,9 +162,14 @@ const AEPSHistory = () => {
             if (searchKeyword.trim()) params.keyword = searchKeyword.trim();
       const res = await API.transaction.getAll(params);
 
-            const { items: _txns, totalItems: _total, totalSuccess: _succ, totalPending: _pend, totalFailed: _fail } = normalizeTxnResponse(res);
+            const { items: _rawTxns, totalItems: _total, totalSuccess: _succ, totalPending: _pend, totalFailed: _fail } = normalizeTxnResponse(res);
+      // Wallet-transfer records get mistagged server-side with SectionType
+      // values that leak into other reports — they reliably carry a "WT..."
+      // order ID though. Filter those out as a stopgap. (Same issue found in
+      // PayoutHistory.jsx / RechargeHistory.jsx.)
+      const _txns = _rawTxns.filter(t => !String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT'));
       setTransactions(_txns);
-      setTotalRecords(_total);
+      setTotalRecords(_txns.length === _rawTxns.length ? _total : Math.max(0, (_total || 0) - (_rawTxns.length - _txns.length)));
     } catch (err) {
       console.error("Failed to fetch transactions:", err);
       setTransactions([]);
@@ -164,8 +180,10 @@ const AEPSHistory = () => {
   };
 
   useEffect(() => {
+    if (!mastersLoaded) return;
     fetchTransactions();
-  }, [pageNumber, pageSize, selectedStatus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageNumber, pageSize, selectedStatus, mastersLoaded]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -183,11 +201,18 @@ const AEPSHistory = () => {
         } else if (Array.isArray(res)) {
           list = res;
         }
-        
-                const aepsServices = list.filter(srv => String(srv.sectionType || '') === '9');
+
+                // AEPS spans both sectionType '9' (cash withdraw etc.) and '10'
+                // (balance enquiry/mini statement) — matching the '9,10' filter
+                // fetchTransactions already sends, so the serviceIds narrowing
+                // below doesn't accidentally drop legitimate AEPS sub-services.
+                const aepsServices = list.filter(srv => String(srv.sectionType || '') === '9' || String(srv.sectionType || '') === '10');
         setServiceList(aepsServices);
+        setAepsServiceIds(aepsServices.map(s => String(s.id)));
       } catch (err) {
         console.error("Failed to fetch services:", err);
+      } finally {
+        setMastersLoaded(true);
       }
     };
     fetchServices();

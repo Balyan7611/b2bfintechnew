@@ -21,8 +21,12 @@ export const WalletLedgerService = {
             PageSize: pageSize
         });
         if (memberId) query.append('MemberID', memberId);
-        if (fromDate) query.append('FromDate', fromDate);
-        if (toDate) query.append('ToDate', toDate);
+        // A bare date (e.g. "2026-08-21") is parsed by the backend as
+        // midnight — so ToDate without a time component excludes every
+        // transaction from that day itself (today's records included).
+        // Same fix already used in LoginHistory.jsx / CommissionLedger.jsx.
+        if (fromDate) query.append('FromDate', fromDate.includes('T') ? fromDate : `${fromDate}T00:00:00`);
+        if (toDate) query.append('ToDate', toDate.includes('T') ? toDate : `${toDate}T23:59:59`);
 
         const config = silent ? { hideLoader: true, ignoreError: true } : {};
         const res = await apiService.get(`/WalletLedger/GetWalletLedger?${query.toString()}`, config);

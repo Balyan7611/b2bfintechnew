@@ -36,25 +36,17 @@ const UpiTransfer = () => {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
 
   const handleViewReceipt = (txn) => {
+    const txnId = txn.txnId || `UT${Date.now().toString().slice(-8)}`;
     const formattedData = {
+      _type: 'upi',
       amount: parseFloat(txn.amount),
-      charge: 0,
-      total: parseFloat(txn.amount),
-      beneficiary: txn.name,
-      accountNo: txn.upiId,       bank: 'UPI SETTLEMENT NETWORK',
-      ifsc: 'UPI00000001',
-      mode: 'UPI',
-      customerName: 'Vishnu Kumar',       customerMobile: '9876543210',
+      name: txn.name,
+      upiId: txn.upiId,
+      txnId,
+      refId: txn.refId || `REF${txnId.slice(-8)}`,
+      utr: txn.utr || `UTR${txnId.slice(-10)}`,
       date: txn.date,
       status: 'SUCCESS',
-      chunks: [
-        {
-          txnId: txn.txnId || `UT${Date.now().toString().slice(-8)}`,
-          amount: parseFloat(txn.amount),
-          charge: 0,
-          total: parseFloat(txn.amount)
-        }
-      ]
     };
     setSelectedTxnForReceipt(formattedData);
     setShowReceiptModal(true);
@@ -147,26 +139,15 @@ const UpiTransfer = () => {
       showToast(`Transfer of ₹${amount} successful!`, 'success');
       
             const receiptData = {
+        _type: 'upi',
         amount: parseFloat(amount),
-        charge: 0,
-        total: parseFloat(amount),
-        beneficiary: name,
-        accountNo: upiId,
-        bank: 'UPI SETTLEMENT NETWORK',
-        ifsc: 'UPI00000001',
-        mode: 'UPI',
-        customerName: 'Vishnu Kumar',
-        customerMobile: '9876543210',
+        name: name,
+        upiId: upiId,
+        txnId: createdTxn.txnId,
+        refId: `REF${createdTxn.txnId.slice(-8)}`,
+        utr: `UTR${createdTxn.txnId.slice(-10)}`,
         date: createdTxn.date,
         status: 'SUCCESS',
-        chunks: [
-          {
-            txnId: createdTxn.txnId,
-            amount: parseFloat(amount),
-            charge: 0,
-            total: parseFloat(amount)
-          }
-        ]
       };
       setSelectedTxnForReceipt(receiptData);
       setShowReceiptModal(true);

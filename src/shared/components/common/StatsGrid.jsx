@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FiBarChart2, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
-const StatsGrid = ({ stats, showStats }) => {
+const StatsGrid = ({ stats, showStats, showAdminBreakdown = true }) => {
   if (!stats) return null;
 
   const {
@@ -72,7 +72,8 @@ const StatsGrid = ({ stats, showStats }) => {
             ))}
           </div>
 
-                    <div className="stats-grid-row">
+                    {showAdminBreakdown && (
+          <div className="stats-grid-row">
             {[
               { label: 'Upline Commission', val: '₹' + parseFloat(uplineCommission).toFixed(2), grad: 'linear-gradient(135deg,#A78BFA,#7C3AED)', light: '#F5F3FF' },
               { label: 'Admin Commission', val: '₹' + parseFloat(adminCommission).toFixed(2), grad: 'linear-gradient(135deg,#EC4899,#DB2777)', light: '#FDF2F8' },
@@ -109,6 +110,7 @@ const StatsGrid = ({ stats, showStats }) => {
               </div>
             ))}
           </div>
+        )}
         </div>
       )}
     </div>

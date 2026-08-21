@@ -185,6 +185,41 @@ function SimpleReceiptBody({ data, cfg, title, icon, sections }) {
   );
 }
 
+// Renders [label, value] pairs two-per-row in the same bordered-table style
+// used across this receipt, but only for pairs that actually have a value —
+// "jo field mein data hai wahi dikhega, jo khaali hai wo row se hi hat
+// jayega" per the AEPS receipt content fix.
+function AepsPairTable({ pairs, fs }) {
+  // Fields whose value is a literal '' are optional (e.g. Balance, Remark)
+  // and get dropped entirely when there's nothing to show. A value of
+  // 'N/A' is intentional (identity fields like Bank/Aadhaar/Mobile/BC Code/
+  // BC Name should always render, even when the source data is missing it).
+  const present = pairs.filter(([, v]) => v !== undefined && v !== null && v !== '');
+  if (present.length === 0) return null;
+  const rows = [];
+  for (let i = 0; i < present.length; i += 2) rows.push(present.slice(i, i + 2));
+  return (
+    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 25, fontSize: fs }}>
+      <tbody>
+        {rows.map((row, i) => (
+          <tr key={i}>
+            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: 800, color: '#64748B', background: '#F8FAFC', width: '20%' }}>{row[0][0]}:</td>
+            {row.length === 2 ? (
+              <>
+                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A', width: '30%', wordBreak: 'break-all' }}>{row[0][1]}</td>
+                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: 800, color: '#64748B', background: '#F8FAFC', width: '20%' }}>{row[1][0]}:</td>
+                <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A', width: '30%', wordBreak: 'break-all' }}>{row[1][1]}</td>
+              </>
+            ) : (
+              <td colSpan="3" style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A', wordBreak: 'break-all' }}>{row[0][1]}</td>
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 function AepsReceiptBody({ data, cfg }) {
   const fs = cfg.fontSize;
   const isThermal = !cfg.twoCol;
@@ -198,8 +233,11 @@ function AepsReceiptBody({ data, cfg }) {
   const txnLabel = data?.transactionType || data?.mode || data?.serviceName || 'Cash Withdrawal';
   const maskedAadhar = (() => {
     const a = String(data?.aadhar || data?.aadharNo || '');
-    return a.length >= 4 ? 'XXXX XXXX ' + a.slice(-4) : (a || 'N/A');
+    return a.length >= 4 ? 'XXXX XXXX ' + a.slice(-4) : (a || '');
   })();
+  const balanceStr = data?.balance !== '' && data?.balance !== undefined && data?.balance !== null
+    ? `₹${Number(data.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '';
+  const amountStr = `₹${Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
 
   if (isThermal) {
     return (
@@ -223,16 +261,18 @@ function AepsReceiptBody({ data, cfg }) {
         </div>
         <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
         {[
-          ['BANK', data?.bankName || 'N/A'],
+          ['BANK', data?.bankName || ''],
           ['AADHAAR NUMBER', maskedAadhar],
-          ['MOBILE', data?.mobile || data?.mobileNumber || data?.customerMobile || 'N/A'],
-          ['TRANSACTION ID', data?.bankTransId || data?.orderId || 'N/A'],
-          ['BANK RRN', data?.rrn || data?.vendorId || 'N/A'],
-          ['DATE & TIME', data?.date],
-          ['REMARK', data?.remark || data?.message || 'N/A'],
-          ['BC CODE', data?.memberId || data?.loginId || 'N/A'],
-          ['BC NAME', data?.memberName || 'N/A'],
-        ].map(([k, v]) => (
+          ['MOBILE', data?.mobile || data?.mobileNumber || data?.customerMobile || ''],
+          ['BALANCE', balanceStr],
+          ['AMOUNT', amountStr],
+          ['TRANSACTION ID', data?.bankTransId || data?.orderId || ''],
+          ['BANK RRN', data?.rrn || data?.vendorId || ''],
+          ['DATE & TIME', data?.date || ''],
+          ['REMARK', data?.remark || data?.message || ''],
+          ['BC CODE', data?.memberId || data?.loginId || ''],
+          ['BC NAME', data?.memberName || ''],
+        ].filter(([, v]) => v !== undefined && v !== null && v !== '' && v !== 'N/A').map(([k, v]) => (
           <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px dashed #F1F5F9' }}>
             <span style={lbl}>{k}</span>
             <span style={{ ...val, textAlign: 'right', maxWidth: '60%', wordBreak: 'break-all' }}>{v}</span>
@@ -258,82 +298,74 @@ function AepsReceiptBody({ data, cfg }) {
   // A4/A5 layout
   return (
     <div style={{ fontFamily: '"DM Sans",sans-serif', color: '#0F172A', padding: '10px 0' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <div>
-          <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block' }} />
+      {/* Header: logo + status pill, same layout as the DMT/generic receipt */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block', margin: 0 }} />
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          background: isFail ? '#FEF2F2' : isPending ? '#FFFBEB' : '#ECFDF5',
+          border: `1px solid ${isFail ? '#FECACA' : isPending ? '#FDE68A' : '#A7F3D0'}`,
+          borderRadius: 50, padding: '5px 14px',
+        }}>
+          <div style={{ width: 14, height: 14, borderRadius: '50%', background: isFail ? '#EF4444' : isPending ? '#F59E0B' : '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round">
+              {isFail ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <polyline points="20 6 9 17 4 12" />}
+            </svg>
+          </div>
+          <span style={{ fontSize: fs - 3, fontWeight: 800, color: isFail ? '#991B1B' : isPending ? '#92400E' : '#065F46', letterSpacing: '0.6px' }}>{st}</span>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: fs + 2, fontWeight: 800, color: '#1756AA' }}>AEPS Receipt</div>
-          <div style={{ fontSize: fs - 2, color: '#64748B' }}>{SITE_CONFIG.companyName || ''}</div>
-        </div>
       </div>
 
-      {/* Success banner */}
-      <div style={{ textAlign: 'center', marginBottom: 20, padding: '14px', background: isFail ? '#FEF2F2' : isPending ? '#FFFBEB' : '#ECFDF5', borderRadius: 12, border: `1px solid ${isFail ? '#FECACA' : isPending ? '#FDE68A' : '#A7F3D0'}` }}>
-        <div style={{ width: 36, height: 36, borderRadius: '50%', background: isFail ? '#EF4444' : isPending ? '#F59E0B' : '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 6px' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            {isFail ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <polyline points="20 6 9 17 4 12"/>}
-          </svg>
-        </div>
-        <div style={{ fontSize: fs + 1, fontWeight: 800, color: isFail ? '#991B1B' : isPending ? '#92400E' : '#065F46' }}>{txnLabel} {isFail ? 'Failed' : isPending ? 'Pending' : 'Successful'}</div>
-        <div style={{ fontSize: fs + 8, fontWeight: 800, color: '#0D1B3E', margin: '4px 0' }}>₹{Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+      {/* Info table — same 4-column paired-cell style as the generic receipt,
+          just AEPS field names; a field with no value is skipped entirely. */}
+      <AepsPairTable fs={fs} pairs={[
+        ['Bank Name', data?.bankName || 'N/A'],
+        ['BC Code', data?.memberId || data?.loginId || 'N/A'],
+        ['BC Name', data?.memberName || 'N/A'],
+        ['Aadhar No', maskedAadhar || 'N/A'],
+        ['Customer Mobile', data?.mobile || data?.mobileNumber || data?.customerMobile || 'N/A'],
+        ['Balance', balanceStr],
+        ['Remark', data?.remark || data?.message || ''],
+      ]} />
+
+      <div style={{ textAlign: 'center', margin: '20px 0 15px' }}>
+        <span style={{ fontSize: fs + 1.5, fontWeight: 800, color: '#1756AA', textTransform: 'uppercase', letterSpacing: '1px' }}>
+          Transaction Summary
+        </span>
       </div>
 
-      {/* CUSTOMER */}
-      <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: fs - 2, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>Customer</div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: fs }}>
-          <tbody>
-            <tr>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B', width: '30%' }}>Bank</td>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.bankName || 'N/A'}</td>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B', width: '30%' }}>Aadhaar Number</td>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{maskedAadhar}</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B' }}>Mobile</td>
-              <td colSpan="3" style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.mobile || data?.mobileNumber || data?.customerMobile || 'N/A'}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      {/* TRANSACTION */}
-      <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: fs - 2, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>Transaction</div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: fs }}>
-          <tbody>
-            <tr>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B', width: '30%' }}>Transaction ID</td>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.bankTransId || data?.orderId || data?.transId || 'N/A'}</td>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B', width: '30%' }}>Bank RRN</td>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.rrn || data?.vendorId || 'N/A'}</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B' }}>Date & Time</td>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.date}</td>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B' }}>Remark</td>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.remark || data?.message || 'Transaction Successful, ' + st}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      {/* BUSINESS CORRESPONDENT */}
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: fs - 2, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>Business Correspondent</div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: fs }}>
-          <tbody>
-            <tr>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B', width: '30%' }}>BC Code</td>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.memberId || data?.loginId || 'N/A'}</td>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#64748B', width: '30%' }}>BC Name</td>
-              <td style={{ padding: '8px 12px', border: '1.5px solid #E2E8F0', fontWeight: 700, color: '#0F172A' }}>{data?.memberName || 'N/A'}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20, fontSize: fs, tableLayout: 'fixed' }}>
+        <thead>
+          <tr>
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#475569', textAlign: 'left', width: '26%' }}>TID</th>
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#475569', textAlign: 'left', width: '17%' }}>TXN DATE</th>
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#475569', textAlign: 'left', width: '17%' }}>AMOUNT</th>
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#475569', textAlign: 'left', width: '20%' }}>RRN</th>
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: 800, color: '#475569', textAlign: 'center', width: '20%' }}>STATUS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: 600, wordBreak: 'break-all' }}>{data?.bankTransId || data?.orderId || data?.transId || 'N/A'}</td>
+            <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: 600, wordBreak: 'break-all' }}>{String(data?.date || '').split(' ')[0] || 'N/A'}</td>
+            <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#0F172A', fontWeight: 700 }}>{amountStr}</td>
+            <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: 600, wordBreak: 'break-all' }}>{data?.rrn || data?.vendorId || 'N/A'}</td>
+            <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', textAlign: 'center' }}>
+              <span style={{
+                background: isFail ? '#FEF2F2' : isPending ? '#FFFBEB' : '#ECFDF5',
+                border: `1px solid ${isFail ? '#FECACA' : isPending ? '#FDE68A' : '#A7F3D0'}`,
+                color: isFail ? '#991B1B' : isPending ? '#92400E' : '#065F46',
+                padding: '2px 8px', borderRadius: 50, fontSize: 9.5, fontWeight: 800, display: 'inline-block'
+              }}>{st}</span>
+            </td>
+          </tr>
+          <tr style={{ background: '#FFFFFF' }}>
+            <td colSpan="2" style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: 800, color: '#1756AA' }}>Total Amount:</td>
+            <td style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: 800, color: '#1756AA' }}>{amountStr}</td>
+            <td colSpan="2" style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: 800, color: '#1756AA', wordBreak: 'break-word' }}>Rs. {Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} ( {toWords(data?.amount || 0)} )</td>
+          </tr>
+        </tbody>
+      </table>
 
       {(data?.forceAction || data?.forceReason || data?.forceUtr) && (
         <div style={{ margin: '12px 0 8px', borderRadius: 8, border: `1.5px solid ${data.forceAction === 'Force Success' ? '#BBF7D0' : '#FECACA'}`, background: data.forceAction === 'Force Success' ? '#F0FDF4' : '#FFF5F5', padding: '12px 16px' }}>
@@ -344,11 +376,325 @@ function AepsReceiptBody({ data, cfg }) {
           {data.forceReason && <div style={{ fontSize: fs - 1, color: '#0F172A', fontWeight: 600 }}>Reason: {data.forceReason}</div>}
         </div>
       )}
-      <div style={{ textAlign: 'center', color: '#64748B', fontSize: fs - 2, fontWeight: 500 }}>
-        This is a system generated receipt. No seal or signature is required.
+      <div style={{ textAlign: 'center', marginTop: 25 }}>
+        <p style={{ color: '#64748B', fontSize: fs - 2, fontWeight: 500, margin: 0, letterSpacing: '0.2px' }}>
+          This is a system generated receipt, so no seal or signature is required. All rights reserved @2026.
+        </p>
       </div>
-      <div style={{ textAlign: 'center', color: '#64748B', fontSize: fs - 2, marginTop: 2 }}>
-        © 2026 {SITE_CONFIG.companyName || ''}. All rights reserved.
+    </div>
+  );
+}
+
+// Recharge & BBPS share this exact layout (per explicit request: "recharge
+// ki or bbps ki recpit sam hi hgoa") — just these 7 fields, no separate
+// Transaction Summary table (same single-table pattern as UPI).
+function RechargeReceiptBody({ data, cfg }) {
+  const fs = cfg.fontSize;
+  const isThermal = !cfg.twoCol;
+
+  const st = String(data?.status || 'PENDING').toUpperCase();
+  const isFail = st === 'FAILED' || st === 'REJECTED';
+  const isPending = st === 'PENDING';
+  const amountStr = `₹${Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+  const number = data?.number || data?.customerMobile || data?.accountNo || data?.mobileNumber || 'N/A';
+  const operator = data?.operatorName || data?.operator || data?.operatorId || 'N/A';
+  const service = data?.serviceName || data?.service || (data?._type === 'bbps' ? 'BBPS' : 'Recharge');
+  const txnId = data?.orderId || data?.txnId || data?.transId || data?.bankTransId || 'N/A';
+  const operatorRefNumber = data?.refid || data?.rrn || data?.operatorRefNo || data?.bankRefNo || data?.vendorId || 'N/A';
+
+  if (isThermal) {
+    const lbl = { fontSize: Math.max(fs - 3, 8), color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 800, fontFamily: '"DM Sans",sans-serif' };
+    const val = { fontSize: fs, color: '#0F172A', fontWeight: 700, fontFamily: '"DM Sans",sans-serif' };
+    return (
+      <div style={{ fontFamily: '"DM Sans",sans-serif', color: '#0F172A' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: cfg.sepMar }}>
+          <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block', margin: 0 }} />
+        </div>
+        <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        <div style={{ textAlign: 'center', marginBottom: 8 }}>
+          <div style={{ width: 30, height: 30, borderRadius: '50%', background: isFail ? '#EF4444' : '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 4px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              {isFail ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <polyline points="20 6 9 17 4 12"/>}
+            </svg>
+          </div>
+          <div style={{ fontSize: cfg.amtSize || 20, fontWeight: 800, color: '#0D1B3E' }}>{amountStr}</div>
+        </div>
+        <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        {[
+          ['NUMBER', number],
+          ['OPERATOR', operator],
+          ['SERVICE', service],
+          ['TOTAL AMOUNT', amountStr],
+          ['TXN ID', txnId],
+          ['OPERATOR REF NUMBER', operatorRefNumber],
+          ['DATE & TIME', data?.date || ''],
+        ].filter(([, v]) => v !== undefined && v !== null && v !== '' && v !== 'N/A').map(([k, v]) => (
+          <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px dashed #F1F5F9' }}>
+            <span style={lbl}>{k}</span>
+            <span style={{ ...val, textAlign: 'right', maxWidth: '60%', wordBreak: 'break-all' }}>{v}</span>
+          </div>
+        ))}
+        <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        <div style={{ textAlign: 'center', fontSize: Math.max(fs - 3, 8), color: '#94A3B8', fontWeight: 700 }}>
+          SECURED BY {SITE_CONFIG.shortName}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ fontFamily: '"DM Sans",sans-serif', color: '#0F172A', padding: '10px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block', margin: 0 }} />
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          background: isFail ? '#FEF2F2' : isPending ? '#FFFBEB' : '#ECFDF5',
+          border: `1px solid ${isFail ? '#FECACA' : isPending ? '#FDE68A' : '#A7F3D0'}`,
+          borderRadius: 50, padding: '5px 14px',
+        }}>
+          <div style={{ width: 14, height: 14, borderRadius: '50%', background: isFail ? '#EF4444' : isPending ? '#F59E0B' : '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round">
+              {isFail ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <polyline points="20 6 9 17 4 12" />}
+            </svg>
+          </div>
+          <span style={{ fontSize: fs - 3, fontWeight: 800, color: isFail ? '#991B1B' : isPending ? '#92400E' : '#065F46', letterSpacing: '0.6px' }}>{st}</span>
+        </div>
+      </div>
+
+      <AepsPairTable fs={fs} pairs={[
+        ['Number', number],
+        ['Operator', operator],
+        ['Service', service],
+        ['Total Amount', amountStr],
+        ['TXN ID', txnId],
+        ['Operator Ref Number', operatorRefNumber],
+        ['Date & Time', data?.date || ''],
+      ]} />
+
+      {(data?.forceAction || data?.forceReason || data?.forceUtr) && (
+        <div style={{ margin: '12px 0 8px', borderRadius: 8, border: `1.5px solid ${data.forceAction === 'Force Success' ? '#BBF7D0' : '#FECACA'}`, background: data.forceAction === 'Force Success' ? '#F0FDF4' : '#FFF5F5', padding: '12px 16px' }}>
+          <div style={{ fontWeight: 800, fontSize: fs - 1, color: data.forceAction === 'Force Success' ? '#15803D' : '#B91C1C', marginBottom: 4 }}>
+            {data.forceAction === 'Force Success' ? '✓ Force Success Details' : '✕ Force Fail Details'}
+          </div>
+          {data.forceUtr && <div style={{ fontSize: fs - 1, color: '#0F172A', fontWeight: 600 }}>UTR Number: {data.forceUtr}</div>}
+          {data.forceReason && <div style={{ fontSize: fs - 1, color: '#0F172A', fontWeight: 600 }}>Reason: {data.forceReason}</div>}
+        </div>
+      )}
+      <div style={{ textAlign: 'center', marginTop: 25 }}>
+        <p style={{ color: '#64748B', fontSize: fs - 2, fontWeight: 500, margin: 0, letterSpacing: '0.2px' }}>
+          This is a system generated receipt, so no seal or signature is required. All rights reserved @2026.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// BBPS receipt — MEMBER PANEL ONLY (this component, ReceiptModal.jsx, is
+// only used by the member/API panel report pages; admin's BBPS receipt
+// stays on TransactionReceipt.jsx, untouched). Fields: Agent Detail, TXN ID,
+// Category, Biller Name, Biller ID, Operator ID, Consumer Name, Consumer
+// Number, Due Date, Bill Date, Bill Amount.
+function BbpsReceiptBody({ data, cfg }) {
+  const fs = cfg.fontSize;
+  const isThermal = !cfg.twoCol;
+
+  const st = String(data?.status || 'PENDING').toUpperCase();
+  const isFail = st === 'FAILED' || st === 'REJECTED';
+  const isPending = st === 'PENDING';
+  const amountStr = `₹${Number(data?.amount || data?.billAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+  const agentDetail = `${data?.memberName || 'N/A'} (${data?.memberId || 'N/A'})`;
+  const txnId = data?.orderId || data?.txnId || data?.transId || 'N/A';
+  const category = data?.category || data?.serviceName || data?.service || 'N/A';
+  const billerName = data?.billerName || data?.operatorName || data?.operator || 'N/A';
+  const billerId = data?.billerId || data?.operatorId || 'N/A';
+  const operatorId = data?.operatorId || 'N/A';
+  const consumerName = data?.consumerName || data?.customerName || data?.name || 'N/A';
+  const consumerNumber = data?.consumerNumber || data?.number || data?.customerMobile || data?.accountNo || 'N/A';
+
+  const pairs = [
+    ['Agent Detail', agentDetail],
+    ['TXN ID', txnId],
+    ['Category', category],
+    ['Biller Name', billerName],
+    ['Biller ID', billerId],
+    ['Operator ID', operatorId],
+    ['Consumer Name', consumerName],
+    ['Consumer Number', consumerNumber],
+    ['Due Date', data?.dueDate || ''],
+    ['Bill Date', data?.billDate || data?.date || ''],
+    ['Bill Amount', amountStr],
+  ];
+
+  if (isThermal) {
+    const lbl = { fontSize: Math.max(fs - 3, 8), color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 800, fontFamily: '"DM Sans",sans-serif' };
+    const val = { fontSize: fs, color: '#0F172A', fontWeight: 700, fontFamily: '"DM Sans",sans-serif' };
+    return (
+      <div style={{ fontFamily: '"DM Sans",sans-serif', color: '#0F172A' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: cfg.sepMar }}>
+          <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block', margin: 0 }} />
+        </div>
+        <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        <div style={{ textAlign: 'center', marginBottom: 8 }}>
+          <div style={{ width: 30, height: 30, borderRadius: '50%', background: isFail ? '#EF4444' : '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 4px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              {isFail ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <polyline points="20 6 9 17 4 12"/>}
+            </svg>
+          </div>
+          <div style={{ fontSize: cfg.amtSize || 20, fontWeight: 800, color: '#0D1B3E' }}>{amountStr}</div>
+        </div>
+        <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        {pairs.map(([k, v]) => [k.toUpperCase(), v]).filter(([, v]) => v !== undefined && v !== null && v !== '' && v !== 'N/A').map(([k, v]) => (
+          <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px dashed #F1F5F9' }}>
+            <span style={lbl}>{k}</span>
+            <span style={{ ...val, textAlign: 'right', maxWidth: '60%', wordBreak: 'break-all' }}>{v}</span>
+          </div>
+        ))}
+        <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        <div style={{ textAlign: 'center', fontSize: Math.max(fs - 3, 8), color: '#94A3B8', fontWeight: 700 }}>
+          SECURED BY {SITE_CONFIG.shortName}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ fontFamily: '"DM Sans",sans-serif', color: '#0F172A', padding: '10px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block', margin: 0 }} />
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          background: isFail ? '#FEF2F2' : isPending ? '#FFFBEB' : '#ECFDF5',
+          border: `1px solid ${isFail ? '#FECACA' : isPending ? '#FDE68A' : '#A7F3D0'}`,
+          borderRadius: 50, padding: '5px 14px',
+        }}>
+          <div style={{ width: 14, height: 14, borderRadius: '50%', background: isFail ? '#EF4444' : isPending ? '#F59E0B' : '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round">
+              {isFail ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <polyline points="20 6 9 17 4 12" />}
+            </svg>
+          </div>
+          <span style={{ fontSize: fs - 3, fontWeight: 800, color: isFail ? '#991B1B' : isPending ? '#92400E' : '#065F46', letterSpacing: '0.6px' }}>{st}</span>
+        </div>
+      </div>
+
+      <AepsPairTable fs={fs} pairs={pairs} />
+
+      {(data?.forceAction || data?.forceReason || data?.forceUtr) && (
+        <div style={{ margin: '12px 0 8px', borderRadius: 8, border: `1.5px solid ${data.forceAction === 'Force Success' ? '#BBF7D0' : '#FECACA'}`, background: data.forceAction === 'Force Success' ? '#F0FDF4' : '#FFF5F5', padding: '12px 16px' }}>
+          <div style={{ fontWeight: 800, fontSize: fs - 1, color: data.forceAction === 'Force Success' ? '#15803D' : '#B91C1C', marginBottom: 4 }}>
+            {data.forceAction === 'Force Success' ? '✓ Force Success Details' : '✕ Force Fail Details'}
+          </div>
+          {data.forceUtr && <div style={{ fontSize: fs - 1, color: '#0F172A', fontWeight: 600 }}>UTR Number: {data.forceUtr}</div>}
+          {data.forceReason && <div style={{ fontSize: fs - 1, color: '#0F172A', fontWeight: 600 }}>Reason: {data.forceReason}</div>}
+        </div>
+      )}
+      <div style={{ textAlign: 'center', marginTop: 25 }}>
+        <p style={{ color: '#64748B', fontSize: fs - 2, fontWeight: 500, margin: 0, letterSpacing: '0.2px' }}>
+          This is a system generated receipt, so no seal or signature is required. All rights reserved @2026.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Credit Card Bill Pay — its own dedicated layout: Credit Card No, Name,
+// Mobile No, Amount, TXN ID, TXN Date only, no summary table (same
+// single-table pattern as UPI/Recharge).
+function CcBillPayReceiptBody({ data, cfg }) {
+  const fs = cfg.fontSize;
+  const isThermal = !cfg.twoCol;
+
+  const st = String(data?.status || 'PENDING').toUpperCase();
+  const isFail = st === 'FAILED' || st === 'REJECTED';
+  const isPending = st === 'PENDING';
+  const amountStr = `₹${Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+  const cardNo = data?.cardNumber || data?.accountNo || 'N/A';
+  const name = data?.customerName || data?.memberName || data?.name || 'N/A';
+  const mobile = data?.customerMobile || data?.mobile || data?.number || 'N/A';
+  const txnId = data?.orderId || data?.txnId || data?.refid || 'N/A';
+
+  if (isThermal) {
+    const lbl = { fontSize: Math.max(fs - 3, 8), color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 800, fontFamily: '"DM Sans",sans-serif' };
+    const val = { fontSize: fs, color: '#0F172A', fontWeight: 700, fontFamily: '"DM Sans",sans-serif' };
+    return (
+      <div style={{ fontFamily: '"DM Sans",sans-serif', color: '#0F172A' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: cfg.sepMar }}>
+          <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block', margin: 0 }} />
+        </div>
+        <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        <div style={{ textAlign: 'center', marginBottom: 8 }}>
+          <div style={{ width: 30, height: 30, borderRadius: '50%', background: isFail ? '#EF4444' : '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 4px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              {isFail ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <polyline points="20 6 9 17 4 12"/>}
+            </svg>
+          </div>
+          <div style={{ fontSize: cfg.amtSize || 20, fontWeight: 800, color: '#0D1B3E' }}>{amountStr}</div>
+        </div>
+        <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        {[
+          ['CREDIT CARD NO', cardNo],
+          ['NAME', name],
+          ['MOBILE NO', mobile],
+          ['AMOUNT', amountStr],
+          ['TXN ID', txnId],
+          ['TXN DATE', data?.date || ''],
+        ].filter(([, v]) => v !== undefined && v !== null && v !== '' && v !== 'N/A').map(([k, v]) => (
+          <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px dashed #F1F5F9' }}>
+            <span style={lbl}>{k}</span>
+            <span style={{ ...val, textAlign: 'right', maxWidth: '60%', wordBreak: 'break-all' }}>{v}</span>
+          </div>
+        ))}
+        <div style={{ height: 1, background: '#E2E8F0', margin: `${cfg.sepMar}px 0` }} />
+        <div style={{ textAlign: 'center', fontSize: Math.max(fs - 3, 8), color: '#94A3B8', fontWeight: 700 }}>
+          SECURED BY {SITE_CONFIG.shortName}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ fontFamily: '"DM Sans",sans-serif', color: '#0F172A', padding: '10px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <img src={SITE_CONFIG.logo} alt="Logo" style={{ height: cfg.logoH, display: 'block', margin: 0 }} />
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          background: isFail ? '#FEF2F2' : isPending ? '#FFFBEB' : '#ECFDF5',
+          border: `1px solid ${isFail ? '#FECACA' : isPending ? '#FDE68A' : '#A7F3D0'}`,
+          borderRadius: 50, padding: '5px 14px',
+        }}>
+          <div style={{ width: 14, height: 14, borderRadius: '50%', background: isFail ? '#EF4444' : isPending ? '#F59E0B' : '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round">
+              {isFail ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <polyline points="20 6 9 17 4 12" />}
+            </svg>
+          </div>
+          <span style={{ fontSize: fs - 3, fontWeight: 800, color: isFail ? '#991B1B' : isPending ? '#92400E' : '#065F46', letterSpacing: '0.6px' }}>{st}</span>
+        </div>
+      </div>
+
+      <AepsPairTable fs={fs} pairs={[
+        ['Credit Card No', cardNo],
+        ['Name', name],
+        ['Mobile No', mobile],
+        ['Amount', amountStr],
+        ['TXN ID', txnId],
+        ['TXN Date', data?.date || ''],
+      ]} />
+
+      {(data?.forceAction || data?.forceReason || data?.forceUtr) && (
+        <div style={{ margin: '12px 0 8px', borderRadius: 8, border: `1.5px solid ${data.forceAction === 'Force Success' ? '#BBF7D0' : '#FECACA'}`, background: data.forceAction === 'Force Success' ? '#F0FDF4' : '#FFF5F5', padding: '12px 16px' }}>
+          <div style={{ fontWeight: 800, fontSize: fs - 1, color: data.forceAction === 'Force Success' ? '#15803D' : '#B91C1C', marginBottom: 4 }}>
+            {data.forceAction === 'Force Success' ? '✓ Force Success Details' : '✕ Force Fail Details'}
+          </div>
+          {data.forceUtr && <div style={{ fontSize: fs - 1, color: '#0F172A', fontWeight: 600 }}>UTR Number: {data.forceUtr}</div>}
+          {data.forceReason && <div style={{ fontSize: fs - 1, color: '#0F172A', fontWeight: 600 }}>Reason: {data.forceReason}</div>}
+        </div>
+      )}
+      <div style={{ textAlign: 'center', marginTop: 25 }}>
+        <p style={{ color: '#64748B', fontSize: fs - 2, fontWeight: 500, margin: 0, letterSpacing: '0.2px' }}>
+          This is a system generated receipt, so no seal or signature is required. All rights reserved @2026.
+        </p>
       </div>
     </div>
   );
@@ -407,7 +753,7 @@ function ReceiptBody({ data, cfg }) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={lbl}>CUSTOMER</span>
-              <span style={val}>{data?.customerName || 'Guest'}</span>
+              <span style={val}>{data?.customerName || 'N/A'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={lbl}>CUST. MOBILE</span>
@@ -505,34 +851,17 @@ function ReceiptBody({ data, cfg }) {
         })()}
       </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 25, fontSize: fs }}>
-        <tbody>
-          <tr>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC', width: '20%' }}>Merchant:</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', width: '30%', wordBreak: 'break-all' }}>{merchantName}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC', width: '20%' }}>Business Name:</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', width: '30%', wordBreak: 'break-all' }}>{shopName}</td>
-          </tr>
-          <tr>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Customer Name:</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.customerName || 'Guest'}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Customer Mobile:</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.customerMobile || 'N/A'}</td>
-          </tr>
-          <tr>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Beneficiary Name:</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.beneficiary}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Bank Name:</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.bank}</td>
-          </tr>
-          <tr>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Account Number:</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.accountNo} {data?.ifsc ? `(IFSC: ${data.ifsc})` : ''}</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#64748B', background: '#F8FAFC' }}>Date & Time:</td>
-            <td style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', fontWeight: '700', color: '#0F172A', wordBreak: 'break-all' }}>{data?.date}</td>
-          </tr>
-        </tbody>
-      </table>
+            {/* Info table — same filtered paired-cell style as the AEPS
+          receipt; a field with no value is skipped, identity fields fall
+          back to 'N/A' so they always render. */}
+      <AepsPairTable fs={fs} pairs={[
+        ['Customer Name', data?.customerName || 'N/A'],
+        ['Mobile Number', data?.customerMobile || 'N/A'],
+        ['Beneficiary Name', data?.beneficiary || 'N/A'],
+        ['Bank Name', data?.bank || 'N/A'],
+        ['Account Number', data?.accountNo ? `${data.accountNo}${data?.ifsc ? ` (IFSC: ${data.ifsc})` : ''}` : 'N/A'],
+        ['Date & Time', data?.date || ''],
+      ]} />
 
             <div style={{ textAlign: 'center', marginBottom: 15 }}>
         <span style={{ fontSize: fs + 1.5, fontWeight: '800', color: '#1756AA', textTransform: 'uppercase', letterSpacing: '1px' }}>
@@ -543,38 +872,22 @@ function ReceiptBody({ data, cfg }) {
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20, fontSize: fs, tableLayout: 'fixed' }}>
         <thead>
           <tr>
-            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '28%' }}>TID</th>
-            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '17%' }}>TXN DATE</th>
-            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '18%' }}>AMOUNT</th>
-            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '22%' }}>UTR NO.</th>
-            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'center', width: '15%' }}>STATUS</th>
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '40%' }}>TXN ID</th>
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '30%' }}>AMOUNT</th>
+            <th style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', background: '#F8FAFC', fontWeight: '800', color: '#475569', textAlign: 'left', width: '30%' }}>UTR NUMBER</th>
           </tr>
         </thead>
         <tbody>
           {(data?.chunks || [{ id: 'c1', txnId: data?.bankTransId || data?.id || 'N/A', amount: data?.amount || 0 }]).map((c, i) => (
             <tr key={c.id || i}>
               <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600', wordBreak: 'break-all' }}>{c.txnId}</td>
-              <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600', wordBreak: 'break-all' }}>{data?.date?.split(' ')[0]}</td>
               <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#0F172A', fontWeight: '700' }}>₹{Number(c.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
               <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', color: '#334155', fontWeight: '600', wordBreak: 'break-all' }}>{data?.rrn || c.txnId}</td>
-              <td style={{ padding: '10px 12px', border: '1.5px solid #E2E8F0', textAlign: 'center' }}>
-                <span style={{
-                  background: String(data?.status).toUpperCase() === 'FAILED' ? '#FEF2F2' : String(data?.status).toUpperCase() === 'PENDING' ? '#FFFBEB' : '#ECFDF5',
-                  border: `1px solid ${String(data?.status).toUpperCase() === 'FAILED' ? '#FECACA' : String(data?.status).toUpperCase() === 'PENDING' ? '#FDE68A' : '#A7F3D0'}`,
-                  color: String(data?.status).toUpperCase() === 'FAILED' ? '#991B1B' : String(data?.status).toUpperCase() === 'PENDING' ? '#92400E' : '#065F46',
-                  padding: '2px 8px',
-                  borderRadius: 50,
-                  fontSize: 9.5,
-                  fontWeight: '800',
-                  display: 'inline-block'
-                }}>{data?.status || 'PENDING'}</span>
-              </td>
             </tr>
           ))}
           <tr style={{ background: '#FFFFFF' }}>
-            <td colSpan="2" style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#1756AA' }}>Total Amount:</td>
-            <td style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#1756AA' }}>₹{Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-            <td colSpan="2" style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#1756AA', wordBreak: 'break-word' }}>Rs. {Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} ( {toWords(data?.amount || 0)} )</td>
+            <td style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#1756AA' }}>Total Amount:</td>
+            <td colSpan="2" style={{ padding: '12px 12px', border: '1.5px solid #E2E8F0', fontWeight: '800', color: '#1756AA', wordBreak: 'break-word' }}>₹{Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} — Rs. {Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })} ( {toWords(data?.amount || 0)} )</td>
           </tr>
         </tbody>
       </table>
@@ -606,7 +919,25 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
   const cfg = sizeConfig[size];
   const receiptPxWidth = SIZE_PX[size];
 
-    const receiptType = data?._type || (data?.aadhar || data?.aadharNo ? 'aeps' : 'dmt');
+  // Some entry points (e.g. the floating "search by TXN ID" widget, which
+  // pulls a raw record straight from /Transaction/search) don't set `_type`
+  // and can carry the Aadhaar field under a name/shape this component wasn't
+  // checking, or blank — so an AEPS transaction was silently falling through
+  // to the generic DMT-style receipt (wrong fields: Merchant/Beneficiary/
+  // Account Number instead of Bank/Aadhaar/BC Code). Widen detection to also
+  // key off sectionType ('9'/'10' — the AEPS section codes used elsewhere in
+  // this app, e.g. AEPSReport.jsx) and common AEPS service-name keywords, so
+  // every AEPS transaction consistently renders via AepsReceiptBody no
+  // matter which screen opened this modal.
+  const sectionTypeStr = String(data?.sectionType ?? data?.SectionType ?? '');
+  const aepsKeywordHit = /aeps|cash\s*withdraw|balance\s*enquiry|mini\s*statement|aadhar\s*pay/i.test(
+    String(data?.serviceName || data?.type || data?.transactionType || data?.mode || '')
+  );
+  const receiptType = data?._type
+    || (data?.aadhar || data?.aadharNo || data?.aadharNumber || data?.AadharNo ? 'aeps' : null)
+    || (sectionTypeStr === '9' || sectionTypeStr === '10' ? 'aeps' : null)
+    || (aepsKeywordHit ? 'aeps' : null)
+    || 'dmt';
   const isAeps = receiptType === 'aeps';
 
   const mappedData = data ? {
@@ -615,7 +946,7 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
     date: data.createdDate || data.date || data.txnDate || data.transactionDate || data.created_at || 'N/A',
     status: data.status || 'PENDING',
     // AEPS fields
-    aadhar: data.aadhar || data.aadharNo || '',
+    aadhar: data.aadhar || data.aadharNo || data.aadharNumber || data.AadharNo || data.accountNo || data.accountNumber || '',
     bankName: data.bankName || data.bank || 'N/A',
     mobile: data.mobile || data.mobileNumber || data.customerMobile || data.number || 'N/A',
     bankTransId: data.bankTransId || data.txnId || data.transId || data.orderId || 'N/A',
@@ -624,8 +955,14 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
     memberName: data.memberName || data.bcName || '',
     transactionType: data.transactionType || data.mode || data.serviceName || 'Cash Withdrawal',
     remark: data.remark || data.message || '',
+    balance: data.closing ?? data.closingBalance ?? data.balance ?? data.walletBalance ?? '',
     // DMT fields
-    customerName: data.customerName || data.memberName || data.name || data.beneName || 'Guest',
+    // `memberName` deliberately dropped from this fallback chain — that's the
+    // BC's own name, not the customer's, and it was causing the receipt to
+    // silently show the BC as the "customer" whenever the transaction had no
+    // real customer name. If there's genuinely no customer data, show N/A —
+    // never fabricate a name.
+    customerName: data.customerName || data.name || data.beneName || 'N/A',
     customerMobile: data.customerMobile || data.mobileNumber || data.mobile || data.number || 'N/A',
     beneficiary: data.beneficiary || data.beneficiaryName || data.beneName || data.beniName || data.beniVerifyName || data.memberName || 'N/A',
     bank: data.bank || data.bankName || data.beneBankName || 'N/A',
@@ -656,7 +993,13 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
     const printReceipt = () => {
     if (!receiptRef.current) return;
     const pw = window.open('', '_blank', 'width=900,height=700');
-    if (!pw) return;
+    if (!pw) {
+      // Most common reason "print button does nothing": the browser's popup
+      // blocker silently killed window.open(). Tell the user instead of
+      // failing silently.
+      alert('Print window was blocked by your browser. Please allow pop-ups for this site and try again.');
+      return;
+    }
     const isTh = !cfg.twoCol;
     const html = receiptRef.current.innerHTML;
     pw.document.write(`<!DOCTYPE html><html><head>
@@ -671,7 +1014,17 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
     </head><body>${html}</body></html>`);
     pw.document.close();
     pw.focus();
-    setTimeout(() => { pw.print(); pw.close(); }, 700);
+    setTimeout(() => {
+      // NOTE: deliberately NOT auto-closing this window on 'afterprint'.
+      // That event is unreliable for popup windows opened via window.open()
+      // — depending on the browser it can fire before the print/Save-as-PDF
+      // dialog even opens (closing the window mid-print, so nothing gets
+      // printed/saved) or never fire at all (window stays open forever).
+      // Just print and leave the tab open — the user closes it themselves,
+      // same as any normal browser print/PDF-save tab. This is the only
+      // approach that doesn't race the actual print job.
+      pw.print();
+    }, 700);
   };
 
   if (!isOpen || !data) return null;
@@ -773,63 +1126,26 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
             }}>
               {(() => {
                 const t = mappedData?._type || (mappedData?.isAeps ? 'aeps' : 'dmt');
-                const merchant = getSession()?.name || getSession()?.fullName || SITE_CONFIG.name || 'Merchant';
 
+                // AEPS keeps its own dedicated layout (Bank Name/BC Code/BC
+                // Name/Aadhar No/Customer Mobile/Balance/Remark). Every other
+                // transaction type — DMT, Recharge, BBPS, MATM, Payout, and
+                // anything unclassified — now renders through the same
+                // ReceiptBody so the receipt looks identical everywhere in
+                // the app, per explicit request: one consistent non-AEPS
+                // format site-wide instead of a different layout per type.
                 if (t === 'aeps') return <AepsReceiptBody data={mappedData} cfg={cfg} />;
-
-                if (t === 'recharge') return (
-                  <SimpleReceiptBody data={mappedData} cfg={cfg}
-                    title="Recharge Receipt"
-                    sections={[
-                      [['Merchant', merchant], ['Date & Time', mappedData.date]],
-                      [['Operator', mappedData.operatorName || mappedData.operatorId || 'N/A'], ['Number', mappedData.number || mappedData.customerMobile || 'N/A']],
-                      [['Member', mappedData.memberName || 'N/A'], ['Member ID', mappedData.memberId || 'N/A']],
-                      [['Txn ID', mappedData.orderId || mappedData.txnId || mappedData.transId || 'N/A'], ['Operator Ref', mappedData.operatorId || mappedData.refid || 'N/A']],
-                      [['Remark', mappedData.message || mappedData.remark || 'N/A']],
-                    ]}
-                  />
-                );
-
-                if (t === 'bbps') return (
-                  <SimpleReceiptBody data={mappedData} cfg={cfg}
-                    title="Bill Payment Receipt"
-                    sections={[
-                      [['Merchant', merchant], ['Date & Time', mappedData.date]],
-                      [['Operator / Biller', mappedData.operatorName || mappedData.operatorId || 'N/A'], ['Consumer No', mappedData.consumer || mappedData.number || mappedData.accountNo || 'N/A']],
-                      [['Member', mappedData.memberName || 'N/A'], ['Member ID', mappedData.memberId || 'N/A']],
-                      [['Txn ID', mappedData.orderId || mappedData.txnId || mappedData.transId || 'N/A'], ['Reference', mappedData.refid || mappedData.rrn || 'N/A']],
-                      [['Remark', mappedData.remark || mappedData.message || 'N/A']],
-                    ]}
-                  />
-                );
-
-                if (t === 'matm') return (
-                  <SimpleReceiptBody data={mappedData} cfg={cfg}
-                    title="MATM Receipt"
-                    sections={[
-                      [['Merchant', merchant], ['Date & Time', mappedData.date]],
-                      [['Card No', mappedData.accountNo || mappedData.cardNo || mappedData.cardNumber ? '•••• •••• •••• ' + String(mappedData.accountNo || mappedData.cardNo || mappedData.cardNumber || '').slice(-4) : 'N/A'], ['Operator', mappedData.operatorName || mappedData.operatorId || 'N/A']],
-                      [['BC Code', mappedData.memberId || mappedData.loginId || 'N/A'], ['BC Name', mappedData.memberName || 'N/A']],
-                      [['Txn ID', mappedData.orderId || mappedData.txnId || mappedData.transId || 'N/A'], ['Bank RRN', mappedData.rrn || mappedData.refid || 'N/A']],
-                      [['Remark', mappedData.remark || mappedData.message || 'N/A']],
-                    ]}
-                  />
-                );
-
-                if (t === 'payout') return (
-                  <SimpleReceiptBody data={mappedData} cfg={cfg}
-                    title="Payout Receipt"
-                    sections={[
-                      [['Merchant', merchant], ['Date & Time', mappedData.date]],
-                      [['Beneficiary', mappedData.beneficiary || mappedData.beniName || mappedData.beniVerifyName || 'N/A'], ['Bank', mappedData.bank || mappedData.bankName || 'N/A']],
-                      [['Account No', mappedData.accountNo || mappedData.accNo || 'N/A'], ['IFSC', mappedData.ifsc || mappedData.ifscCode || 'N/A']],
-                      [['Member', mappedData.memberName || 'N/A'], ['Sender Mobile', mappedData.customerMobile || mappedData.mobile || 'N/A']],
-                      [['Txn ID', mappedData.orderId || mappedData.txnId || mappedData.transId || 'N/A'], ['UTR / Ref', mappedData.rrn || mappedData.refid || 'N/A']],
-                      [['Mode', mappedData.mode || 'IMPS'], ['Remark', mappedData.remark || mappedData.message || 'N/A']],
-                    ]}
-                  />
-                );
-
+                // Recharge & BBPS: identical dedicated layout, per explicit
+                // request — Number/Operator/Service/Total Amount/TXN ID/
+                // Operator Ref Number/Date & Time only, no summary table.
+                if (t === 'recharge') return <RechargeReceiptBody data={mappedData} cfg={cfg} />;
+                // BBPS — member panel only (this file). Its own dedicated
+                // layout per explicit request: Agent Detail/TXN ID/Category/
+                // Biller Name/Biller ID/Operator ID/Consumer Name/Consumer
+                // Number/Due Date/Bill Date/Bill Amount.
+                if (t === 'bbps') return <BbpsReceiptBody data={mappedData} cfg={cfg} />;
+                // Credit Card Bill Pay: its own dedicated layout.
+                if (t === 'ccbillpay') return <CcBillPayReceiptBody data={mappedData} cfg={cfg} />;
                 return <ReceiptBody data={mappedData} cfg={cfg} />;
               })()}
             </div>

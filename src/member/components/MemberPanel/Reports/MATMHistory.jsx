@@ -1,7 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import SearchableSelect from '../../../../shared/components/common/SearchableSelect';
-import ReactDOM from 'react-dom';
-import { Cells as UplineCells, getUplineShape } from '../../../../shared/components/common/UplineCommissionCols';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   setMATMList, 
@@ -29,9 +27,13 @@ const MATMHistory = () => {
   const [masterApis, setMasterApis] = useState([]);
   const [showStats, setShowStats] = useState(false);
   const [matmServiceIds, setMatmServiceIds] = useState([]);
-  const [breakdownTxn, setBreakdownTxn] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // Gate every transaction fetch on this: until matmServiceIds is loaded, a
+  // fetch would go out with an empty serviceIds filter (only sectionType
+  // sent), which isn't strict enough and lets non-MATM rows (e.g. wallet
+  // adjustments that share sectionType '9' with AEPS/MATM) leak in.
+  const [mastersLoaded, setMastersLoaded] = useState(false);
 
   useEffect(() => {
     const fetchMasters = async () => {
@@ -49,9 +51,10 @@ const MATMHistory = () => {
         const apiRes = await API.masterApi.getAll({ pageSize: 500 });
         setMasterApis(Array.isArray(apiRes?.data?.items) ? apiRes.data.items : Array.isArray(apiRes?.data) ? apiRes.data : Array.isArray(apiRes) ? apiRes : []);
       } catch (e) {}
+      setMastersLoaded(true);
     };
     fetchMasters();
-    
+
   }, [dispatch]);
 
   const fetchData = async () => {
@@ -76,7 +79,12 @@ const MATMHistory = () => {
         memberId: scopeId,
         status: filters.status || ''
       });
-      const { items: rawData } = normalizeTxnResponse(res);
+      const { items: rawItems } = normalizeTxnResponse(res);
+      // Wallet-transfer records (admin adding/deducting funds via Member
+      // Control Center) get mistagged server-side with SectionType values
+      // that leak into other reports — they reliably carry a "WT..." order
+      // ID though. Filter those out as a stopgap.
+      const rawData = rawItems.filter(t => !String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT'));
       dispatch(setMATMList(rawData));
     } catch (e) {
       console.error('[MATMHistory.jsx] fetch error:', e);
@@ -84,17 +92,20 @@ const MATMHistory = () => {
     }
   };
 
-      useEffect(() => { fetchData(); }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status]);
+      useEffect(() => {
+        if (!mastersLoaded) return;
+        fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [dispatch, currentPage, rowsPerPage, filters.fromDate, filters.toDate, filters.status, mastersLoaded]);
 
   const filteredList = list.filter(item => item.txnId?.toLowerCase().includes(searchQuery.toLowerCase()) || item.cardNo?.includes(searchQuery));
 
-  const { roles: uplineRoles, cols: uplineCols } = getUplineShape(list);
-  const uplineColNames = Array.from({ length: uplineCols }, (_, i) => uplineRoles[i]?.roleName?.toUpperCase() || `L${i+1}`);
-  const displayColumns = ['SNO', 'Date', 'Member', 'Operator', 'Card No', 'Opening Bal', 'Amount', 'Closing Bal', 'TransID', 'Bank RRN', 'Status', 'Remark', 'Receipt', 'ADMIN', 'TDS', 'UPLINE TOTAL', ...uplineColNames];
+  // Member/API panel: show only this account's own commission, not the
+  // admin/upline commission ladder (same fix as AEPSReport.jsx).
+  const displayColumns = ['SNO', 'Date', 'Member', 'Operator', 'Card No', 'Opening Bal', 'Amount', 'Closing Bal', 'TransID', 'Bank RRN', 'Status', 'Remark', 'Receipt', 'Commission'];
 
   const totalAmount = filteredList.reduce((a, t) => a + (parseFloat(t.amount) || 0), 0);
   const totalCommission = filteredList.reduce((a, t) => a + (parseFloat(t.commission || t.totalCommission) || 0), 0);
-  const totalTds = filteredList.reduce((a, t) => a + (parseFloat(t.tds || t.totalTds) || 0), 0);
   const stats = {
     totalTxns: filteredList.length,
     totalAmount,
@@ -102,17 +113,11 @@ const MATMHistory = () => {
     failedTxns: filteredList.filter(t => String(t.status).toUpperCase() === 'FAILED').length,
     pendingTxns: filteredList.filter(t => String(t.status).toUpperCase() === 'PENDING').length,
     totalCommission,
-    uplineCommission: totalCommission * 0.6,
-    adminCommission: totalCommission * 0.4,
-    totalTds,
-    adminProfit: totalCommission * 0.15,
-    tdsPayable: totalTds * 0.95,
-    netPayable: totalAmount - totalCommission,
   };
 
   return (
     <div className={styles.container}>
-      <StatsGrid stats={stats} showStats={showStats} />
+      <StatsGrid stats={stats} showStats={showStats} showAdminBreakdown={false} />
       <AdminTable
         title="MATM HISTORY"
         rightAction={
@@ -166,17 +171,6 @@ const MATMHistory = () => {
         data={filteredList}
         fileNamePrefix="matm_history"
         exportData={filteredList.map((item, index) => {
-          const breakdown = item.uplineBreakdown || [];
-          const commission = parseFloat(item.commission) || 0;
-          const tds = parseFloat(item.tds) || 0;
-          const uplineTotal = item.uplineCommission != null
-            ? parseFloat(item.uplineCommission)
-            : breakdown.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
-          const adminComm = Math.max(0, commission - uplineTotal);
-          const uplineCells = Array.from({ length: uplineCols }, (_, i) => {
-            const r = breakdown[i];
-            return r ? `₹${Number(r.amount || 0).toFixed(2)} (${r.memberName || '—'})` : '—';
-          });
           return [
             (currentPage - 1) * rowsPerPage + index + 1,
             item.createdDate || item.date || 'N/A',
@@ -191,10 +185,7 @@ const MATMHistory = () => {
             item.status || 'PENDING',
             item.remark || item.message || 'N/A',
             'VIEW',
-            `₹${adminComm.toFixed(2)}`,
-            `₹${tds.toFixed(2)}`,
-            `₹${uplineTotal.toFixed(2)}`,
-            ...uplineCells,
+            `₹${(parseFloat(item.commission || item.totalCommission) || 0).toFixed(2)}`,
           ];
         })}
         renderRow={(item, index) => {
@@ -226,7 +217,9 @@ const MATMHistory = () => {
                       style={{ background: 'linear-gradient(135deg,#1756AA,#1E3A8A)', color:'#fff', border:'none', borderRadius:'6px', padding:'3px 10px', fontSize:'0.72rem', fontWeight:700, cursor:'pointer' }}
                     >VIEW</button>
                   </td>
-                  <UplineCells txn={item} transactions={list} onBreakdown={setBreakdownTxn} />
+                  <td style={{ fontSize: '0.75rem', fontWeight: 700, color: '#166534' }}>
+                    ₹{(parseFloat(item.commission || item.totalCommission) || 0).toFixed(2)}
+                  </td>
                 </tr>
               );
         }}
@@ -240,38 +233,6 @@ const MATMHistory = () => {
         totalPages={Math.ceil(filteredList.length / rowsPerPage)}
       />
       <ReceiptModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} data={selectedTxn} />
-      {breakdownTxn && ReactDOM.createPortal(
-        <>
-          <div onClick={() => setBreakdownTxn(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 9998 }} />
-          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 9999, background: 'linear-gradient(135deg,#0D1B5E,#1a2f8a)', borderRadius: 16, padding: '24px 28px', minWidth: 'min(320px, 90vw)', maxWidth: 'min(440px, 95vw)', boxShadow: '0 24px 60px rgba(0,0,0,0.4)', color: '#fff' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-              <div>
-                <div style={{ fontSize: '1rem', fontWeight: 900 }}>UPLINE BREAKDOWN</div>
-                <p style={{ margin: '3px 0 0', color: 'rgba(255,255,255,0.65)', fontSize: '0.72rem' }}>TXN: {breakdownTxn.orderId || breakdownTxn.id || '—'}</p>
-              </div>
-              <button onClick={() => setBreakdownTxn(null)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: 28, height: 28, borderRadius: '50%', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.07)', borderRadius: 8, padding: '10px 14px', marginBottom: 14 }}>
-              <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>Total Upline</span>
-              <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#15803d' }}>₹{Number(breakdownTxn.uplineCommission || 0).toFixed(2)}</span>
-            </div>
-            {(breakdownTxn.uplineBreakdown || []).map((row, i) => {
-              const colors = ['#1756AA','#7C3AED','#0891B2'];
-              const bg = ['rgba(23,86,170,0.15)','rgba(124,58,237,0.15)','rgba(8,145,178,0.15)'];
-              return (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: bg[i]||bg[2], borderRadius: 8, padding: '10px 14px', marginBottom: 8, borderLeft: `3px solid ${colors[i]||colors[2]}` }}>
-                  <div>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#e2e8f0' }}>{row.roleName || `L${i+1}`}</div>
-                    <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{row.memberName || '—'}</div>
-                  </div>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#4ade80' }}>₹{Number(row.amount || 0).toFixed(2)}</span>
-                </div>
-              );
-            })}
-          </div>
-        </>,
-        document.body
-      )}
     </div>
   );
 };
