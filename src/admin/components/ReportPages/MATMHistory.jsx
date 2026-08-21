@@ -117,7 +117,19 @@ const MATMHistory = () => {
       // values that leak into other reports — they reliably carry a "WT..."
       // order ID though. Filter those out as a stopgap. (Same issue found in
       // PayoutHistory.jsx / RechargeHistory.jsx.)
-      const filtered = _txns.filter(t => !String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT'));
+      // Separately: plain Recharge transactions have also been seen leaking
+      // in here under sectionType '9' (same mistagging bug as
+      // CCBillPayHistory.jsx / BBPSTransaction.jsx) — they show up with a
+      // mobile network instead of a card-based MATM txn and no card number
+      // at all. A genuine MATM transaction always has a card number (from
+      // the card swipe), so require one as the distinguishing signal — this
+      // is the same field this table's own "Card Number" column already
+      // reads from (`cardNumber || accountNo`).
+      const filtered = _txns.filter(t => {
+        const isWt = String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT');
+        const hasCard = String(t.cardNumber || t.accountNo || '').trim() && String(t.cardNumber || t.accountNo || '').trim().toUpperCase() !== 'N/A';
+        return !isWt && hasCard;
+      });
       setTransactions(filtered);
       setTotalRecords(filtered.length === _txns.length ? _total : Math.max(0, (_total || 0) - (_txns.length - filtered.length)));
     } catch (e) { console.error('MATMHistory fetch error:', e); setTransactions([]); }

@@ -79,7 +79,18 @@ const DMTHistory = () => {
       // Control Center) get mistagged server-side with SectionType values
       // that leak into other reports — they reliably carry a "WT..." order
       // ID though. Filter those out as a stopgap.
-      const rawData = rawItems.filter(t => !String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT'));
+      // Separately: plain Recharge/wallet transactions have also been seen
+      // leaking into other reports under the same mistagging bug (same fix
+      // already applied to the admin DMTHistory.jsx). A genuine DMT transfer
+      // always has a beneficiary bank account number captured at initiation
+      // (it has to be chosen before the transfer can even be attempted), so
+      // require one — this is the same field this table's own "Account No"
+      // column already reads from.
+      const rawData = rawItems.filter(t => {
+        const isWt = String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT');
+        const hasAccount = String(t.accountNo || '').trim() && String(t.accountNo || '').trim().toUpperCase() !== 'N/A';
+        return !isWt && hasAccount;
+      });
       dispatch(setDMTList(rawData));
     } catch (e) {
       console.error('[DMTHistory.jsx] fetch error:', e);

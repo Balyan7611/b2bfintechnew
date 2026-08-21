@@ -136,7 +136,19 @@ const DMTHistory = () => {
       // Wallet-transfer records get mistagged server-side with SectionType
       // values that leak into other reports — they reliably carry a "WT..."
       // order ID though. Filter those out as a stopgap.
-      const _txns = _rawTxns.filter(t => !String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT'));
+      // Separately: plain Recharge/wallet transactions have also been seen
+      // leaking into other sectionType-filtered reports under the same
+      // mistagging bug (fixed the same way in CCBillPayHistory.jsx /
+      // BBPSTransaction.jsx). A genuine DMT transfer always has a
+      // beneficiary bank account number captured at initiation (it has to
+      // be chosen before the transfer can even be attempted), so require
+      // one — this is the same field this table's own "Account No" column
+      // already reads from.
+      const _txns = _rawTxns.filter(t => {
+        const isWt = String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT');
+        const hasAccount = String(t.accountNo || '').trim() && String(t.accountNo || '').trim().toUpperCase() !== 'N/A';
+        return !isWt && hasAccount;
+      });
       setTransactions(_txns);
       setTotalRecords(_txns.length === _rawTxns.length ? _total : Math.max(0, (_total || 0) - (_rawTxns.length - _txns.length)));
     } catch (err) {

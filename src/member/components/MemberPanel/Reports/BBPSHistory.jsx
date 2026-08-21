@@ -83,7 +83,18 @@ const BBPSHistory = () => {
       // Control Center) get mistagged server-side with SectionType values
       // that leak into other reports — they reliably carry a "WT..." order
       // ID though. Filter those out as a stopgap.
-      const rawData = rawItems.filter(t => !String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT'));
+      // Separately: plain Recharge transactions have also been seen leaking
+      // in here under sectionType '2' (same mistagging bug, same fix already
+      // applied to the admin BBPSTransaction.jsx) — they show up with a
+      // mobile network instead of a real biller and no consumer/account
+      // number at all. A genuine BBPS bill has a consumer/account number, so
+      // require one.
+      const rawData = rawItems.filter(t => {
+        const isWt = String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT');
+        const num = String(t.consumer || t.accountNo || t.number || '').trim();
+        const hasConsumerNo = num && num.toUpperCase() !== 'N/A';
+        return !isWt && hasConsumerNo;
+      });
       dispatch(setBBPSList(rawData));
     } catch (e) {
       console.error('[BBPSHistory.jsx] fetch error:', e);

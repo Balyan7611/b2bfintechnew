@@ -187,7 +187,17 @@ const CCBillPayHistory = () => {
       // values that leak into other reports — they reliably carry a "WT..."
       // order ID though. Filter those out as a stopgap. (Same issue found in
       // PayoutHistory.jsx / RechargeHistory.jsx.)
-      const items = rawItems.filter(t => !String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT'));
+      // Separately: plain Recharge transactions have also been seen leaking
+      // in here under sectionType '2' (mistagged the same way) — they show
+      // up with a mobile network (Airtel/Jio/Vi/etc.) instead of a real
+      // biller and no card number at all. A genuine Credit Card BillPay
+      // record always has a card number, so require one as the distinguishing
+      // signal and drop anything missing it.
+      const items = rawItems.filter(t => {
+        const isWt = String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT');
+        const hasCard = String(t.cardNumber || t.accountNo || '').trim() && String(t.cardNumber || t.accountNo || '').trim().toUpperCase() !== 'N/A';
+        return !isWt && hasCard;
+      });
       setTransactions(items);
       const _total = data.totalCount || data.totalItems || items.length || 0;
       setTotalRecords(_total);

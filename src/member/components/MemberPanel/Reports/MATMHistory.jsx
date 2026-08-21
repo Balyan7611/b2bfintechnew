@@ -84,7 +84,18 @@ const MATMHistory = () => {
       // Control Center) get mistagged server-side with SectionType values
       // that leak into other reports — they reliably carry a "WT..." order
       // ID though. Filter those out as a stopgap.
-      const rawData = rawItems.filter(t => !String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT'));
+      // Separately: plain Recharge transactions have also been seen leaking
+      // in here under sectionType '9' (same mistagging bug, same fix already
+      // applied to the admin MATMHistory.jsx) — they show up with a mobile
+      // network instead of a card-based MATM txn and no card number at all.
+      // A genuine MATM transaction always has a card number, so require one
+      // — this is the same field this table's own "Card No" column already
+      // reads from (`accountNo || cardNumber`).
+      const rawData = rawItems.filter(t => {
+        const isWt = String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT');
+        const hasCard = String(t.accountNo || t.cardNumber || '').trim() && String(t.accountNo || t.cardNumber || '').trim().toUpperCase() !== 'N/A';
+        return !isWt && hasCard;
+      });
       dispatch(setMATMList(rawData));
     } catch (e) {
       console.error('[MATMHistory.jsx] fetch error:', e);

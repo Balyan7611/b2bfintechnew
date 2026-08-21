@@ -111,7 +111,17 @@ const UPITransferHistory = () => {
       // Wallet-transfer records get mistagged server-side with SectionType
       // values that leak into other reports — they reliably carry a "WT..."
       // order ID though. Filter those out as a stopgap.
-      const _txns = _rawTxns.filter(t => !String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT'));
+      // Separately: plain Recharge/wallet transactions have also been seen
+      // leaking into other reports under the same mistagging bug (fixed the
+      // same way in CCBillPayHistory.jsx / BBPSTransaction.jsx). A genuine
+      // UPI transfer always has a UPI ID / payee account captured before the
+      // transfer can be initiated, so require one — this is the same field
+      // this table's own "UPI ID" column already reads from.
+      const _txns = _rawTxns.filter(t => {
+        const isWt = String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT');
+        const hasUpi = String(t.accountNo || t.upiId || '').trim() && String(t.accountNo || t.upiId || '').trim().toUpperCase() !== 'N/A';
+        return !isWt && hasUpi;
+      });
       setTransactions(_txns);
       setTotalRecords(_txns.length === _rawTxns.length ? _total : Math.max(0, (_total || 0) - (_rawTxns.length - _txns.length)));
         } catch (err) {

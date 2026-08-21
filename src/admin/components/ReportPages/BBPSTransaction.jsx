@@ -131,7 +131,17 @@ const BBPSTransaction = () => {
       // values that leak into other reports — they reliably carry a "WT..."
       // order ID though. Filter those out as a stopgap. (Same issue found in
       // PayoutHistory.jsx / RechargeHistory.jsx.)
-      const _txns = _rawTxns.filter(t => !String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT'));
+      // Separately: plain Recharge transactions have also been seen leaking
+      // in here under sectionType '2' (same mistagging bug, same as
+      // CCBillPayHistory.jsx) — they show up with a mobile network
+      // (Airtel/Jio/Vi/etc.) and no consumer/account number at all. A
+      // genuine BBPS bill has a consumer/account number, so require one.
+      const _txns = _rawTxns.filter(t => {
+        const isWt = String(t.orderId || t.vendorId || '').toUpperCase().startsWith('WT');
+        const num = String(t.accountNo || t.number || '').trim();
+        const hasConsumerNo = num && num.toUpperCase() !== 'N/A';
+        return !isWt && hasConsumerNo;
+      });
       setTransactions(_txns);
       setTotalRecords(_txns.length === _rawTxns.length ? _total : Math.max(0, (_total || 0) - (_rawTxns.length - _txns.length)));
     } catch (e) { console.error('BBPSTransaction fetch error:', e); setTransactions([]); }
