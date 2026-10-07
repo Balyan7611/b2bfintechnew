@@ -319,13 +319,26 @@ const UploadKYC = () => {
 
   return (
     <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
-      
+      {/* AdminTable itself already shrinks its title/subtitle/controls on
+          mobile (see AdminTable.module.css), but the "UPLOAD NEW" button is
+          custom content passed via rightAction, so it keeps its desktop size
+          unless shrunk here — scoped to this page-local class name. */}
+      <style>{`
+        @media (max-width: 640px) {
+          .uploadkyc-add-btn {
+            padding: 6px 12px !important;
+            font-size: 0.72rem !important;
+            gap: 5px !important;
+          }
+        }
+      `}</style>
             <AdminTable
         title="MEMBER KYC UPLOAD"
         subtitle="Manage and track member submitted identification documents"
         rightAction={
-          <button 
+          <button
             onClick={() => setIsAddModalOpen(true)}
+            className="uploadkyc-add-btn"
             style={{
               background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)',
               color: '#fff',
@@ -522,7 +535,20 @@ const UploadKYC = () => {
                   required 
                 />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: selectedDocSide === 2 ? '1fr 1fr' : '1fr', gap: '16px' }}>
+              {/* Front/Back Image side-by-side (1fr 1fr) overflowed the modal
+                  on a narrow phone — a native <input type="file"> has its
+                  own intrinsic minimum width (the "Choose File" button +
+                  filename text) that doesn't shrink to fit a squeezed
+                  column, so "Back Image" got clipped off the right edge.
+                  Stack them on mobile instead. */}
+              <style>{`
+                @media (max-width: 640px) {
+                  .kyc-upload-image-grid {
+                    grid-template-columns: 1fr !important;
+                  }
+                }
+              `}</style>
+              <div className="kyc-upload-image-grid" style={{ display: 'grid', gridTemplateColumns: selectedDocSide === 2 ? '1fr 1fr' : '1fr', gap: '16px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#4E6080' }}>Front Image</label>
                   <input 
@@ -636,7 +662,19 @@ const UploadKYC = () => {
                   />
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: editDocSide === 2 ? '1fr 1fr' : '1fr', gap: '16px' }}>
+              {/* The scoped media-query <style> tag for `.kyc-upload-image-grid`
+                  only lives inside the Add-modal block above — it isn't in
+                  the DOM at all while THIS (Edit) modal is open instead, so
+                  the mobile override never applied here. Repeat it locally
+                  so it works regardless of which modal is showing. */}
+              <style>{`
+                @media (max-width: 640px) {
+                  .kyc-upload-image-grid {
+                    grid-template-columns: 1fr !important;
+                  }
+                }
+              `}</style>
+              <div className="kyc-upload-image-grid" style={{ display: 'grid', gridTemplateColumns: editDocSide === 2 ? '1fr 1fr' : '1fr', gap: '16px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#4E6080' }}>Update Front Image</label>
                   <input 
@@ -821,9 +859,9 @@ const UploadKYC = () => {
                   if (cleanPath.toLowerCase().startsWith('uploadedfiles/kycdocuments')) {
                     const suffix = cleanPath.substring('uploadedfiles/kycdocuments'.length);
                     const cleanSuffix = suffix.startsWith('/') ? suffix : '/' + suffix;
-                    return `https://api.sahayatamoney.in/UploadedFiles/kycdocuments${cleanSuffix}`;
+                    return `https://b2b.bype.in/UploadedFiles/kycdocuments${cleanSuffix}`;
                   }
-                  return `https://api.sahayatamoney.in/UploadedFiles/kycdocuments/${cleanPath}`;
+                  return `https://b2b.bype.in/UploadedFiles/kycdocuments/${cleanPath}`;
                 };
 
                 const frontImgUrl = getImageUrl(

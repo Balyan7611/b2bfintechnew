@@ -426,6 +426,31 @@
 @media (max-width: 768px) {
   .container { padding: 10px 8px; }
   .statsGrid { grid-template-columns: 1fr 1fr !important; }
+  /* Same polish as ApiAnalytics.jsx's cards: 2-per-row, compact text,
+     smaller page title on mobile instead of desktop-sized everything. */
+  .kpiGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .kpiCard {
+    padding: 14px 12px;
+    border-radius: 14px;
+  }
+  .kpiTitle {
+    font-size: 0.62rem;
+  }
+  .kpiValue {
+    font-size: 1.15rem;
+  }
+  .kpiTrend {
+    font-size: 0.65rem;
+  }
+  .title {
+    font-size: 1.1rem;
+  }
+  .subtitle {
+    font-size: 0.75rem;
+  }
 }
 @media (max-width: 480px) {
   .statsGrid { grid-template-columns: 1fr !important; }

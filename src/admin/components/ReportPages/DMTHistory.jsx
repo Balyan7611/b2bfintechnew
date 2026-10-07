@@ -691,7 +691,10 @@ const DMTHistory = () => {
                     <td>
                       <div style={{ fontWeight: '700', color: '#1E293B', fontSize: '0.9rem' }}>{txn.memberName || 'N/A'}</div>
                     </td>
-                    <td style={{ fontWeight: '600', color: '#64748B' }}>{txn.customerMobile || txn.customerName || 'N/A'}</td>
+                    {/* `customerName` dropped — this is the Mobile column; falling
+                        back to a text name here made it show a name where a
+                        phone number was expected. */}
+                    <td style={{ fontWeight: '600', color: '#64748B' }}>{txn.customerMobile || 'N/A'}</td>
                     <td>{txn.beniName || txn.beniVerifyName || 'N/A'}</td>
                     <td style={{ fontWeight: '600', color: '#1756AA' }}>{txn.accountNo || 'N/A'}</td>
                     <td>{`${txn.bankName || 'N/A'} / ${txn.ifsc || 'N/A'}`}</td>

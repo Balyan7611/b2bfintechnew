@@ -110,8 +110,15 @@ const ParentChange = () => {
   };
 
   return (
-    <div className={styles.container} style={{ padding: '15px 10px', maxWidth: '100%', background: '#F4F7FE', minHeight: '100vh' }}>
-      
+    <div className={`pc-page-wrapper ${styles.container}`} style={{ padding: '15px 10px', maxWidth: '100%', background: '#F4F7FE', minHeight: '100vh' }}>
+      <style>{`
+        @media (max-width: 600px) {
+          .pc-page-wrapper .${styles.formGrid4} { grid-template-columns: 1fr !important; gap: 14px !important; }
+          .pc-page-wrapper .${styles.formGrid4} label { font-size: 0.72rem !important; }
+          .pc-page-wrapper .${styles.formGrid4} [role="button"] { height: 36px !important; font-size: 0.75rem !important; padding: 0 10px !important; }
+          .pc-save-btn { width: 100%; justify-content: center !important; padding: 10px 16px !important; font-size: 0.82rem !important; }
+        }
+      `}</style>
             <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 25px rgba(0,0,0,0.03)', borderRadius: '16px', marginBottom: '20px', background: '#fff' }}>
         <div style={{ padding: '12px 20px', borderBottom: '1px solid #F1F5F9' }}>
           <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#1E293B' }}>Parent Change</h3>
@@ -169,11 +176,12 @@ const ParentChange = () => {
                   to { transform: rotate(360deg); }
                 }
               `}</style>
-              <button 
+              <button
+                className="pc-save-btn"
                 onClick={handleSave}
                 disabled={isSaving || !fetchedMember}
-                style={{ 
-                  background: (isSaving || !fetchedMember) ? '#6EE7B7' : '#059669', color: '#fff', border: 'none', 
+                style={{
+                  background: (isSaving || !fetchedMember) ? '#6EE7B7' : '#059669', color: '#fff', border: 'none',
                   padding: '12px 35px', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, 
                   cursor: (isSaving || !fetchedMember) ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s',

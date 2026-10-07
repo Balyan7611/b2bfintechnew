@@ -278,10 +278,21 @@ const ServiceManagement = () => {
 
             <div className={styles.cardFullMobile} style={{ margin: '8px 8px 60px 8px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', background: '#fff', borderRadius: '16px' }}>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '10px' }}>
-          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>Service Management</h3>
-          <PrimaryButton onClick={handleAddClick}>
-            <FiPlus size={16} /> Add New Service
+                <style>{`
+          @media (max-width: 480px) {
+            .sm-header-title { font-size: 0.82rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+            .sm-add-btn { padding: 8px 10px !important; font-size: 0.68rem !important; flex-shrink: 0; white-space: nowrap; }
+            .sm-add-btn .sm-add-text-full { display: none; }
+            .sm-add-btn .sm-add-text-short { display: inline; }
+          }
+          .sm-add-text-short { display: none; }
+        `}</style>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '10px' }}>
+          <h3 className="sm-header-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', minWidth: 0 }}>Service Management</h3>
+          <PrimaryButton className="sm-add-btn" onClick={handleAddClick}>
+            <FiPlus size={16} />
+            <span className="sm-add-text-full">Add New Service</span>
+            <span className="sm-add-text-short">Add New</span>
           </PrimaryButton>
         </div>
 
@@ -409,9 +420,9 @@ const ServiceManagement = () => {
                                     <td style={{ textAlign: 'center' }}>
                     {service.image ? (
                       <img 
-                        src={`https://api.sahayatamoney.in/UploadedFiles/services/${service.image}`} 
+                        src={`https://b2b.bype.in/UploadedFiles/services/${service.image}`} 
                         alt="Service" 
-                        onClick={() => setShowImageModal({ isOpen: true, url: `https://api.sahayatamoney.in/UploadedFiles/services/${service.image}` })}
+                        onClick={() => setShowImageModal({ isOpen: true, url: `https://b2b.bype.in/UploadedFiles/services/${service.image}` })}
                         style={{ width: '36px', height: '36px', objectFit: 'contain', borderRadius: '8px', cursor: 'pointer', border: '1px solid #E2E8F0', padding: '2px', background: '#fff' }}
                         title="Click to view full image"
                       />

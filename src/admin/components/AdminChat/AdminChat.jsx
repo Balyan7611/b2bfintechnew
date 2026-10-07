@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaCheckDouble, FaCheckSquare, FaCommentDots, FaEllipsisV, FaPaperclip, FaPaperPlane, FaRegSquare, FaSearch, FaTimes, FaTrash, FaUsers } from 'react-icons/fa';
 import { FiActivity, FiFileText, FiUser, FiDollarSign, FiServer, FiCalendar, FiCheckCircle, FiXCircle, FiRefreshCw } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
-import { API } from '../../../api/endpoints';
-import { SITE_CONFIG } from '../../../config/siteConfig';
+import { API, fetchCompanyData } from '../../../api/endpoints';
+import { SITE_CONFIG, updateSiteConfig } from '../../../config/siteConfig';
 import { addNotification } from '../../../store/slices/memberPanelSlice';
 import styles from './AdminChat.module.css';
 import memberStyles from '../MemberPages/MemberPages.module.css';
@@ -39,6 +39,24 @@ const AdminChat = () => {
   });
   const [liveMembers, setLiveMembers] = useState([]);
   const [membersLoading, setMembersLoading] = useState(false);
+  // `SITE_CONFIG.brandName` defaults to the literal string 'Loading...' and
+  // only ever gets overwritten by `updateSiteConfig()` — but nothing in the
+  // app actually calls that (the one component that would, BrandProvider,
+  // isn't mounted anywhere), so it stayed stuck on 'Loading...' forever.
+  // Fetch it directly here instead of trusting the never-updated global.
+  const [brandName, setBrandName] = useState(SITE_CONFIG.brandName);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchCompanyData(window.location.origin)
+      .then(res => {
+        if (cancelled || !res) return;
+        updateSiteConfig(res);
+        if (res.name) setBrandName(res.name);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
   
   const [showMenu, setShowMenu] = useState(false);
   const fileInputRef = useRef(null);
@@ -508,12 +526,18 @@ const AdminChat = () => {
           
           <div className={styles.chatWindow} onClick={(e) => e.stopPropagation()}>
             
-                        <aside className={styles.sidebar}>
+                        {/* On mobile, showing the member list and the chat area
+                stacked at once (45vh/55vh) made both too cramped to use —
+                the list got cut off mid-row with no obvious way to see the
+                rest. Switched to a WhatsApp-style single-panel mobile view:
+                show only the list until a member is picked, then show only
+                the chat (with a back button) — full height either way. */}
+            <aside className={`${styles.sidebar} ${activeChatMemberId ? styles.mobileHidden : ''}`}>
               <div className={styles.sidebarHeader}>
                 <div className={styles.avatarAdmin} style={{ background: 'transparent', border: 'none', width: 'auto', padding: '0', display: 'flex', alignItems: 'center' }}>
                   <img src={SITE_CONFIG.logo || '/images/header_logo.png'} alt="Logo" className={styles.headerLogo} style={{ height: '35px', width: 'auto', objectFit: 'contain' }} />
                 </div>
-                <h4>{SITE_CONFIG.brandName}</h4>
+                <h4>{brandName}</h4>
               </div>
 
               <div className={styles.filterSection}>
@@ -600,10 +624,19 @@ const AdminChat = () => {
               </div>
             </aside>
 
-                        <main className={styles.chatArea}>
-              
+                        <main className={`${styles.chatArea} ${!activeChatMemberId ? styles.mobileHidden : ''}`}>
+
               <header className={styles.chatHeader}>
                 <div className={styles.activeHeaderInfo}>
+                  {activeChatMemberId && (
+                    <button
+                      className={styles.mobileBackBtn}
+                      onClick={() => setActiveChatMemberId(null)}
+                      title="Back to member list"
+                    >
+                      ←
+                    </button>
+                  )}
                   <div>
                     {activeMember ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

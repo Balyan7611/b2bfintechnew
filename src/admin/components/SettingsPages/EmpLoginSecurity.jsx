@@ -59,21 +59,29 @@ const EmpLoginSecurity = () => {
 
   return (
     <div className={styles.container} style={{ padding: '20px 25px', maxWidth: '100%' }}>
-            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+            <style>{`
+        @media (max-width: 640px) {
+          .els-filter-row { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 10px !important; padding: 14px !important; }
+          .els-filter-row label { font-size: 0.72rem !important; }
+          .els-filter-row input, .els-filter-row [role="button"] { height: 36px !important; font-size: 0.78rem !important; padding: 0 10px !important; }
+          .els-search-btn { grid-column: 1 / -1; width: 100%; justify-content: center !important; padding: 9px 16px !important; font-size: 0.8rem !important; }
+        }
+      `}</style>
+      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                 <div style={{ padding: '15px 25px', borderBottom: '1px solid #F1F5F9' }}>
           <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#1E293B' }}>Employee Login List</h3>
         </div>
 
-                <div style={{ padding: '20px 25px', display: 'flex', flexWrap: 'wrap', gap: '25px', alignItems: 'flex-end', borderBottom: '1px solid #F1F5F9' }}>
+                <div className="els-filter-row" style={{ padding: '20px 25px', display: 'flex', flexWrap: 'wrap', gap: '25px', alignItems: 'flex-end', borderBottom: '1px solid #F1F5F9' }}>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px' }}>
               <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1E293B' }}>IP Address</label>
               <input type="text" style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #E2E8F0', outline: 'none', fontSize: '0.95rem' }} />
            </div>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 250px' }}>
               <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1E293B' }}>Employee</label>
-              <SearchableSelect 
-                value={selectedEmployee} 
-                onChange={(val) => setSelectedEmployee(val || '')} 
+              <SearchableSelect
+                value={selectedEmployee}
+                onChange={(val) => setSelectedEmployee(val || '')}
                 style={{ height: '42px', borderRadius: '8px', fontSize: '0.95rem', background: '#fff' }}
                 options={[
                   { label: '-- Select Employee --', value: '' },
@@ -85,11 +93,11 @@ const EmpLoginSecurity = () => {
                 placeholder="-- Select Employee --"
               />
            </div>
-           <div>
-              <button 
+           <div className="els-search-btn" style={{ display: 'flex' }}>
+              <button
                 onClick={handleSearch}
                 disabled={isSearching}
-                style={{ background: '#F43F5E', color: '#fff', border: 'none', padding: '12px 30px', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 800, cursor: isSearching ? 'not-allowed' : 'pointer', boxShadow: '0 4px 15px rgba(244, 63, 94, 0.3)', display: 'flex', alignItems: 'center', gap: '8px' }}
+                style={{ background: '#F43F5E', color: '#fff', border: 'none', padding: '12px 30px', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 800, cursor: isSearching ? 'not-allowed' : 'pointer', boxShadow: '0 4px 15px rgba(244, 63, 94, 0.3)', display: 'flex', alignItems: 'center', gap: '8px', width: '100%', justifyContent: 'center' }}
               >
                 {isSearching && <FiRefreshCw className={styles.spin} />}
                 {isSearching ? 'Searching...' : 'Search'}

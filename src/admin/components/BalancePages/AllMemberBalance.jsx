@@ -126,7 +126,23 @@ const AllMemberBalance = () => {
 
                 <div style={{ padding: '20px', background: '#FAFBFC' }}>
           <form onSubmit={handleSearch}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
+            {/* auto-fit/minmax(180px) collapsed to a single column on a
+                narrow phone — From Date, To Date, Select Member, and Search
+                each took a full row of their own. Force 2-per-row on mobile
+                instead, scoped to this form only via the class below. */}
+            <style>{`
+              @media (max-width: 640px) {
+                .amb-filter-grid {
+                  grid-template-columns: 1fr 1fr !important;
+                  gap: 10px !important;
+                }
+                .amb-filter-grid button[type="submit"] {
+                  height: 36px !important;
+                  font-size: 0.78rem !important;
+                }
+              }
+            `}</style>
+            <div className="amb-filter-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
               
               <div className={styles.formGroup}>
                 <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.5px', color: '#64748B', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>From Date</label>

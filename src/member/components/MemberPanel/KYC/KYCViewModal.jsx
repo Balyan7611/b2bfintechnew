@@ -98,9 +98,9 @@ const getImageUrl = (path) => {
   if (cleanPath.toLowerCase().startsWith('uploadedfiles/kycdocuments')) {
     const suffix = cleanPath.substring('uploadedfiles/kycdocuments'.length);
     const cleanSuffix = suffix.startsWith('/') ? suffix : '/' + suffix;
-    return `https://api.sahayatamoney.in/UploadedFiles/kycdocuments${cleanSuffix}`;
+    return `https://b2b.bype.in/UploadedFiles/kycdocuments${cleanSuffix}`;
   }
-  return `https://api.sahayatamoney.in/UploadedFiles/kycdocuments/${cleanPath}`;
+  return `https://b2b.bype.in/UploadedFiles/kycdocuments/${cleanPath}`;
 };
 
 const KYCViewModal = ({ isOpen, onClose, doc }) => {

@@ -497,9 +497,13 @@ export default function TransactionReceipt({ data, onClose }) {
     // never fabricate a name.
     customerName: data.customerName || data.name || data.beneName || 'N/A',
     customerMobile: data.customerMobile || data.mobileNumber || data.mobile || data.number || data.senderMobile || 'N/A',
-    beneficiary: data.beneficiary || data.beneficiaryName || data.beneName || data.beniName || data.beniVerifyName || data.memberName || 'N/A',
+    // `memberName` dropped here too, same reasoning as customerName above —
+    // that's the BC's own name, not the beneficiary's.
+    beneficiary: data.beneficiary || data.beneficiaryName || data.beneName || data.beniName || data.beniVerifyName || 'N/A',
     bank: data.bank || data.bankName || data.beneBankName || 'N/A',
-    accountNo: data.accountNo || data.accountNumber || data.accNo || data.aadhar || data.aadharNo || data.cardNo || 'N/A',
+    // `aadhar`/`aadharNo`/`cardNo` deliberately dropped — those belong to
+    // AEPS/CC receipts, a different concept from a DMT bank account number.
+    accountNo: data.accountNo || data.accountNumber || data.accNo || 'N/A',
     ifsc: data.ifsc || data.ifscCode || '',
     mode: isAeps ? 'AEPS' : (data.mode || data.transactionType || data.fromChannel || 'IMPS'),
     bankTransId: data.bankTransId || data.txnId || data.transId || data.orderId || data.vendorId || data.refid || data.rrn || 'N/A',
@@ -511,7 +515,9 @@ export default function TransactionReceipt({ data, onClose }) {
     // AEPS-specific display fields (same set/labels as ReceiptModal.jsx's AepsReceiptBody)
     aepsBankName: data.bankName || data.bank || 'N/A',
     aepsAadhar: (() => {
-      const a = String(data.aadhar || data.aadharNo || data.accountNo || data.accountNumber || '');
+      // `accountNo`/`accountNumber` deliberately dropped — DMT's bank account
+      // field, not an Aadhaar number.
+      const a = String(data.aadhar || data.aadharNo || '');
       return a.length >= 4 ? 'XXXX XXXX ' + a.slice(-4) : 'N/A';
     })(),
     aepsBcCode: data.memberId || data.loginId || 'N/A',
@@ -530,7 +536,9 @@ export default function TransactionReceipt({ data, onClose }) {
     upiUtr: data.utr || data.rrn || 'N/A',
     // Recharge-specific display fields: Number, Operator, Service, Total
     // Amount, TXN ID, Operator Ref Number, Date & Time — nothing else.
-    rgNumber: data.number || data.customerMobile || data.accountNo || data.mobileNumber || 'N/A',
+    // `accountNo` deliberately dropped — DMT's bank account field, not a
+    // recharge mobile number.
+    rgNumber: data.number || data.customerMobile || data.mobileNumber || 'N/A',
     rgOperator: data.operatorName || data.operator || data.operatorId || 'N/A',
     rgService: data.serviceName || data.service || 'Recharge',
     rgTxnId: data.orderId || data.txnId || data.transId || data.bankTransId || 'N/A',
@@ -538,7 +546,9 @@ export default function TransactionReceipt({ data, onClose }) {
     // Admin BBPS-specific display fields: Mobile/Consumer No, Operator, TXN
     // ID, Operator Ref Number, Date & Time, Amount, Member ID (their member
     // code, e.g. "RT100").
-    bbpsConsumerNo: data.number || data.customerMobile || data.accountNo || data.mobileNumber || 'N/A',
+    // `accountNo` deliberately dropped — DMT's bank account field, not a
+    // BBPS consumer number.
+    bbpsConsumerNo: data.number || data.customerMobile || data.mobileNumber || 'N/A',
     bbpsOperator: data.operatorName || data.operator || data.operatorId || 'N/A',
     bbpsTxnId: data.orderId || data.txnId || data.transId || data.bankTransId || 'N/A',
     bbpsOperatorRefNumber: data.refid || data.rrn || data.operatorRefNo || data.bankRefNo || data.vendorId || 'N/A',
@@ -561,7 +571,9 @@ export default function TransactionReceipt({ data, onClose }) {
     // Credit Card Bill Pay-specific display fields: Credit Card No, Name,
     // Mobile No, Amount, TXN ID, TXN Date — nothing else.
     ccCardNo: data.cardNumber || data.accountNo || 'N/A',
-    ccName: data.customerName || data.memberName || data.name || 'N/A',
+    // `memberName` dropped — same BC-name-fabrication issue fixed for
+    // customerName above.
+    ccName: data.customerName || data.name || 'N/A',
     ccMobile: data.customerMobile || data.mobile || data.number || 'N/A',
     ccTxnId: data.orderId || data.txnId || data.refid || 'N/A',
   } : null;

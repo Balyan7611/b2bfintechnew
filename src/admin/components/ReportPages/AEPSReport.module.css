@@ -116,16 +116,16 @@
     gap: 10px;
     align-items: end;
   }
-  /* 3rd child (status/type dropdown) → full width */
-  .filterRow .formGroup:nth-child(3),
-  .filterRow .formGroup:nth-child(4) {
-    grid-column: 1 / -1;
-  }
-  /* Submit button → full width */
+  /* All dropdowns/date fields stay 2-per-row on mobile now */
+  .formGroup { min-width: 0; }
+  .inputControl { height: 38px; font-size: 0.8rem; }
+  /* Submit button → full width but shorter/smaller */
   .filterRow button,
   .filterRow .submitBtn {
     grid-column: 1 / -1;
     width: 100%;
+    height: 36px;
+    font-size: 0.8rem;
+    padding: 0 16px;
   }
-  .formGroup { min-width: 0; }
 }

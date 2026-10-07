@@ -42,9 +42,9 @@ const WalletTXN = () => {
   useEffect(() => {
     const fetchAllMembers = async () => {
       try {
-        const res = await API.member.search('');
-        const items = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-        setMembersList(items);
+        const res = await API.member.getAll({ pageNumber: 1, pageSize: 5000 });
+        const items = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+        setMembersList(Array.isArray(items) ? items : []);
       } catch (err) {
         console.error("Error loading members in WalletTXN:", err);
       }
@@ -97,10 +97,14 @@ const WalletTXN = () => {
                 onChange={(val) => handleFilterChange({ target: { name: 'memberId', value: val } })}
                 options={[
                   { label: 'Select Member', value: '' },
-                  ...membersList.map(m => ({
-                    label: `${m.memberId || m.loginId || m.id || m.msrno} - ${m.name || m.userName || ''}`,
-                    value: m.memberId || m.loginId || m.id || m.msrno
-                  }))
+                  ...membersList.map(m => {
+                    const loginId = m.memberID || m.memberid || m.loginID || m.loginId || m.memberId || String(m.id || m.msrno || '');
+                    const name = m.name || m.fullName || m.memberName || m.userName || '';
+                    return {
+                      label: name ? `${loginId} - ${name}` : loginId,
+                      value: loginId
+                    };
+                  })
                 ]}
                 placeholder="Select Member"
               />

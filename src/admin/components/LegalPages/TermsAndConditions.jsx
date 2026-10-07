@@ -118,14 +118,41 @@ const TermsAndConditions = () => {
 
   return (
     <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
-            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
-          <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0D1B3E' }}>Terms & Conditions List</h3>
-          <button style={{ 
-            display: 'flex', alignItems: 'center', gap: '8px', 
-            background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', 
-            color: '#fff', border: 'none', borderRadius: '8px', 
-            padding: '6px 14px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' 
+            {/* "Terms & Conditions List" + the Add button were wrapping onto
+          2 lines on a narrow phone (flexWrap: 'wrap' had room to kick in).
+          Shrink both enough on mobile that they stay on one row instead. */}
+      <style>{`
+        @media (max-width: 480px) {
+          .tc-header-row {
+            flex-wrap: nowrap !important;
+          }
+          .tc-header-title {
+            font-size: 0.82rem !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          .tc-add-btn {
+            padding: 6px 10px !important;
+            font-size: 0.7rem !important;
+            flex-shrink: 0;
+          }
+          .tc-add-btn span {
+            display: none;
+          }
+          .tc-add-btn::after {
+            content: 'Add';
+          }
+        }
+      `}</style>
+      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div className="tc-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
+          <h3 className="tc-header-title" style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0D1B3E' }}>Terms & Conditions List</h3>
+          <button className="tc-add-btn" style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)',
+            color: '#fff', border: 'none', borderRadius: '8px',
+            padding: '6px 14px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer'
           }} onClick={handleOpenAdd}>
             <FiPlus /> <span>Add New Term</span>
           </button>

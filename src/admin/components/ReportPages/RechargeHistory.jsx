@@ -682,10 +682,14 @@ const RechargeHistory = () => {
                     </td>
                     <td>{((pageNumber-1)*pageSize)+index+1}</td>
                     <td>{txn.createdDate || txn.date || 'N/A'}</td>
-                    <td>{txn.customerName || txn.memberName || 'N/A'}</td>
+                    {/* `memberName` dropped — that's the BC's own name, not the
+                        recharge customer's; never fabricate. */}
+                    <td>{txn.customerName || 'N/A'}</td>
                     <td>{txn.operatorName || txn.operator || 'N/A'}</td>
                     <td>-</td>
-                    <td>{txn.accountNo || txn.number || txn.mobile || 'N/A'}</td>
+                    {/* `accountNo` dropped — that's DMT's bank account field, not
+                        a recharge mobile number. */}
+                    <td>{txn.number || txn.mobile || 'N/A'}</td>
                     <td style={{ textAlign: 'center' }}>
                       {(() => {
                         const s = (txn.status || '').toLowerCase();

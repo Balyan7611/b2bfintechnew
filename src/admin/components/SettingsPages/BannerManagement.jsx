@@ -227,10 +227,22 @@ const BannerManagement = () => {
       )}
 
             <div className={styles.cardFullMobile} style={{ margin: '8px 8px 60px 8px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', background: '#fff', borderRadius: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
-          <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0F172A' }}>Banner Management</h3>
-          <PrimaryButton onClick={handleAddClick}>
-            <FiUpload size={16} /> <span>Upload New Banner</span>
+                <style>{`
+          @media (max-width: 480px) {
+            .bm-header-row { flex-wrap: nowrap !important; }
+            .bm-header-title { font-size: 0.82rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+            .bm-add-btn { padding: 8px 10px !important; font-size: 0.68rem !important; flex-shrink: 0; white-space: nowrap; }
+            .bm-add-btn .bm-add-text-full { display: none; }
+            .bm-add-btn .bm-add-text-short { display: inline; }
+          }
+          .bm-add-text-short { display: none; }
+        `}</style>
+        <div className="bm-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
+          <h3 className="bm-header-title" style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', minWidth: 0 }}>Banner Management</h3>
+          <PrimaryButton className="bm-add-btn" onClick={handleAddClick}>
+            <FiUpload size={16} />
+            <span className="bm-add-text-full">Upload New Banner</span>
+            <span className="bm-add-text-short">Upload</span>
           </PrimaryButton>
         </div>
 

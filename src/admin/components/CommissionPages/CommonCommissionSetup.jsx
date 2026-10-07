@@ -63,8 +63,14 @@ const CommonCommissionSetup = () => {
   const totalPages = Math.ceil(totalEntries / rowsPerPage);
 
   return (
-    <div className={styles.container}>
-      
+    <div className={`${styles.container} ccs-wrapper`}>
+      <style>{`
+        @media (max-width: 768px) {
+          .ccs-wrapper [class*="titleRow"] { flex-wrap: wrap !important; }
+          .ccs-wrapper [class*="titleLeft"] { flex: 1 1 100% !important; }
+          .ccs-wrapper [class*="titleRight"] { width: 100% !important; margin-top: 4px; }
+        }
+      `}</style>
             <AdminTable
         title="Common Commission Setup"
         subtitle="View and manage operator-wise commission slabs"

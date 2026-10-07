@@ -163,11 +163,11 @@ const FundRequest = () => {
     if (s.startsWith('http://') || s.startsWith('https://')) return s;
     // If path already has UploadedFiles, prepend just the base domain
     if (s.includes('UploadedFiles/')) {
-      return `https://api.sahayatamoney.in/${s.replace(/^\/+/, '')}`;
+      return `https://b2b.bype.in/${s.replace(/^\/+/, '')}`;
     }
     // If path already has FundRequest/ folder prefix, don't double it
     if (s.startsWith('FundRequest/') || s.startsWith('/FundRequest/')) {
-      return `https://api.sahayatamoney.in/UploadedFiles/${s.replace(/^\/+/, '')}`;
+      return `https://b2b.bype.in/UploadedFiles/${s.replace(/^\/+/, '')}`;
     }
     return getImageUrl(s, 'FundRequest');
   }, []);

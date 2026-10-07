@@ -29,33 +29,46 @@ const APIBalance = () => {
           to { transform: rotate(360deg); }
         }
       `}</style>
-            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
-          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E' }}>API Balance List</h3>
-          <button 
+            <style>{`
+        @media (max-width: 480px) {
+          .apibal-header-row { flex-wrap: nowrap !important; }
+          .apibal-title { font-size: 0.85rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+          .apibal-refresh-btn { padding: 7px 10px !important; font-size: 0.68rem !important; flex-shrink: 0; }
+          .apibal-refresh-btn .apibal-refresh-text-full { display: none; }
+          .apibal-refresh-btn .apibal-refresh-text-short { display: inline; }
+          .global-table-toolbar { max-width: 100%; box-sizing: border-box; }
+          .global-search-box { max-width: 100% !important; box-sizing: border-box; }
+        }
+        .apibal-refresh-text-short { display: none; }
+      `}</style>
+      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div className="apibal-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
+          <h3 className="apibal-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E' }}>API Balance List</h3>
+          <button
+            className="apibal-refresh-btn"
             onClick={handleRefresh}
             disabled={isRefreshing}
-            style={{ 
-              display: 'flex', alignItems: 'center', gap: '8px', 
-              background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', 
-              color: '#fff', border: 'none', borderRadius: '8px', 
-              padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, 
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)',
+              color: '#fff', border: 'none', borderRadius: '8px',
+              padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600,
               cursor: isRefreshing ? 'not-allowed' : 'pointer',
               opacity: isRefreshing ? 0.8 : 1
             }}
           >
-            <FiRefreshCw style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} /> 
-            <span>{isRefreshing ? 'Refreshing...' : 'Refresh All Balances'}</span>
+            <FiRefreshCw style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} />
+            <span className="apibal-refresh-text-full">{isRefreshing ? 'Refreshing...' : 'Refresh All Balances'}</span>
+            <span className="apibal-refresh-text-short">{isRefreshing ? '...' : 'Refresh'}</span>
           </button>
         </div>
         
                 <div className="global-table-toolbar" style={{ padding: '15px 20px', justifyContent: 'flex-end', borderBottom: 'none' }}>
-          <div className="global-search-box" style={{ maxWidth: '300px', width: '100%' }}>
+          <div className="global-search-box">
             <FiSearch />
-            <input 
-              type="text" 
-              placeholder="Search API gateway..." 
-              style={{ borderRadius: '10px' }}
+            <input
+              type="text"
+              placeholder="Search API gateway..."
             />
           </div>
         </div>

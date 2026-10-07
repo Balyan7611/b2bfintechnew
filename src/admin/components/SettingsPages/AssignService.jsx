@@ -128,7 +128,15 @@ const AssignService = () => {
   return (
     <div className={styles.container} style={{ padding: '15px 12px', maxWidth: '100%', background: '#F4F7FE', minHeight: '100vh' }}>
       
-            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', overflow: 'hidden', background: '#fff' }}>
+            <style>{`
+        @media (max-width: 640px) {
+          .as-form-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+          .as-form-grid label { font-size: 0.72rem !important; }
+          .as-form-grid [role="button"] { height: 38px !important; font-size: 0.78rem !important; padding: 0 10px !important; }
+          .as-update-btn { width: 100%; justify-content: center !important; padding: 10px 16px !important; font-size: 0.78rem !important; }
+        }
+      `}</style>
+      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', overflow: 'hidden', background: '#fff' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', borderBottom: '1px solid #F1F5F9' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', borderRadius: '8px' }}>
@@ -140,7 +148,7 @@ const AssignService = () => {
 
                 <div style={{ padding: '24px' }}>
            
-                      <div className={styles.formGridTwo} style={{ gap: '24px', marginBottom: '30px' }}>
+                      <div className={`as-form-grid ${styles.formGridTwo}`} style={{ gap: '24px', marginBottom: '30px' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                  <label style={{ fontSize: '0.95rem', fontWeight: 800, color: '#4E6080', display: 'flex', alignItems: 'center', gap: '5px' }}>
                    <FiCheck style={{ color: '#1756AA' }} /> Member ID / Username *
@@ -179,10 +187,11 @@ const AssignService = () => {
 
            {/* ACTIONS BUTTONS AND MESSAGES */}
            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-              <button 
+              <button
+                className="as-update-btn"
                 disabled={isUpdating}
                 onClick={handleUpdate}
-                style={{ 
+                style={{
                   display: 'flex', alignItems: 'center', gap: '8px', 
                   background: isUpdating ? '#60A5FA' : '#1756AA', 
                   color: '#fff', border: 'none', borderRadius: '10px', 

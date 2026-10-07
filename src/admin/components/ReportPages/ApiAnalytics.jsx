@@ -39,17 +39,19 @@ function RateBar({ rate }) {
 }
 
 function KpiCard({ icon, title, value, sub }) {
+  // Was rendering with hardcoded inline styles (fixed 1.6rem value text,
+  // flex-wrap with a 180px min-width) that never adapted to screen size —
+  // the CSS module actually already had a proper responsive .kpiCard/.kpiGrid
+  // design (4 cols → 2 cols at 992px → full-width 1 col at 768px) sitting
+  // unused. Switched to those classes so mobile actually gets bigger,
+  // full-width cards with larger text instead of squeezed inline ones.
   return (
-    <div style={{
-      background: '#fff', border: '1px solid #E2E8F0', borderRadius: 12,
-      padding: '20px 24px', flex: 1, minWidth: 180,
-      boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, color: '#64748B', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-        {icon} {title}
+    <div className={styles.kpiCard}>
+      <div className={styles.kpiHeader}>
+        <span className={styles.kpiIcon}>{icon}</span> {title}
       </div>
-      <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0D1B3E', lineHeight: 1.1 }}>{value}</div>
-      <div style={{ fontSize: '0.75rem', color: '#94A3B8', marginTop: 4 }}>{sub}</div>
+      <div className={styles.kpiValue}>{value}</div>
+      <div className={styles.kpiTrend}>{sub}</div>
     </div>
   );
 }
@@ -176,7 +178,7 @@ const ApiAnalytics = () => {
             {analyzed && summary && (
         <div className={styles.resultsArea}>
 
-                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 24 }}>
+                    <div className={styles.kpiGrid} style={{ marginBottom: 24 }}>
             <KpiCard
               icon={<FiBarChart2 size={14} />}
               title="Transactions"

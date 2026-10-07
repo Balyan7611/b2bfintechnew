@@ -178,9 +178,10 @@ const PayoutHistory = () => {
                     style={{ height: '42px', minWidth: '150px' }}
                   />
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div className={styles.aepsBtnRow} style={{ display: 'flex', gap: '8px' }}>
                   <button className={styles.submitBtn} onClick={fetchData}>Apply</button>
                   <button
+                    className={styles.resetBtn}
                     type="button"
                     onClick={() => {
                       const today = new Date().toISOString().split('T')[0];
@@ -192,7 +193,7 @@ const PayoutHistory = () => {
                     onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.color = '#1756AA'; e.currentTarget.style.background = '#F8FAFC'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; e.currentTarget.style.background = '#fff'; }}
                   >
-                    <FiRefreshCw size={14} /> Reset
+                    <FiRefreshCw size={14} /><span className={styles.resetText}> Reset</span>
                   </button>
                 </div>
               </div>

@@ -161,9 +161,9 @@ const AEPSWalletHistory = () => {
                   </select>
                 </div>
 
-                <div className={styles.formGroup} style={{ flex: '0 0 auto' }}>
-                  <label style={{ visibility: 'hidden', fontSize: '0.68rem', marginBottom: 4, display: 'block' }}>Search</label>
+                <div className={styles.aepsBtnRow} style={{ display: 'flex', gap: '8px', flex: '0 0 auto' }}>
                   <button
+                    className={styles.submitBtn}
                     type="submit"
                     disabled={isLoading}
                     style={{ minWidth: 120, whiteSpace: 'nowrap', boxSizing: 'border-box', flexShrink: 0, height: 38, background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '0.825rem', textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.2s' }}
@@ -171,11 +171,8 @@ const AEPSWalletHistory = () => {
                     <FiSearch size={14} />
                     Search
                   </button>
-                </div>
-
-                <div className={styles.formGroup} style={{ flex: '0 0 auto' }}>
-                  <label style={{ visibility: 'hidden', fontSize: '0.68rem', marginBottom: 4, display: 'block' }}>Reset</label>
                   <button
+                    className={styles.resetBtn}
                     type="button"
                     title="Reset Filters"
                     onClick={() => {
@@ -189,7 +186,7 @@ const AEPSWalletHistory = () => {
                     onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
                   >
                     <FiRefreshCw size={14} />
-                    Reset
+                    <span className={styles.resetText}> Reset</span>
                   </button>
                 </div>
 

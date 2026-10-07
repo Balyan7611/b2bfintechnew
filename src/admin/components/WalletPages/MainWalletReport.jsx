@@ -236,13 +236,15 @@ const MainWalletReport = () => {
           </div>
         </div>
 
-        <div className={styles.tableWrapper} style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #EEF1F6' }}>
+        <div className={styles.tableWrapper} style={{ borderRadius: 10, overflowX: 'auto', overflowY: 'hidden', border: '1px solid #EEF1F6' }}>
           {/* table-layout: auto (default) — each column sizes itself to fit its
               own content instead of being forced into a fixed pixel width. That
               forced-width approach was cutting Date/Member text off mid-word and
               letting it visually spill into the next column. The wrapper above
-              already has overflow-x: auto, so on a narrow/small screen the whole
-              table just scrolls horizontally instead of squeezing or overlapping. */}
+              needs overflow-x: auto so on a narrow/small screen the whole table
+              just scrolls horizontally instead of squeezing or overlapping —
+              a plain `overflow: hidden` (used earlier only to clip the rounded
+              corners) was silently overriding that and blocking the scroll. */}
           <table className={styles.table} style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
             <thead>
               <tr style={{ background: 'linear-gradient(90deg, #0D1B5E 0%, #1a2f8a 100%)' }}>

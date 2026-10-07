@@ -405,7 +405,35 @@ const ManageMember = () => {
       )}
 
       {/* ── ENHANCED FILTER CARD ── */}
-      <div className={styles.cardFullMobile} style={{ marginTop: 0, marginBottom: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', overflow: 'visible' }}>
+      {/* `md-filter-card` scopes the mobile overrides below to just this
+          card — `.formGrid4`/`.formGrid3`/`.directoryTitle` etc are shared
+          module classes reused across many other member-list pages
+          (Admin.jsx, Retailer.jsx, Distributor.jsx, ...), so this is scoped
+          instead of editing the shared CSS module, to avoid changing their
+          layout too. */}
+      <style>{`
+        @media (max-width: 640px) {
+          .md-filter-card .${styles.directorySubtitle} {
+            display: none;
+          }
+          .md-filter-card .${styles.directoryTitle} {
+            font-size: 0.85rem !important;
+          }
+          .md-filter-card .md-new-reg-btn {
+            padding: 6px 12px !important;
+            font-size: 0.72rem !important;
+          }
+          .md-filter-card .${styles.formGrid4} {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 10px !important;
+          }
+          .md-filter-card .${styles.searchBtnRed} {
+            padding: 8px 14px !important;
+            font-size: 0.78rem !important;
+          }
+        }
+      `}</style>
+      <div className={`${styles.cardFullMobile} md-filter-card`} style={{ marginTop: 0, marginBottom: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', overflow: 'visible' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', padding: '6px 20px', borderBottom: '1px solid #F1F5F9' }}>
           <div className={styles.directoryTitleGroup}>
             <h2 className={styles.directoryTitle} style={{ fontSize: '1rem', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -413,8 +441,9 @@ const ManageMember = () => {
             </h2>
             <p className={styles.directorySubtitle} style={{ fontSize: '0.65rem', margin: '0' }}>Manage and monitor network members</p>
           </div>
-          <button 
+          <button
             onClick={() => setShowRegistrationModal(true)}
+            className="md-new-reg-btn"
             style={{
               padding: '10px 18px',
               background: 'linear-gradient(135deg, #1756AA, #124d96)',
@@ -434,7 +463,7 @@ const ManageMember = () => {
             <FaUserPlus /> New Registration
           </button>
         </div>
-        
+
         <div className={styles.formGrid4} style={{ marginTop: '20px', overflow: 'visible' }}>
           <div className={styles.formGroup}>
             <label className={styles.label} style={{ fontSize: '0.75rem' }}>From Date</label>

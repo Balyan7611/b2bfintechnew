@@ -302,8 +302,31 @@
     flex-direction: column;
     gap: 16px;
   }
+  /* 2-per-row on mobile (matches the dashboard's stat-card grid), not a
+     single full-width column — full width made these look oversized. */
   .kpiGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .kpiCard {
+    padding: 14px 12px;
+    border-radius: 14px;
+  }
+  .kpiHeader {
+    font-size: 0.68rem;
+    margin-bottom: 8px;
+  }
+  .kpiValue {
+    font-size: 1.15rem;
+  }
+  .kpiTrend {
+    font-size: 0.68rem;
+  }
+  .title {
+    font-size: 1.1rem;
+  }
+  .subtitle {
+    font-size: 0.75rem;
   }
 }
 

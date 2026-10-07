@@ -124,50 +124,62 @@ const AssignRole = () => {
           )}
         </div>
 
+        <style>{`
+          @media (max-width: 640px) {
+            .ar-left-panel { flex: 1 1 100% !important; border-right: none !important; padding: 18px 16px !important; }
+            .ar-select-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+            .ar-select-grid label { font-size: 0.68rem !important; }
+            .ar-select-grid [role="button"] { height: 38px !important; font-size: 0.78rem !important; padding: 0 10px !important; }
+            .ar-assign-btn { width: 100% !important; justify-content: center !important; padding: 10px 16px !important; font-size: 0.8rem !important; }
+          }
+        `}</style>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0' }}>
 
-                    <div style={{
+                    <div className="ar-left-panel" style={{
             flex: '0 0 320px', padding: '28px 24px',
             borderRight: '1px solid #F1F5F9',
             display: 'flex', flexDirection: 'column', gap: '20px'
           }}>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E293B', letterSpacing: '0.02em' }}>
-                Select Role <span style={{ color: '#EF4444' }}>*</span>
-              </label>
-              <RoleSelect
-                value={selectRole}
-                onChange={handleSelectRoleChange}
-                placeholder="Select Role"
-                style={{ padding: '11px 14px', height: '45px' }}
-              />
-            </div>
+                        <div className="ar-select-grid" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E293B', letterSpacing: '0.02em' }}>
+                  Select Role <span style={{ color: '#EF4444' }}>*</span>
+                </label>
+                <RoleSelect
+                  value={selectRole}
+                  onChange={handleSelectRoleChange}
+                  placeholder="Select Role"
+                  style={{ padding: '11px 14px', height: '45px' }}
+                />
+              </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E293B', letterSpacing: '0.02em' }}>
-                Down Role <span style={{ color: '#EF4444' }}>*</span>
-              </label>
-              <RoleSelect
-                value={downRole}
-                onChange={setDownRole}
-                placeholder="Select Down Role"
-                style={{ 
-                  padding: '11px 14px', 
-                  height: '45px', 
-                  background: !selectRole ? '#F8FAFC' : '#fff',
-                  cursor: !selectRole ? 'not-allowed' : 'pointer'
-                }}
-                disabled={!selectRole}
-              />
-              {!selectRole && (
-                <p style={{ margin: 0, fontSize: '0.75rem', color: '#94A3B8', fontWeight: 500 }}>
-                  Please select a role first
-                </p>
-              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E293B', letterSpacing: '0.02em' }}>
+                  Down Role <span style={{ color: '#EF4444' }}>*</span>
+                </label>
+                <RoleSelect
+                  value={downRole}
+                  onChange={setDownRole}
+                  placeholder="Select Down Role"
+                  style={{
+                    padding: '11px 14px',
+                    height: '45px',
+                    background: !selectRole ? '#F8FAFC' : '#fff',
+                    cursor: !selectRole ? 'not-allowed' : 'pointer'
+                  }}
+                  disabled={!selectRole}
+                />
+                {!selectRole && (
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: '#94A3B8', fontWeight: 500 }}>
+                    Please select a role first
+                  </p>
+                )}
+              </div>
             </div>
 
                         <button
+              className="ar-assign-btn"
               onClick={handleAssign}
               disabled={isAssigning || !selectRole || !downRole}
               style={{

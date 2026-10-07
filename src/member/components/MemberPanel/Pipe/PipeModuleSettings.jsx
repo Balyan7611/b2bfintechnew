@@ -447,8 +447,20 @@ const PipeModuleSettings = () => {
 
             {isModalOpen && (
         <div className={styles.modalOverlay} style={{ zIndex: 3500 }}>
-          <div className={styles.modalContainer} style={{ width: '800px', maxWidth: '95%', borderRadius: '16px', overflow: 'visible', background: '#fff', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
-                        <div className={styles.modalHeader} style={{ padding: '20px 25px 15px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}>
+          <style>{`
+            @media (max-width: 640px) {
+              .pms-modal { width: 100% !important; max-width: 96% !important; }
+              .pms-modal-body { padding: 14px 16px !important; }
+              .pms-modal-body > div { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+              .pms-modal-body label, .pms-modal-body span { font-size: 0.72rem !important; }
+              .pms-modal-header h3 { font-size: 1rem !important; }
+              .pms-modal-header p { font-size: 0.7rem !important; }
+              .pms-modal-footer { padding: 10px 14px !important; }
+              .pms-modal-footer button { flex: 1; padding: 9px 12px !important; font-size: 0.78rem !important; }
+            }
+          `}</style>
+          <div className={`${styles.modalContainer} pms-modal`} style={{ width: '800px', maxWidth: '95%', borderRadius: '16px', overflow: 'visible', background: '#fff', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+                        <div className={`${styles.modalHeader} pms-modal-header`} style={{ padding: '20px 25px 15px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ width: '40px', height: '40px', background: 'rgba(23, 86, 170, 0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1756AA' }}>
                   <FaProjectDiagram style={{ fontSize: '1.2rem' }} />
@@ -466,7 +478,7 @@ const PipeModuleSettings = () => {
               </button>
             </div>
 
-                        <div className={styles.modalBody} style={{ padding: '20px 25px', display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', minHeight: '350px' }}>
+                        <div className={`${styles.modalBody} pms-modal-body`} style={{ padding: '20px 25px', display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', minHeight: '350px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Service <span style={{ color: '#ef4444' }}>*</span></label>
@@ -577,7 +589,7 @@ const PipeModuleSettings = () => {
               )}
             </div>
 
-                        <div className={styles.modalFooter} style={{ padding: '10px 20px', background: '#FBFDFF', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                        <div className={`${styles.modalFooter} pms-modal-footer`} style={{ padding: '10px 20px', background: '#FBFDFF', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <button
                 onClick={handleCloseModal}
                 style={{ background: '#f1f5f9', color: '#64748b', border: 'none', padding: '10px 24px', borderRadius: '8px', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}

@@ -51,17 +51,8 @@
     gap: 10px;
     align-items: end;
   }
-  /* Status select spans full width */
-  .filterRow .formGroup:nth-child(3) {
-    grid-column: 1 / -1;
-  }
-  /* Apply button spans full width */
-  .filterRow .submitBtn,
-  .filterRow button[class*="submitBtn"] {
-    grid-column: 1 / -1;
-    width: 100%;
-    margin-top: 4px;
-  }
+  /* From Date + To Date pair up, then Service + Status pair up below them —
+     both dropdowns stay 2-per-row instead of Service being forced alone. */
   .formGroup {
     min-width: 0;
     width: 100%;
@@ -69,6 +60,37 @@
   .submitBtn {
     width: 100%;
     grid-column: 1 / -1;
+  }
+  /* Apply + Reset sit in the same grid cell as Status (natural 2-col flow —
+     NOT forced onto their own full-width row, that looked like a giant
+     stacked block). Apply shrinks to fit, Reset collapses to an icon-only
+     circle so both fit side-by-side in a half-width column on mobile. */
+  .aepsBtnRow {
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+  }
+  .aepsBtnRow .submitBtn {
+    grid-column: auto !important;
+    width: auto !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    padding: 0 10px !important;
+    font-size: 0.72rem !important;
+    height: 36px !important;
+    white-space: nowrap;
+  }
+  .aepsBtnRow .resetBtn {
+    flex: 0 0 36px !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+  }
+  .resetText {
+    display: none;
   }
 }
 

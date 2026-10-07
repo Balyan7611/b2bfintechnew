@@ -19,7 +19,7 @@ All pages, headers, sidebars, and widgets must read their visual properties and 
 * **Branding Fields**: `companyName`, `brandName`, `shortName`, `ownerName`, `phone`, `email`, `address`, `copyright`.
 * **Theme Styling Colors**: `headerColor`, `leftColor`, `bodyColor`. These define header, sidebar, and body background colors dynamically updated from backend configurations.
 * **Images**: Centralized helpers resolve full image paths from the API:
-  * `getImageUrl(filename, folder)` -> maps to `https://api.sahayatamoney.in/UploadedFiles/{folder}/{filename}`.
+  * `getImageUrl(filename, folder)` -> maps to `https://b2b.bype.in/UploadedFiles/{folder}/{filename}`.
   * `getLogoUrl(filename)`, `getSignatureUrl(filename)`, `getFaviconUrl(filename)`.
 * **Method**: Invoke `updateSiteConfig(apiData)` on app load to sync database branding values to the client.
 
@@ -27,7 +27,7 @@ All pages, headers, sidebars, and widgets must read their visual properties and 
 
 ## 3. Network & API Layer (`src/api/` & `src/services/`)
 API interactions must use the centralized `httpClient.js` Axios wrapper.
-* **Base URL**: `https://api.sahayatamoney.in/api`
+* **Base URL**: `https://b2b.bype.in/api`
 * **Features**:
   * **Bearer Token Injection**: Automatically pulls `access_token` from `localStorage` and appends it to headers.
   * **Loader Orchestration**: Increments/decrements an active request counter to show/hide the global spinner overlay via Redux (`showLoader` / `hideLoader`).

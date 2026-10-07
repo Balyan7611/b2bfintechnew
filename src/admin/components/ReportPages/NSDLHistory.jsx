@@ -400,10 +400,10 @@ const NSDLHistory = () => {
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan="14" style={{ padding: '30px 0', textAlign: 'center', color: '#1756AA' }}>Loading NSDL transactions...</td></tr>
+                                <tr><td colSpan="13" style={{ padding: '30px 0', textAlign: 'center', color: '#1756AA' }}>Loading NSDL transactions...</td></tr>
                             ) : currentRows.length === 0 ? (
                                 <tr>
-                                    <td colSpan="14" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0' }}>
+                                    <td colSpan="13" style={{ padding: '40px 0', textAlign: 'center', color: '#A0AEC0' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                                             <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '50%', border: '1px solid #E2E8F0' }}>
                                                 <FiDatabase size={24} color="#94A3B8" />
@@ -449,14 +449,6 @@ const NSDLHistory = () => {
                                             </td>
                                             <td>{txn.operatorName || txn.operatorId || txn.refid || txn.refNo || 'N/A'}</td>
                                             <td style={{ color: '#64748B', fontSize: '0.8rem', fontStyle: 'italic' }}>{txn.remark || 'N/A'}</td>
-                                            <td style={{ textAlign: 'center' }}>
-                                                <button
-                                                    onClick={() => setActiveReceipt({ ...txn, _type: 'recharge' })}
-                                                    style={{ background: '#E0F2FE', color: '#0369A1', padding: '4px 10px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 700, border: '1px solid #BAE6FD', cursor: 'pointer' }}
-                                                >
-                                                    RECEIPT
-                                                </button>
-                                            </td>
                                         </tr>
                                     );
                                 })

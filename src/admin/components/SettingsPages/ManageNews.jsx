@@ -63,7 +63,9 @@ const ManageNews = () => {
     setEditingId(null);
     setTitle("");
     setTargetType("Global");
-    setExpiryDate("");
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    setExpiryDate(todayStr);
     setContent("");
     setIsModalOpen(true);
     setTimeout(() => {
@@ -149,15 +151,27 @@ const ManageNews = () => {
   return (
     <div className={styles.container} style={{ padding: '15px 10px', maxWidth: '100%' }}>
             <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
-          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E' }}>Manage Dashboard News</h3>
-          <button style={{ 
-            display: 'flex', alignItems: 'center', gap: '8px', 
-            background: 'linear-gradient(135deg, #1756AA 0%, #114080 100%)', 
-            color: '#fff', border: 'none', borderRadius: '8px', 
-            padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' 
+                <style>{`
+          @media (max-width: 480px) {
+            .mn-header-row { flex-wrap: nowrap !important; }
+            .mn-header-title { font-size: 0.82rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+            .mn-add-btn { padding: 8px 10px !important; font-size: 0.68rem !important; flex-shrink: 0; white-space: nowrap; }
+            .mn-add-btn .mn-add-text-full { display: none; }
+            .mn-add-btn .mn-add-text-short { display: inline; }
+          }
+          .mn-add-text-short { display: none; }
+        `}</style>
+        <div className="mn-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '15px' }}>
+          <h3 className="mn-header-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', minWidth: 0 }}>Manage Dashboard News</h3>
+          <button className="mn-add-btn" style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            background: 'linear-gradient(135deg, #1756AA 0%, #114080 100%)',
+            color: '#fff', border: 'none', borderRadius: '8px',
+            padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer'
           }} onClick={handleOpenNew}>
-            <FiPlus /> <span>Publish New Update</span>
+            <FiPlus />
+            <span className="mn-add-text-full">Publish New Update</span>
+            <span className="mn-add-text-short">Publish</span>
           </button>
         </div>
 

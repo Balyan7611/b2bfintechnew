@@ -286,25 +286,55 @@ const DesignService = () => {
       </div>
 
             {isModalOpen && (
-        <div className={styles.drawerOverlay} onClick={() => setIsModalOpen(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div className={`${styles.drawerOverlay} ds-overlay`} onClick={() => setIsModalOpen(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <style>{`
+            @media (max-width: 640px) {
+              .ds-overlay { padding: 8px !important; }
+              .ds-drawer-pad { padding: 16px !important; }
+              .ds-drawer-inner { padding: 16px !important; }
+              .ds-top-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 10px !important;
+                margin-bottom: 20px !important;
+              }
+              /* Reorder: Name full-width, then Box Color + Text Color side by
+                 side, then Service Type full-width — instead of Name+BoxColor
+                 / TextColor+ServiceType pairing which was cramming the
+                 Service Type dropdown into half-width and clipping it. */
+              .ds-top-grid > div:nth-child(1) { grid-column: 1 / -1; order: 1; }
+              .ds-top-grid > div:nth-child(2) { order: 2; }
+              .ds-top-grid > div:nth-child(3) { order: 3; }
+              .ds-top-grid > div:nth-child(4) { grid-column: 1 / -1; order: 4; }
+              .ds-top-grid label { font-size: 0.68rem !important; }
+              .ds-top-grid select, .ds-top-grid input[type="text"] { width: 100% !important; box-sizing: border-box !important; }
+              .ds-svc-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+              .ds-svc-grid label { padding: 10px 8px !important; gap: 8px !important; }
+              .ds-svc-grid span { font-size: 0.72rem !important; }
+              .ds-title { font-size: 0.85rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+              .ds-footer { padding: 12px 16px !important; }
+              .ds-footer button, .ds-footer > * { flex: 1; }
+              .ds-cancel-btn { padding: 9px 12px !important; font-size: 0.78rem !important; }
+              .ds-assign-btn { padding: 9px 12px !important; font-size: 0.78rem !important; justify-content: center !important; }
+            }
+          `}</style>
           <div className={styles.drawer} onClick={(e) => e.stopPropagation()} style={{ width: '1100px', maxWidth: '100%', maxHeight: '90vh', background: '#fff', borderRadius: '20px', transform: 'none', position: 'relative', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
-            
-                        <div style={{ padding: '12px 25px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', borderRadius: '20px 20px 0 0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
+                        <div className="ds-drawer-pad" style={{ padding: '12px 25px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', borderRadius: '20px 20px 0 0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <FiLayout size={18} />
                 </div>
-                <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>Create Service Section</h2>
+                <h2 className="ds-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', minWidth: 0 }}>Create Service Section</h2>
               </div>
-              <button onClick={() => setIsModalOpen(false)} style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', cursor: 'pointer', transition: 'all 0.2s' }}>
+              <button onClick={() => setIsModalOpen(false)} style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0 }}>
                 <FiX size={16} />
               </button>
             </div>
-            
-                        <div style={{ padding: '30px', overflowY: 'auto', flex: 1, background: '#F8FAFC' }}>
+
+                        <div className="ds-drawer-inner" style={{ padding: '30px', overflowY: 'auto', flex: 1, background: '#F8FAFC' }}>
               <div style={{ background: '#fff', borderRadius: '16px', padding: '25px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)', border: '1px solid #F1F5F9' }}>
-                
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+
+                                <div className="ds-top-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Name</label>
                     <input type="text" placeholder="Enter service name" style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '0.95rem', background: '#F8FAFC', color: '#0F172A', outline: 'none' }} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
@@ -391,7 +421,7 @@ const DesignService = () => {
                       </div>
                     </div>
                     
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '15px' }}>
+                    <div className="ds-svc-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '15px' }}>
                       {services.map((srv) => (
                         <label key={srv.id} style={{ 
                           display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 15px', 
@@ -426,10 +456,11 @@ const DesignService = () => {
               </div>
             </div>
 
-                        <div style={{ padding: '15px 25px', borderTop: '1px solid #F1F5F9', background: '#fff', borderRadius: '0 0 20px 20px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <button onClick={() => setIsModalOpen(false)} style={{ padding: '10px 20px', borderRadius: '8px', background: '#F1F5F9', color: '#475569', border: 'none', fontWeight: 700, cursor: 'pointer' }} disabled={isSaving}>Cancel</button>
-              <PrimaryButton 
-                onClick={handleSave} 
+                        <div className="ds-footer" style={{ padding: '15px 25px', borderTop: '1px solid #F1F5F9', background: '#fff', borderRadius: '0 0 20px 20px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button className="ds-cancel-btn" onClick={() => setIsModalOpen(false)} style={{ padding: '10px 20px', borderRadius: '8px', background: '#F1F5F9', color: '#475569', border: 'none', fontWeight: 700, cursor: 'pointer' }} disabled={isSaving}>Cancel</button>
+              <PrimaryButton
+                className="ds-assign-btn"
+                onClick={handleSave}
                 disabled={isSaving}
               >
                 {isSaving ? (

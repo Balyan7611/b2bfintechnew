@@ -307,10 +307,22 @@ const ManageCompany = () => {
             {viewState === 'table' && (
         <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.06)', borderRadius: '16px' }}>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '10px' }}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>Manage Companies</h3>
-            <PrimaryButton onClick={() => { setFormData(INIT_FORM); setErrorMsg(''); setViewState('add'); }}>
-              <FiPlus /> Add New Company
+                    <style>{`
+            @media (max-width: 480px) {
+              .mc-header-row { flex-wrap: nowrap !important; }
+              .mc-header-title { font-size: 0.85rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+              .mc-add-btn { padding: 8px 10px !important; font-size: 0.7rem !important; flex-shrink: 0; }
+              .mc-add-btn .mc-add-text-full { display: none; }
+              .mc-add-btn .mc-add-text-short { display: inline; }
+            }
+            .mc-add-text-short { display: none; }
+          `}</style>
+          <div className="mc-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '10px' }}>
+            <h3 className="mc-header-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>Manage Companies</h3>
+            <PrimaryButton className="mc-add-btn" onClick={() => { setFormData(INIT_FORM); setErrorMsg(''); setViewState('add'); }}>
+              <FiPlus />
+              <span className="mc-add-text-full">Add New Company</span>
+              <span className="mc-add-text-short">Add New</span>
             </PrimaryButton>
           </div>
 
@@ -901,7 +913,7 @@ const ImagePreview = ({ newPreview, existingPath, folder, label }) => {
   /* ── Case 2: Existing server image — build correct folder URL ── */
   if (!existingPath) return null;
 
-  // Build: https://api.sahayatamoney.in/UploadedFiles/{folder}/{filename}
+  // Build: https://b2b.bype.in/UploadedFiles/{folder}/{filename}
   const folderMap = { logo: getLogoUrl, signature: getSignatureUrl, favicon: getFaviconUrl };
   const urlBuilder = folderMap[folder] || getLogoUrl;
   const serverUrl  = urlBuilder(existingPath);

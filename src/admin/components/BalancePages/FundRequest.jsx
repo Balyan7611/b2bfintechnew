@@ -242,7 +242,7 @@ const FundRequest = () => {
 
         {/* ── Always-visible Filter Row ── */}
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #E8EEF6', background: '#F8FAFD' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', alignItems: 'flex-end' }}>
+          <div className={styles.fundFilterGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', alignItems: 'flex-end' }}>
             <div>
               <label style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'block', marginBottom: '4px' }}>From Date</label>
               <input type="date" className={styles.inputControl} value={tempFilters.fromDate} onChange={e => setTempFilters({...tempFilters, fromDate: e.target.value})} style={{ height: '36px', borderRadius: '8px', fontSize: '0.82rem', width: '100%' }} />

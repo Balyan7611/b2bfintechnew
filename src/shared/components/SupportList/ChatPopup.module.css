@@ -362,7 +362,12 @@
     height: 100vh;
     height: 100dvh;
     border-radius: 0;
-    z-index: 10000;
+    /* Was 10000 here — lower than .backdrop's z-index: 12000, so on mobile
+       the dark blurred backdrop rendered ON TOP of the popup instead of
+       behind it, making the whole chat look like a washed-out blue haze
+       with barely-visible content. Match desktop's z-index so the popup
+       stays above the backdrop. */
+    z-index: 12001;
   }
 
   .header {

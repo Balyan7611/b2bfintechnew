@@ -268,10 +268,21 @@ const SMSTemplate = () => {
       )}
 
             <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
-          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap' }}>SMS & Notification Templates</h2>
-          <PrimaryButton onClick={() => setIsDrawerOpen(true)}>
-            <FaPlus /> <span>New Template</span>
+                <style>{`
+          @media (max-width: 480px) {
+            .st-header-title { font-size: 0.8rem !important; overflow: hidden; text-overflow: ellipsis; }
+            .st-add-btn { padding: 8px 10px !important; font-size: 0.68rem !important; flex-shrink: 0; white-space: nowrap; }
+            .st-add-btn .st-add-text-full { display: none; }
+            .st-add-btn .st-add-text-short { display: inline; }
+          }
+          .st-add-text-short { display: none; }
+        `}</style>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #F1F5F9', flexWrap: 'nowrap', gap: '15px' }}>
+          <h2 className="st-header-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E', whiteSpace: 'nowrap', minWidth: 0 }}>SMS & Notification Templates</h2>
+          <PrimaryButton className="st-add-btn" onClick={() => setIsDrawerOpen(true)}>
+            <FaPlus />
+            <span className="st-add-text-full">New Template</span>
+            <span className="st-add-text-short">New</span>
           </PrimaryButton>
         </div>
 

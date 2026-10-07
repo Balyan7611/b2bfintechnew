@@ -162,10 +162,17 @@ const EmployeeLoginList = () => {
 
   return (
     <div className={styles.container} style={{ padding: '20px 16px 0px 16px', maxWidth: '100%' }}>
-            <div className={styles.cardFullMobile}>
+            <style>{`
+        @media (max-width: 640px) {
+          .ela-filter-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+          .ela-filter-grid label { font-size: 0.7rem !important; }
+          .ela-filter-grid input, .ela-filter-grid [role="button"] { height: 36px !important; font-size: 0.78rem !important; padding: 0 10px !important; }
+        }
+      `}</style>
+      <div className={styles.cardFullMobile}>
                 <div style={{ padding: '20px 25px', display: 'flex', flexDirection: 'column', gap: '15px', borderBottom: '1px solid #F1F5F9', background: '#F8FAFF' }}>
                    <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0D1B3E' }}>Employee Login Activity</h3>
-                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', alignItems: 'end' }}>
+                   <div className="ela-filter-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', alignItems: 'end' }}>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4E6080' }}>From Date</label>
               <input 

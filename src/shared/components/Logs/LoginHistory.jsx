@@ -196,10 +196,16 @@ const LoginHistory = () => {
 
   return (
     <div style={{ padding: '15px 16px 0px 16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      
-      <div style={{ 
-        background: 'var(--card-bg, #ffffff)', 
-        borderRadius: '16px', 
+      <style>{`
+        @media (max-width: 640px) {
+          .lh-filter-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; padding: 14px 16px !important; }
+          .lh-filter-grid label { font-size: 0.7rem !important; }
+          .lh-filter-grid button { grid-column: 1 / -1; }
+        }
+      `}</style>
+      <div className="lh-filter-grid" style={{
+        background: 'var(--card-bg, #ffffff)',
+        borderRadius: '16px',
         padding: '20px 25px',
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
         border: '1px solid var(--border-color, #e2e8f0)',

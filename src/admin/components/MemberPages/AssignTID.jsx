@@ -101,13 +101,39 @@ const AssignTID = () => {
 
   return (
     <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
-            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+            {/* Scoped to this page only — `.directoryTitle`/`.directoryHeader`/
+          `.pillRow`/`.tableSearch` are shared module classes reused across
+          many other admin list pages, so overriding them here directly
+          would change those pages too. */}
+      <style>{`
+        @media (max-width: 640px) {
+          .atid-card .atid-subtitle {
+            display: none;
+          }
+          .atid-card .${styles.directoryTitle} {
+            font-size: 0.95rem !important;
+          }
+          .atid-card .atid-assign-btn {
+            padding: 6px 10px !important;
+            font-size: 0.75rem !important;
+          }
+          .atid-card .${styles.directoryHeader} {
+            flex-direction: column;
+            align-items: stretch !important;
+          }
+          .atid-card .${styles.tableSearch} {
+            width: 100%;
+            min-width: 0 !important;
+          }
+        }
+      `}</style>
+      <div className={`${styles.cardFullMobile} atid-card`} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', padding: '10px 20px', borderBottom: '1px solid #F1F5F9' }}>
           <div className={styles.directoryTitleGroup} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <h2 className={styles.directoryTitle} style={{ fontSize: '1.1rem', margin: 0 }}>Assign TID</h2>
-            <span style={{ fontSize: '0.75rem', color: '#718096', paddingLeft: '12px', borderLeft: '1px solid #E2E8F0' }}>Manage AEPS terminals</span>
+            <span className="atid-subtitle" style={{ fontSize: '0.75rem', color: '#718096', paddingLeft: '12px', borderLeft: '1px solid #E2E8F0' }}>Manage AEPS terminals</span>
           </div>
-          <button onClick={() => setShowAssignModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', color: '#fff', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', width: 'auto' }}>
+          <button onClick={() => setShowAssignModal(true)} className="atid-assign-btn" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', color: '#fff', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', width: 'auto' }}>
             <FaPlus /> Assign TID
           </button>
         </div>
@@ -128,10 +154,10 @@ const AssignTID = () => {
 
           <div className={styles.tableSearch} style={{ background: '#fff', minWidth: '240px' }}>
             <FaSearch />
-            <input 
-               type="text" 
-               placeholder="Search terminals..." 
-               style={{ fontSize: '0.85rem' }} 
+            <input
+               type="text"
+               placeholder="Search terminals..."
+               style={{ fontSize: '0.85rem' }}
                value={searchTerm}
                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
              />

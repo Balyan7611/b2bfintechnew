@@ -248,28 +248,33 @@ const SupportList = () => {
               className={styles.searchInput}
             />
           </div>
-          <div style={{ position: 'relative', width: '220px' }}>
-            <SearchableSelect
-              value={filterMember}
-              onChange={(val) => setFilterMember(val)}
-              options={[
-                { label: 'All Members', value: '' },
-                ...memberOptions.map(m => ({ label: `${m.name} (${m.id})`, value: m.id }))
-              ]}
-              placeholder="All Members"
-              style={{ height: '38px', borderRadius: '10px', border: '1.5px solid #E2E8F0', fontSize: '0.85rem' }}
-            />
+          {/* Member + Priority grouped together so on a small screen they sit
+              side-by-side in one row, instead of each stacking as its own
+              full-width row under the search box. */}
+          <div className={styles.filterDropdownRow}>
+            <div style={{ position: 'relative', width: '220px' }} className={styles.memberFilterWrap}>
+              <SearchableSelect
+                value={filterMember}
+                onChange={(val) => setFilterMember(val)}
+                options={[
+                  { label: 'All Members', value: '' },
+                  ...memberOptions.map(m => ({ label: `${m.name} (${m.id})`, value: m.id }))
+                ]}
+                placeholder="All Members"
+                style={{ height: '38px', borderRadius: '10px', border: '1.5px solid #E2E8F0', fontSize: '0.85rem' }}
+              />
+            </div>
+            <select
+              className={styles.selectInput}
+              value={filterPriority}
+              onChange={(e) => setFilterPriority(e.target.value)}
+            >
+              <option value="All">All Priorities</option>
+              <option value="High">High</option>
+              <option value="Normal">Normal</option>
+              <option value="Low">Low</option>
+            </select>
           </div>
-          <select
-            className={styles.selectInput}
-            value={filterPriority}
-            onChange={(e) => setFilterPriority(e.target.value)}
-          >
-            <option value="All">All Priorities</option>
-            <option value="High">High</option>
-            <option value="Normal">Normal</option>
-            <option value="Low">Low</option>
-          </select>
         </div>
       </div>
 
@@ -278,6 +283,10 @@ const SupportList = () => {
           <h3>Support Tickets</h3>
         </div>
         
+        {/* Mobile-only hint — the table wrapper always scrolled horizontally,
+            but on a narrow phone screen it just looked like the Message/
+            Status/Reply columns were cut off with no obvious way to see them. */}
+        <div className={styles.scrollHint}>← Swipe to see more →</div>
         <div className={sharedStyles.tableWrapper}>
           <table className={sharedStyles.table}>
             <thead>

@@ -986,8 +986,21 @@
   .avatarWrapper { width: 32px; height: 32px; }
   .upgradeBtnNavy { display: none; }
 
-  /* Dropdowns stay on screen on small phones */
-  .msgDropdown { right: -8px; border-radius: 10px; }
+  /* Dropdowns stay on screen on small phones. Switched to position:fixed
+     anchored to the viewport (instead of position:absolute relative to the
+     bell icon) so it can't drift off to one side if any ancestor in the
+     header ends up establishing its own positioning/transform context. */
+  .msgDropdown {
+    position: fixed;
+    top: 64px;
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-width: none;
+    margin-top: 0;
+    border-radius: 10px;
+  }
+  .dropdownTopPointer { display: none; }
   .dropdown { right: 0; width: min(260px, calc(100vw - 16px)); }
   .mobileWalletDropdown { width: min(220px, calc(100vw - 24px)); }
 

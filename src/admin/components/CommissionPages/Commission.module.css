@@ -82,7 +82,23 @@
   .formGridFive { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 768px) {
-  .formGridFive { grid-template-columns: 1fr; }
+  /* Was collapsing all 5 fields (Api/Service/Operator/Start/End) to a
+     single column, so every one stacked as its own full-width row. 2 per
+     row instead, plus a smaller title/subtitle and a full-width (instead
+     of fixed 240px) Slab Charges panel so it doesn't get clipped. */
+  .formGridFive {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .directoryTitle {
+    font-size: 0.95rem !important;
+  }
+  .directorySubtitle {
+    font-size: 0.68rem !important;
+  }
+  .slabCol {
+    width: 100% !important;
+  }
 }
 
 @media (max-width: 992px) {
@@ -653,6 +669,31 @@
 .dmBtnBrand:hover { background: var(--dm-brand-dark); transform: translateY(-1px); }
 .dmBtnOutline { background: var(--dm-brand-light); color: var(--dm-brand-dark); }
 .dmBtnOutline:hover { background: #e2ddfc; }
+
+@media (max-width: 640px) {
+  /* Package/Service/Operator dropdowns each had a 190px min-width inside a
+     wrapping flex row, so on a narrow phone only one fit per row. 2 per
+     row instead, and smaller Save/Reset buttons alongside them. */
+  .dmToolbar {
+    gap: 10px;
+  }
+  .dmField {
+    min-width: 0;
+    flex: 1 1 calc(50% - 5px);
+  }
+  .dmTitle {
+    font-size: 14px;
+  }
+  .dmTitleSub {
+    display: block;
+    font-size: 11.5px;
+    margin-top: 2px;
+  }
+  .dmBtn {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+}
 
 .dmLegend { display: flex; gap: 20px; flex-wrap: wrap; padding: 16px 26px; border-top: 1px solid var(--dm-border); background: #fbfbfe; }
 .dmLegendItem { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--dm-ink-soft); font-weight: 500; }

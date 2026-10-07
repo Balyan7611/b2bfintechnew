@@ -17,15 +17,25 @@ const ServiceSelectionGrid = ({
 
   return (
     <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '12px', borderBottom: '2px solid #F1F5F9' }}>
-        <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#1756AA', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <style>{`
+        @media (max-width: 640px) {
+          .ssg-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; padding: 14px !important; }
+          .ssg-grid > div { padding: 10px 8px !important; gap: 8px !important; }
+          .ssg-grid > div span { font-size: 0.72rem !important; }
+          .ssg-header-title { font-size: 0.85rem !important; }
+          .ssg-enable-btn { padding: 5px 10px !important; font-size: 0.68rem !important; }
+        }
+      `}</style>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '12px', borderBottom: '2px solid #F1F5F9' }}>
+        <h4 className="ssg-header-title" style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#1756AA', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <FiGrid /> Available Services ({filteredServices.length})
         </h4>
         {onSelectAllToggle && (
-          <button 
-            type="button" 
+          <button
+            className="ssg-enable-btn"
+            type="button"
             onClick={onSelectAllToggle}
-            style={{ 
+            style={{
               display: 'flex', alignItems: 'center', gap: '8px', 
               background: allFilteredChecked ? 'rgba(239, 68, 68, 0.1)' : 'rgba(23, 86, 170, 0.1)', 
               color: allFilteredChecked ? '#EF4444' : '#1756AA', 
@@ -52,9 +62,9 @@ const ServiceSelectionGrid = ({
         )}
       </div>
 
-            <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 260px))', 
+            <div className="ssg-grid" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 260px))',
         gap: '16px', 
         alignItems: 'start',
         background: '#F8FAFC', 

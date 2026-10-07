@@ -221,14 +221,28 @@ const SwitchSystem = () => {
 
     return (
     <div className={styles.container} style={{ padding: '15px 15px 0 15px', maxWidth: '100%' }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .ss-form-section { padding: 16px !important; }
+          .ss-grid { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+          .ss-grid .ss-note { grid-column: 1 / -1 !important; }
+          .ss-search-box { max-width: 100% !important; box-sizing: border-box; }
+        }
+        @media (max-width: 480px) {
+          .ss-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+          .ss-grid label { font-size: 0.68rem !important; }
+          .ss-grid input { height: 34px !important; font-size: 0.75rem !important; }
+          .ss-grid [role="button"] { height: 34px !important; font-size: 0.75rem !important; padding: 0 8px !important; }
+        }
+      `}</style>
       <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 20px', borderBottom: '1px solid #F1F5F9' }}>
           <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0D1B3E' }}>Switch System</h3>
         </div>
 
-                <div style={{ padding: '24px 28px', borderBottom: '1px solid #F1F5F9', background: '#fff' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', alignItems: 'flex-end' }}>
+                <div className="ss-form-section" style={{ padding: '24px 28px', borderBottom: '1px solid #F1F5F9', background: '#fff' }}>
+          <div className="ss-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', alignItems: 'flex-end' }}>
 
                         <div className={styles.formGroup} style={{ margin: 0 }}>
               <label style={labelStyle}>Switch Type</label>
@@ -375,7 +389,7 @@ const SwitchSystem = () => {
               </button>
             </div>
 
-                        <div style={{ gridColumn: 'span 4', marginTop: '4px' }}>
+                        <div className="ss-note" style={{ gridColumn: 'span 4', marginTop: '4px' }}>
               <p style={{ fontSize: '0.75rem', color: '#64748B', lineHeight: '1.4', margin: 0 }}>
                 <strong>Note:</strong> if you want fix amount then use "," and for range use "-" like (eg. 10, 20, 50-200, 300-500)
               </p>
@@ -408,7 +422,7 @@ const SwitchSystem = () => {
             <button className="global-export-btn btn-print" title="Print Table"><FaPrint /></button>
           </div>
 
-          <div className="global-search-box" style={{ maxWidth: '300px' }}>
+          <div className="global-search-box ss-search-box" style={{ maxWidth: '300px' }}>
             <FiSearch />
             <input
               type="text"

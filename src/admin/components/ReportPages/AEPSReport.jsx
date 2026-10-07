@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TransactionReceipt from '../../../member/components/MemberPanel/Services/TransactionReceipt';
 import ExportButtons from '../../../shared/components/common/ExportButtons';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiFilter } from 'react-icons/fi';
-import { 
-  setAEPSList, 
-  updateAEPSFilters, 
-  setAEPSSearchQuery, 
-  setAEPSRowsPerPage, 
-  setAEPSCurrentPage 
+import { API } from '../../../api/endpoints';
+import {
+  setAEPSList,
+  updateAEPSFilters,
+  setAEPSSearchQuery,
+  setAEPSRowsPerPage,
+  setAEPSCurrentPage
 } from '../../../store/slices/reportSlice';
 import AdminTable from '../../../shared/components/common/AdminTable';
 import styles from './AEPSReport.module.css';
@@ -16,13 +17,27 @@ import styles from './AEPSReport.module.css';
 const AEPSReport = () => {
   const dispatch = useDispatch();
   const [activeReceipt, setActiveReceipt] = useState(null);
-  const { 
-    list, 
+  const [memberList, setMemberList] = useState([]);
+  const {
+    list,
     filters,
-    searchQuery, 
-    rowsPerPage, 
-    currentPage 
+    searchQuery,
+    rowsPerPage,
+    currentPage
   } = useSelector(state => state.report.aepsReport);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const res = await API.member.getAll({ pageNumber: 1, pageSize: 5000 });
+        const list = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
+        setMemberList(Array.isArray(list) ? list : []);
+      } catch (err) {
+        console.error("Failed to fetch members:", err);
+      }
+    };
+    fetchMembers();
+  }, []);
 
   const filteredList = list.filter(item => {
     const matchesSearch = item.memberName.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -90,13 +105,22 @@ const AEPSReport = () => {
               </div>
               <div className={styles.formGroup}>
                 <label>Member</label>
-                <select 
+                <select
                   className={styles.inputControl}
                   name="memberId"
                   value={filters.memberId}
                   onChange={handleFilterChange}
                 >
                   <option value="">All Members</option>
+                  {memberList.map(m => {
+                    const name = m.name || m.fullName || m.memberName || m.ownerName || m.firmName || '';
+                    const loginId = m.memberID || m.memberid || m.loginID || m.loginId || String(m.id || m.msrno || '');
+                    return (
+                      <option key={m.id || loginId} value={loginId}>
+                        {name ? `${name} (${loginId})` : loginId}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
               <button className={styles.submitBtn} onClick={handleApplyFilters}>

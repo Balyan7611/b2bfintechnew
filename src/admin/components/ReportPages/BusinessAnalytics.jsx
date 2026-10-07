@@ -226,7 +226,7 @@ const BusinessAnalytics = () => {
             <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: 600 }}>{dateRange}</span>
           </div>
 
-                    <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 20 }}>
+                    <div className={styles.kpiGrid} style={{ marginBottom: 20 }}>
             {[
               {
                 icon: <FiDollarSign size={13} />, label: 'TOTAL BUSINESS',
@@ -249,12 +249,19 @@ const BusinessAnalytics = () => {
                 sub: scopeLabel
               },
             ].map(c => (
-              <div key={c.label} style={{ flex: 1, minWidth: 160, background: '#fff', border: '1px solid #E8EDF5', borderRadius: 12, padding: '18px 20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#4B5DB8', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
-                  {c.icon} {c.label}
+              // Switched from a fixed-inline-style flex layout (which never
+              // adapted to screen size) to the CSS module's .kpiGrid/.kpiCard
+              // classes — same fix already applied on ApiAnalytics.jsx, so
+              // these cards get a proper 2-per-row mobile layout with
+              // right-sized text instead of squeezed/oversized inline ones.
+              <div key={c.label} className={styles.kpiCard}>
+                <div className={styles.kpiHeader}>
+                  <span className={styles.kpiTitle} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {c.icon} {c.label}
+                  </span>
                 </div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0D1B3E', lineHeight: 1 }}>{c.value}</div>
-                <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: 5 }}>{c.sub}</div>
+                <span className={styles.kpiValue}>{c.value}</span>
+                <div className={styles.kpiTrend}>{c.sub}</div>
               </div>
             ))}
           </div>

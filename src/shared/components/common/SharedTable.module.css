@@ -97,4 +97,22 @@
 @media (max-width: 768px) {
   .tableWrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .table { min-width: 650px; }
+  /* The wrapper always scrolled correctly, but the native scrollbar is thin
+     enough on most phones to be invisible, so it looked like content was
+     just cut off with no way to see the rest. Make the scrollbar itself
+     visible/grabbable as a clear "there's more, swipe" cue. */
+  .tableWrapper::-webkit-scrollbar {
+    height: 8px;
+  }
+  .tableWrapper::-webkit-scrollbar-track {
+    background: #F1F5F9;
+  }
+  .tableWrapper::-webkit-scrollbar-thumb {
+    background: #94A3B8;
+    border-radius: 4px;
+  }
+  .table th, .table td {
+    padding: 8px 8px;
+    font-size: 0.74rem;
+  }
 }

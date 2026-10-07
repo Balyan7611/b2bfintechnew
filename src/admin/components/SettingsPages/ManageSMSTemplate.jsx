@@ -401,30 +401,37 @@ const ManageSMSTemplate = () => {
       </div>
 
             {isDrawerOpen && (
-        <div 
+        <div
           onClick={resetForm}
-          style={{ 
-            position: 'fixed', 
-            inset: 0, 
-            background: 'rgba(15, 23, 42, 0.3)', 
-            backdropFilter: 'blur(4px)', 
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.3)',
+            backdropFilter: 'blur(4px)',
             zIndex: 3500,
             animation: 'fadeIn 0.2s ease'
           }}
         >
-          <div 
+          <style>{`
+            @media (max-width: 640px) {
+              .mst-drawer { width: 100vw !important; }
+            }
+          `}</style>
+          <div
+            className="mst-drawer"
             onClick={(e) => e.stopPropagation()}
-            style={{ 
-              position: 'fixed', 
-              top: 0, 
-              right: 0, 
-              bottom: 0, 
-              width: '450px', 
-              background: '#ffffff', 
-              boxShadow: '-10px 0 30px rgba(0, 0, 0, 0.08)', 
-              zIndex: 3501, 
-              display: 'flex', 
-              flexDirection: 'column', 
+            style={{
+              position: 'fixed',
+              top: 0,
+              right: 0,
+              bottom: 0,
+              width: '450px',
+              maxWidth: '100%',
+              background: '#ffffff',
+              boxShadow: '-10px 0 30px rgba(0, 0, 0, 0.08)',
+              zIndex: 3501,
+              display: 'flex',
+              flexDirection: 'column',
               animation: 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
           >

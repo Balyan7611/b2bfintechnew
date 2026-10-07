@@ -200,7 +200,17 @@ const KYCDocuments = () => {
 
   return (
     <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
-            <div style={{ 
+      {/* Title/subtitle/save-button here are plain inline-styled elements local
+          to this page (not shared CSS-module classes), so it's safe to shrink
+          them directly for mobile via these page-local class names. */}
+      <style>{`
+        @media (max-width: 640px) {
+          .kycdoc-title { font-size: 0.95rem !important; }
+          .kycdoc-subtitle { font-size: 0.68rem !important; }
+          .kycdoc-save-btn { padding: 0 16px !important; height: 34px !important; font-size: 0.78rem !important; }
+        }
+      `}</style>
+            <div style={{
         background: '#ffffff',
         borderRadius: '20px',
         boxShadow: '0 8px 24px rgba(23, 86, 170, 0.02), 0 1px 4px rgba(23, 86, 170, 0.04)',
@@ -211,8 +221,8 @@ const KYCDocuments = () => {
         gap: '16px'
       }}>
                 <div style={{ paddingBottom: '12px', borderBottom: '1px solid #E2E8F0' }}>
-          <h2 style={{ fontSize: '1.2rem', margin: 0, padding: 0, color: '#0D1B3E', fontWeight: 800 }}>KYC Document Master</h2>
-          <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748B' }}>Configure identification document requirements</p>
+          <h2 className="kycdoc-title" style={{ fontSize: '1.2rem', margin: 0, padding: 0, color: '#0D1B3E', fontWeight: 800 }}>KYC Document Master</h2>
+          <p className="kycdoc-subtitle" style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748B' }}>Configure identification document requirements</p>
         </div>
 
                 <form onSubmit={handleAddSubmit} style={{ display: 'flex', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap' }}>
@@ -284,23 +294,24 @@ const KYCDocuments = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%', paddingBottom: '2px' }}>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={isSubmitting}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
+              className="kycdoc-save-btn"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'center',
-                gap: '8px', 
-                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', 
-                color: '#fff', 
-                border: 'none', 
-                borderRadius: '10px', 
-                padding: '0 24px', 
-                height: '38px', 
-                fontSize: '0.85rem', 
-                fontWeight: 700, 
-                cursor: 'pointer', 
+                gap: '8px',
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '10px',
+                padding: '0 24px',
+                height: '38px',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                cursor: 'pointer',
                 boxShadow: '0 4px 12px rgba(5, 150, 105, 0.2)',
                 transition: 'all 0.2s'
               }}

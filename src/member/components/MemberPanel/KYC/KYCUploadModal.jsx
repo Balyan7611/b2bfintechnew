@@ -240,7 +240,7 @@ const KYCUploadModal = ({ isOpen, onClose, onUploaded }) => {
                   const readyToUpload = !!row.document && !!row.frontFile && (sideCount === 1 || !!row.backFile);
                   return (
                     <tr key={row.id}>
-                      <td>
+                      <td data-label="Document">
                         <select
                           className={uploadStyles.selectControl}
                           value={row.document}
@@ -257,7 +257,7 @@ const KYCUploadModal = ({ isOpen, onClose, onUploaded }) => {
                           ))}
                         </select>
                       </td>
-                      <td>
+                      <td data-label="File">
                         {!row.document ? (
                           <span style={{ fontSize: '0.8rem', color: '#94A3B8', fontStyle: 'italic' }}>
                             Select a document first
@@ -303,7 +303,7 @@ const KYCUploadModal = ({ isOpen, onClose, onUploaded }) => {
                           </div>
                         )}
                       </td>
-                      <td>
+                      <td data-label="Number">
                         <input
                           type="text"
                           placeholder="Document Number"

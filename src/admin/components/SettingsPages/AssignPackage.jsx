@@ -200,6 +200,18 @@ const AssignPackage = () => {
 
   return (
     <div className={styles.container} style={{ padding: '5px 2px 0px 2px', maxWidth: '100%' }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .ap-page-padding { padding: 0 12px 20px 12px !important; }
+          .ap-pkg-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; padding: 14px !important; }
+          .ap-pkg-item { padding: 10px 8px !important; gap: 8px !important; }
+          .ap-pkg-item label { font-size: 0.72rem !important; }
+          .ap-pkg-item input[type="checkbox"] { width: 15px !important; height: 15px !important; flex-shrink: 0; }
+          .ap-apply-btn { padding: 10px 16px !important; font-size: 0.78rem !important; width: 100%; justify-content: center !important; }
+          .ap-header-title { font-size: 1rem !important; }
+          .ap-avail-title { font-size: 0.85rem !important; }
+        }
+      `}</style>
 
             <PopupModal
         show={popup.show}
@@ -212,10 +224,10 @@ const AssignPackage = () => {
       {/* ── MAIN CARD ── */}
       <div className={styles.cardFullMobile} style={{ margin: '8px 8px 15px 8px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', background: '#fff', borderRadius: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 20px', borderBottom: '1px solid #F1F5F9', marginBottom: '12px', minHeight: '34px' }}>
-          <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0F172A' }}>Assign Package</h3>
+          <h3 className="ap-header-title" style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0F172A' }}>Assign Package</h3>
         </div>
 
-        <div style={{ padding: '0 25px 30px 25px' }}>
+        <div className="ap-page-padding" style={{ padding: '0 25px 30px 25px' }}>
                     <div className={styles.formGroup} style={{ maxWidth: '600px', marginBottom: '35px' }}>
             <label className={styles.label} style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <FiUserCheck size={14} /> Select Role
@@ -233,7 +245,7 @@ const AssignPackage = () => {
           </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid #F1F5F9' }}>
-            <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Available Packages</h4>
+            <h4 className="ap-avail-title" style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Available Packages</h4>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#F8FAFC', padding: '6px 12px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
               <input
                 type="checkbox"
@@ -247,7 +259,7 @@ const AssignPackage = () => {
             </div>
           </div>
 
-                    <div style={{
+                    <div className="ap-pkg-grid" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
             gap: '15px', marginBottom: '40px',
@@ -257,6 +269,7 @@ const AssignPackage = () => {
             {packages.map((pkg) => (
               <div
                 key={pkg.id}
+                className="ap-pkg-item"
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px',
                   background: selectedPackages.includes(pkg.id) ? '#EFF6FF' : '#ffffff',
@@ -292,6 +305,7 @@ const AssignPackage = () => {
 
                     <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
             <button
+              className="ap-apply-btn"
               onClick={handleApply}
               disabled={isSubmitting || !selectedRoleId}
               style={{

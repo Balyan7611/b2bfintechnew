@@ -142,9 +142,9 @@ const MainWalletHistory = () => {
                   <option value="DR">DR (Debit)</option>
                 </select>
               </div>
-              <div className={styles.formGroup} style={{ flex: '0 0 auto' }}>
-                <label style={{ visibility: 'hidden' }}>Search</label>
+              <div className={styles.aepsBtnRow} style={{ display: 'flex', gap: '8px', flex: '0 0 auto' }}>
                 <button
+                  className={styles.submitBtn}
                   type="button"
                   disabled={isLoading}
                   onClick={() => loadHistory(filters)}
@@ -152,10 +152,8 @@ const MainWalletHistory = () => {
                 >
                   <FiSearch size={14} /> Search
                 </button>
-              </div>
-              <div className={styles.formGroup} style={{ flex: '0 0 auto' }}>
-                <label style={{ visibility: 'hidden' }}>Reset</label>
                 <button
+                  className={styles.resetBtn}
                   type="button"
                   title="Reset Filters"
                   onClick={() => {
@@ -169,7 +167,7 @@ const MainWalletHistory = () => {
                   onMouseOver={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#1756AA'; e.currentTarget.style.color = '#1756AA'; }}
                   onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
                 >
-                  <FiRefreshCw size={14} /> Reset
+                  <FiRefreshCw size={14} /><span className={styles.resetText}> Reset</span>
                 </button>
               </div>
             </div>

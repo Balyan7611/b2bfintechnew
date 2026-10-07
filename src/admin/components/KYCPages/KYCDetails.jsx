@@ -369,8 +369,35 @@ const KYCDetails = () => {
   ];
 
   return (
-    <div className={styles.container} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginBottom: '18px' }}>
+    <div className={`${styles.container} kycdetails-page`} style={{ padding: '15px 15px 0px 15px', maxWidth: '100%' }}>
+      {/* `.directoryTitle`/`.directorySubtitle` are shared MemberPages.module.css
+          classes reused across ~20 other admin list pages, so they're overridden
+          here scoped to `.kycdetails-page` instead of editing the shared module,
+          which would change those other pages' layout too. The stat-card grid
+          and filter control widths below are local inline styles, so they get
+          page-local class names to target directly. */}
+      <style>{`
+        @media (max-width: 640px) {
+          .kycdetails-page .${styles.directoryTitle} {
+            font-size: 0.95rem !important;
+          }
+          .kycdetails-page .${styles.directorySubtitle} {
+            font-size: 0.65rem !important;
+          }
+          .kycdetails-page .kyc-stat-grid {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 10px !important;
+          }
+          .kycdetails-page .kyc-member-select,
+          .kycdetails-page .kyc-status-select {
+            width: 47% !important;
+          }
+          .kycdetails-page .kyc-search-box {
+            width: 100% !important;
+          }
+        }
+      `}</style>
+      <div className="kyc-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginBottom: '18px' }}>
         {statCards.map(card => {
           const Icon = card.icon;
           return (
@@ -418,7 +445,7 @@ const KYCDetails = () => {
             <p className={styles.directorySubtitle} style={{ fontSize: '0.75rem' }}>Tracking history of identification verification</p>
           </div>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ position: 'relative', width: '190px' }}>
+            <div className="kyc-member-select" style={{ position: 'relative', width: '190px' }}>
               <SearchableSelect
                 value={selectedMember}
                 onChange={(val) => setSelectedMember(val)}
@@ -441,7 +468,7 @@ const KYCDetails = () => {
               </button>
             )}
 
-            <div style={{ position: 'relative', width: '160px' }}>
+            <div className="kyc-status-select" style={{ position: 'relative', width: '160px' }}>
               <SearchableSelect
                 value={statusFilter}
                 onChange={(val) => setStatusFilter(val)}
@@ -466,7 +493,7 @@ const KYCDetails = () => {
               </button>
             )}
 
-            <div style={{
+            <div className="kyc-search-box" style={{
               position: 'relative',
               display: 'flex',
               alignItems: 'center',
@@ -725,9 +752,9 @@ const KYCDetails = () => {
                      if (cleanPath.toLowerCase().startsWith('uploadedfiles/kycdocuments')) {
                        const suffix = cleanPath.substring('uploadedfiles/kycdocuments'.length);
                        const cleanSuffix = suffix.startsWith('/') ? suffix : '/' + suffix;
-                       return `https://api.sahayatamoney.in/UploadedFiles/kycdocuments${cleanSuffix}`;
+                       return `https://b2b.bype.in/UploadedFiles/kycdocuments${cleanSuffix}`;
                      }
-                     return `https://api.sahayatamoney.in/UploadedFiles/kycdocuments/${cleanPath}`;
+                     return `https://b2b.bype.in/UploadedFiles/kycdocuments/${cleanPath}`;
                   };
 
                   const frontImgUrl = getImageUrl(

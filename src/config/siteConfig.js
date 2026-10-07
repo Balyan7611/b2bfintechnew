@@ -1,5 +1,5 @@
 
-const API_BASE = 'https://api.sahayatamoney.in';
+const API_BASE = 'https://b2b.bype.in';
 
 export const getImageUrl = (filename, folder) => {
   if (!filename) return null;

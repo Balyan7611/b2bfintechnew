@@ -123,7 +123,17 @@ const RoleChange = () => {
 
   return (
     <div className={styles.container} style={{ padding: '20px', maxWidth: '100%', background: '#F4F7FE', minHeight: '100vh' }}>
-      
+      <style>{`
+        @media (max-width: 640px) {
+          .rc-form-pad { padding: 16px !important; }
+          .rc-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+          .rc-grid label { font-size: 0.72rem !important; }
+          .rc-grid select, .rc-grid input[type="text"], .rc-grid [role="button"] { height: 38px !important; font-size: 0.78rem !important; }
+          .rc-grid button { height: 38px !important; font-size: 0.78rem !important; }
+          .rc-search-box { max-width: 100% !important; box-sizing: border-box; }
+        }
+      `}</style>
+
       <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', border: '1px solid #F1F5F9', background: '#fff' }}>
                 <div style={{ padding: '6px 20px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '34px' }}>
           <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>Role Change</h3>
@@ -134,9 +144,9 @@ const RoleChange = () => {
           )}
         </div>
 
-                <div style={{ padding: '20px 25px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px', alignItems: 'flex-end' }}>
+                <div className="rc-form-pad" style={{ padding: '20px 25px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+
+          <div className="rc-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px', alignItems: 'flex-end' }}>
             
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1E293B' }}>Member ID :</label>
@@ -225,7 +235,7 @@ const RoleChange = () => {
             sheetName="Role Change"
           />
 
-          <div className="global-search-box" style={{ maxWidth: '300px', margin: 0 }}>
+          <div className="global-search-box rc-search-box" style={{ maxWidth: '300px', margin: 0 }}>
             <FiSearch />
             <input 
               type="text" 

@@ -84,7 +84,15 @@ const CheckTXN = () => {
   return (
     <>
     <div className={styles.container} style={{ padding: '8px 6px', maxWidth: '100%' }}>
-            <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', overflow: 'hidden', background: '#fff' }}>
+            <style>{`
+        @media (max-width: 480px) {
+          .ctxn-search-box { max-width: 100% !important; box-sizing: border-box; }
+          .ctxn-form { flex-wrap: wrap !important; }
+          .ctxn-form > div:last-child { width: 100%; }
+          .ctxn-form button { flex: 1; justify-content: center !important; padding: 8px 10px !important; font-size: 0.75rem !important; }
+        }
+      `}</style>
+      <div className={styles.cardFullMobile} style={{ marginTop: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '16px', overflow: 'hidden', background: '#fff' }}>
         
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderBottom: '1px solid #F1F5F9', minHeight: '34px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', background: 'rgba(23, 86, 170, 0.1)', color: '#1756AA', borderRadius: '5px' }}>
@@ -95,7 +103,7 @@ const CheckTXN = () => {
 
                 <div style={{ padding: '12px 10px' }}>
           
-                    <form onSubmit={handleSearch} style={{ background: '#F8FAFC', padding: '10px 15px', borderRadius: '10px', border: '1px solid #E2E8F0', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    <form onSubmit={handleSearch} className="ctxn-form" style={{ background: '#F8FAFC', padding: '10px 15px', borderRadius: '10px', border: '1px solid #E2E8F0', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <label style={{ fontWeight: 800, color: '#4E6080', fontSize: '0.85rem', whiteSpace: 'nowrap', margin: 0 }}>
               Transaction ID:
             </label>
@@ -153,7 +161,7 @@ const CheckTXN = () => {
               <button className="global-export-btn btn-print" title="Print Table"><FaPrint /></button>
             </div>
 
-            <div className="global-search-box" style={{ maxWidth: '250px' }}>
+            <div className="global-search-box ctxn-search-box" style={{ maxWidth: '250px' }}>
               <FiSearch />
               <input type="text" placeholder="Search..." style={{ borderRadius: '8px', padding: '8px 12px 8px 35px' }} />
             </div>

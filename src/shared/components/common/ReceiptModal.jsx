@@ -397,7 +397,10 @@ function RechargeReceiptBody({ data, cfg }) {
   const isPending = st === 'PENDING';
   const amountStr = `₹${Number(data?.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
 
-  const number = data?.number || data?.customerMobile || data?.accountNo || data?.mobileNumber || 'N/A';
+  // `accountNo` deliberately dropped — that's a DMT bank account field, not
+  // a recharge/BBPS mobile or consumer number. Mixing them let a Recharge
+  // receipt's Number field silently show a bank account number.
+  const number = data?.number || data?.customerMobile || data?.mobileNumber || 'N/A';
   const operator = data?.operatorName || data?.operator || data?.operatorId || 'N/A';
   const service = data?.serviceName || data?.service || (data?._type === 'bbps' ? 'BBPS' : 'Recharge');
   const txnId = data?.orderId || data?.txnId || data?.transId || data?.bankTransId || 'N/A';
@@ -511,7 +514,9 @@ function BbpsReceiptBody({ data, cfg }) {
   const billerId = data?.billerId || data?.operatorId || 'N/A';
   const operatorId = data?.operatorId || 'N/A';
   const consumerName = data?.consumerName || data?.customerName || data?.name || 'N/A';
-  const consumerNumber = data?.consumerNumber || data?.number || data?.customerMobile || data?.accountNo || 'N/A';
+  // `accountNo` deliberately dropped — DMT's bank account field, not a BBPS
+  // consumer number. See RechargeReceiptBody's `number` field for the same fix.
+  const consumerNumber = data?.consumerNumber || data?.number || data?.customerMobile || 'N/A';
 
   const pairs = [
     ['Agent Detail', agentDetail],
@@ -946,7 +951,12 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
     date: data.createdDate || data.date || data.txnDate || data.transactionDate || data.created_at || 'N/A',
     status: data.status || 'PENDING',
     // AEPS fields
-    aadhar: data.aadhar || data.aadharNo || data.aadharNumber || data.AadharNo || data.accountNo || data.accountNumber || '',
+    // `accountNo`/`accountNumber` deliberately dropped from this fallback —
+    // that's DMT's bank account field, a different concept from an Aadhaar
+    // number. Mixing them meant an AEPS receipt could silently show a DMT
+    // bank account number in the Aadhaar field whenever the real Aadhaar
+    // was missing.
+    aadhar: data.aadhar || data.aadharNo || data.aadharNumber || data.AadharNo || '',
     bankName: data.bankName || data.bank || 'N/A',
     mobile: data.mobile || data.mobileNumber || data.customerMobile || data.number || 'N/A',
     bankTransId: data.bankTransId || data.txnId || data.transId || data.orderId || 'N/A',
@@ -964,9 +974,14 @@ export default function ReceiptModal({ isOpen, onClose, data }) {
     // never fabricate a name.
     customerName: data.customerName || data.name || data.beneName || 'N/A',
     customerMobile: data.customerMobile || data.mobileNumber || data.mobile || data.number || 'N/A',
-    beneficiary: data.beneficiary || data.beneficiaryName || data.beneName || data.beniName || data.beniVerifyName || data.memberName || 'N/A',
+    // `memberName` dropped here too, same reasoning as customerName above —
+    // that's the BC's own name, not the beneficiary's.
+    beneficiary: data.beneficiary || data.beneficiaryName || data.beneName || data.beniName || data.beniVerifyName || 'N/A',
     bank: data.bank || data.bankName || data.beneBankName || 'N/A',
-    accountNo: data.accountNo || data.accountNumber || data.accNo || data.aadhar || data.aadharNo || data.cardNo || 'N/A',
+    // `aadhar`/`aadharNo`/`cardNo` deliberately dropped from this fallback —
+    // those belong to AEPS/CC receipts, a different concept from a DMT bank
+    // account number. See the `aadhar` field above for the mirror fix.
+    accountNo: data.accountNo || data.accountNumber || data.accNo || 'N/A',
     ifsc: data.ifsc || data.ifscCode || '',
     mode: data.mode || data.transactionType || data.fromChannel || 'IMPS',
     amount: Number(data.amount || 0),

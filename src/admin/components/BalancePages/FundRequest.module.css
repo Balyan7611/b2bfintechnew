@@ -305,6 +305,35 @@
   .searchBox { width: 100%; }
   .searchInput { width: 100%; }
   .paginationRow { flex-direction: column; text-align: center; }
+
+  /* "Fund Request Management" title was full desktop size, and the 6 filter
+     fields (auto-fit, minmax(160px,1fr)) collapsed to 1 per row on a narrow
+     phone — each field taking a full row of its own. 2 fields per row
+     instead, smaller title, and smaller Reset/Apply buttons. */
+  .pageTitle {
+    font-size: 1.05rem;
+    margin-bottom: 12px;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+  .fundFilterGrid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+  .cancelBtn {
+    padding: 6px 12px;
+    font-size: 0.72rem;
+    border-radius: 8px;
+  }
+  .submitBtn {
+    padding: 6px 12px;
+    font-size: 0.72rem;
+    border-radius: 8px;
+    gap: 5px;
+  }
+  .submitBtn svg {
+    font-size: 0.72rem;
+  }
 }
 
 .modalOverlay {
