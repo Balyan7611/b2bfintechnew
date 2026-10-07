@@ -22,28 +22,63 @@ const getAuthConfig = (extra = {}) => {
 };
 
 const buildServiceFormData = (data, fileObj = null) => {
+  if (data instanceof FormData) return data;
+
   const fd = new FormData();
-  fd.append('Name',      data.name      || '');
-  fd.append('SectionType', data.sectionType || '0');
-  fd.append('ApiId',     data.apiid     || '1');
-  fd.append('UserID',    data.userId    || '1');
-  fd.append('URL',       data.url       || '');
-  fd.append('Icon',      data.icon      || '');
-  fd.append('Ontime',    data.onTime    || '0');
-  fd.append('Offtime',   data.offTime   || '0');
-  fd.append('OrderBy',   data.orderBy   || '0');
-  fd.append('Reason',    data.reason    || '');
-  fd.append('Price',     data.price     || '0');
-  fd.append('Tds',       data.tds       || '0');
-  fd.append('IsTds',     data.isTds     ?? false);
-  fd.append('IsGst',     data.isGst     ?? false);
-  fd.append('Gst',       data.gst       ?? false);
-  fd.append('IsKyc',     data.isKyc     ?? false);
-  fd.append('IsActive',  data.isActive  ?? true);
-  fd.append('IsNew',     data.isNew     ?? false);
-  fd.append('IsComming', data.isComming ?? false);
-  fd.append('Onoff',     data.onoff     ?? true);
-  if (fileObj) fd.append('File', fileObj);
+  const file = (fileObj instanceof File || fileObj instanceof Blob) ? fileObj
+    : (data?.file instanceof File || data?.file instanceof Blob) ? data.file
+    : (data?.File instanceof File || data?.File instanceof Blob) ? data.File
+    : (data?.image instanceof File || data?.image instanceof Blob) ? data.image
+    : (data?.Image instanceof File || data?.Image instanceof Blob) ? data.Image
+    : null;
+
+  const id          = data.id          ?? data.Id          ?? '';
+  const name        = data.name        ?? data.Name        ?? '';
+  const sectionType = data.sectionType ?? data.SectionType ?? data.sectiontype ?? '0';
+  const apiId       = data.apiid       ?? data.apiId       ?? data.ApiId       ?? '1';
+  const userId      = data.userId      ?? data.UserID      ?? data.userid      ?? '1';
+  const url         = data.url         ?? data.URL         ?? '';
+  const icon        = data.icon        ?? data.Icon        ?? '';
+  const onTime      = data.onTime      ?? data.Ontime      ?? data.ontime      ?? '0';
+  const offTime     = data.offTime     ?? data.Offtime     ?? data.offtime     ?? '0';
+  const orderBy     = data.orderBy     ?? data.OrderBy     ?? data.orderby     ?? '0';
+  const reason      = data.reason      ?? data.Reason      ?? '';
+  const price       = data.price       ?? data.Price       ?? '0';
+  const tds         = data.tds         ?? data.Tds         ?? '0';
+  const isTds       = data.isTds       ?? data.IsTds       ?? false;
+  const isGst       = data.isGst       ?? data.IsGst       ?? false;
+  const gst         = data.gst         ?? data.Gst         ?? false;
+  const isKyc       = data.isKyc       ?? data.IsKyc       ?? false;
+  const isActive    = data.isActive    ?? data.IsActive    ?? true;
+  const isNew       = data.isNew       ?? data.IsNew       ?? false;
+  const isComming   = data.isComming   ?? data.IsComming   ?? false;
+  const onoff       = data.onoff       ?? data.Onoff       ?? true;
+
+  if (id) fd.append('Id', id);
+  fd.append('Name', name);
+  fd.append('SectionType', sectionType);
+  fd.append('ApiId', apiId);
+  fd.append('UserID', userId);
+  fd.append('URL', url);
+  fd.append('Icon', icon);
+  fd.append('Ontime', onTime);
+  fd.append('Offtime', offTime);
+  fd.append('OrderBy', orderBy);
+  fd.append('Reason', reason);
+  fd.append('Price', price);
+  fd.append('Tds', tds);
+  fd.append('IsTds', isTds);
+  fd.append('IsGst', isGst);
+  fd.append('Gst', gst);
+  fd.append('IsKyc', isKyc);
+  fd.append('IsActive', isActive);
+  fd.append('IsNew', isNew);
+  fd.append('IsComming', isComming);
+  fd.append('Onoff', onoff);
+
+  // Only 'File' key — as per backend curl spec
+  if (file) fd.append('File', file);
+
   return fd;
 };
 
@@ -64,27 +99,29 @@ export const ServiceManagementService = {
   },
 
     create: async (data, fileObj = null) => {
-    const fd = buildServiceFormData(data, fileObj);
+    const fd = data instanceof FormData ? data : buildServiceFormData(data, fileObj);
     return await apiService.postForm('/Service/create-service', fd);
   },
 
     update: async (data, fileObj = null) => {
+    if (data instanceof FormData) {
+      const id = data.get('Id') || data.get('id') || '0';
+      return await apiService.putForm(`/Service/update-service/${id}`, data);
+    }
     const fd = buildServiceFormData(data, fileObj);
-    fd.append('Id', data.id);
-    return await apiService.putForm(`/Service/update-service/${data.id}`, fd);
+    const id = data.id ?? data.Id ?? '0';
+    return await apiService.putForm(`/Service/update-service/${id}`, fd);
   },
 
     toggleActive: async (service) => {
     const updated = { ...service, isActive: !service.isActive };
     const fd = buildServiceFormData(updated, null);
-    fd.append('Id', service.id);
     return await apiService.putForm(`/Service/update-service/${service.id}`, fd);
   },
 
     toggleOnOff: async (service) => {
     const updated = { ...service, onoff: !service.onoff };
     const fd = buildServiceFormData(updated, null);
-    fd.append('Id', service.id);
     return await apiService.putForm(`/Service/update-service/${service.id}`, fd);
   },
 

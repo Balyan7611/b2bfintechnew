@@ -252,14 +252,11 @@ const FundRequest = () => {
     copiedTimerRef.current = setTimeout(() => setCopiedText(''), 2000);
   };
 
-  // Server JSON body limit is very small — target ≤150 KB after compression
-  // Base64 adds ~33% overhead, so the actual file must be ≤~110 KB
-  const TARGET_BYTES = 110 * 1024;
   const MAX_RAW_MB = 20;
-  const MAX_DIM = 1024;
+  const MAX_DIM = 1600;
 
   const compressImage = (file) => new Promise((resolve) => {
-    if (file.type === 'application/pdf') { resolve(file); return; }
+    if (!file.type || !file.type.startsWith('image/')) { resolve(file); return; }
 
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -276,24 +273,15 @@ const FundRequest = () => {
         canvas.height = height;
         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
 
-        // Binary-search quality to hit TARGET_BYTES
-        const tryQuality = (lo, hi, attempt) => {
-          const q = (lo + hi) / 2;
-          canvas.toBlob((blob) => {
-            if (!blob) { resolve(file); return; }
-            if (attempt >= 6 || Math.abs(blob.size - TARGET_BYTES) < 5 * 1024) {
-              resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() }));
-            } else if (blob.size > TARGET_BYTES) {
-              tryQuality(lo, q, attempt + 1);
-            } else {
-              tryQuality(q, hi, attempt + 1);
-            }
-          }, 'image/jpeg', q);
-        };
-        tryQuality(0.1, 0.85, 0);
+        canvas.toBlob((blob) => {
+          if (!blob) { resolve(file); return; }
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() }));
+        }, 'image/jpeg', 0.8);
       };
+      img.onerror = () => resolve(file);
       img.src = ev.target.result;
     };
+    reader.onerror = () => resolve(file);
     reader.readAsDataURL(file);
   });
 
@@ -304,8 +292,8 @@ const FundRequest = () => {
     const rawMB = (file.size / 1024 / 1024).toFixed(1);
 
     if (file.type === 'application/pdf') {
-      if (file.size > 150 * 1024) {
-        showToast(`PDF too large (${rawMB} MB). Please upload a PDF under 150 KB or use an image instead.`, 'error');
+      if (file.size > 10 * 1024 * 1024) {
+        showToast(`PDF too large (${rawMB} MB). Max 10 MB allowed.`, 'error');
         e.target.value = '';
         return;
       }
@@ -322,8 +310,8 @@ const FundRequest = () => {
 
     const isImage = file.type.startsWith('image/');
     if (isImage) {
-      if (file.size > TARGET_BYTES) {
-        showToast(`Compressing image (${rawMB} MB)…`, 'success');
+      if (file.size > 2 * 1024 * 1024) {
+        showToast(`Optimizing image (${rawMB} MB)…`, 'success');
       }
       const compressed = await compressImage(file);
       const compKB = (compressed.size / 1024).toFixed(0);

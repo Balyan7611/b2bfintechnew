@@ -7,72 +7,66 @@ import {
 
 export const FundRequestService = {
                 create: async (data) => {
-        const { slipFile, ...rest } = data;
+        if (data instanceof FormData) {
+            return await apiService.postForm('/FundRequest/Create', data);
+        }
+
+        const file = data.slipFile || data.CashslipFile || data.cashslipFile || (data.cashslip instanceof File || data.cashslip instanceof Blob ? data.cashslip : null);
+
+        if (file instanceof File || file instanceof Blob) {
+            const formData = new FormData();
+            const model = FundRequestRequestModel({
+                ...data,
+                status: data.status || FUND_REQUEST_STATUS.PENDING,
+                isApprove: false,
+                isDelete: false
+            });
+
+            Object.keys(model).forEach(key => {
+                if (model[key] !== undefined && model[key] !== null) {
+                    // Send PascalCase key for .NET model binder
+                    const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
+                    formData.append(pascalKey, model[key]);
+                }
+            });
+
+            // Only 'CashslipFile' key — as per backend curl spec
+            formData.append('CashslipFile', file);
+
+            return await apiService.postForm('/FundRequest/Create', formData);
+        }
+
         const payload = FundRequestRequestModel({
-            ...rest,
-            status: FUND_REQUEST_STATUS.PENDING,
+            ...data,
+            status: data.status || FUND_REQUEST_STATUS.PENDING,
             isApprove: false,
             isDelete: false
         });
-
-        // Server only accepts JSON — convert file to base64 if provided
-        if (slipFile) {
-            try {
-                const base64 = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        // Strip the "data:image/jpeg;base64," prefix, send raw base64
-                        const result = reader.result;
-                        const base64Data = result.includes(',') ? result.split(',')[1] : result;
-                        resolve(base64Data);
-                    };
-                    reader.onerror = reject;
-                    reader.readAsDataURL(slipFile);
-                });
-                payload.cashslip = base64;
-                payload.slipFile = base64;
-                payload.slipFileName = slipFile.name;
-                payload.slipFileType = slipFile.type;
-            } catch (err) {
-                console.warn('FundRequest: could not encode slip file, submitting without it', err);
-            }
-        }
 
         return await apiService.post('/FundRequest/Create', payload);
     },
 
     update: async (data) => {
-        // Same reasoning as create() above: the server only accepts JSON on
-        // this controller, not multipart/form-data. This used to always
-        // build a FormData (even for plain approve/reject calls with no
-        // file), which gets rejected with 415 Unsupported Media Type —
-        // breaking the admin's Approve/Reject actions entirely. Mirror
-        // create()'s base64-in-JSON approach instead.
-        const { slipFile, ...rest } = data;
-        const payload = FundRequestRequestModel(rest);
-
-        if (slipFile) {
-            try {
-                const base64 = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        const result = reader.result;
-                        const base64Data = result.includes(',') ? result.split(',')[1] : result;
-                        resolve(base64Data);
-                    };
-                    reader.onerror = reject;
-                    reader.readAsDataURL(slipFile);
-                });
-                payload.cashslip = base64;
-                payload.slipFile = base64;
-                payload.slipFileName = slipFile.name;
-                payload.slipFileType = slipFile.type;
-            } catch (err) {
-                console.warn('FundRequest: could not encode slip file, submitting without it', err);
-            }
+        if (data instanceof FormData) {
+            return await apiService.putForm('/FundRequest/Update', data);
         }
 
-        return await apiService.put('/FundRequest/Update', payload);
+        const formData = new FormData();
+        const model = FundRequestRequestModel(data);
+
+        Object.keys(model).forEach(key => {
+            if (model[key] !== undefined && model[key] !== null) {
+                const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
+                formData.append(pascalKey, model[key]);
+            }
+        });
+
+        const file = data.slipFile || data.CashslipFile || data.cashslipFile || (data.cashslip instanceof File || data.cashslip instanceof Blob ? data.cashslip : null);
+        if (file instanceof File || file instanceof Blob) {
+            formData.append('CashslipFile', file);
+        }
+
+        return await apiService.putForm('/FundRequest/Update', formData);
     },
 
     getById: async (id) => {
@@ -84,7 +78,7 @@ export const FundRequestService = {
         return await apiService.delete(`/FundRequest/Delete/${id}`);
     },
 
-                getAll: async ({ pageNumber = 1, pageSize = 100, fromDate = '', toDate = '', status = '', memberId = '', silent = false } = {}) => {
+    getAll: async ({ pageNumber = 1, pageSize = 100, fromDate = '', toDate = '', status = '', memberId = '', silent = false } = {}) => {
         let url = `/FundRequest/GetFundRequest?PageNumber=${pageNumber}&PageSize=${pageSize}`;
         if (fromDate) url += `&FromDate=${encodeURIComponent(fromDate)}`;
         if (toDate) url += `&ToDate=${encodeURIComponent(toDate)}`;
@@ -96,7 +90,7 @@ export const FundRequestService = {
         return FundRequestResponseModel(res);
     },
 
-            getMine: async (memberId, params = {}) => {
+    getMine: async (memberId, params = {}) => {
         if (!memberId) return [];
         const rows = await FundRequestService.getAll({ pageSize: 500, memberId, ...params });
         const mine = rows.filter(r => Number(r.msrno) === Number(memberId));
@@ -107,18 +101,20 @@ export const FundRequestService = {
         return mine;
     },
 
-            approve: async (request, { remark = '' } = {}) => {
-        const tzoffset = (new Date()).getTimezoneOffset() * 60000;         const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 19);
+    approve: async (request, { remark = '' } = {}) => {
+        const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 19);
         return await FundRequestService.update({
             ...request,
             status: FUND_REQUEST_STATUS.APPROVE,
             isApprove: true,
             approveDate: localISOTime,
-            remark: remark || request.remark || 'Payment verified and approved'
+            companyMemberId: request.companyMemberId || request.CompanyMemberId || request.msrno || request.Msrno || 1,
+            remark: remark || request.remark || 'Approved by Admin - Wallet Credited'
         });
     },
 
-            reject: async (request, reason = '') => {
+    reject: async (request, reason = '') => {
         const tzoffset = (new Date()).getTimezoneOffset() * 60000;
         const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 19);
         return await FundRequestService.update({
@@ -126,8 +122,8 @@ export const FundRequestService = {
             status: FUND_REQUEST_STATUS.REJECTED,
             isApprove: false,
             approveDate: localISOTime,
-            reason: reason || 'Payment not received',
-            remark: 'Rejected by admin'
+            reason: reason || request.reason || 'Invalid UTR or payment slip',
+            remark: request.remark || 'Rejected by Admin'
         });
     }
 };

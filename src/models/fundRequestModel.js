@@ -1,32 +1,33 @@
 
 export const FUND_REQUEST_STATUS = {
     PENDING: 'Pending',
-    APPROVE: 'Approve',
+    APPROVE: 'Approved',
     REJECTED: 'Rejected'
 };
 
 export const FundRequestRequestModel = (data = {}) => {
     const payload = {
-        msrno: parseInt(data.msrno) || 0,
-        companyBankId: parseInt(data.companyBankId) || 0,
-        amount: parseFloat(data.amount) || 0,
-        bankRefId: data.bankRefId || '',
-        transactionId: data.transactionId || '',
-        paymentMode: data.paymentMode || '',
-        paymentDate: data.paymentDate || new Date().toISOString().split('T')[0],
-        status: data.status || FUND_REQUEST_STATUS.PENDING,
-        isApprove: data.isApprove === true,
-        remark: data.remark || '',
-        isDelete: data.isDelete === true
+        msrno: parseInt(data.msrno ?? data.Msrno) || 0,
+        companyBankId: parseInt(data.companyBankId ?? data.CompanyBankId) || 0,
+        amount: parseFloat(data.amount ?? data.Amount) || 0,
+        bankRefId: data.bankRefId ?? data.BankRefId ?? '',
+        transactionId: data.transactionId ?? data.TransactionId ?? '',
+        paymentMode: data.paymentMode ?? data.PaymentMode ?? '',
+        paymentDate: data.paymentDate ?? data.PaymentDate ?? new Date().toISOString().split('T')[0],
+        status: data.status ?? data.Status ?? FUND_REQUEST_STATUS.PENDING,
+        isApprove: data.isApprove === true || data.IsApprove === true || String(data.isApprove).toLowerCase() === 'true' || String(data.IsApprove).toLowerCase() === 'true',
+        remark: data.remark ?? data.Remark ?? '',
+        isDelete: data.isDelete === true || data.IsDelete === true
     };
 
-        if (data.id) payload.id = parseInt(data.id);
-    if (data.approveDate) payload.approveDate = data.approveDate;
-    if (data.reason) payload.reason = data.reason;
-    if (data.cashslip) payload.cashslip = data.cashslip;
-    if (data.slipFile) payload.slipFile = data.slipFile;
-    if (data.slipFileName) payload.slipFileName = data.slipFileName;
-    if (data.slipFileType) payload.slipFileType = data.slipFileType;
+    if (data.id || data.Id) payload.id = parseInt(data.id || data.Id);
+    if (data.companyMemberId || data.CompanyMemberId) payload.companyMemberId = parseInt(data.companyMemberId || data.CompanyMemberId);
+    if (data.approveDate || data.ApproveDate) payload.approveDate = data.approveDate || data.ApproveDate;
+    if (data.reason || data.Reason) payload.reason = data.reason || data.Reason;
+    if (data.cashslip || data.Cashslip) payload.cashslip = data.cashslip || data.Cashslip;
+    if (data.slipFile || data.SlipFile) payload.slipFile = data.slipFile || data.SlipFile;
+    if (data.slipFileName || data.SlipFileName) payload.slipFileName = data.slipFileName || data.SlipFileName;
+    if (data.slipFileType || data.SlipFileType) payload.slipFileType = data.slipFileType || data.SlipFileType;
 
     return payload;
 };

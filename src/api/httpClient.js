@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { store } from '../store';
-import { showLoader, hideLoader, setNotification } from '../store/slices/uiSlice';
+import { hideLoader, setNotification, showLoader } from '../store/slices/uiSlice';
 import { checkMaliciousInput } from '../utils/securityUtils';
 
 const httpClient = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || 'http://api.bype.in/api',
+    baseURL: process.env.REACT_APP_API_URL || 'https://api.bype.in/api',
     headers: { 'Content-Type': 'application/json' }
 });
 
