@@ -420,9 +420,9 @@ const ServiceManagement = () => {
                                     <td style={{ textAlign: 'center' }}>
                     {service.image ? (
                       <img 
-                        src={`https://b2b.bype.in/UploadedFiles/services/${service.image}`} 
+                        src={`http://api.bype.in/UploadedFiles/services/${service.image}`} 
                         alt="Service" 
-                        onClick={() => setShowImageModal({ isOpen: true, url: `https://b2b.bype.in/UploadedFiles/services/${service.image}` })}
+                        onClick={() => setShowImageModal({ isOpen: true, url: `http://api.bype.in/UploadedFiles/services/${service.image}` })}
                         style={{ width: '36px', height: '36px', objectFit: 'contain', borderRadius: '8px', cursor: 'pointer', border: '1px solid #E2E8F0', padding: '2px', background: '#fff' }}
                         title="Click to view full image"
                       />

@@ -913,7 +913,7 @@ const ImagePreview = ({ newPreview, existingPath, folder, label }) => {
   /* ── Case 2: Existing server image — build correct folder URL ── */
   if (!existingPath) return null;
 
-  // Build: https://b2b.bype.in/UploadedFiles/{folder}/{filename}
+  // Build: http://api.bype.in/UploadedFiles/{folder}/{filename}
   const folderMap = { logo: getLogoUrl, signature: getSignatureUrl, favicon: getFaviconUrl };
   const urlBuilder = folderMap[folder] || getLogoUrl;
   const serverUrl  = urlBuilder(existingPath);

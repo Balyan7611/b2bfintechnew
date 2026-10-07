@@ -238,7 +238,7 @@ const CompanyBank = () => {
 
     const getImageUrl = (filename, folder) => {
     if (!filename) return '';
-    return `https://b2b.bype.in/UploadedFiles/${folder}/${filename}`;
+    return `http://api.bype.in/UploadedFiles/${folder}/${filename}`;
   };
 
   return (

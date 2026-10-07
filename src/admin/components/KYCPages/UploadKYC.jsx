@@ -859,9 +859,9 @@ const UploadKYC = () => {
                   if (cleanPath.toLowerCase().startsWith('uploadedfiles/kycdocuments')) {
                     const suffix = cleanPath.substring('uploadedfiles/kycdocuments'.length);
                     const cleanSuffix = suffix.startsWith('/') ? suffix : '/' + suffix;
-                    return `https://b2b.bype.in/UploadedFiles/kycdocuments${cleanSuffix}`;
+                    return `http://api.bype.in/UploadedFiles/kycdocuments${cleanSuffix}`;
                   }
-                  return `https://b2b.bype.in/UploadedFiles/kycdocuments/${cleanPath}`;
+                  return `http://api.bype.in/UploadedFiles/kycdocuments/${cleanPath}`;
                 };
 
                 const frontImgUrl = getImageUrl(

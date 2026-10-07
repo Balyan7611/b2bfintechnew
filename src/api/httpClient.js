@@ -4,7 +4,7 @@ import { showLoader, hideLoader, setNotification } from '../store/slices/uiSlice
 import { checkMaliciousInput } from '../utils/securityUtils';
 
 const httpClient = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || 'https://b2b.bype.in/api',
+    baseURL: process.env.REACT_APP_API_URL || 'http://api.bype.in/api',
     headers: { 'Content-Type': 'application/json' }
 });
 
