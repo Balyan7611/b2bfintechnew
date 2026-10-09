@@ -35,18 +35,42 @@ export const TicketConversationService = {
         return await apiService.get(url, getAuthConfig());
     },
 
+    // GET /TicketConversation/get-by-id/1
+    getById: async (id) => {
+        return await apiService.get(`/TicketConversation/get-by-id/${id}`, getAuthConfig());
+    },
+
     getByTicketId: async (ticketId) => {
         return await apiService.get(`/TicketConversation/get-by-ticket-id/${ticketId}`, getAuthConfig());
     },
 
+    // POST /TicketConversation/create
     create: async (data) => {
-        return await apiService.post('/TicketConversation/create', data, getAuthConfig());
+        return await apiService.post('/TicketConversation/create', {
+            id: data.id || 0,
+            ticketId: data.ticketId || '',
+            senderType: data.senderType || '',
+            senderId: data.senderId || '',
+            message: data.message || '',
+            createdBy: data.createdBy ?? null,
+            modifiedBy: data.modifiedBy ?? null,
+        }, getAuthConfig());
     },
 
+    // POST /TicketConversation/update  (POST — not PUT per curl spec)
     update: async (data) => {
-        return await apiService.put('/TicketConversation/update', data, getAuthConfig());
+        return await apiService.post('/TicketConversation/update', {
+            id: data.id || 0,
+            ticketId: data.ticketId || '',
+            senderType: data.senderType || '',
+            senderId: data.senderId || '',
+            message: data.message || '',
+            createdBy: data.createdBy ?? null,
+            modifiedBy: data.modifiedBy ?? null,
+        }, getAuthConfig());
     },
 
+    // DELETE /TicketConversation/delete/1
     delete: async (id) => {
         return await apiService.delete(`/TicketConversation/delete/${id}`, getAuthConfig());
     }

@@ -79,6 +79,20 @@ export const UserWalletBalanceService = {
         };
     },
 
+    // GET /UserWalletBalance/GetAll?PageNumber=...&PageSize=...&FromDate=...&ToDate=...&Status=...&MemberID=...&WalletTypeId=...
+    getAllBalances: async (params = {}) => {
+        const pageNumber = params.pageNumber ?? 1;
+        const pageSize = params.pageSize ?? 100;
+        const fromDate = params.fromDate ?? '';
+        const toDate = params.toDate ?? '';
+        const status = params.status ?? '';
+        const memberID = params.memberID ?? '';
+        const walletTypeId = params.walletTypeId ?? '';
+        return await apiService.get(
+            `/UserWalletBalance/GetAll?PageNumber=${pageNumber}&PageSize=${pageSize}&FromDate=${fromDate}&ToDate=${toDate}&Status=${status}&MemberID=${memberID}&WalletTypeId=${walletTypeId}`
+        );
+    },
+
     getAll: async ({ pageNumber = 1, pageSize = 10, fromDate = '', toDate = '', status = '', memberId = '', silent = false } = {}) => {
         let url = `/UserWalletBalance/GetUserWalletBalances?PageNumber=${pageNumber}&PageSize=${pageSize}`;
         if (fromDate) url += `&FromDate=${encodeURIComponent(fromDate)}`;

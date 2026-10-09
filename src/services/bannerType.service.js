@@ -1,9 +1,15 @@
 import { apiService } from '../api/httpClient';
 
 export const BannerTypeService = {
-    getAll: async (pageNumber = 1, pageSize = 10000) => {
-        const fromDate = '2000-05-04T09:40:19.989Z';
-        const toDate = '2050-05-04T09:40:19.989Z';         return await apiService.get(`/BannerType/GetBannerType?PageNumber=${pageNumber}&PageSize=${pageSize}&FromDate=${encodeURIComponent(fromDate)}&ToDate=${encodeURIComponent(toDate)}&Status=string&MemberID=9301`);
+    getAll: async (params = {}) => {
+        const pageNumber = params.pageNumber || 1;
+        const pageSize = params.pageSize || 10000;
+        const fromDate = params.fromDate || '';
+        const toDate = params.toDate || '';
+        const status = params.status !== undefined ? params.status : '';
+        const memberID = params.memberID || params.memberId || '';
+        const walletTypeId = params.walletTypeId || params.WalletTypeId || '';
+        return await apiService.get(`/BannerType/GetBannerType?PageNumber=${pageNumber}&PageSize=${pageSize}&FromDate=${encodeURIComponent(fromDate)}&ToDate=${encodeURIComponent(toDate)}&Status=${encodeURIComponent(status)}&MemberID=${memberID}&WalletTypeId=${encodeURIComponent(walletTypeId)}`);
     },
     
         getById: async (id) => {

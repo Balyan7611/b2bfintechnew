@@ -1,69 +1,52 @@
 import { apiService } from '../api/httpClient';
-import { CompanyResponseModel } from '../models/companyModel';
 
 export const CompanyService = {
-
-    getCompanyDetails: async (url) => {
-        const response = await apiService.get(`/Company/get-by-url?url=${encodeURIComponent(url)}`);
-        const mapped = CompanyResponseModel(response);
-        return mapped.length > 0 ? mapped[0] : null;
-    },
-
-    fetchCompanyData: async (url) => {
-        try {
-            const res = await apiService.get(`/Company/get-by-url?url=${encodeURIComponent(url)}`, { ignoreError: true, hideLoader: true });
-            if (res && res.status === true && res.data) {
-                return res.data;
-            }
-            return null;
-        } catch (err) {
-            // A 401/404 here just means this origin (e.g. localhost during
-            // dev) isn't registered as a company URL — expected, and the
-            // fallback below already recovers by pulling the first company
-            // record. Not worth an alarming console.error every load.
-            console.debug('Company fetch by URL failed, falling back to get-all:', err?.response?.status || err?.message);
-            try {
-                const allRes = await apiService.get('/Company/get-all?PageNumber=1&PageSize=10000', { ignoreError: true, hideLoader: true });
-                if (allRes && allRes.status === true && Array.isArray(allRes.data) && allRes.data.length > 0) {
-                    return allRes.data[0];
-                }
-            } catch (_) {}
-            return null;
-        }
-    },
-
+    // GET /Company/get-all?PageNumber=1&PageSize=1&FromDate=&ToDate=&Status=&MemberID=1&WalletTypeId=1
     getAll: async (params = {}) => {
-        const pageNumber = params.pageNumber || 1;
-        const pageSize = params.pageSize || 10000;
-        const fromDate = params.fromDate || '';
-        const toDate = params.toDate || '';
-        const status = params.status || '';
-        const memberId = params.memberId || 0;
-        return await apiService.get(`/Company/get-all?PageNumber=${pageNumber}&PageSize=${pageSize}&FromDate=${fromDate}&ToDate=${toDate}&Status=${status}&MemberID=${memberId}`);
+        const pageNumber = params.pageNumber ?? 1;
+        const pageSize = params.pageSize ?? 100;
+        const fromDate = params.fromDate ?? '';
+        const toDate = params.toDate ?? '';
+        const status = params.status ?? '';
+        const memberID = params.memberID ?? '';
+        const walletTypeId = params.walletTypeId ?? '';
+        return await apiService.get(
+            `/Company/get-all?PageNumber=${pageNumber}&PageSize=${pageSize}&FromDate=${fromDate}&ToDate=${toDate}&Status=${status}&MemberID=${memberID}&WalletTypeId=${walletTypeId}`
+        );
     },
 
+    // GET /Company/get-by-id/1
+    getById: async (id) => {
+        return await apiService.get(`/Company/get-by-id/${id}`);
+    },
+
+    // GET /Company/get-by-member/1
     getByMember: async (memberId) => {
         return await apiService.get(`/Company/get-by-member/${memberId}`);
     },
 
-    getById: async (id) => {
-        const res = await apiService.get(`/Company/get-by-id/${id}`);
-        return CompanyResponseModel(res);
+    // GET /Company/get-by-url?url=
+    getByUrl: async (url = '') => {
+        return await apiService.get(`/Company/get-by-url?url=${encodeURIComponent(url)}`);
     },
 
-        create: async (formData) => {
-        return await apiService.post('/Company/create', formData);
-    },
-
-        update: async (formData) => {
-        return await apiService.post('/Company/update', formData);
-    },
-
+    // DELETE /Company/delete/1
     delete: async (id) => {
         return await apiService.delete(`/Company/delete/${id}`);
     },
 
+    // PATCH /Company/toggle-status/1
     toggleStatus: async (id) => {
-        return await apiService.patch(`/Company/toggle-status/${id}`, {});
-    }
+        return await apiService.patch(`/Company/toggle-status/${id}`);
+    },
+
+    // Used in endpoints.js as API.getCompanyDetails
+    getCompanyDetails: async (id = 1) => {
+        return await apiService.get(`/Company/get-by-id/${id}`);
+    },
+
+    // Used in endpoints.js as fetchCompanyData
+    fetchCompanyData: async (url = '') => {
+        return await apiService.get(`/Company/get-by-url?url=${encodeURIComponent(url)}`);
+    },
 };

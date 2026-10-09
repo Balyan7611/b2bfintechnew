@@ -1,84 +1,47 @@
 import { apiService } from '../api/httpClient';
-import { 
-  KycdocumentsMasterResponseModel, 
-  KycdocumentsMasterRequestModel 
-} from '../models/apiModels';
 
 export const KycDocumentService = {
-  getKycdocumentsMaster: async (params = {}) => {
-    try {
-      const { 
-        PageNumber = 1, 
-        PageSize = 10, 
-        FromDate = '', 
-        ToDate = '', 
-        Status = '', 
-        MemberID = '' 
-      } = params;
+    // GET /KycdocumentsMaster/GetKycdocumentsMaster?PageNumber=1&PageSize=1&FromDate=&ToDate=&Status=&MemberID=1&WalletTypeId=1
+    getAll: async (params = {}) => {
+        const pageNumber = params.pageNumber ?? 1;
+        const pageSize = params.pageSize ?? 100;
+        const fromDate = params.fromDate ?? '';
+        const toDate = params.toDate ?? '';
+        const status = params.status ?? '';
+        const memberID = params.memberID ?? '';
+        const walletTypeId = params.walletTypeId ?? '';
+        return await apiService.get(
+            `/KycdocumentsMaster/GetKycdocumentsMaster?PageNumber=${pageNumber}&PageSize=${pageSize}&FromDate=${fromDate}&ToDate=${toDate}&Status=${status}&MemberID=${memberID}&WalletTypeId=${walletTypeId}`
+        );
+    },
 
-      const queryParams = new URLSearchParams({
-        PageNumber,
-        PageSize,
-        FromDate,
-        ToDate,
-        Status,
-        MemberID
-      }).toString();
+    // GET /KycdocumentsMaster/GetByID/1
+    getById: async (id) => {
+        return await apiService.get(`/KycdocumentsMaster/GetByID/${id}`);
+    },
 
-      const response = await apiService.get(`/KycdocumentsMaster/GetKycdocumentsMaster?${queryParams}`);
-      if (response && response.status && response.data) {
-        response.data.items = KycdocumentsMasterResponseModel(response);
-      }
-      return response;
-    } catch (error) {
-      console.error('Error fetching KYC documents:', error);
-      throw error;
-    }
-  },
+    // POST /KycdocumentsMaster/Create
+    create: async (data) => {
+        return await apiService.post('/KycdocumentsMaster/Create', {
+            id: data.id || 0,
+            name: data.name || '',
+            side: data.side ?? null,
+            isActive: data.isActive === true,
+        });
+    },
 
-  getById: async (id) => {
-    try {
-      const response = await apiService.get(`/KycdocumentsMaster/GetByID/${id}`);
-      if (response && response.status && response.data) {
-        const mapped = KycdocumentsMasterResponseModel(response);
-        response.data = mapped.length ? mapped[0] : null;
-      }
-      return response;
-    } catch (error) {
-      console.error(`Error fetching KYC document by ID (${id}):`, error);
-      throw error;
-    }
-  },
+    // PUT /KycdocumentsMaster/Update
+    update: async (data) => {
+        return await apiService.put('/KycdocumentsMaster/Update', {
+            id: data.id || 0,
+            name: data.name || '',
+            side: data.side ?? null,
+            isActive: data.isActive === true,
+        });
+    },
 
-  create: async (data) => {
-    try {
-      const payload = KycdocumentsMasterRequestModel(data);
-      const response = await apiService.post('/KycdocumentsMaster/Create', payload);
-      return response;
-    } catch (error) {
-      console.error('Error creating KYC document:', error);
-      throw error;
-    }
-  },
-
-  update: async (data) => {
-    try {
-      const payload = KycdocumentsMasterRequestModel(data);
-      const response = await apiService.put('/KycdocumentsMaster/Update', payload);
-      return response;
-    } catch (error) {
-      console.error('Error updating KYC document:', error);
-      throw error;
-    }
-  },
-
-  delete: async (id) => {
-    try {
-      const response = await apiService.delete(`/KycdocumentsMaster/Delete/${id}`);
-      return response;
-    } catch (error) {
-      console.error(`Error deleting KYC document (${id}):`, error);
-      throw error;
-    }
-  }
+    // DELETE /KycdocumentsMaster/Delete/1
+    delete: async (id) => {
+        return await apiService.delete(`/KycdocumentsMaster/Delete/${id}`);
+    },
 };

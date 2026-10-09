@@ -19,6 +19,7 @@ import { CompanyBankDetailService } from '../services/companyBankDetail.service'
 import { FundRequestService } from '../services/fundRequest.service';
 import { MemberBankDetailService } from '../services/memberBankDetail.service';
 import { SmsCategoryService } from '../services/smsCategory.service';
+import { SmsLogService } from '../services/smsLog.service';
 import { SmsSettingService } from '../services/smsSetting.service';
 import { SmsTemplateService } from '../services/smsTemplate.service';
 import { MemberSecurityService } from '../services/memberSecurity.service';
@@ -42,6 +43,21 @@ import { ApiSwitchingConceptService } from '../services/apiSwitchingConcept.serv
 import { MemberWebhookService } from '../services/memberWebhook.service';
 import { AdminDashboardService } from '../services/adminDashboard.service';
 import { MemberDashboardService } from '../services/memberDashboard.service';
+import { AepsBankMasterService } from '../services/aepsBankMaster.service';
+import { ApiAnalysisService } from '../services/apiAnalysis.service';
+import { BusinessAnalysisService } from '../services/businessAnalysis.service';
+import { CommissionService } from '../services/commission.service';
+import { CommissionLedgerService } from '../services/commissionLedger.service';
+import { CountryService } from '../services/country.service';
+import { DeviceListService } from '../services/deviceList.service';
+import { MemberKYCDocumentsService } from '../services/memberKYCDocuments.service';
+import { MenuService } from '../services/menu.service';
+import { NotificationService } from '../services/notification.service';
+import { PageListService } from '../services/pageList.service';
+import { PermissionPageService } from '../services/permissionPage.service';
+import { UserActivityLogService } from '../services/userActivityLog.service';
+import { UserCredentialHistoryService } from '../services/userCredentialHistory.service';
+import { VerificationService } from '../services/verification.service';
 
 export const API = {
     login: AuthService.login,
@@ -56,7 +72,7 @@ export const API = {
     getCompanyDetails: CompanyService.getCompanyDetails,
     saveRole: RoleService.saveRole,
     deleteRole: RoleService.deleteRole,
-    
+
         company: CompanyService,
     package: PackageService,
     service: ServiceManagementService,
@@ -78,6 +94,7 @@ export const API = {
     fundRequest: FundRequestService,
     memberBankDetail: MemberBankDetailService,
     smsCategory: SmsCategoryService,
+    smsLog: SmsLogService,
     smsSetting: SmsSettingService,
     smsTemplate: SmsTemplateService,
     memberSecurity: MemberSecurityService,
@@ -99,6 +116,21 @@ export const API = {
     apiSwitchingConcept: ApiSwitchingConceptService,
     adminDashboard: AdminDashboardService,
     memberDashboard: MemberDashboardService,
+    aepsBankMaster: AepsBankMasterService,
+    apiAnalysis: ApiAnalysisService,
+    businessAnalysis: BusinessAnalysisService,
+    commission: CommissionService,
+    commissionLedger: CommissionLedgerService,
+    country: CountryService,
+    deviceList: DeviceListService,
+    memberKYCDocuments: MemberKYCDocumentsService,
+    menu: MenuService,
+    notification: NotificationService,
+    pageList: PageListService,
+    permissionPage: PermissionPageService,
+    userActivityLog: UserActivityLogService,
+    userCredentialHistory: UserCredentialHistoryService,
+    verification: VerificationService,
     apiPartnerDashboard: require('../services/apiPartnerDashboard.service').ApiPartnerDashboardService,
 };
 
@@ -122,6 +154,7 @@ export {
     FundRequestService,
     MemberBankDetailService,
     SmsCategoryService,
+    SmsLogService,
     SmsSettingService,
     SmsTemplateService,
     MemberSecurityService,
@@ -136,5 +169,20 @@ export {
     SupportTicketService,
     TicketConversationService,
     MasterApiService,
-    LogsServiceDatumService
+    LogsServiceDatumService,
+    AepsBankMasterService,
+    ApiAnalysisService,
+    BusinessAnalysisService,
+    CommissionService,
+    CommissionLedgerService,
+    CountryService,
+    DeviceListService,
+    MemberKYCDocumentsService,
+    MenuService,
+    NotificationService,
+    PageListService,
+    PermissionPageService,
+    UserActivityLogService,
+    UserCredentialHistoryService,
+    VerificationService,
 };

@@ -7,8 +7,9 @@ export const BannerImageService = {
         const fromDate = params.fromDate || '';
         const toDate = params.toDate || '';
         const status = params.status !== undefined ? params.status : '';
-        const memberId = params.memberId || 1;
-        return await apiService.get(`/BannerImage/get-all?PageNumber=${pageNumber}&PageSize=${pageSize}&FromDate=${encodeURIComponent(fromDate)}&ToDate=${encodeURIComponent(toDate)}&Status=${encodeURIComponent(status)}&MemberID=${memberId}`);
+        const memberId = params.memberId || params.memberID || 1;
+        const walletTypeId = params.walletTypeId || params.WalletTypeId || '';
+        return await apiService.get(`/BannerImage/get-all?PageNumber=${pageNumber}&PageSize=${pageSize}&FromDate=${encodeURIComponent(fromDate)}&ToDate=${encodeURIComponent(toDate)}&Status=${encodeURIComponent(status)}&MemberID=${memberId}&WalletTypeId=${encodeURIComponent(walletTypeId)}`);
     },
 
         getById: async (id) => {

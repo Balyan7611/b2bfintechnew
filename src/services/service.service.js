@@ -128,4 +128,9 @@ export const ServiceManagementService = {
     delete: async (id) => {
     return await apiService.post(`/Service/delete-service/${id}`, {});
   },
+
+    // GET /Service/get-service-by-id/1
+    getById: async (id) => {
+    return await apiService.get(`/Service/get-service-by-id/${id}`);
+  },
 };

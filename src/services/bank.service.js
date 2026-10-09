@@ -9,7 +9,8 @@ export const BankService = {
             fromDate: params.fromDate || null,
             toDate: params.toDate || null,
             status: params.status || null,
-            memberID: params.memberID || null
+            memberID: params.memberID || null,
+            walletTypeId: params.walletTypeId || null,
         };
         const res = await apiService.post('/BankMaster/AllBankMaster', payload);
         return BankResponseModel(res);

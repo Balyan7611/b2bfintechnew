@@ -78,12 +78,13 @@ export const FundRequestService = {
         return await apiService.delete(`/FundRequest/Delete/${id}`);
     },
 
-    getAll: async ({ pageNumber = 1, pageSize = 100, fromDate = '', toDate = '', status = '', memberId = '', silent = false } = {}) => {
+    getAll: async ({ pageNumber = 1, pageSize = 100, fromDate = '', toDate = '', status = '', memberId = '', walletTypeId = '', silent = false } = {}) => {
         let url = `/FundRequest/GetFundRequest?PageNumber=${pageNumber}&PageSize=${pageSize}`;
         if (fromDate) url += `&FromDate=${encodeURIComponent(fromDate)}`;
         if (toDate) url += `&ToDate=${encodeURIComponent(toDate)}`;
         if (status) url += `&Status=${encodeURIComponent(status)}`;
         if (memberId) url += `&MemberID=${encodeURIComponent(memberId)}`;
+        if (walletTypeId) url += `&WalletTypeId=${encodeURIComponent(walletTypeId)}`;
 
         const config = silent ? { hideLoader: true, ignoreError: true } : {};
         const res = await apiService.get(url, config);

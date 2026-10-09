@@ -46,13 +46,23 @@ export const TransactionService = {
     const res = await apiService.get(`/Transaction/get-all?${p.toString()}`);
     return res;   },
 
-    search: async ({ searchTerm = '', pageNumber = 1, pageSize = 10 } = {}) => {
+    search: async ({ searchTerm = '', pageNumber = 1, pageSize = 10, fromDate = '', toDate = '', status = '', memberID = '', walletTypeId = '' } = {}) => {
     const p = new URLSearchParams({
       searchTerm: searchTerm,
       PageNumber:  pageNumber,
       PageSize:    pageSize,
     });
+    if (fromDate)     p.append('FromDate',     fromDate);
+    if (toDate)       p.append('ToDate',       toDate);
+    if (status)       p.append('Status',       status);
+    if (memberID)     p.append('MemberID',     memberID);
+    if (walletTypeId) p.append('WalletTypeId', walletTypeId);
     const res = await apiService.get(`/Transaction/search?${p.toString()}`);
     return res;
+  },
+
+    // POST /Transaction/add-test-txn (no body)
+    addTestTxn: async () => {
+    return await apiService.post('/Transaction/add-test-txn');
   },
 };

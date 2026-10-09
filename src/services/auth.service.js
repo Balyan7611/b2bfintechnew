@@ -37,6 +37,13 @@ export const AuthService = {
         return await apiService.post('/UserAuth/verify-forget-pin', payload);
     },
 
+    // POST /UserAuth/LogoutUser
+    logout: async (sessionId) => {
+        return await apiService.post('/UserAuth/LogoutUser', {
+            sessionId: sessionId || '',
+        });
+    },
+
         getAll: async () => {},
     getById: async (id) => {},
     create: async (data) => {},

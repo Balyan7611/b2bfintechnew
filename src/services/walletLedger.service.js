@@ -41,7 +41,71 @@ export const WalletLedgerService = {
         WalletLedgerService.getAll({ ...params, walletTypeId: WALLET_TYPE_ID.MAIN }),
 
     getAepsLedger: async (params = {}) =>
-        WalletLedgerService.getAll({ ...params, walletTypeId: WALLET_TYPE_ID.AEPS })
+        WalletLedgerService.getAll({ ...params, walletTypeId: WALLET_TYPE_ID.AEPS }),
+
+    // GET /WalletLedger/GetByID/{id}
+    getById: async (id) => {
+        return await apiService.get(`/WalletLedger/GetByID/${id}`);
+    },
+
+    // POST /WalletLedger/Create
+    create: async (data) => {
+        return await apiService.post('/WalletLedger/Create', {
+            id: data.id || 0,
+            msrno: data.msrno ?? null,
+            byMsrno: data.byMsrno ?? null,
+            serviceId: data.serviceId ?? null,
+            operatorId: data.operatorId ?? null,
+            transactionId: data.transactionId || '',
+            walletTypeId: data.walletTypeId ?? null,
+            openingBalance: data.openingBalance ?? null,
+            amount: data.amount ?? null,
+            commission: data.commission ?? null,
+            surcharge: data.surcharge ?? null,
+            gst: data.gst ?? null,
+            tds: data.tds ?? null,
+            finalAmount: data.finalAmount ?? null,
+            balance: data.balance ?? null,
+            factor: data.factor || '',
+            narration: data.narration ?? null,
+            description: data.description ?? null,
+            isActive: data.isActive === true,
+            isDelete: data.isDelete === true,
+            isReversed: data.isReversed === true,
+        });
+    },
+
+    // PUT /WalletLedger/Update
+    update: async (data) => {
+        return await apiService.put('/WalletLedger/Update', {
+            id: data.id || 0,
+            msrno: data.msrno ?? null,
+            byMsrno: data.byMsrno ?? null,
+            serviceId: data.serviceId ?? null,
+            operatorId: data.operatorId ?? null,
+            transactionId: data.transactionId || '',
+            walletTypeId: data.walletTypeId ?? null,
+            openingBalance: data.openingBalance ?? null,
+            amount: data.amount ?? null,
+            commission: data.commission ?? null,
+            surcharge: data.surcharge ?? null,
+            gst: data.gst ?? null,
+            tds: data.tds ?? null,
+            finalAmount: data.finalAmount ?? null,
+            balance: data.balance ?? null,
+            factor: data.factor || '',
+            narration: data.narration ?? null,
+            description: data.description ?? null,
+            isActive: data.isActive === true,
+            isDelete: data.isDelete === true,
+            isReversed: data.isReversed === true,
+        });
+    },
+
+    // DELETE /WalletLedger/Delete/{id}
+    delete: async (id) => {
+        return await apiService.delete(`/WalletLedger/Delete/${id}`);
+    },
 };
 
 export { WALLET_TYPE_ID };

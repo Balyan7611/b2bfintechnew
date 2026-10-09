@@ -24,6 +24,40 @@ const getAuthConfig = (extra = {}) => {
 };
 
 export const ClientCredentialService = {
+    // GET /ClientCredential/GetByID/1
+    getById: async (id) => {
+        return await apiService.get(`/ClientCredential/GetByID/${id}`);
+    },
+
+    // POST /ClientCredential/Create
+    create: async (data) => {
+        return await apiService.post('/ClientCredential/Create', {
+            id: data.id || 0,
+            msrno: data.msrno || null,
+            clientId: data.clientId || "",
+            clientSecret: data.clientSecret || "",
+            isActive: data.isActive === true,
+            isRevoked: data.isRevoked === true,
+        });
+    },
+
+    // PUT /ClientCredential/Update
+    update: async (data) => {
+        return await apiService.put('/ClientCredential/Update', {
+            id: data.id || 0,
+            msrno: data.msrno || null,
+            clientId: data.clientId || "",
+            clientSecret: data.clientSecret || "",
+            isActive: data.isActive === true,
+            isRevoked: data.isRevoked === true,
+        });
+    },
+
+    // DELETE /ClientCredential/Delete/1
+    delete: async (id) => {
+        return await apiService.delete(`/ClientCredential/Delete/${id}`);
+    },
+
         sendOtp: async () => {
         return await apiService.post('/ClientCredential/SendOtp', {}, getAuthConfig());
     },

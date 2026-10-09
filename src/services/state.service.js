@@ -28,5 +28,32 @@ export const StateService = {
         const pageSize = params.pageSize || 10000;
         const res = await apiService.get(`/State?PageNumber=${pageNumber}&PageSize=${pageSize}`, getAuthConfig());
         return StateResponseModel(res);
-    }
+    },
+
+    // GET /State/1
+    getById: async (id) => {
+        return await apiService.get(`/State/${id}`);
+    },
+
+    // POST /State
+    create: async (data) => {
+        return await apiService.post('/State', {
+            id: data.id || 0,
+            name: data.name || '',
+            stateCode: data.stateCode || '',
+            countryId: data.countryId ?? null,
+            isActive: data.isActive === true,
+        });
+    },
+
+    // PUT /State/update-state
+    update: async (data) => {
+        return await apiService.put('/State/update-state', {
+            id: data.id || 0,
+            name: data.name || '',
+            stateCode: data.stateCode || '',
+            countryId: data.countryId ?? null,
+            isActive: data.isActive === true,
+        });
+    },
 };
